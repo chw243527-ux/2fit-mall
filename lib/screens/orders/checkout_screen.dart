@@ -66,6 +66,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
 
+  bool get _isReadyMadeOrder => widget.cart.items.every((item) {
+        final type = item.customOptions?['orderType']?.toString() ?? '';
+        return type != 'group' && type != 'additional';
+      });
+
   @override
   void initState() {
     super.initState();
@@ -420,13 +425,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildOrdererInfo() {
     final user = Provider.of<UserProvider>(context, listen: false).user;
-    final isReadyMade = widget.cart.items.every((item) {
-      final type = item.customOptions?['orderType']?.toString() ?? '';
-      return type != 'group' && type != 'additional';
-    });
     return _buildSection(
       loc.checkoutOrdererInfo,
-      isReadyMade
+      _isReadyMadeOrder
           ? Column(
               children: [
                 TextFormField(
@@ -2608,9 +2609,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    final customerName = _ordererNameController.text.trim();
-    final customerPhone = _ordererPhoneController.text.trim();
-    if (customerName.isEmpty || customerPhone.isEmpty) {
+    final customerName = _isReadyMadeOrder
+        ? _ordererNameController.text.trim()
+        : user.name;
+    final customerPhone = _isReadyMadeOrder
+        ? _ordererPhoneController.text.trim()
+        : user.phone;
+    if (_isReadyMadeOrder && (customerName.isEmpty || customerPhone.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.loc.t(
