@@ -1339,10 +1339,122 @@ exports.cancelSecurePayment = onRequest({ cors: PAYMENT_CORS }, async (req, res)
   const decoded = await requireSignedIn(req, res);
   if (!decoded) return;
   if (!(await enforceRateLimit(req, res, `cancel-payment:${decoded.uid}`, { limit: 20, windowMs: 60 * 60 * 1000 }))) return;
-  const orderId = String(req.body?.orderId || '');
-  try { await _releasePaymentIntent(decoded.uid, orderId); res.status(200).json({ success: true }); }
-  catch (_) { res.status(400).json({ error: 'Payment cancellation could not be processed' }); }
+  const orderId = String(req.body?.orderId || '').trim().slice(0, 120);
+  const cancelReason = String(req.body?.cancelReason || '고객 요청').trim().slice(0, 200);
+  try {
+    const orderRef = db.collection('orders').doc(orderId);
+    const orderSnap = await orderRef.get();
+    const order = orderSnap.data() || {};
+
+    if (orderSnap.exists && order.userId === decoded.uid) {
+      if (['cancelled', 'refunded'].includes(order.status) || order.paymentStatus === 'refunded') {
+        res.status(200).json({ success: true, alreadyCancelled: true });
+        return;
+      }
+      if (order.status !== 'pending' && order.status !== 'confirmed') {
+        res.status(409).json({ error: 'This order can no longer be cancelled' });
+        return;
+      }
+
+      // 무통장입금은 Toss 결제키가 없으므로 주문 상태와 예약 혜택만 취소합니다.
+      if (!order.paymentKey) {
+        await db.runTransaction(async (tx) => {
+          const latest = await tx.get(orderRef);
+          const latestOrder = latest.data() || {};
+          if (!latest.exists || latestOrder.userId !== decoded.uid) throw new Error('Order unavailable');
+          await _restoreCommittedBenefits(tx, decoded.uid, orderId, latestOrder);
+          tx.update(orderRef, {
+            status: 'cancelled',
+            paymentStatus: 'cancelled',
+            cancelReason,
+            cancelledAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+          });
+        });
+        res.status(200).json({ success: true, orderId, paymentStatus: 'cancelled' });
+        return;
+      }
+
+      const secret = TOSS_SECRET_KEY.value();
+      if (!secret) throw new Error('Payment service is not configured');
+      const tossResponse = await fetch(
+        `https://api.tosspayments.com/v1/payments/${encodeURIComponent(order.paymentKey)}/cancel`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Basic ${Buffer.from(`${secret}:`).toString('base64')}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ cancelReason }),
+        },
+      );
+      const toss = await tossResponse.json().catch(() => ({}));
+      if (!tossResponse.ok || !['CANCELED', 'PARTIAL_CANCELED'].includes(toss.status)) {
+        console.warn('Toss cancellation rejected', { orderId, status: tossResponse.status, code: toss.code });
+        res.status(400).json({ error: toss.message || 'Payment cancellation was rejected' });
+        return;
+      }
+
+      await db.runTransaction(async (tx) => {
+        const latest = await tx.get(orderRef);
+        const latestOrder = latest.data() || {};
+        if (!latest.exists || latestOrder.userId !== decoded.uid) throw new Error('Order unavailable');
+        if (['cancelled', 'refunded'].includes(latestOrder.status) || latestOrder.paymentStatus === 'refunded') return;
+        await _restoreCommittedBenefits(tx, decoded.uid, orderId, latestOrder);
+        tx.update(orderRef, {
+          status: 'cancelled',
+          paymentStatus: 'refunded',
+          refundStatus: 'completed',
+          cancelReason,
+          cancelledAt: FieldValue.serverTimestamp(),
+          refundedAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      });
+      res.status(200).json({ success: true, orderId, paymentStatus: 'refunded' });
+      return;
+    }
+
+    // 결제 전 이탈/실패는 기존처럼 결제 의도만 해제합니다.
+    await _releasePaymentIntent(decoded.uid, orderId);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('cancelSecurePayment failed:', { orderId, code: error?.code || 'cancel-failed' });
+    res.status(400).json({ error: 'Payment cancellation could not be processed' });
+  }
 });
+
+async function _restoreCommittedBenefits(tx, uid, orderId, order) {
+  const refundRef = db.collection('users').doc(uid).collection('point_history').doc(`refund_${orderId}`);
+  const refundSnap = await tx.get(refundRef);
+  if (refundSnap.exists) return;
+
+  const usedPoints = Math.max(0, Number(order.usedPoints || 0));
+  if (usedPoints > 0) {
+    const userRef = db.collection('users').doc(uid);
+    const userSnap = await tx.get(userRef);
+    const balance = Math.floor(Number(userSnap.data()?.points || 0));
+    tx.update(userRef, { points: balance + usedPoints });
+    tx.set(refundRef, {
+      action: 'refund', amount: usedPoints, desc: `주문 ${orderId} 취소 포인트 복구`,
+      orderId, createdAt: FieldValue.serverTimestamp(),
+    });
+  }
+
+  const couponIds = Array.isArray(order.couponIds)
+    ? order.couponIds
+    : (order.couponId ? [order.couponId] : []);
+  for (const couponId of couponIds) {
+    tx.update(db.collection('user_coupons').doc(uid).collection('coupons').doc(couponId), {
+      isUsed: false,
+      isReserved: false,
+      usedOrderId: FieldValue.delete(),
+      usedAt: FieldValue.delete(),
+      reservedOrderId: FieldValue.delete(),
+      reservedAt: FieldValue.delete(),
+    });
+  }
+}
 
 async function _fetchTossPayment(paymentKey) {
   const secret = TOSS_SECRET_KEY.value();

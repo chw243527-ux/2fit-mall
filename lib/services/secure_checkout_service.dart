@@ -68,12 +68,20 @@ class SecureCheckoutService {
     );
   }
 
-  static Future<void> cancelPaymentIntent(String orderId) async {
-    await _post<Object?>(
+  static Future<PaymentCancellationResult> cancelPaymentIntent(
+      String orderId, {String cancelReason = '고객 요청'}) async {
+    return _post<PaymentCancellationResult>(
       path: 'cancelSecurePayment',
-      body: {'orderId': orderId},
-      parser: (_) => null,
-      onFailure: (_) => null,
+      body: {'orderId': orderId, 'cancelReason': cancelReason},
+      parser: (data) => PaymentCancellationResult(
+        success: data['success'] == true,
+        alreadyCancelled: data['alreadyCancelled'] == true,
+        error: data['error'] as String?,
+      ),
+      onFailure: (message) => PaymentCancellationResult(
+        success: false,
+        error: message,
+      ),
     );
   }
 
@@ -161,6 +169,18 @@ class SecurePaymentResult {
     this.orderId,
     this.paymentKey,
     this.method,
+    this.error,
+  });
+}
+
+class PaymentCancellationResult {
+  final bool success;
+  final bool alreadyCancelled;
+  final String? error;
+
+  const PaymentCancellationResult({
+    required this.success,
+    this.alreadyCancelled = false,
     this.error,
   });
 }

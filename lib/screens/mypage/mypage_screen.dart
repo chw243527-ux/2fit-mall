@@ -35,6 +35,7 @@ import '../../widgets/pc_layout.dart';
 import '../../services/order_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/fcm_service.dart';
+import '../../services/secure_checkout_service.dart';
 import '../../widgets/address_search_widget.dart';
 import 'size_profile_screen.dart';
 import '../../utils/navigation_helper.dart';
@@ -43,7 +44,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 class MyPageScreen extends StatefulWidget {
   final VoidCallback? onBack; // 홈(탭0)으로 돌아가는 콜백
-  const MyPageScreen({super.key, this.onBack});
+  final String? openOrderId;
+  const MyPageScreen({super.key, this.onBack, this.openOrderId});
 
   @override
   State<MyPageScreen> createState() => _MyPageScreenState();
@@ -52,6 +54,7 @@ class MyPageScreen extends StatefulWidget {
 class _MyPageScreenState extends State<MyPageScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _openedInitialOrder = false;
 
   // ignore: unused_element
   AppLocalizations get _loc => context.watch<LanguageProvider>().loc;
@@ -73,7 +76,7 @@ class _MyPageScreenState extends State<MyPageScreen>
     super.initState();
     _tabController = TabController(length: 6, vsync: this);
     // 앱 시작 시 실제 주문 데이터 로드 + 이전 화면의 스낵바 큐 클리어
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       // 언어 변경 시 번역 트리거
       context.read<LanguageProvider>().triggerTranslation();
 
@@ -82,7 +85,19 @@ class _MyPageScreenState extends State<MyPageScreen>
       ScaffoldMessenger.of(context).clearSnackBars();
       final user = context.read<UserProvider>().user;
       if (user != null) {
-        context.read<OrderProvider>().loadUserOrders(user.id);
+        final orderProvider = context.read<OrderProvider>();
+        await orderProvider.loadUserOrders(user.id);
+        final orderId = widget.openOrderId;
+        if (!_openedInitialOrder && orderId != null && orderId.isNotEmpty) {
+          final matches = orderProvider
+              .getUserOrders(user.id)
+              .where((item) => item.id == orderId);
+          final order = matches.isEmpty ? null : matches.first;
+          if (order != null && mounted) {
+            _openedInitialOrder = true;
+            await _showUserOrderDetail(context, order);
+          }
+        }
       }
     });
   }
@@ -1639,8 +1654,23 @@ class _PcOrderCard extends StatelessWidget {
                   ),
                 );
                 if (confirm == true && btnCtx.mounted) {
-                  await OrderService.updateOrderStatus(
-                      order.id, OrderStatus.cancelled);
+                  final cancellation =
+                      await SecureCheckoutService.cancelPaymentIntent(
+                    order.id,
+                    cancelReason: context.loc.t('고객 직접 취소', '고객 직접 취소'),
+                  );
+                  if (!cancellation.success) {
+                    if (btnCtx.mounted) {
+                      ScaffoldMessenger.of(btnCtx).showSnackBar(
+                        SnackBar(
+                          content: Text(cancellation.error ?? context.loc.t(
+                              '주문취소에_실패했습니다', '주문 취소에 실패했습니다.')),
+                          backgroundColor: AppColors.error,
+                        ),
+                      );
+                    }
+                    return;
+                  }
                   NotificationService.sendCancelled(
                           order: order,
                           reason: context.loc.t('고객 직접 취소', '고객 직접 취소'))
@@ -3957,8 +3987,23 @@ class _MobileOrderCard extends StatelessWidget {
                   ),
                 );
                 if (confirm == true && btnCtx.mounted) {
-                  await OrderService.updateOrderStatus(
-                      order.id, OrderStatus.cancelled);
+                  final cancellation =
+                      await SecureCheckoutService.cancelPaymentIntent(
+                    order.id,
+                    cancelReason: context.loc.t('고객 직접 취소', '고객 직접 취소'),
+                  );
+                  if (!cancellation.success) {
+                    if (btnCtx.mounted) {
+                      ScaffoldMessenger.of(btnCtx).showSnackBar(
+                        SnackBar(
+                          content: Text(cancellation.error ?? context.loc.t(
+                              '주문취소에_실패했습니다', '주문 취소에 실패했습니다.')),
+                          backgroundColor: AppColors.error,
+                        ),
+                      );
+                    }
+                    return;
+                  }
                   NotificationService.sendCancelled(
                           order: order,
                           reason: context.loc.t('고객 직접 취소', '고객 직접 취소'))

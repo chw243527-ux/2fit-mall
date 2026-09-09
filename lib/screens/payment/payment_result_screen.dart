@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
 import '../../services/secure_checkout_service.dart';
+import '../mypage/mypage_screen.dart';
 
 // ══════════════════════════════════════════════════════════════
 // 결제 성공 화면
@@ -71,9 +72,11 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
         if (!mounted) return;
         setState(() => _isProcessing = false);
 
-        // 주문완료 → 마이페이지로 이동
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/mypage',
+        // 주문완료 → 최신 주문목록이 로드된 마이페이지에서 주문상세를 즉시 표시
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => MyPageScreen(openOrderId: orderId),
+          ),
           (route) => false,
         );
       } else {
