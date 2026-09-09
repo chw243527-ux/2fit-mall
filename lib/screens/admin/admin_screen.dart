@@ -4238,6 +4238,7 @@ class _AdminScreenState extends State<AdminScreen>
   // 주문 일괄 상태변경 다이얼로그
   void _showBulkStatusChangeDialog(List<OrderModel> filteredOrders) {
     String? selectedStatus;
+    bool isSaving = false;
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -4270,17 +4271,43 @@ class _AdminScreenState extends State<AdminScreen>
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
             ElevatedButton(
-              onPressed: selectedStatus == null
+              onPressed: selectedStatus == null || isSaving
                   ? null
-                  : () {
-                      Navigator.pop(ctx);
-                      setState(() => _selectedOrderIds.clear());
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text(
-                                '${_selectedOrderIds.length}건 → "$selectedStatus" 상태 변경 완료'),
-                            backgroundColor: AppColors.primary),
+                  : () async {
+                      final selectedIds = List<String>.from(_selectedOrderIds);
+                      final targetLabel = selectedStatus!;
+                      final targetStatus = OrderStatus.values.firstWhere(
+                        (status) => status.label == targetLabel,
                       );
+                      setD(() => isSaving = true);
+                      var updatedCount = 0;
+                      try {
+                        for (final orderId in selectedIds) {
+                          await OrderService.updateOrderStatus(orderId, targetStatus);
+                          updatedCount++;
+                        }
+                        if (ctx.mounted) Navigator.pop(ctx);
+                        if (mounted) {
+                          setState(() => _selectedOrderIds.clear());
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  '$updatedCount건 → "$targetLabel" 상태 변경 완료'),
+                              backgroundColor: AppColors.primary,
+                            ),
+                          );
+                        }
+                      } catch (error) {
+                        if (ctx.mounted) setD(() => isSaving = false);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('$updatedCount건 처리 후 실패: $error'),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                        }
+                      }
                     },
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
