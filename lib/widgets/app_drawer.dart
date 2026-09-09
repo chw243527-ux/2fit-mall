@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../utils/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../providers/providers.dart';
@@ -747,17 +748,35 @@ class _AppDrawerState extends State<AppDrawer> {
                           color: AppColors.textSecondary),
                     )),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                const Icon(Icons.phone_rounded,
-                    size: 14, color: AppColors.textHint),
-                const SizedBox(width: 8),
-                const Text('010-7227-6914',
-                    style: TextStyle(
+            InkWell(
+              onTap: () async {
+                final uri = Uri.parse(AppConstants.kakaoChannelUrl);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+              borderRadius: BorderRadius.circular(6),
+              child: Row(
+                children: [
+                  const Icon(Icons.chat_bubble_outline_rounded,
+                      size: 14, color: AppColors.textHint),
+                  const SizedBox(width: 8),
+                  Text(
+                    context.loc.t('카카오채널 문의하기', 'Contact Kakao Channel'),
+                    style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary)),
-                const Spacer(),
+                        color: AppColors.textPrimary),
+                  ),
+                  const Spacer(),
+                  const Icon(Icons.open_in_new_rounded,
+                      size: 13, color: AppColors.textHint),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
                 const Icon(Icons.email_rounded,
                     size: 14, color: AppColors.textHint),
                 const SizedBox(width: 8),
