@@ -130,7 +130,9 @@ exports.onOrderStatusChanged = onDocumentUpdated(
     }
     // 결제 완료·배송·취소는 FCM 권한이 없어도 전화번호로 안내합니다.
     if (['confirmed', 'shipped', 'delivered', 'cancelled', 'refunded'].includes(after.status)) {
-      const phone = String(after.userPhone || after.recipientPhone || '').replace(/[^0-9+]/g, '');
+      // 주문 시 입력한 주문자 전화번호로만 발송합니다.
+      // ordererPhone은 신규 주문의 명시 필드이며 userPhone은 기존 주문 호환용입니다.
+      const phone = String(after.ordererPhone || after.userPhone || '').replace(/[^0-9+]/g, '');
       if (/^\+?[0-9]{8,15}$/.test(phone)) {
         const itemSummary = Array.isArray(after.items) && after.items.length
           ? `${after.items[0].productName || '상품'}${after.items.length > 1 ? ` 외 ${after.items.length - 1}건` : ''}`
@@ -1959,7 +1961,8 @@ async function _prepareOrderFromServerData(uid, payload) {
   const totalAmount = Math.max(0, subtotal + shippingFee - coupons.discount - payload.usedPoints);
   if (!Number.isSafeInteger(totalAmount) || totalAmount < 0) throw new Error('Invalid payment amount');
   const orderId = `${isGroup ? 'GRP' : 'ORD'}-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
-  const order = { id: orderId, userId: uid, userName: payload.customerName || String(user.name || '고객').slice(0, 100), userEmail: String(user.email || '').slice(0, 254), userPhone: payload.customerPhone || String(user.phone || '').slice(0, 40), userAddress: payload.deliveryAddress, items, subtotal, totalAmount, shippingFee, couponId: coupons.ids[0] || null, couponIds: coupons.ids, couponDiscount: coupons.discount, couponDiscounts: coupons.discounts, usedPoints: payload.usedPoints, pointDiscount: payload.usedPoints, paymentMethod: payload.paymentMethod, status: 'pending', orderType: isGroup ? 'group' : 'regular', memo: payload.memo || null };
+  const ordererPhone = String(payload.customerPhone || user.phone || '').slice(0, 40);
+  const order = { id: orderId, userId: uid, userName: payload.customerName || String(user.name || '고객').slice(0, 100), userEmail: String(user.email || '').slice(0, 254), userPhone: ordererPhone, ordererPhone, userAddress: payload.deliveryAddress, items, subtotal, totalAmount, shippingFee, couponId: coupons.ids[0] || null, couponIds: coupons.ids, couponDiscount: coupons.discount, couponDiscounts: coupons.discounts, usedPoints: payload.usedPoints, pointDiscount: payload.usedPoints, paymentMethod: payload.paymentMethod, status: 'pending', orderType: isGroup ? 'group' : 'regular', memo: payload.memo || null };
   return { orderId, order, orderName: `${items[0].productName}${items.length > 1 ? ` 외 ${items.length - 1}건` : ''}`, couponId: coupons.ids[0] || '', couponIds: coupons.ids, usedPoints: payload.usedPoints, isBankTransfer: payload.paymentMethod.includes('무통장') };
 }
 
