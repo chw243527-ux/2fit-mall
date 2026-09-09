@@ -34,9 +34,20 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
     try {
       // URL 파라미터 파싱
       final uri = Uri.parse(Uri.base.toString());
-      final paymentKey = uri.queryParameters['paymentKey'] ?? '';
-      final orderId = uri.queryParameters['orderId'] ?? '';
-      final amountStr = uri.queryParameters['amount'] ?? '0';
+      // 모바일 브라우저·웹뷰는 콜백을 /#/payment/success?... 형태로
+      // 전달할 수 있으므로 일반 query와 fragment query를 모두 확인합니다.
+      final fragmentUri = uri.fragment.isNotEmpty
+          ? Uri.parse(uri.fragment.startsWith('/')
+              ? uri.fragment
+              : '/${uri.fragment}')
+          : null;
+      final query = <String, String>{
+        ...uri.queryParameters,
+        if (fragmentUri != null) ...fragmentUri.queryParameters,
+      };
+      final paymentKey = query['paymentKey'] ?? '';
+      final orderId = query['orderId'] ?? '';
+      final amountStr = query['amount'] ?? '0';
       final amount = int.tryParse(amountStr) ?? 0;
 
       if (paymentKey.isEmpty || orderId.isEmpty) {
