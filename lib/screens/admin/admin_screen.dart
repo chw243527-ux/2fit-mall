@@ -4281,32 +4281,42 @@ class _AdminScreenState extends State<AdminScreen>
                       );
                       setD(() => isSaving = true);
                       var updatedCount = 0;
-                      try {
-                        for (final orderId in selectedIds) {
-                          await OrderService.updateOrderStatus(orderId, targetStatus);
-                          updatedCount++;
+                      final failedIds = <String>[];
+                      for (final orderId in selectedIds) {
+                        var succeeded = false;
+                        for (var attempt = 1; attempt <= 3 && !succeeded; attempt++) {
+                          try {
+                            await OrderService.updateOrderStatusStrict(
+                                orderId, targetStatus);
+                            succeeded = true;
+                            updatedCount++;
+                          } catch (_) {
+                            if (attempt < 3) {
+                              await Future<void>.delayed(
+                                  Duration(milliseconds: 400 * attempt));
+                            }
+                          }
                         }
-                        if (ctx.mounted) Navigator.pop(ctx);
-                        if (mounted) {
-                          setState(() => _selectedOrderIds.clear());
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  '$updatedCount건 → "$targetLabel" 상태 변경 완료'),
-                              backgroundColor: AppColors.primary,
-                            ),
-                          );
-                        }
-                      } catch (error) {
-                        if (ctx.mounted) setD(() => isSaving = false);
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('$updatedCount건 처리 후 실패: $error'),
-                              backgroundColor: AppColors.error,
-                            ),
-                          );
-                        }
+                        if (!succeeded) failedIds.add(orderId);
+                      }
+                      if (ctx.mounted) Navigator.pop(ctx);
+                      if (mounted) {
+                        setState(() {
+                          _selectedOrderIds
+                            ..clear()
+                            ..addAll(failedIds);
+                        });
+                        final message = failedIds.isEmpty
+                            ? '$updatedCount건 → "$targetLabel" 상태 변경 완료'
+                            : '$updatedCount건 완료, ${failedIds.length}건 실패(3회 재시도 후)';
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(message),
+                            backgroundColor: failedIds.isEmpty
+                                ? AppColors.primary
+                                : AppColors.error,
+                          ),
+                        );
                       }
                     },
               style: ElevatedButton.styleFrom(

@@ -261,6 +261,16 @@ class OrderService {
     }
   }
 
+  /// 일괄 처리 등 결과 확인이 필요한 호출용 상태 업데이트.
+  static Future<void> updateOrderStatusStrict(
+      String orderId, OrderStatus status) async {
+    await updateOrderStatus(orderId, status);
+    final snapshot = await _db.collection('orders').doc(orderId).get();
+    if (!snapshot.exists || snapshot.data()?['status'] != status.name) {
+      throw StateError('주문 상태 저장 확인 실패: $orderId');
+    }
+  }
+
   // ────────────────────────────────────────────
   // 주문번호 생성
   // ────────────────────────────────────────────
