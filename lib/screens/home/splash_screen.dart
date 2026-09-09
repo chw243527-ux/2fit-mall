@@ -96,6 +96,14 @@ class _SplashScreenState extends State<SplashScreen>
         // 브라우저 주소창으로 직접 여는 공개 페이지와 결제 콜백은
         // hash(#) 없이도 현재 pathname을 딥링크로 인식해야 합니다.
         const publicPathRoutes = {
+          // 상품 상세/목록은 로그인 없이 직접 접근할 수 있는 공개 페이지입니다.
+          // 모바일 브라우저가 hash URL을 제거하거나 pathname으로 전달해도
+          // /product?id=...가 홈으로 되돌아가지 않도록 반드시 등록합니다.
+          '/product',
+          '/products',
+          '/category',
+          '/cart',
+          '/cart-tab',
           '/privacy-policy',
           '/account-deletion',
           '/terms-of-service',
@@ -108,6 +116,15 @@ class _SplashScreenState extends State<SplashScreen>
         };
         if (publicPathRoutes.contains(pathname)) {
           deepLink = _DeepLink(pathname, query, requiresAuth: false);
+        } else if (pathname.startsWith('/products/') &&
+            pathname.length > '/products/'.length) {
+          // /products/{id} 형식도 /product?id={id}로 통일합니다.
+          final id = pathname.substring('/products/'.length);
+          deepLink = _DeepLink(
+            '/product',
+            <String, String>{'id': Uri.decodeComponent(id), ...query},
+            requiresAuth: false,
+          );
         } else {
           // fragment 기반 hash-routing: https://2fit-mall.co.kr/#/path?query
           final fragment = Uri.base.fragment; // e.g. "/product?id=abc123"
@@ -437,7 +454,17 @@ class _SplashScreenState extends State<SplashScreen>
         final pathname = Uri.base.path;
         final query = Uri.base.queryParameters;
         if (pathname != '/' && pathname.isNotEmpty) {
-          link = _DeepLink(pathname, query, requiresAuth: false);
+          if (pathname.startsWith('/products/') &&
+              pathname.length > '/products/'.length) {
+            final id = pathname.substring('/products/'.length);
+            link = _DeepLink(
+              '/product',
+              <String, String>{'id': Uri.decodeComponent(id), ...query},
+              requiresAuth: false,
+            );
+          } else {
+            link = _DeepLink(pathname, query, requiresAuth: false);
+          }
         } else if (Uri.base.fragment.isNotEmpty) {
           link = _parseDeepLink(Uri.base.fragment);
         }
