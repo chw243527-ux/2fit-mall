@@ -93,20 +93,19 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
                             color: AppColors.primary)),
                     SizedBox(height: 10),
                     _InfoRow(context.loc.t('회사명', '회사명'),
-                        context.loc.t('주식회사_2FIT_Korea', '주식회사 2FIT Korea')),
+                        AppConstants.companyName),
                     _InfoRow(context.loc.t('대표자', '대표자'),
-                        context.loc.t('최혜원', '최혜원')),
+                        AppConstants.ceoName),
                     _InfoRow(
                         context.loc.t('사업장_주소', '사업장 주소'),
-                        context.loc.t('전북_남원시_오들1길_97_205_303',
-                            '전북 남원시 오들1길 97, 205-303')),
+                        AppConstants.companyAddress),
                     _InfoRow(
-                        context.loc.t('사업자등록번호', '사업자등록번호'), '787-19-02539'),
+                        context.loc.t('사업자등록번호', '사업자등록번호'), AppConstants.businessRegNumber),
                     _InfoRow(context.loc.t('통신판매업신고', '통신판매업신고'),
                         AppConstants.ecommerceRegNumber),
-                    _InfoRow(context.loc.t('고객센터', '고객센터'), '010-7227-6914'),
+                    _InfoRow(context.loc.t('고객센터', '고객센터'), AppConstants.customerServicePhone),
                     _InfoRow(
-                        context.loc.t('이메일', '이메일'), 'chw243527@gmail.com'),
+                        context.loc.t('이메일', '이메일'), AppConstants.customerServiceEmail),
                     _InfoRow(
                         context.loc.t('운영시간', '운영시간'),
                         context.loc.t('평일_10_00_18_00_점심_12_00_14_00',
@@ -118,7 +117,7 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
               _buildSection(
                 context.loc.t('제1조_목적', '제1조 (목적)'),
                 context.loc.t('이용약관_제1조_목적_내용',
-                    '본 약관은 주식회사 2FIT Korea(이하 "회사")가 운영하는 2FIT MALL 쇼핑몰 서비스의 이용조건 및 절차, 회사와 이용자 간의 권리·의무 관계를 규정함을 목적으로 합니다.'),
+                    '본 약관은 ${AppConstants.companyName}(이하 "회사")가 운영하는 2FIT MALL 쇼핑몰 서비스의 이용조건 및 절차, 회사와 이용자 간의 권리·의무 관계를 규정함을 목적으로 합니다.'),
               ),
               _buildSection(
                 context.loc.t('제2조_회원가입', '제2조 (회원가입)'),

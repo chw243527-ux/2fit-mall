@@ -12,6 +12,7 @@ import '../screens/support/notices_screen.dart';
 import '../services/category_service.dart';
 
 import '../utils/theme.dart';
+import '../utils/constants.dart';
 
 // ──────────────────────────────────────────────
 // 카테고리 데이터 모델
@@ -658,7 +659,7 @@ class _AppDrawerState extends State<AppDrawer> {
           child: Row(
             children: [
               const Text(
-                '© 2024 2FIT KOREA',
+                AppConstants.copyright,
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,

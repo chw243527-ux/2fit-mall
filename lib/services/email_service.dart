@@ -99,8 +99,15 @@ class EmailService {
         'shipping_fee': order.shippingFee > 0 ? '${_fmtPrice(order.shippingFee)}원' : '무료',
         'shipping_address': order.userAddress,
         'payment_method': order.paymentMethod,
-        'shop_name': '2FIT MALL',
+        'shop_name': AppConstants.companyName,
         'shop_url': '$_origin/#/admin?tab=orders',
+        'business_name': AppConstants.companyName,
+        'business_registration_number': AppConstants.businessRegNumber,
+        'business_address': AppConstants.companyAddress,
+        'business_phone': AppConstants.customerServicePhone,
+        'business_email': AppConstants.customerServiceEmail,
+        'business_contact': '고객센터 ${AppConstants.customerServicePhone} · ${AppConstants.customerServiceEmail}',
+        'copyright': AppConstants.copyright,
       },
     );
   }
@@ -160,7 +167,14 @@ class EmailService {
         'tracking_number': trackingNumber ?? '',
         'courier_name': courierName ?? '',
         'order_url': '$_origin/#/admin?tab=orders',
-        'shop_name': '2FIT MALL',
+        'shop_name': AppConstants.companyName,
+        'business_name': AppConstants.companyName,
+        'business_registration_number': AppConstants.businessRegNumber,
+        'business_address': AppConstants.companyAddress,
+        'business_phone': AppConstants.customerServicePhone,
+        'business_email': AppConstants.customerServiceEmail,
+        'business_contact': '고객센터 ${AppConstants.customerServicePhone} · ${AppConstants.customerServiceEmail}',
+        'copyright': AppConstants.copyright,
       },
     );
   }

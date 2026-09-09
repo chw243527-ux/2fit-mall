@@ -11,6 +11,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import '../models/models.dart';
+import '../utils/constants.dart';
 
 class OrderExcelService {
   static FirebaseFirestore get _db => FirebaseFirestore.instance;
@@ -3719,6 +3720,19 @@ class OrderExcelService {
         ]),
         pw.SizedBox(height: 4),
         pw.Text('주문 수정사항과 제작 정보를 포함한 최종 확인용 문서', style: cellStyle),
+        pw.SizedBox(height: 8),
+        pw.Container(
+          width: double.infinity,
+          padding: const pw.EdgeInsets.all(8),
+          decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey400), color: PdfColors.grey100),
+          child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+            pw.Text(AppConstants.companyName, style: pw.TextStyle(font: font, fontSize: 11, fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 3),
+            pw.Text('대표자: ${AppConstants.ceoName}  |  사업자등록번호: ${AppConstants.businessRegNumber}', style: cellStyle),
+            pw.Text('주소: ${AppConstants.companyAddress}  |  통신판매업신고: ${AppConstants.ecommerceRegNumber}', style: cellStyle),
+            pw.Text('고객센터: ${AppConstants.customerServicePhone}  |  ${AppConstants.customerServiceEmail}', style: cellStyle),
+          ]),
+        ),
         pw.SizedBox(height: 12),
         pw.Table(border: pw.TableBorder.all(color: PdfColors.orange400), children: [
           pw.TableRow(children: [infoRow('주문자/담당자', _optText(opts, ['manager', 'managerName'], order.userName)), infoRow('팀명', teamName)]),

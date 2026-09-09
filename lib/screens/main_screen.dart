@@ -1333,7 +1333,7 @@ class _PcFooter extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '© 2025 2FIT Korea Co., Ltd. All rights reserved.',
+                      AppConstants.copyright,
                       style:
                           TextStyle(color: Colors.white30, fontSize: r.sp(12)),
                     ),

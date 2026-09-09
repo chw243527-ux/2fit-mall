@@ -6964,11 +6964,11 @@ class AppLocalizations {
   }
   String get drawerCopyright {
     switch (language) {
-      case AppLanguage.english: return '© 2024 2FIT KOREA';
-      case AppLanguage.japanese: return '© 2024 2FIT KOREA';
-      case AppLanguage.chinese: return '© 2024 2FIT KOREA';
-      case AppLanguage.mongolian: return '© 2024 2FIT KOREA';
-      default: return '© 2024 2FIT KOREA';
+      case AppLanguage.english: return '© 2026 2FIT MALL';
+      case AppLanguage.japanese: return '© 2026 2FIT MALL';
+      case AppLanguage.chinese: return '© 2026 2FIT MALL';
+      case AppLanguage.mongolian: return '© 2026 2FIT MALL';
+      default: return '© 2026 2FIT MALL';
     }
   }
 
@@ -9641,11 +9641,11 @@ class AppLocalizations {
   }
   String get serviceKakaoCompany {
     switch (language) {
-      case AppLanguage.english: return '🏢 2FIT Korea Co., Ltd.';
-      case AppLanguage.japanese: return '🏢 株式会社 2FIT Korea';
-      case AppLanguage.chinese: return '🏢 2FIT Korea有限公司';
-      case AppLanguage.mongolian: return '🏢 2FIT Korea ХХК';
-      default: return '🏢 주식회사 2FIT Korea';
+      case AppLanguage.english: return '🏢 2FIT MALL';
+      case AppLanguage.japanese: return '🏢 2FIT MALL';
+      case AppLanguage.chinese: return '🏢 2FIT MALL';
+      case AppLanguage.mongolian: return '🏢 2FIT MALL';
+      default: return '🏢 투핏몰(2FIT-mall)';
     }
   }
   String get serviceKakaoChat {

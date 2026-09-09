@@ -6239,7 +6239,7 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               Expanded(
                 child: Text(
-                  '© 2025 2FIT Korea Co., Ltd.',
+                  AppConstants.copyright,
                   style: TextStyle(color: Colors.white30, fontSize: r.sp(11)),
                 ),
               ),
@@ -6446,7 +6446,7 @@ class _HomeScreenState extends State<HomeScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '© 2025 2FIT Korea Co., Ltd. All rights reserved.',
+                      AppConstants.copyright,
                       style:
                           TextStyle(color: Colors.white30, fontSize: r.sp(12)),
                     ),
