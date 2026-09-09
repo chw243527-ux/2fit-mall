@@ -1339,11 +1339,21 @@ exports.cancelSecurePayment = onRequest({ cors: PAYMENT_CORS }, async (req, res)
   const decoded = await requireSignedIn(req, res);
   if (!decoded) return;
   if (!(await enforceRateLimit(req, res, `cancel-payment:${decoded.uid}`, { limit: 20, windowMs: 60 * 60 * 1000 }))) return;
-  const orderId = String(req.body?.orderId || '').trim().slice(0, 120);
+  const rawOrderId = String(req.body?.orderId || '').trim().slice(0, 120);
+  // 일부 클라이언트가 prefix를 소문자로 전달하므로 문서 ID 형식으로 정규화합니다.
+  const orderId = rawOrderId.replace(/^ord-/i, 'ORD-').replace(/^grp-/i, 'GRP-');
   const cancelReason = String(req.body?.cancelReason || '고객 요청').trim().slice(0, 200);
   try {
-    const orderRef = db.collection('orders').doc(orderId);
-    const orderSnap = await orderRef.get();
+    let orderRef = db.collection('orders').doc(orderId);
+    let orderSnap = await orderRef.get();
+    if (!orderSnap.exists && rawOrderId !== orderId) {
+      const legacyRef = db.collection('orders').doc(rawOrderId);
+      const legacySnap = await legacyRef.get();
+      if (legacySnap.exists) {
+        orderRef = legacyRef;
+        orderSnap = legacySnap;
+      }
+    }
     const order = orderSnap.data() || {};
 
     if (orderSnap.exists && order.userId === decoded.uid) {
