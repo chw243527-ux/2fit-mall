@@ -1665,6 +1665,7 @@ class _PcOrderCard extends StatelessWidget {
                   FcmService.sendOrderStatusNotification(
                           order: order, newStatus: OrderStatus.cancelled)
                       .catchError((_) {});
+                  await context.read<OrderProvider>().loadUserOrders(order.userId);
                   if (btnCtx.mounted) {
                     ScaffoldMessenger.of(btnCtx).showSnackBar(
                       SnackBar(
@@ -3998,6 +3999,7 @@ class _MobileOrderCard extends StatelessWidget {
                   FcmService.sendOrderStatusNotification(
                           order: order, newStatus: OrderStatus.cancelled)
                       .catchError((_) {});
+                  await context.read<OrderProvider>().loadUserOrders(order.userId);
                   if (btnCtx.mounted) {
                     ScaffoldMessenger.of(btnCtx).showSnackBar(
                       SnackBar(

@@ -429,6 +429,8 @@ class UserProvider extends ChangeNotifier {
 
 class OrderProvider extends ChangeNotifier {
   final List<OrderModel> _orders = [];
+  final Map<String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>
+      _orderSubscriptions = {};
   String? _orderSaveError; // 주문 저장 실패 시 orderId 저장
 
   String? get orderSaveError => _orderSaveError;
@@ -527,6 +529,26 @@ class OrderProvider extends ChangeNotifier {
     // 최신순 정렬
     _orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     notifyListeners();
+    _watchUserOrders(userId);
+  }
+
+  void _watchUserOrders(String userId) {
+    if (_orderSubscriptions.containsKey(userId)) return;
+    final query = FirebaseFirestore.instance
+        .collection('orders')
+        .where('userId', isEqualTo: userId);
+    _orderSubscriptions[userId] = query.snapshots().listen((_) {
+      loadUserOrders(userId);
+    });
+  }
+
+  @override
+  void dispose() {
+    for (final subscription in _orderSubscriptions.values) {
+      subscription.cancel();
+    }
+    _orderSubscriptions.clear();
+    super.dispose();
   }
 
   /// Hive에서 전체 주문 로드 (관리자용)
