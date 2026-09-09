@@ -34,6 +34,8 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   // 결제수단: 토스페이먼츠로 고정
   final String _selectedPayment = '토스페이먼츠';
+  final _ordererNameController = TextEditingController();
+  final _ordererPhoneController = TextEditingController();
   final _addressController = TextEditingController();
   final _detailAddressController = TextEditingController();
   final _memoController = TextEditingController();
@@ -80,6 +82,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
+    _ordererNameController.text = user.name;
+    _ordererPhoneController.text = user.phone;
+
     // 주문 저장 실패 감지 → 사용자 알림
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<OrderProvider>(context, listen: false)
@@ -123,6 +128,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void dispose() {
     Provider.of<OrderProvider>(context, listen: false)
         .removeListener(_onOrderSaveError);
+    _ordererNameController.dispose();
+    _ordererPhoneController.dispose();
     _addressController.dispose();
     _detailAddressController.dispose();
     _memoController.dispose();
@@ -413,15 +420,44 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildOrdererInfo() {
     final user = Provider.of<UserProvider>(context, listen: false).user;
+    final isReadyMade = widget.cart.items.every((item) {
+      final type = item.customOptions?['orderType']?.toString() ?? '';
+      return type != 'group' && type != 'additional';
+    });
     return _buildSection(
       loc.checkoutOrdererInfo,
-      Column(
-        children: [
-          _buildInfoRow(loc.checkoutNameLabel, user?.name ?? ''),
-          _buildInfoRow(loc.checkoutPhoneLabel, user?.phone ?? ''),
-          _buildInfoRow(loc.checkoutEmailLabel, user?.email ?? ''),
-        ],
-      ),
+      isReadyMade
+          ? Column(
+              children: [
+                TextFormField(
+                  controller: _ordererNameController,
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(
+                    labelText: loc.checkoutNameLabel,
+                    prefixIcon: const Icon(Icons.person_outline_rounded),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _ordererPhoneController,
+                  keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(
+                    labelText: loc.checkoutPhoneLabel,
+                    prefixIcon: const Icon(Icons.phone_outlined),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _buildInfoRow(loc.checkoutEmailLabel, user?.email ?? ''),
+              ],
+            )
+          : Column(
+              children: [
+                _buildInfoRow(loc.checkoutNameLabel, user?.name ?? ''),
+                _buildInfoRow(loc.checkoutPhoneLabel, user?.phone ?? ''),
+                _buildInfoRow(loc.checkoutEmailLabel, user?.email ?? ''),
+              ],
+            ),
     );
   }
 
@@ -2572,6 +2608,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
+    final customerName = _ordererNameController.text.trim();
+    final customerPhone = _ordererPhoneController.text.trim();
+    if (customerName.isEmpty || customerPhone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.loc.t(
+              '주문자_이름과_전화번호를_입력해_주세요', '주문자 이름과 전화번호를 입력해 주세요.')),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      setState(() => _isProcessing = false);
+      return;
+    }
+
     // 서버가 상품 가격·배송비·쿠폰·포인트를 다시 계산하고 결제 의도를 생성합니다.
     final secureOrder = await SecureCheckoutService.createOrder(
       items: widget.cart.items
@@ -2585,6 +2635,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           .toList(),
       deliveryAddress: _finalAddress,
       paymentMethod: _selectedPayment,
+      customerName: customerName,
+      customerPhone: customerPhone,
       memo: _memoController.text.trim(),
       couponIds: _appliedCoupons.map((coupon) => coupon.id).toList(),
       usedPoints: _usedPoints,
@@ -2618,9 +2670,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         orderId: secureOrder.orderId!,
         orderName: secureOrder.orderName ?? '2FIT MALL 주문',
         amount: secureOrder.amount!,
-        customerName: user.name,
+        customerName: customerName,
         customerEmail: user.email,
-        customerPhone: user.phone,
+        customerPhone: customerPhone,
         selectedPayment: _selectedPayment,
         couponIds: _appliedCoupons.map((coupon) => coupon.id).toList(),
         couponDiscount: _couponDiscount,

@@ -1747,6 +1747,8 @@ function _readCheckoutPayload(body) {
   if (items.length < 1 || items.length > 30) throw new Error('Invalid order items');
   const deliveryAddress = String(body?.deliveryAddress || '').trim();
   if (!deliveryAddress || deliveryAddress.length > 500) throw new Error('Invalid delivery address');
+  const customerName = String(body?.customerName || '').trim().slice(0, 100);
+  const customerPhone = String(body?.customerPhone || '').trim().slice(0, 40);
   const paymentMethod = String(body?.paymentMethod || '').trim().slice(0, 60);
   if (!paymentMethod) throw new Error('Invalid payment method');
   const rawCouponIds = Array.isArray(body?.couponIds)
@@ -1759,6 +1761,8 @@ function _readCheckoutPayload(body) {
   return {
     items,
     deliveryAddress,
+    customerName,
+    customerPhone,
     paymentMethod,
     memo: String(body?.memo || '').trim().slice(0, 500),
     couponIds,
@@ -1858,7 +1862,7 @@ async function _prepareOrderFromServerData(uid, payload) {
   const totalAmount = Math.max(0, subtotal + shippingFee - coupons.discount - payload.usedPoints);
   if (!Number.isSafeInteger(totalAmount) || totalAmount < 0) throw new Error('Invalid payment amount');
   const orderId = `${isGroup ? 'GRP' : 'ORD'}-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
-  const order = { id: orderId, userId: uid, userName: String(user.name || '고객').slice(0, 100), userEmail: String(user.email || '').slice(0, 254), userPhone: String(user.phone || '').slice(0, 40), userAddress: payload.deliveryAddress, items, subtotal, totalAmount, shippingFee, couponId: coupons.ids[0] || null, couponIds: coupons.ids, couponDiscount: coupons.discount, couponDiscounts: coupons.discounts, usedPoints: payload.usedPoints, pointDiscount: payload.usedPoints, paymentMethod: payload.paymentMethod, status: 'pending', orderType: isGroup ? 'group' : 'regular', memo: payload.memo || null };
+  const order = { id: orderId, userId: uid, userName: payload.customerName || String(user.name || '고객').slice(0, 100), userEmail: String(user.email || '').slice(0, 254), userPhone: payload.customerPhone || String(user.phone || '').slice(0, 40), userAddress: payload.deliveryAddress, items, subtotal, totalAmount, shippingFee, couponId: coupons.ids[0] || null, couponIds: coupons.ids, couponDiscount: coupons.discount, couponDiscounts: coupons.discounts, usedPoints: payload.usedPoints, pointDiscount: payload.usedPoints, paymentMethod: payload.paymentMethod, status: 'pending', orderType: isGroup ? 'group' : 'regular', memo: payload.memo || null };
   return { orderId, order, orderName: `${items[0].productName}${items.length > 1 ? ` 외 ${items.length - 1}건` : ''}`, couponId: coupons.ids[0] || '', couponIds: coupons.ids, usedPoints: payload.usedPoints, isBankTransfer: payload.paymentMethod.includes('무통장') };
 }
 
@@ -1998,7 +2002,7 @@ async function _releasePaymentIntent(uid, orderId, allowRecovery = false) {
 }
 
 function _safeCheckoutError(error) {
-  const allowed = new Set(['Invalid order items', 'Invalid delivery address', 'Invalid payment method', 'Invalid product quantity', 'Product is unavailable', 'Invalid product size', 'Invalid product color', 'Product is out of stock', 'Coupon is unavailable', 'Coupon minimum order amount is not met', 'Coupons cannot be combined', 'Too many coupons', 'Invalid points amount', 'Insufficient points']);
+  const allowed = new Set(['Invalid order items', 'Invalid delivery address', 'Invalid customer information', 'Invalid payment method', 'Invalid product quantity', 'Product is unavailable', 'Invalid product size', 'Invalid product color', 'Product is out of stock', 'Coupon is unavailable', 'Coupon minimum order amount is not met', 'Coupons cannot be combined', 'Too many coupons', 'Invalid points amount', 'Insufficient points']);
   return allowed.has(error?.message) ? error.message : 'Unable to prepare a secure order';
 }
 

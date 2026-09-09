@@ -227,7 +227,7 @@ class _AddressMobileBodyState extends State<_AddressMobileBody> {
           widget.onResult(result);
         } catch (_) {}
       })
-      ..loadHtmlString(_html);
+      ..loadHtmlString(_html, baseUrl: 'https://2fit-mall.co.kr/');
   }
 
   @override

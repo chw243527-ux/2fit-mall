@@ -24,9 +24,7 @@ void registerIframeView(String viewType) {
       ..style.border = 'none'
       ..style.width = '100%'
       ..style.height = '100%'
-      ..allow = 'same-origin'
-      ..setAttribute('sandbox',
-          'allow-scripts allow-same-origin allow-forms allow-popups');
+      ..allow = 'same-origin';
     _iframeEl = iframe;
     return iframe;
   });

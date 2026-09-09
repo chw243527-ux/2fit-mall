@@ -10,6 +10,8 @@ class SecureCheckoutService {
     required List<Map<String, dynamic>> items,
     required String deliveryAddress,
     required String paymentMethod,
+    String? customerName,
+    String? customerPhone,
     String? memo,
     List<String> couponIds = const [],
     String? couponId,
@@ -21,6 +23,8 @@ class SecureCheckoutService {
         'items': items,
         'deliveryAddress': deliveryAddress,
         'paymentMethod': paymentMethod,
+        'customerName': customerName ?? '',
+        'customerPhone': customerPhone ?? '',
         'memo': memo ?? '',
         'couponIds': couponIds.isNotEmpty
             ? couponIds
