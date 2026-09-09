@@ -253,9 +253,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
 
-    final screenW = MediaQuery.of(context).size.width;
-    final isPc = screenW >= 900;
-    final isTablet = screenW >= 600 && screenW < 900;
+    final media = MediaQuery.of(context);
+    final screenW = media.size.width;
+    final screenH = media.size.height;
+    // 가로 태블릿은 논리적 너비가 900px 이상이어도 짧은 변이
+    // 900px 미만이므로 PC 2열 레이아웃으로 분기하면 상품 정보와
+    // 하단 장바구니 바가 세로 영역 밖으로 밀릴 수 있습니다.
+    final shortestSide = screenW < screenH ? screenW : screenH;
+    final isPc = screenW >= 900 && shortestSide >= 900;
+    final isTablet = shortestSide >= 600 && shortestSide < 900;
 
     if (isPc) return _buildPcDetailLayout(context, product, isAdmin);
     if (isTablet) return _buildTabletDetailLayout(context, product, isAdmin);
