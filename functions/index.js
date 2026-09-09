@@ -1367,6 +1367,10 @@ exports.cancelSecurePayment = onRequest({ cors: PAYMENT_CORS }, async (req, res)
     }
     const order = orderSnap.data() || {};
 
+    if (orderSnap.exists && order.userId !== decoded.uid) {
+      res.status(403).json({ error: 'You do not have permission to cancel this order' });
+      return;
+    }
     if (orderSnap.exists && order.userId === decoded.uid) {
       if (['cancelled', 'refunded'].includes(order.status) || order.paymentStatus === 'refunded') {
         res.status(200).json({ success: true, alreadyCancelled: true });
