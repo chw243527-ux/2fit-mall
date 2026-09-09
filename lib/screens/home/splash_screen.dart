@@ -116,6 +116,14 @@ class _SplashScreenState extends State<SplashScreen>
         };
         if (publicPathRoutes.contains(pathname)) {
           deepLink = _DeepLink(pathname, query, requiresAuth: false);
+        } else if (pathname.startsWith('/product/') &&
+            pathname.length > '/product/'.length) {
+          final id = pathname.substring('/product/'.length);
+          deepLink = _DeepLink(
+            '/product',
+            <String, String>{'id': Uri.decodeComponent(id), ...query},
+            requiresAuth: false,
+          );
         } else if (pathname.startsWith('/products/') &&
             pathname.length > '/products/'.length) {
           // /products/{id} 형식도 /product?id={id}로 통일합니다.
@@ -188,6 +196,17 @@ class _SplashScreenState extends State<SplashScreen>
     final uri = Uri.parse(fragment);
     final path = uri.path; // "/product"
     final q = uri.queryParameters; // {"id": "abc"}
+
+    // 상품 공유 링크는 /product/{id} 형식도 사용하므로
+    // 내부 라우팅에서는 /product?id={id}로 통일합니다.
+    if (path.startsWith('/product/') && path.length > '/product/'.length) {
+      final id = path.substring('/product/'.length);
+      return _DeepLink(
+        '/product',
+        <String, String>{'id': Uri.decodeComponent(id), ...q},
+        requiresAuth: false,
+      );
+    }
 
     switch (path) {
       // 홈
@@ -454,7 +473,15 @@ class _SplashScreenState extends State<SplashScreen>
         final pathname = Uri.base.path;
         final query = Uri.base.queryParameters;
         if (pathname != '/' && pathname.isNotEmpty) {
-          if (pathname.startsWith('/products/') &&
+          if (pathname.startsWith('/product/') &&
+              pathname.length > '/product/'.length) {
+            final id = pathname.substring('/product/'.length);
+            link = _DeepLink(
+              '/product',
+              <String, String>{'id': Uri.decodeComponent(id), ...query},
+              requiresAuth: false,
+            );
+          } else if (pathname.startsWith('/products/') &&
               pathname.length > '/products/'.length) {
             final id = pathname.substring('/products/'.length);
             link = _DeepLink(
