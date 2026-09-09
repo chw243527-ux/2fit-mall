@@ -81,7 +81,9 @@ exports.onNewOrder = onDocumentCreated(
 // ══════════════════════════════════════════════════════
 // 2) 주문 상태 변경 알림 (기존)
 // ══════════════════════════════════════════════════════
-exports.onOrderStatusChanged = onDocumentUpdated('orders/{orderId}', async (event) => {
+exports.onOrderStatusChanged = onDocumentUpdated(
+  { document: 'orders/{orderId}', secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET] },
+  async (event) => {
   const before = event.data?.before?.data();
   const after  = event.data?.after?.data();
   if (!before || !after) return;
@@ -102,12 +104,12 @@ exports.onOrderStatusChanged = onDocumentUpdated('orders/{orderId}', async (even
     });
     const userSnap = await db.collection('users').doc(userId).get();
     const fcmToken = String(userSnap.data()?.fcmToken || '').trim();
+    const statusLabel = {
+      pending: '주문 대기', confirmed: '주문 완료', processing: '배송 준비',
+      shipped: '배송 중', delivered: '배송 완료', purchaseConfirmed: '구매 확정',
+      cancelled: '주문 취소', refunded: '환불 완료',
+    }[after.status] || after.status || '변경됨';
     if (fcmToken) {
-      const statusLabel = {
-        pending: '주문 대기', confirmed: '주문 확인', processing: '배송 준비',
-        shipped: '배송 중', delivered: '배송 완료', purchaseConfirmed: '구매 확정',
-        cancelled: '주문 취소', refunded: '환불 완료',
-      }[after.status] || after.status || '변경됨';
       try {
         await getMessaging().send({
           token: fcmToken,
@@ -126,8 +128,47 @@ exports.onOrderStatusChanged = onDocumentUpdated('orders/{orderId}', async (even
         console.error('order status FCM delivery failed:', pushError?.message || pushError);
       }
     }
+    // 결제 완료·배송·취소는 FCM 권한이 없어도 전화번호로 안내합니다.
+    if (['confirmed', 'shipped', 'delivered', 'cancelled', 'refunded'].includes(after.status)) {
+      const phone = String(after.userPhone || after.recipientPhone || '').replace(/[^0-9+]/g, '');
+      if (/^\+?[0-9]{8,15}$/.test(phone)) {
+        const itemSummary = Array.isArray(after.items) && after.items.length
+          ? `${after.items[0].productName || '상품'}${after.items.length > 1 ? ` 외 ${after.items.length - 1}건` : ''}`
+          : '상품';
+        const orderNumber = String(event.params.orderId).slice(0, 80);
+        const name = String(after.userName || '고객').slice(0, 80);
+        let text = `[2FIT MALL] ${name}님 주문 상태가 ${statusLabel}(으)로 변경되었습니다. 주문번호: ${orderNumber}`;
+        if (after.status === 'confirmed') {
+          text += ` 상품: ${itemSummary}, 결제금액: ${Number(after.totalAmount || 0).toLocaleString()}원`;
+        } else if (after.status === 'cancelled' || after.status === 'refunded') {
+          text += ` 환불 상태를 결제수단에서 확인해 주세요.`;
+        }
+        try {
+          if (after.status === 'confirmed') {
+            const alimtalk = await _sendSolapiAlimtalk({
+              phone,
+              templateId: KAKAO_ORDER_CONFIRMED_TEMPLATE_ID,
+              variables: {
+                '#{고객명}': name,
+                '#{주문번호}': orderNumber,
+                '#{상품명}': itemSummary.slice(0, 100),
+                '#{결제금액}': Number(after.totalAmount || 0).toLocaleString(),
+                '#{결제수단}': String(after.paymentMethod || '-').slice(0, 40),
+                '#{배송주소}': String(after.userAddress || after.deliveryAddress || '-').slice(0, 200),
+              },
+            });
+            if (!alimtalk.ok) await _sendSolapiSms(phone, text);
+          } else {
+            await _sendSolapiSms(phone, text);
+          }
+        } catch (deliveryError) {
+          console.error('order status customer notification failed:', deliveryError?.message || deliveryError);
+        }
+      }
+    }
   } catch (e) { console.error('onOrderStatusChanged error:', e); }
-});
+  },
+);
 
 // ══════════════════════════════════════════════════════
 // 3) FCM 큐 처리 (기존)
