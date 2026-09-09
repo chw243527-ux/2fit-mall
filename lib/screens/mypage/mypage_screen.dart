@@ -2450,7 +2450,7 @@ class _PcSettingsTab extends StatelessWidget {
   }
 }
 
-// ── 영수증 보기 다이얼로그 ──
+// ── 거래명세서 보기 다이얼로그 ──
 void _showReceiptDialog(BuildContext context, OrderModel o) {
   String fmtPrice(double v) {
     final s = v.toInt().toString();
@@ -2596,7 +2596,7 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              // ── 승인 배지 ──
+              // ── 거래명세서 상태 ──
               const SizedBox(height: 16),
               Container(
                 padding:
@@ -2610,7 +2610,7 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                   Icon(Icons.check_circle_rounded,
                       color: AppColors.success, size: 14),
                   SizedBox(width: 5),
-                  Text(context.loc.t('승인', '승인'),
+                  Text(context.loc.t('거래명세서', '거래명세서'),
                       style: TextStyle(
                           fontSize: 12,
                           color: AppColors.success,
@@ -2670,7 +2670,7 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                 ]),
               ),
 
-              // ── 결제 정보 ─────────────────────────────────
+              // ── 거래 금액 ─────────────────────────────────
               sectionHeader(context.loc.t('결제 정보', '결제 정보')),
               Container(
                 padding:
@@ -2690,7 +2690,7 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                         '-${fmtPrice(o.pointDiscount)}원 (${o.usedPoints}P)'),
                     divider(),
                   ],
-                  row('결제 금액', '${fmtPrice(o.totalAmount)}원',
+                  row('총 거래금액', '${fmtPrice(o.totalAmount)}원',
                       bold: true, valueColor: AppColors.error),
                   divider(),
                   row('공급가액', '${fmtPrice(supplyAmt)}원'),
@@ -2702,8 +2702,14 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                   row(context.loc.t('결제수단', '결제수단'),
                       o.paymentMethod.isNotEmpty ? o.paymentMethod : '-'),
                   divider(),
-                  row(context.loc.t('구매자', '구매자'),
+                  row(context.loc.t('주문자', '주문자'),
                       o.userName.isNotEmpty ? o.userName : '-'),
+                  divider(),
+                  row(context.loc.t('주문자_전화번호', '주문자 전화번호'),
+                      o.userPhone.isNotEmpty ? o.userPhone : '-'),
+                  divider(),
+                  row(context.loc.t('배송지', '배송지'),
+                      o.userAddress.isNotEmpty ? o.userAddress : '-'),
                   divider(),
                   row(context.loc.t('상품명', '상품명'), itemSummary,
                       multiLine: true),
@@ -2712,6 +2718,41 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                       fmtDateTime(o.createdAt),
                       multiLine: true),
                 ]),
+              ),
+
+              // ── 품목별 거래 내역 ───────────────────────────
+              sectionHeader(context.loc.t('품목별_거래내역', '품목별 거래내역')),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F9FA),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Column(
+                  children: o.items.map((item) {
+                    final itemTotal = item.price * item.quantity;
+                    final option = [
+                      if (item.size.isNotEmpty) '사이즈 ${item.size}',
+                      if (item.color.isNotEmpty && item.color != '-') '색상 ${item.color}',
+                    ].join(' · ');
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(item.productName,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                        if (option.isNotEmpty)
+                          Text(option, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                        const SizedBox(height: 3),
+                        Row(children: [
+                          Expanded(child: Text('${fmtPrice(item.price)}원 × ${item.quantity}개', style: const TextStyle(fontSize: 12))),
+                          Text('${fmtPrice(itemTotal)}원', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                        ]),
+                      ]),
+                    );
+                  }).toList(),
+                ),
               ),
 
               // ── 안내문구 ──────────────────────────────────
@@ -2725,8 +2766,8 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                 ),
                 child: Column(children: [
                   Text(
-                    context.loc.t('본_거래확인서는_세금계산서_대용으로_사용할_수_없습니다',
-                        '본 거래확인서는 세금계산서 대용으로 사용할 수 없습니다.'),
+                    context.loc.t('본_거래명세서는_세금계산서_대용으로_사용할_수_없습니다',
+                        '본 거래명세서는 세금계산서 대용으로 사용할 수 없습니다.'),
                     style:
                         TextStyle(fontSize: 10, color: AppColors.textSecondary),
                     textAlign: TextAlign.center,
@@ -6708,7 +6749,7 @@ Future<void> _showUserOrderDetail(
                         detailRow(Icons.notes_outlined,
                             context.loc.t('메모', '메모'), o.memo!),
                     ]),
-                    // 영수증 보기 버튼 (항상 표시)
+                    // 거래명세서 보기 버튼 (항상 표시)
                     const SizedBox(height: 10),
                     GestureDetector(
                       onTap: () => _showReceiptDialog(dlgCtx, o),
@@ -6727,7 +6768,7 @@ Future<void> _showUserOrderDetail(
                               Icon(Icons.receipt_long_rounded,
                                   size: 15, color: AppColors.primary),
                               SizedBox(width: 6),
-                              Text(context.loc.t('영수증_보기', '영수증 보기'),
+                              Text(context.loc.t('거래명세서_보기', '거래명세서 보기'),
                                   style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
