@@ -100,6 +100,32 @@ exports.onOrderStatusChanged = onDocumentUpdated('orders/{orderId}', async (even
       isRead: false,
       createdAt: FieldValue.serverTimestamp(),
     });
+    const userSnap = await db.collection('users').doc(userId).get();
+    const fcmToken = String(userSnap.data()?.fcmToken || '').trim();
+    if (fcmToken) {
+      const statusLabel = {
+        pending: '주문 대기', confirmed: '주문 확인', processing: '배송 준비',
+        shipped: '배송 중', delivered: '배송 완료', purchaseConfirmed: '구매 확정',
+        cancelled: '주문 취소', refunded: '환불 완료',
+      }[after.status] || after.status || '변경됨';
+      try {
+        await getMessaging().send({
+          token: fcmToken,
+          notification: {
+            title: '2FIT MALL 주문 상태 변경',
+            body: `주문이 ${statusLabel} 상태로 변경되었습니다.`,
+          },
+          data: {
+            type: 'order_status',
+            orderId: event.params.orderId,
+            status: String(after.status || ''),
+            notificationId: notifRef.id,
+          },
+        });
+      } catch (pushError) {
+        console.error('order status FCM delivery failed:', pushError?.message || pushError);
+      }
+    }
   } catch (e) { console.error('onOrderStatusChanged error:', e); }
 });
 
