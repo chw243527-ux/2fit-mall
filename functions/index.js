@@ -1334,7 +1334,7 @@ exports.tossVirtualAccountWebhook = onRequest(
   },
 );
 
-exports.cancelSecurePayment = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+exports.cancelSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYMENT_CORS }, async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
   const decoded = await requireSignedIn(req, res);
   if (!decoded) return;
