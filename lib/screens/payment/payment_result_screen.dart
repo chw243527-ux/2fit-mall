@@ -72,10 +72,10 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
         if (!mounted) return;
         setState(() => _isProcessing = false);
 
-        // 주문완료 → 최신 주문목록이 로드된 마이페이지에서 주문상세를 즉시 표시
+        // 주문완료 → 최신 주문목록이 로드된 마이페이지의 주문내역 탭 표시
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (_) => MyPageScreen(openOrderId: orderId),
+            builder: (_) => const MyPageScreen(),
           ),
           (route) => false,
         );
