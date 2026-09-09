@@ -18,6 +18,7 @@ class AppConstants {
   static const String eliteAthletePhone = '010-4386-3331';
   static const String customerServiceEmail = 'chw243527@gmail.com';
   static const String kakaoTalkId = '@2fit-mall';
+  static const String kakaoChannelUrl = 'https://pf.kakao.com/_MQxjXX/chat';
   static const String customerServiceHours =
       '평일 10:00 - 18:00 (점심 12:00 - 14:00)\n토요일 · 일요일 · 공휴일 휴무';
   
