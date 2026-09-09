@@ -1354,6 +1354,17 @@ exports.cancelSecurePayment = onRequest({ cors: PAYMENT_CORS }, async (req, res)
         orderSnap = legacySnap;
       }
     }
+    if (!orderSnap.exists) {
+      const byOrderField = await db.collection('orders')
+        .where('id', 'in', [rawOrderId, orderId].filter((value, index, values) =>
+          values.indexOf(value) === index))
+        .limit(1)
+        .get();
+      if (!byOrderField.empty && byOrderField.docs[0].data()?.userId === decoded.uid) {
+        orderRef = byOrderField.docs[0].ref;
+        orderSnap = byOrderField.docs[0];
+      }
+    }
     const order = orderSnap.data() || {};
 
     if (orderSnap.exists && order.userId === decoded.uid) {
@@ -1425,6 +1436,11 @@ exports.cancelSecurePayment = onRequest({ cors: PAYMENT_CORS }, async (req, res)
       return;
     }
 
+    // 주문번호 형식인데 주문이 없으면 성공으로 오판하지 않습니다.
+    if (/^(ord|grp)-/i.test(rawOrderId)) {
+      res.status(404).json({ error: 'Order not found' });
+      return;
+    }
     // 결제 전 이탈/실패는 기존처럼 결제 의도만 해제합니다.
     await _releasePaymentIntent(decoded.uid, orderId);
     res.status(200).json({ success: true });
