@@ -370,6 +370,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                               KeyedSubtree(
                                   key: _keyDesign,
                                   child: _buildBasicInfo(product)),
+                              // 태블릿에서는 상품 정보 바로 아래에 구매 액션을 표시합니다.
+                              _buildBottomBar(product),
                               const Divider(
                                   height: 1,
                                   color: AppColors.border,
@@ -404,15 +406,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                     ),
                   ),
                 ],
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 720),
-                    child: _buildBottomBar(product),
-                  ),
-                ),
               ),
             ],
           ),
@@ -524,12 +517,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                     color: Colors.white,
                                     child: Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                          CrossAxisAlignment.stretch,
                                       children: [
                                         // 기본 정보
                                         KeyedSubtree(
                                             key: _keyDesign,
                                             child: _buildBasicInfo(product)),
+                                        // PC에서는 상품 정보 패널 바로 아래에 표시합니다.
+                                        _buildBottomBar(product),
                                         const Divider(
                                             height: 1,
                                             color: AppColors.border,
@@ -578,11 +573,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                     ),
                                   )),
                                 ],
-                              ),
-                              // 구매 버튼 (우측 컬럼 하단 고정)
-                              Align(
-                                alignment: Alignment.bottomCenter,
-                                child: _buildBottomBar(product),
                               ),
                             ],
                           ),
