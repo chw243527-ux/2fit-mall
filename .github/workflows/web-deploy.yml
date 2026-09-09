@@ -100,6 +100,25 @@ jobs:
             --pwa-strategy=none \
             --dart-define=BUILD_SHA=${{ github.sha }}
 
+      - name: Validate Flutter web loader
+        run: |
+          set -euo pipefail
+          test -f "${BUILD_DIR}/index.html"
+          test -f "${BUILD_DIR}/flutter_bootstrap.js"
+          bootstrap_count="$(grep -oE \"<script[^>]+src=['\\\"]flutter_bootstrap\\.js['\\\"]\" \"${BUILD_DIR}/index.html\" | wc -l | tr -d ' ')"
+          if [ "${bootstrap_count}" -ne 1 ]; then
+            echo "Expected exactly one flutter_bootstrap.js reference, found ${bootstrap_count}."
+            exit 1
+          fi
+          if grep -qE \"<script[^>]+src=['\\\"]main\\.dart\\.js['\\\"]\" \"${BUILD_DIR}/index.html\"; then
+            echo "Unexpected static main.dart.js reference found in built index.html."
+            exit 1
+          fi
+          if [ -f "${BUILD_DIR}/flutter_service_worker.js" ] && [ ! -s "${BUILD_DIR}/flutter_service_worker.js" ]; then
+            echo "Removing empty Flutter service worker from pwa-strategy=none build."
+            rm -f "${BUILD_DIR}/flutter_service_worker.js"
+          fi
+
       - name: Prepare public account deletion page
         run: |
           set -euo pipefail

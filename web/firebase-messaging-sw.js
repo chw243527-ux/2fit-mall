@@ -5,8 +5,8 @@
 
 importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js');
-// Flutter PWA 서비스워커와 분리합니다.
-// Flutter web은 offline-first 캐시를 사용하지 않고, 이 워커는 FCM만 담당합니다.
+// Flutter 서비스 워커와 분리된 FCM 전용 워커입니다.
+// web 빌드는 pwa-strategy=none을 사용하므로 Flutter 캐시·오프라인 워커를 등록하지 않습니다.
 
 // Firebase 프로젝트 설정 (fit-mall)
 firebase.initializeApp({

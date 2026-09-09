@@ -756,12 +756,26 @@
       });
     })();
 
-    // ── Service Worker 등록 & 자동 업데이트 ──────────────────────────────
-    // Firebase Messaging과 Flutter PWA 처리를 통합한 워커를 등록합니다.
-    // firebase-messaging-sw.js가 내부에서 flutter_service_worker.js를 로드합니다.
-    // 새 버전이 배포되면 SW가 자동 감지 → 페이지를 자동 새로고침하여
-    // 홈화면 추가(PWA) 상태에서도 항상 최신 버전이 표시됩니다.
+    // ── Flutter 엔트리포인트 중복 방지 ─────────────────────────────────
+    // Flutter 3.x는 flutter_bootstrap.js가 main.dart.js를 로드합니다.
+    // 이전 배포 산출물에 남은 정적 main.dart.js 태그가 함께 실행되면
+    // 엔진이 중복 초기화되어 스플래시 화면에서 멈출 수 있으므로 제거합니다.
+    document.querySelectorAll('script[src*="main.dart.js"]').forEach(function(script) {
+      script.remove();
+    });
+
+    // ── 오래된 Flutter 서비스 워커 정리 및 FCM 워커 등록 ───────────────
+    // pwa-strategy=none 빌드에서는 flutter_service_worker.js를 사용하지 않습니다.
+    // 과거 등록분이 남아 있으면 빈 워커 응답과 충돌할 수 있으므로 해제합니다.
     if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        registrations.forEach(function(registration) {
+          var scriptUrl = registration.active && registration.active.scriptURL || '';
+          if (scriptUrl.indexOf('flutter_service_worker.js') !== -1) {
+            registration.unregister();
+          }
+        });
+      }).catch(function() {});
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('firebase-messaging-sw.js', {scope: '/'})
           .then(function(reg) {
@@ -788,18 +802,8 @@
       });
     }
 
-    // ── 강제 캐시 삭제 (구버전 SW 캐시 완전 제거) ───────────────────
-    // CACHE_SENTINEL 값은 deploy.yml Step 6에서 빌드 번호로 자동 교체됨
-    var _keepCache = 'flutter-app-cache-BUILD_NUMBER';
-    if ('caches' in window) {
-      caches.keys().then(function(names) {
-        names.forEach(function(name) {
-          if (name !== _keepCache) {
-            caches.delete(name);
-          }
-        });
-      });
-    }
+    // pwa-strategy=none에서는 Flutter 자체 캐시를 사용하지 않습니다.
+    // Firebase Messaging 워커의 범위를 침범하지 않도록 임의 캐시 삭제는 수행하지 않습니다.
 
     // bfcache(앞뒤로 캐시) 복원 시 새로고침 - Flutter 재초기화
     window.addEventListener('pageshow', function(e) {
