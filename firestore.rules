@@ -167,6 +167,27 @@ service cloud.firestore {
 
 
     // ════════════════════════════════════════════════════════
+    // 전화번호 고유 인덱스
+    // 클라이언트는 자기 UID로만 번호를 점유·갱신할 수 있습니다.
+    // ════════════════════════════════════════════════════════
+    match /phoneIndex/{phoneId} {
+      allow read: if isSignedIn()
+        && (!exists(/databases/$(database)/documents/phoneIndex/$(phoneId))
+            || resource.data.uid == request.auth.uid);
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasAll(['uid', 'phone', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['uid', 'phone', 'updatedAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.phone is string
+        && request.resource.data.updatedAt is timestamp;
+      allow update: if isSignedIn()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid', 'phone', 'updatedAt']);
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // ════════════════════════════════════════════════════════
     // products 컬렉션
     // ════════════════════════════════════════════════════════
     match /products/{productId} {

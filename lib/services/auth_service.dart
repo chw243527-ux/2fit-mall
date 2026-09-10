@@ -90,6 +90,59 @@ class AuthService {
   static FirebaseAuth get _auth => FirebaseAuth.instance;
   static FirebaseFirestore get _db => FirebaseFirestore.instance;
 
+  // 전화번호 비교·중복 확인에 사용하는 단일 저장 형식입니다.
+  static String normalizePhoneNumber(String value) {
+    final raw = value.trim().replaceAll(RegExp(r'[^0-9+]'), '');
+    if (raw.startsWith('+')) return raw;
+    if (raw.startsWith('82')) return '+$raw';
+    if (raw.startsWith('0')) return '+82${raw.substring(1)}';
+    return '+$raw';
+  }
+
+  static String _phoneIndexId(String phoneNumber) =>
+      normalizePhoneNumber(phoneNumber).replaceAll('+', 'p');
+
+  // Firestore rules가 소유 UID를 검증하는 서버 강제 인덱스입니다.
+  static Future<bool> claimPhoneIndex(String phoneNumber) async {
+    final user = _auth.currentUser;
+    final normalized = normalizePhoneNumber(phoneNumber);
+    if (user == null || normalized.isEmpty) return false;
+    final ref = _db.collection('phoneIndex').doc(_phoneIndexId(normalized));
+    try {
+      return await _db.runTransaction<bool>((tx) async {
+        final snapshot = await tx.get(ref);
+        if (snapshot.exists && snapshot.data()?['uid'] != user.uid) {
+          return false;
+        }
+        tx.set(ref, {
+          'uid': user.uid,
+          'phone': normalized,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        return true;
+      });
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<void> releasePhoneIndex(String phoneNumber) async {
+    final user = _auth.currentUser;
+    final normalized = normalizePhoneNumber(phoneNumber);
+    if (user == null || normalized.isEmpty) return;
+    final ref = _db.collection('phoneIndex').doc(_phoneIndexId(normalized));
+    try {
+      await _db.runTransaction((tx) async {
+        final snapshot = await tx.get(ref);
+        if (snapshot.exists && snapshot.data()?['uid'] == user.uid) {
+          tx.delete(ref);
+        }
+      });
+    } catch (_) {
+      // 정리 실패가 인증 결과를 덮어쓰지 않도록 무시합니다.
+    }
+  }
+
   static Future<Box> _getSessionBox() async {
     if (Hive.isBoxOpen(_sessionBox)) return Hive.box(_sessionBox);
     return await Hive.openBox(_sessionBox);
@@ -189,10 +242,21 @@ class AuthService {
           } else {
             verifiedUser = (await _auth.signInWithCredential(credential)).user;
           }
+          final verifiedPhone = verifiedUser?.phoneNumber ?? '';
+          final claimed = await claimPhoneIndex(verifiedPhone);
+          if (!claimed) {
+            if (!completer.isCompleted) {
+              completer.complete({
+                'status': 'error',
+                'message': '이미 다른 회원이 사용 중인 전화번호입니다.',
+              });
+            }
+            return;
+          }
           if (!completer.isCompleted) {
             completer.complete({
               'status': 'auto_verified',
-              'phoneNumber': verifiedUser?.phoneNumber ?? '',
+              'phoneNumber': verifiedPhone,
             });
           }
         } catch (_) {
@@ -268,6 +332,10 @@ class AuthService {
       if (phoneNumber.isEmpty) {
         return {'status': 'error', 'message': '인증된 전화번호를 확인할 수 없습니다.'};
       }
+      final claimed = await claimPhoneIndex(phoneNumber);
+      if (!claimed) {
+        return {'status': 'error', 'message': '이미 다른 회원이 사용 중인 전화번호입니다.'};
+      }
       return {'status': 'verified', 'phoneNumber': phoneNumber};
     } on FirebaseAuthException catch (e) {
       String msg;
@@ -297,6 +365,7 @@ class AuthService {
       if (currentUser == null) {
         return {'status': 'error', 'message': '로그인 상태를 확인해주세요.'};
       }
+      final previousPhone = currentUser.phoneNumber?.trim() ?? '';
       final credential = PhoneAuthProvider.credential(
         verificationId: verificationId,
         smsCode: smsCode.trim(),
@@ -306,12 +375,20 @@ class AuthService {
       if (phoneNumber.isEmpty) {
         return {'status': 'error', 'message': '인증된 전화번호를 확인할 수 없습니다.'};
       }
+      final claimed = await claimPhoneIndex(phoneNumber);
+      if (!claimed) {
+        return {'status': 'error', 'message': '이미 다른 회원이 사용 중인 전화번호입니다.'};
+      }
       await _db.collection('users').doc(currentUser.uid).update({
         'phone': phoneNumber,
         'phoneVerified': true,
         'phoneVerifiedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
+      if (previousPhone.isNotEmpty &&
+          normalizePhoneNumber(previousPhone) != normalizePhoneNumber(phoneNumber)) {
+        await releasePhoneIndex(previousPhone);
+      }
       return {'status': 'verified', 'phoneNumber': phoneNumber};
     } on FirebaseAuthException catch (e) {
       String msg;
@@ -354,10 +431,17 @@ class AuthService {
           error: '전화번호 본인확인을 먼저 완료해주세요.',
         );
       }
-      if (phone.trim() != verifiedPhone) {
+      if (normalizePhoneNumber(phone) != normalizePhoneNumber(verifiedPhone)) {
         return const AuthResult(
           success: false,
           error: '인증된 전화번호와 입력한 전화번호가 일치하지 않습니다.',
+        );
+      }
+      final claimed = await claimPhoneIndex(verifiedPhone);
+      if (!claimed) {
+        return const AuthResult(
+          success: false,
+          error: '이미 다른 회원이 사용 중인 전화번호입니다.',
         );
       }
       final emailKey = email.trim().toLowerCase();
