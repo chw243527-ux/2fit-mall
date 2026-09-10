@@ -17,6 +17,7 @@ import 'providers/providers.dart';
 import 'utils/app_localizations.dart';
 import 'services/auth_service.dart';
 import 'services/order_service.dart';
+import 'services/in_app_update_service.dart';
 import 'screens/home/splash_screen.dart';
 import 'screens/cart/cart_screen.dart';
 import 'screens/orders/checkout_screen.dart';
@@ -468,6 +469,12 @@ class _AppInitState extends State<_AppInit> {
   void initState() {
     super.initState();
     _restoreSession();
+    // 첫 화면을 막지 않고 Google Play 인앱 업데이트를 백그라운드에서 확인합니다.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        InAppUpdateService.checkAndPrompt(context);
+      }
+    });
     // AppLinks와 모바일 알림 탭 listener는 웹에서 지원되지 않을 수 있으므로
     // 웹 첫 프레임을 방해하지 않도록 Android/iOS에서만 등록합니다.
     if (!kIsWeb) {

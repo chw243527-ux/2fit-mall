@@ -11,6 +11,7 @@ import '../screens/admin/admin_screen.dart';
 import '../screens/support/brand_story_screen.dart';
 import '../screens/support/notices_screen.dart';
 import '../services/category_service.dart';
+import '../services/in_app_update_service.dart';
 
 import '../utils/theme.dart';
 import '../utils/constants.dart';
@@ -108,6 +109,7 @@ class AppDrawer extends StatefulWidget {
 class _AppDrawerState extends State<AppDrawer> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   int? _expandedIndex;
+  bool _checkingUpdate = false;
 
   @override
   void initState() {
@@ -126,6 +128,24 @@ class _AppDrawerState extends State<AppDrawer> {
         if (mounted) setState(() {});
       });
     }
+  }
+
+  Future<void> _checkForUpdates() async {
+    if (_checkingUpdate) return;
+    setState(() => _checkingUpdate = true);
+    final result = await InAppUpdateService.checkManually(context);
+    if (!mounted) return;
+    setState(() => _checkingUpdate = false);
+
+    final message = switch (result) {
+      ManualUpdateResult.started => '업데이트를 시작했습니다.',
+      ManualUpdateResult.noUpdate => '현재 최신 버전입니다.',
+      ManualUpdateResult.unavailable => 'Google Play에서 설치한 Android 앱에서만 확인할 수 있습니다.',
+      ManualUpdateResult.failed => '업데이트 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+    };
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
@@ -809,6 +829,27 @@ class _AppDrawerState extends State<AppDrawer> {
               ],
             ),
             const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _checkingUpdate ? null : _checkForUpdates,
+                icon: _checkingUpdate
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.system_update_rounded, size: 17),
+                label: Text(
+                  _checkingUpdate ? '업데이트 확인 중...' : '업데이트 확인',
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.textPrimary,
+                  side: const BorderSide(color: AppColors.border),
+                  minimumSize: const Size.fromHeight(40),
+                ),
+              ),
+            ),
           ],
         ),
       ),
