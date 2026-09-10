@@ -73,6 +73,23 @@ class InAppUpdateService {
     }
   }
 
+  /// 현재 설치본에 Google Play 업데이트가 제공되는지 확인합니다.
+  /// 수동 버튼처럼 Play Store를 열지 않고 감지 결과만 반환합니다.
+  static Future<bool> isUpdateAvailable() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return false;
+    }
+    try {
+      final info = await InAppUpdate.checkForUpdate();
+      return info.updateAvailability == UpdateAvailability.updateAvailable;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('ℹ️ 메인 화면 업데이트 배너 확인 건너뜀: $e');
+      }
+      return false;
+    }
+  }
+
   /// 사용자가 버튼을 눌러 직접 업데이트를 확인합니다.
   /// 앱 시작 시 자동 확인과 달리 세션 중복 제한을 적용하지 않습니다.
   static Future<ManualUpdateResult> checkManually(

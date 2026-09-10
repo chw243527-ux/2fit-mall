@@ -18,6 +18,7 @@ import 'chat/chat_screen.dart';
 import '../utils/responsive.dart';
 import '../models/models.dart';
 import '../services/wishlist_coupon_service.dart';
+import '../services/in_app_update_service.dart';
 
 // PC 기준 breakpoint
 const double kPcBreakpoint = 900;
@@ -43,6 +44,8 @@ class MainScreenState extends State<MainScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<dynamic> _myPageKey = GlobalKey(); // MyPageScreen 탭 리셋용
   String? _lastUid; // 유저 변경 감지용
+  bool _updateAvailable = false;
+  bool _checkingUpdate = false;
 
   void navigateToMyPage() {
     // 탭을 마이페이지(3)로 이동하면서 내부 탭을 "내 주문"(0)으로 리셋
@@ -82,8 +85,24 @@ class MainScreenState extends State<MainScreen> {
       // 언어가 한국어가 아닌 경우 화면 첫 빌드 후 번역 트리거
       if (mounted) {
         context.read<LanguageProvider>().triggerTranslation();
+        await _checkUpdateForBanner();
       }
     });
+  }
+
+  Future<void> _checkUpdateForBanner() async {
+    if (_checkingUpdate || !mounted) return;
+    _checkingUpdate = true;
+    final available = await InAppUpdateService.isUpdateAvailable();
+    if (mounted) setState(() => _updateAvailable = available);
+    _checkingUpdate = false;
+  }
+
+  Widget _buildUpdateBanner() {
+    if (!_updateAvailable) return const SizedBox.shrink();
+    return _UpdateRequiredBanner(
+      onDismiss: () => setState(() => _updateAvailable = false),
+    );
   }
 
   /// 다운로드 가능한 쿠폰이 있을 때 팝업 표시
@@ -243,11 +262,18 @@ class MainScreenState extends State<MainScreen> {
     // 구매·주문·마이페이지의 보호 기능은 각 화면에서 로그인 여부를 확인합니다.
 
     if (isPc) {
-      return _PcLayout(
-        currentIndex: _currentIndex,
-        onTabChanged: (i) => setState(() => _currentIndex = i),
-        initialCategory: widget.initialCategory,
-        initialSearch: widget.initialSearch,
+      return Column(
+        children: [
+          _buildUpdateBanner(),
+          Expanded(
+            child: _PcLayout(
+              currentIndex: _currentIndex,
+              onTabChanged: (i) => setState(() => _currentIndex = i),
+              initialCategory: widget.initialCategory,
+              initialSearch: widget.initialSearch,
+            ),
+          ),
+        ],
       );
     }
 
@@ -272,8 +298,12 @@ class MainScreenState extends State<MainScreen> {
         drawer: AppDrawer(
           onNavigateToMyPage: () => navigateToMyPage(),
         ),
-        body: IndexedStack(
-          index: _currentIndex,
+        body: Column(
+          children: [
+            _buildUpdateBanner(),
+            Expanded(
+              child: IndexedStack(
+                index: _currentIndex,
           children: [
             HomeScreen(
               scaffoldKey: _scaffoldKey,
@@ -291,9 +321,68 @@ class MainScreenState extends State<MainScreen> {
               key: _myPageKey,
               onBack: () => setState(() => _currentIndex = 0),
             ),
+                ],
+              ),
+            ),
           ],
         ),
         // bottomNavigationBar 제거 — 로고 클릭으로 홈, 앱바 아이콘으로 이동
+      ),
+    );
+  }
+}
+
+class _UpdateRequiredBanner extends StatelessWidget {
+  final VoidCallback onDismiss;
+
+  const _UpdateRequiredBanner({required this.onDismiss});
+
+  Future<void> _openStore(BuildContext context) async {
+    final opened = await InAppUpdateService.openPlayStore();
+    if (!opened && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Google Play를 열 수 없습니다. 잠시 후 다시 시도해 주세요.')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFFFFF3CD),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 10, 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.system_update_alt_rounded, color: Color(0xFF8A5A00)),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('업데이트가 필요합니다', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF6B4700))),
+                    SizedBox(height: 3),
+                    Text('새 버전을 설치하면 더 안정적인 서비스를 이용할 수 있습니다.'),
+                    SizedBox(height: 3),
+                    Text('업데이트 방법: 아래 버튼을 누른 뒤 Google Play에서 ‘업데이트’를 선택하세요.', style: TextStyle(fontSize: 12)),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: () => _openStore(context),
+                child: const Text('업데이트'),
+              ),
+              IconButton(
+                tooltip: '닫기',
+                onPressed: onDismiss,
+                icon: const Icon(Icons.close, size: 20),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
