@@ -124,13 +124,14 @@ class MainScreenState extends State<MainScreen>
   }
 
   Widget _buildUpdateBanner() {
+    // 실제 Google Play 업데이트가 감지된 경우에만 배너를 표시합니다.
+    // 최신 버전이거나 Play 확인이 실패한 경우에는 사용자에게 혼동을 주지 않도록 숨깁니다.
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android ||
-        !_updateCheckCompleted) {
+        !_updateCheckCompleted || !_updateAvailable) {
       return const SizedBox.shrink();
     }
     return _UpdateRequiredBanner(
-      updateAvailable: _updateAvailable,
-      onDismiss: () => setState(() => _updateCheckCompleted = false),
+      onDismiss: () => setState(() => _updateAvailable = false),
     );
   }
 
@@ -362,13 +363,9 @@ class MainScreenState extends State<MainScreen>
 }
 
 class _UpdateRequiredBanner extends StatelessWidget {
-  final bool updateAvailable;
   final VoidCallback onDismiss;
+  const _UpdateRequiredBanner({required this.onDismiss});
 
-  const _UpdateRequiredBanner({
-    required this.updateAvailable,
-    required this.onDismiss,
-  });
 
   Future<void> _openStore(BuildContext context) async {
     final opened = await InAppUpdateService.openPlayStore();
@@ -382,9 +379,7 @@ class _UpdateRequiredBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: updateAvailable
-          ? const Color(0xFFFFF3CD)
-          : const Color(0xFFEAF2FF),
+      color: const Color(0xFFFFF3CD),
       child: SafeArea(
         bottom: false,
         child: Padding(
@@ -392,32 +387,24 @@ class _UpdateRequiredBanner extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                updateAvailable
-                    ? Icons.system_update_alt_rounded
-                    : Icons.info_outline_rounded,
-                color: updateAvailable
-                    ? const Color(0xFF8A5A00)
-                    : const Color(0xFF2457A6),
+              const Icon(
+                Icons.system_update_alt_rounded,
+                color: Color(0xFF8A5A00),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      updateAvailable ? '업데이트가 필요합니다' : '업데이트를 확인해주세요',
+                    const Text(
+                      '업데이트가 필요합니다',
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: updateAvailable
-                            ? const Color(0xFF6B4700)
-                            : const Color(0xFF2457A6),
+                        color: Color(0xFF6B4700),
                       ),
                     ),
-                    SizedBox(height: 3),
-                    Text(updateAvailable
-                        ? '새 버전을 설치하면 더 안정적인 서비스를 이용할 수 있습니다.'
-                        : 'Google Play에서 최신 버전과 업데이트 버튼을 확인할 수 있습니다.'),
+                    const SizedBox(height: 3),
+                    const Text('새 버전을 설치하면 더 안정적인 서비스를 이용할 수 있습니다.'),
                     SizedBox(height: 3),
                     Text('업데이트 방법: 아래 버튼을 누른 뒤 Google Play에서 ‘업데이트’를 선택하세요.', style: TextStyle(fontSize: 12)),
                   ],
