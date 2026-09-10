@@ -5468,19 +5468,25 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
 
   Future<void> _sendPhoneOtp() async {
     final phone = _normalizePhone(_phoneCtrl.text);
+    // 이전 인증 실패 후에도 입력 영역이 사라지지 않도록 먼저 초기화합니다.
+    if (mounted) {
+      setState(() {
+        _phoneVerified = false;
+        _phoneVerificationId = null;
+        _phoneOtpVisible = true;
+        _phoneOtpCtrl.clear();
+      });
+    }
     if (!_isValidPhone(_phoneCtrl.text)) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('올바른 연락처를 입력해주세요.')),
-      );
+      if (mounted) {
+        setState(() => _phoneSending = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('올바른 연락처를 입력해주세요. 번호를 수정한 뒤 다시 인증번호 받기를 눌러주세요.')),
+        );
+      }
       return;
     }
-    setState(() {
-      _phoneSending = true;
-      _phoneVerified = false;
-      _phoneVerificationId = null;
-      _phoneOtpVisible = true;
-      _phoneOtpCtrl.clear();
-    });
+    setState(() => _phoneSending = true);
     final result = await AuthService.sendPhoneVerification(
       phoneNumber: phone,
       attachToCurrentUser: true,
@@ -5489,8 +5495,8 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
     setState(() {
       _phoneSending = false;
       _phoneVerificationId = result['verificationId'] as String?;
-      _phoneOtpVisible = result['status'] == 'code_sent' ||
-          result['status'] == 'timeout';
+      // 발송 실패 후에도 재입력·재발송을 위해 입력 영역을 유지합니다.
+      _phoneOtpVisible = result['status'] != 'auto_verified';
       if (result['status'] == 'code_sent' || result['status'] == 'timeout') {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && _phoneVerificationId != null) {
@@ -5522,7 +5528,11 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
     final code = _phoneOtpCtrl.text.trim();
     if (verificationId == null || code.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('인증번호 6자리를 입력해주세요.')),
+        SnackBar(
+          content: Text(verificationId == null
+              ? '먼저 올바른 연락처로 인증번호를 받아주세요.'
+              : '인증번호 6자리를 입력해주세요.'),
+        ),
       );
       return;
     }

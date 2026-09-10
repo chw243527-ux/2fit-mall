@@ -30,7 +30,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -152,7 +152,7 @@ jobs:
           test -s build/app/outputs/bundle/release/app-release.aab
 
       - name: Upload AAB artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: 2fit-mall-internal-${{ steps.version.outputs.build_name }}-${{ steps.version.outputs.build_number }}
           path: build/app/outputs/bundle/release/app-release.aab
