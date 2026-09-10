@@ -325,10 +325,21 @@ class AuthService {
       // 만들지 않고 같은 UID에 Phone provider를 연결합니다. 일반 회원가입처럼
       // 현재 사용자가 없거나 이미 전화번호 계정인 경우에만 signInWithCredential을 사용합니다.
       final currentUser = _auth.currentUser;
+      final hadAuthenticatedUser = currentUser != null;
       final result = currentUser != null && currentUser.phoneNumber == null
           ? await currentUser.linkWithCredential(credential)
           : await _auth.signInWithCredential(credential);
       final phoneNumber = result.user?.phoneNumber ?? '';
+      if (!hadAuthenticatedUser && result.user != null) {
+        final existingProfile = await _db.collection('users').doc(result.user!.uid).get();
+        if (existingProfile.exists) {
+          await _auth.signOut();
+          return {
+            'status': 'existing_account',
+            'message': '이미 가입된 전화번호입니다. 기존 계정으로 로그인해주세요.',
+          };
+        }
+      }
       if (phoneNumber.isEmpty) {
         return {'status': 'error', 'message': '인증된 전화번호를 확인할 수 없습니다.'};
       }
