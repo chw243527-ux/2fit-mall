@@ -5438,7 +5438,12 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
                     FilteringTextInputFormatter.digitsOnly,
                   ],
                   onTap: () => _phoneOtpFocusNode.requestFocus(),
-                  onSubmitted: (_) => _verifyPhoneOtp(),
+                  onChanged: (_) => setState(() {}),
+                  onSubmitted: (_) {
+                    if (_phoneOtpCtrl.text.trim().length == 6) {
+                      _verifyPhoneOtp();
+                    }
+                  },
                   decoration: const InputDecoration(
                     labelText: '인증번호 6자리',
                     hintText: '123456',
@@ -5451,7 +5456,10 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _phoneVerifying ? null : _verifyPhoneOtp,
+                  onPressed: _phoneVerifying ||
+                          _phoneOtpCtrl.text.trim().length != 6
+                      ? null
+                      : _verifyPhoneOtp,
                   child: Text(_phoneVerifying ? '확인 중...' : '인증번호 확인'),
                 ),
               ),
