@@ -3,7 +3,7 @@
 // 토스페이먼츠 결제 서비스 — Payment Widget 방식 (v2)
 //
 // 🔑 연동 구성:
-//   • clientKey  : Toss Payments 결제위젯 연동 키의 클라이언트 키 (gck)
+//   • clientKey  : Toss Payments 주문서형 결제위젯 연동 키의 클라이언트 키 (ck)
 //   • secretKey  : Cloudflare Pages 환경변수 TOSS_SECRET_KEY (서버 전용)
 //   • 결제 승인   : Firebase Function confirmSecurePayment (ID 토큰 필수)
 //   • 현금영수증  : Firebase Function issueCashReceiptSecure (ID 토큰 필수)
@@ -22,7 +22,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 // ─── 🔑 키 설정 ────────────────────────────────────────────────
 class TossConfig {
-  static const clientKey = 'live_gck_eqRGgYO1r5yAb12QKyZorQnN2Eya';
+  static const clientKey = 'live_ck_kYG57Eba3GbJ4WOYa1vE8pWDOxmA';
   static const secretKey = ''; // 앱에서 직접 사용 안 함 — CF Pages Function 전용
 
   // ── 간편결제 클라이언트 키 (카카오페이·네이버페이·토스페이) ──
