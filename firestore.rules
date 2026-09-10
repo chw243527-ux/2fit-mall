@@ -31,16 +31,6 @@ service cloud.firestore {
           && (!('platform' in data) || data.platform in ['web', 'android', 'ios']);
     }
 
-    // 이메일 인증 완료 여부
-    function isEmailVerified() {
-      return request.auth.token.email_verified == true;
-    }
-
-    // 요청 데이터 크기 제한 (4KB 이하)
-    function isReasonableSize() {
-      return request.resource.data.size() < 50;
-    }
-
     // 문자열 길이 검증
     function validStr(field, maxLen) {
       return field is string && field.size() <= maxLen;
@@ -179,11 +169,13 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['uid', 'phone', 'updatedAt'])
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.phone is string
+        && request.resource.data.phone == phoneId
         && request.resource.data.updatedAt is timestamp;
       allow update: if isSignedIn()
         && resource.data.uid == request.auth.uid
         && request.resource.data.uid == request.auth.uid
-        && request.resource.data.keys().hasOnly(['uid', 'phone', 'updatedAt']);
+        && request.resource.data.keys().hasOnly(['uid', 'phone', 'updatedAt'])
+        && request.resource.data.phone == phoneId;
       allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
     }
 

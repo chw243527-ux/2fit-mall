@@ -49,6 +49,7 @@ class MainScreenState extends State<MainScreen>
   bool _updateAvailable = false;
   bool _updateCheckCompleted = false;
   bool _checkingUpdate = false;
+  DateTime? _lastBackPressedAt;
 
   void navigateToMyPage() {
     // 탭을 마이페이지(3)로 이동하면서 내부 탭을 "내 주문"(0)으로 리셋
@@ -308,20 +309,26 @@ class MainScreenState extends State<MainScreen>
     }
 
     // ── 모바일 레이아웃 (BottomNav 제거) ──
-    // PopScope: 안드로이드 뒤로가기 처리
-    //  - 서브탭(1~3)에서 → 홈탭(0)으로 이동
-    //  - 홈탭(0)에서 → canPop:false 로 앱 종료 완전 차단
+    // PopScope: 서브탭에서는 홈으로 돌아가고, 홈에서는 두 번 눌러 종료합니다.
     return PopScope(
-      canPop: false, // 항상 false → OS 종료 완전 차단
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        // didPop이 true면 이미 다른 곳에서 처리됨 (서브화면 pop)
         if (didPop) return;
-        // MainScreen 자체에 도달한 뒤로가기
         if (_currentIndex != 0) {
-          // 서브탭 → 홈탭으로 이동
           setState(() => _currentIndex = 0);
+          return;
         }
-        // 홈탭(0): 아무것도 안 함 → 앱 유지
+        final now = DateTime.now();
+        final last = _lastBackPressedAt;
+        if (last == null || now.difference(last) > const Duration(seconds: 2)) {
+          _lastBackPressedAt = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('뒤로가기를 한 번 더 누르면 앱이 종료됩니다.')),
+          );
+        } else {
+          _lastBackPressedAt = null;
+          SystemNavigator.pop();
+        }
       },
       child: Scaffold(
         key: _scaffoldKey,
