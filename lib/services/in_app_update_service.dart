@@ -86,34 +86,16 @@ class InAppUpdateService {
 
     _updateInProgress = true;
     try {
-      final info = await InAppUpdate.checkForUpdate();
-      if (info.updateAvailability != UpdateAvailability.updateAvailable) {
-        // 수동 확인에서는 Play Store 앱 페이지를 열어 사용자가 실제
-        // 업데이트 버튼과 테스트 트랙 상태를 확인할 수 있게 합니다.
-        final opened = await openPlayStore();
-        return opened ? ManualUpdateResult.storeOpened : ManualUpdateResult.noUpdate;
-      }
-      if (!context.mounted) return ManualUpdateResult.failed;
-
-      if (force && info.immediateUpdateAllowed) {
-        await InAppUpdate.performImmediateUpdate();
-        return ManualUpdateResult.started;
-      }
-      if (info.flexibleUpdateAllowed) {
-        await InAppUpdate.startFlexibleUpdate();
-        if (!context.mounted) return ManualUpdateResult.failed;
-        await InAppUpdate.completeFlexibleUpdate();
-        await _promptRestart(context);
-        return ManualUpdateResult.started;
-      }
-      await openPlayStore();
-      return ManualUpdateResult.storeOpened;
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('ℹ️ 수동 Google Play 업데이트 확인 건너뜀: $e');
-      }
+      // 수동 확인 버튼은 버전 감지 결과에 의존하지 않고 항상 2FIT의
+      // Google Play 상세 페이지로 이동합니다. Play Store가 실제로 제공하는
+      // 버전과 업데이트 버튼을 사용자가 직접 확인할 수 있습니다.
       final opened = await openPlayStore();
       return opened ? ManualUpdateResult.storeOpened : ManualUpdateResult.failed;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('ℹ️ Google Play 앱 페이지 열기 실패: $e');
+      }
+      return ManualUpdateResult.failed;
     } finally {
       _updateInProgress = false;
     }
