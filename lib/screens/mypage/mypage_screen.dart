@@ -33,6 +33,8 @@ import '../orders/group_order_form_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../widgets/pc_layout.dart';
 import '../../services/order_service.dart';
+import '../../services/in_app_update_service.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../services/notification_service.dart';
 import '../../services/fcm_service.dart';
 import '../../services/secure_checkout_service.dart';
@@ -2289,6 +2291,97 @@ class _PcWishlistTab extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════
+class _AppVersionSettingsItems extends StatefulWidget {
+  final bool isMobile;
+
+  const _AppVersionSettingsItems({required this.isMobile});
+
+  @override
+  State<_AppVersionSettingsItems> createState() =>
+      _AppVersionSettingsItemsState();
+}
+
+class _AppVersionSettingsItemsState extends State<_AppVersionSettingsItems> {
+  bool _checking = false;
+
+  Future<PackageInfo> _packageInfo() => PackageInfo.fromPlatform();
+
+  Future<void> _checkForUpdates() async {
+    if (_checking) return;
+    setState(() => _checking = true);
+    final result = await InAppUpdateService.checkManually(context);
+    if (!mounted) return;
+    setState(() => _checking = false);
+
+    final message = switch (result) {
+      ManualUpdateResult.started => '업데이트를 시작했습니다.',
+      ManualUpdateResult.noUpdate => '현재 최신 버전입니다.',
+      ManualUpdateResult.unavailable =>
+        'Google Play에서 설치한 Android 앱에서만 확인할 수 있습니다.',
+      ManualUpdateResult.failed =>
+        '업데이트 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+    };
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<PackageInfo>(
+      future: _packageInfo(),
+      builder: (context, snapshot) {
+        final info = snapshot.data;
+        final version = info == null
+            ? '버전 확인 중...'
+            : 'v${info.version} (${info.buildNumber})';
+        final versionItem = widget.isMobile
+            ? _MobileSettingItem(
+                icon: Icons.info_outline_rounded,
+                title: context.loc.t('앱_버전', '앱 버전'),
+                subtitle: version,
+              )
+            : _PcSettingItem(
+                icon: Icons.info_outline_rounded,
+                title: context.loc.t('앱_버전', '앱 버전'),
+                subtitle: version,
+              );
+        final updateItem = widget.isMobile
+            ? _MobileSettingItem(
+                icon: Icons.system_update_rounded,
+                title: '업데이트 확인',
+                subtitle: _checking ? '업데이트 확인 중...' : 'Google Play에서 최신 버전 확인',
+                trailing: _checking
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : null,
+                onTap: _checking ? null : _checkForUpdates,
+              )
+            : _PcSettingItem(
+                icon: Icons.system_update_rounded,
+                title: '업데이트 확인',
+                subtitle: _checking ? '업데이트 확인 중...' : 'Google Play에서 최신 버전 확인',
+                trailing: _checking
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : null,
+                onTap: _checking ? null : _checkForUpdates,
+              );
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [versionItem, updateItem],
+        );
+      },
+    );
+  }
+}
+
 class _PcSettingsTab extends StatelessWidget {
   final UserProvider userProvider;
   final AppLocalizations loc;
@@ -2395,10 +2488,7 @@ class _PcSettingsTab extends StatelessWidget {
                         icon: Icons.language_rounded,
                         title: loc.mypageLanguageSetting,
                         trailing: _LanguageDropdown()),
-                    _PcSettingItem(
-                        icon: Icons.info_outline_rounded,
-                        title: context.loc.t('앱_정보', '앱 정보'),
-                        subtitle: 'v1.0.0'),
+                    const _AppVersionSettingsItems(isMobile: false),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -4815,10 +4905,7 @@ class _MobileSettingsTab extends StatelessWidget {
               icon: Icons.language_rounded,
               title: loc.mypageLanguageSetting,
               trailing: _LanguageDropdown()),
-          _MobileSettingItem(
-              icon: Icons.info_outline_rounded,
-              title: context.loc.t('앱_정보', '앱 정보'),
-              subtitle: 'v1.0.0'),
+          const _AppVersionSettingsItems(isMobile: true),
         ]),
         const SizedBox(height: 16),
         _MobileSettingGroup(title: context.loc.t('약관_및_정책', '약관 및 정책'), items: [
@@ -5178,7 +5265,11 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
       if (result['status'] == 'code_sent' || result['status'] == 'timeout') {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && _phoneVerificationId != null) {
-            _phoneOtpFocusNode.requestFocus();
+            Future<void>.delayed(const Duration(milliseconds: 120), () {
+              if (mounted && _phoneVerificationId != null) {
+                _phoneOtpFocusNode.requestFocus();
+              }
+            });
           }
         });
       }
@@ -5320,12 +5411,17 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
                   child: TextField(
                     controller: _phoneOtpCtrl,
                     focusNode: _phoneOtpFocusNode,
-                    autofocus: true,
-                    enabled: true,
+                    autofocus: false,
+                    readOnly: false,
+                    enabled: !_phoneVerifying,
+                    enableInteractiveSelection: true,
                     keyboardType: const TextInputType.numberWithOptions(
                         decimal: false, signed: false),
                     textInputAction: TextInputAction.done,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     maxLength: 6,
+                    onChanged: (_) => setState(() {}),
+                    onSubmitted: (_) => _verifyPhoneOtp(),
                     decoration: InputDecoration(
                       labelText: '인증번호 6자리',
                       counterText: '',
