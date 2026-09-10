@@ -2124,6 +2124,79 @@ function _publicCouponData(couponId, coupon) {
   };
 }
 
+// 기존 인증 완료 회원의 전화번호 인덱스를 점검·생성합니다.
+// 기본값은 dry-run이며, body.apply === true일 때만 실제로 기록합니다.
+exports.migratePhoneIndexes = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
+  if (!(await requireAdmin(req, res))) return;
+  if (!(await enforceRateLimit(req, res, `migrate-phone-indexes:${req.adminUid}`, { limit: 1, windowMs: 60 * 60 * 1000 }))) return;
+
+  const normalizePhone = (value) => {
+    const raw = String(value || '').trim().replace(/[^0-9+]/g, '');
+    if (!raw) return '';
+    if (raw.startsWith('+')) return raw;
+    if (raw.startsWith('82')) return `+${raw}`;
+    if (raw.startsWith('0')) return `+82${raw.slice(1)}`;
+    return `+${raw}`;
+  };
+  const maskPhone = (value) => value.length > 4 ? `***${value.slice(-4)}` : '***';
+  const apply = req.body?.apply === true;
+  const usersSnap = await db.collection('users').get();
+  let eligible = 0;
+  let alreadyIndexed = 0;
+  let migrated = 0;
+  const conflicts = [];
+  const pendingOwners = new Map();
+  let batch = db.batch();
+  let writes = 0;
+
+  try {
+    for (const userDoc of usersSnap.docs) {
+      const user = userDoc.data() || {};
+      if (user.phoneVerified !== true) continue;
+      const phone = normalizePhone(user.phone || user.phoneNumber);
+      if (!/^\+?[0-9]{8,15}$/.test(phone)) continue;
+      eligible += 1;
+      const phoneId = phone.replaceAll('+', 'p');
+      const pendingOwner = pendingOwners.get(phoneId);
+      if (pendingOwner && pendingOwner !== userDoc.id) {
+        conflicts.push({ phone: maskPhone(phone), userId: userDoc.id, indexedUid: pendingOwner });
+        continue;
+      }
+      const indexRef = db.collection('phoneIndex').doc(phoneId);
+      const indexSnap = await indexRef.get();
+      if (indexSnap.exists) {
+        const ownerUid = String(indexSnap.data()?.uid || '');
+        if (ownerUid === userDoc.id) alreadyIndexed += 1;
+        else conflicts.push({ phone: maskPhone(phone), userId: userDoc.id, indexedUid: ownerUid });
+        continue;
+      }
+      pendingOwners.set(phoneId, userDoc.id);
+      if (apply) {
+        batch.set(indexRef, {
+          uid: userDoc.id,
+          phone,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+        writes += 1;
+        migrated += 1;
+        if (writes >= 400) {
+          await batch.commit();
+          batch = db.batch();
+          writes = 0;
+        }
+      } else {
+        migrated += 1;
+      }
+    }
+    if (apply && writes > 0) await batch.commit();
+    res.json({ success: true, dryRun: !apply, eligible, alreadyIndexed, migrated, conflicts });
+  } catch (error) {
+    console.error('migratePhoneIndexes failed:', { code: error?.code || 'phone-index-migration-failed' });
+    res.status(500).json({ error: 'Phone index migration failed' });
+  }
+});
+
 // 기존 관리자 쿠폰을 고객 공개용 컬렉션으로 이전하는 관리자 전용 1회성 함수입니다.
 exports.migratePublicCoupons = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
