@@ -43,7 +43,7 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
     final widgetUri = Uri(
       scheme: 'https',
       host: '2fit-mall.co.kr',
-      path: '/payment-widget',
+      path: '/payment-widget.html',
       queryParameters: {
         'clientKey': TossConfig.clientKey,
         'customerKey': customerKey,

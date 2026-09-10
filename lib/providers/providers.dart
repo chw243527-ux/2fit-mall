@@ -563,6 +563,7 @@ class OrderProvider extends ChangeNotifier {
 class CouponProvider extends ChangeNotifier {
   List<CouponModel> _coupons = [];
   bool _loading = false;
+  StreamSubscription<List<CouponModel>>? _couponSubscription;
 
   List<CouponModel> get coupons => List.unmodifiable(_coupons);
   List<CouponModel> get validCoupons =>
@@ -571,9 +572,10 @@ class CouponProvider extends ChangeNotifier {
 
   /// 로그인한 사용자가 직접 다운로드한 유효 쿠폰을 실시간 로드합니다.
   void loadValidCoupons(String userId) {
+    _couponSubscription?.cancel();
     _loading = true;
     notifyListeners();
-    CouponService.watchUserCoupons(userId).listen(
+    _couponSubscription = CouponService.watchUserCoupons(userId).listen(
       (list) {
         _coupons = list;
         _loading = false;
@@ -601,8 +603,17 @@ class CouponProvider extends ChangeNotifier {
 
   /// 로그아웃 시 초기화
   void clear() {
+    _couponSubscription?.cancel();
+    _couponSubscription = null;
     _coupons = [];
+    _loading = false;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _couponSubscription?.cancel();
+    super.dispose();
   }
 }
 

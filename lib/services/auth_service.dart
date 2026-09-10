@@ -939,6 +939,9 @@ class AuthService {
       case 'google':
         return signInWithGoogle();
       case 'kakao':
+        // SDK에 남아 있는 카카오 세션을 먼저 종료해야
+        // 프로필 수정 시 자동 통과하지 않고 실제 재인증 화면이 표시됩니다.
+        await signOutKakao();
         return signInWithKakao();
       case 'naver':
         return signInWithNaver();

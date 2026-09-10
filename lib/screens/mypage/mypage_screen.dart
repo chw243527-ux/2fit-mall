@@ -5404,6 +5404,16 @@ class _SocialProfileAuthGateState extends State<_SocialProfileAuthGate> {
             Text('프로필 수정 전에 $_providerName 계정으로 다시 인증해주세요.'),
             const SizedBox(height: 8),
             const Text('소셜 계정에는 2FIT 비밀번호가 없으므로 비밀번호 대신 소셜 로그인을 사용합니다.'),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              color: Color(0xFFF1F5FF),
+              child: const Text(
+                '인증 화면에서 로그인을 완료하면 프로필 수정 화면으로 이동합니다. 인증에 실패하거나 취소하면 이 화면의 다시 인증 버튼으로 재시도할 수 있습니다.',
+                style: TextStyle(fontSize: 13, height: 1.45),
+              ),
+            ),
             if (_error != null) ...[
               const SizedBox(height: 12),
               Text(_error!, style: const TextStyle(color: Colors.red)),
