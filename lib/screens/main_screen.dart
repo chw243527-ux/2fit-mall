@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import '../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -38,13 +39,15 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => MainScreenState();
 }
 
-class MainScreenState extends State<MainScreen> {
+class MainScreenState extends State<MainScreen>
+    with WidgetsBindingObserver {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   late int _currentIndex;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<dynamic> _myPageKey = GlobalKey(); // MyPageScreen 탭 리셋용
   String? _lastUid; // 유저 변경 감지용
   bool _updateAvailable = false;
+  bool _updateCheckCompleted = false;
   bool _checkingUpdate = false;
 
   void navigateToMyPage() {
@@ -68,6 +71,7 @@ class MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _currentIndex = widget.initialIndex;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final noticeProv = context.read<NoticeProvider>();
@@ -86,22 +90,47 @@ class MainScreenState extends State<MainScreen> {
       if (mounted) {
         context.read<LanguageProvider>().triggerTranslation();
         await _checkUpdateForBanner();
+        Future<void>.delayed(const Duration(seconds: 8), () {
+          if (mounted) _checkUpdateForBanner();
+        });
       }
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkUpdateForBanner();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   Future<void> _checkUpdateForBanner() async {
     if (_checkingUpdate || !mounted) return;
     _checkingUpdate = true;
     final available = await InAppUpdateService.isUpdateAvailable();
-    if (mounted) setState(() => _updateAvailable = available);
+    if (mounted) {
+      setState(() {
+        _updateAvailable = available;
+        _updateCheckCompleted = true;
+      });
+    }
     _checkingUpdate = false;
   }
 
   Widget _buildUpdateBanner() {
-    if (!_updateAvailable) return const SizedBox.shrink();
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android ||
+        !_updateCheckCompleted) {
+      return const SizedBox.shrink();
+    }
     return _UpdateRequiredBanner(
-      onDismiss: () => setState(() => _updateAvailable = false),
+      updateAvailable: _updateAvailable,
+      onDismiss: () => setState(() => _updateCheckCompleted = false),
     );
   }
 
@@ -333,9 +362,13 @@ class MainScreenState extends State<MainScreen> {
 }
 
 class _UpdateRequiredBanner extends StatelessWidget {
+  final bool updateAvailable;
   final VoidCallback onDismiss;
 
-  const _UpdateRequiredBanner({required this.onDismiss});
+  const _UpdateRequiredBanner({
+    required this.updateAvailable,
+    required this.onDismiss,
+  });
 
   Future<void> _openStore(BuildContext context) async {
     final opened = await InAppUpdateService.openPlayStore();
@@ -349,7 +382,9 @@ class _UpdateRequiredBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFFFFF3CD),
+      color: updateAvailable
+          ? const Color(0xFFFFF3CD)
+          : const Color(0xFFEAF2FF),
       child: SafeArea(
         bottom: false,
         child: Padding(
@@ -357,15 +392,32 @@ class _UpdateRequiredBanner extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.system_update_alt_rounded, color: Color(0xFF8A5A00)),
+              Icon(
+                updateAvailable
+                    ? Icons.system_update_alt_rounded
+                    : Icons.info_outline_rounded,
+                color: updateAvailable
+                    ? const Color(0xFF8A5A00)
+                    : const Color(0xFF2457A6),
+              ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('업데이트가 필요합니다', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF6B4700))),
+                    Text(
+                      updateAvailable ? '업데이트가 필요합니다' : '업데이트를 확인해주세요',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: updateAvailable
+                            ? const Color(0xFF6B4700)
+                            : const Color(0xFF2457A6),
+                      ),
+                    ),
                     SizedBox(height: 3),
-                    Text('새 버전을 설치하면 더 안정적인 서비스를 이용할 수 있습니다.'),
+                    Text(updateAvailable
+                        ? '새 버전을 설치하면 더 안정적인 서비스를 이용할 수 있습니다.'
+                        : 'Google Play에서 최신 버전과 업데이트 버튼을 확인할 수 있습니다.'),
                     SizedBox(height: 3),
                     Text('업데이트 방법: 아래 버튼을 누른 뒤 Google Play에서 ‘업데이트’를 선택하세요.', style: TextStyle(fontSize: 12)),
                   ],

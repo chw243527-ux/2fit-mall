@@ -79,15 +79,22 @@ class InAppUpdateService {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
       return false;
     }
-    try {
-      final info = await InAppUpdate.checkForUpdate();
-      return info.updateAvailability == UpdateAvailability.updateAvailable;
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('ℹ️ 메인 화면 업데이트 배너 확인 건너뜀: $e');
+    // 앱 시작 직후 Play Store 연결이 아직 준비되지 않을 수 있어 짧게 재시도합니다.
+    const retryDelays = [Duration.zero, Duration(seconds: 2), Duration(seconds: 5)];
+    for (final delay in retryDelays) {
+      if (delay > Duration.zero) await Future<void>.delayed(delay);
+      try {
+        final info = await InAppUpdate.checkForUpdate();
+        if (info.updateAvailability == UpdateAvailability.updateAvailable) {
+          return true;
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('ℹ️ 메인 화면 업데이트 배너 확인 재시도: $e');
+        }
       }
-      return false;
     }
+    return false;
   }
 
   /// 사용자가 버튼을 눌러 직접 업데이트를 확인합니다.
