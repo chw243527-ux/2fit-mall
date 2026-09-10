@@ -126,9 +126,18 @@ class InAppUpdateService {
       'https://play.google.com/store/apps/details?id=$appId',
     );
     try {
-      if (await canLaunchUrl(marketUri)) {
-        return await launchUrl(marketUri, mode: LaunchMode.externalApplication);
-      }
+      // canLaunchUrl()는 Android manifest의 <queries> 설정이 없으면
+      // Play Store가 설치되어 있어도 false를 반환할 수 있습니다.
+      // 따라서 market URI를 직접 시도한 뒤 웹 주소로 fallback합니다.
+      final openedMarket = await launchUrl(
+        marketUri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (openedMarket) return true;
+    } catch (_) {
+      // Play Store 앱이 없거나 market URI를 처리하지 못하면 웹으로 전환합니다.
+    }
+    try {
       return await launchUrl(webUri, mode: LaunchMode.externalApplication);
     } catch (_) {
       return false;
