@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import '../widgets/net_image.dart';
@@ -51,6 +52,7 @@ class MainScreenState extends State<MainScreen>
   bool _updateCheckCompleted = false;
   bool _checkingUpdate = false;
   DateTime? _lastBackPressedAt;
+  Timer? _updatePollingTimer;
 
   void navigateToMyPage() {
     // 탭을 마이페이지(3)로 이동하면서 내부 탭을 "내 주문"(0)으로 리셋
@@ -95,6 +97,12 @@ class MainScreenState extends State<MainScreen>
         Future<void>.delayed(const Duration(seconds: 8), () {
           if (mounted) _checkUpdateForBanner();
         });
+        // Play 반영이 앱 실행 직후 늦게 완료되는 경우를 대비해
+        // 화면이 열려 있는 동안 주기적으로 업데이트 상태를 재확인합니다.
+        _updatePollingTimer?.cancel();
+        _updatePollingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+          if (mounted && !_updateAvailable) _checkUpdateForBanner();
+        });
       }
     });
   }
@@ -108,6 +116,7 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void dispose() {
+    _updatePollingTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
