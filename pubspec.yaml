@@ -44,7 +44,7 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   flutter_secure_storage: ^9.2.4
   package_info_plus: ^8.3.1
-  in_app_update: ^5.0.0
+  in_app_update: ^4.2.5
 
   # ── 차트/그래프 ──────────────────────────────
   fl_chart: ^0.69.0
