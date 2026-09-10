@@ -5453,13 +5453,8 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
   late TextEditingController _confirmPasswordCtrl;
   bool _changingPassword = false;
 
-  String _normalizePhone(String value) {
-    final raw = value.trim().replaceAll(RegExp(r'[^0-9+]'), '');
-    if (raw.startsWith('+')) return raw;
-    if (raw.startsWith('82')) return '+$raw';
-    if (raw.startsWith('0')) return '+82${raw.substring(1)}';
-    return '+$raw';
-  }
+  String _normalizePhone(String value) =>
+      AuthService.normalizePhoneNumber(value);
 
   bool _isValidPhone(String value) {
     final normalized = _normalizePhone(value);
