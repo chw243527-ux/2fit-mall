@@ -5224,6 +5224,7 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
   late TextEditingController _phoneOtpCtrl;
   late FocusNode _phoneOtpFocusNode;
   String? _phoneVerificationId;
+  bool _phoneOtpVisible = false;
   bool _phoneVerified = true;
   bool _phoneSending = false;
   bool _phoneVerifying = false;
@@ -5253,6 +5254,8 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
       _phoneSending = true;
       _phoneVerified = false;
       _phoneVerificationId = null;
+      _phoneOtpVisible = true;
+      _phoneOtpCtrl.clear();
     });
     final result = await AuthService.sendPhoneVerification(
       phoneNumber: phone,
@@ -5262,6 +5265,8 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
     setState(() {
       _phoneSending = false;
       _phoneVerificationId = result['verificationId'] as String?;
+      _phoneOtpVisible = result['status'] == 'code_sent' ||
+          result['status'] == 'timeout';
       if (result['status'] == 'code_sent' || result['status'] == 'timeout') {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && _phoneVerificationId != null) {
@@ -5390,6 +5395,8 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
                     setState(() {
                       _phoneVerified = same;
                       _phoneVerificationId = null;
+                      _phoneOtpVisible = false;
+                      _phoneOtpCtrl.clear();
                     });
                   }
                 },
@@ -5404,40 +5411,47 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
                             child: Text(_phoneSending ? '발송 중' : '인증번호 받기'),
                           )),
             ),
-            if (!_phoneVerified && _phoneVerificationId != null) ...[
-              const SizedBox(height: 10),
-              Row(children: [
-                Expanded(
-                  child: TextField(
-                    key: const ValueKey<String>('profile-otp-field'),
-                    controller: _phoneOtpCtrl,
-                    focusNode: _phoneOtpFocusNode,
-                    autofocus: false,
-                    enabled: true,
-                    readOnly: false,
-                    enableInteractiveSelection: true,
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    keyboardType: TextInputType.phone,
-                    textInputAction: TextInputAction.done,
-                    maxLength: 6,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
-                    onTap: () => _phoneOtpFocusNode.requestFocus(),
-                    onSubmitted: (_) => _verifyPhoneOtp(),
-                    decoration: InputDecoration(
-                      labelText: '인증번호',
-                      border: const OutlineInputBorder(),
-                    ),
+            if (!_phoneVerified && _phoneOtpVisible) ...[
+              const SizedBox(height: 12),
+              const Text('문자로 받은 인증번호 6자리를 입력해주세요.',
+                  style: TextStyle(color: Colors.black54)),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: TextField(
+                  key: const ValueKey<String>('profile-otp-field'),
+                  controller: _phoneOtpCtrl,
+                  focusNode: _phoneOtpFocusNode,
+                  autofocus: false,
+                  enabled: true,
+                  readOnly: false,
+                  enableInteractiveSelection: true,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.done,
+                  maxLength: 6,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  onTap: () => _phoneOtpFocusNode.requestFocus(),
+                  onSubmitted: (_) => _verifyPhoneOtp(),
+                  decoration: const InputDecoration(
+                    labelText: '인증번호 6자리',
+                    hintText: '123456',
+                    counterText: '',
+                    border: OutlineInputBorder(),
                   ),
                 ),
-                const SizedBox(width: 8),
-                ElevatedButton(
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
                   onPressed: _phoneVerifying ? null : _verifyPhoneOtp,
-                  child: Text(_phoneVerifying ? '확인 중' : '인증 확인'),
+                  child: Text(_phoneVerifying ? '확인 중...' : '인증번호 확인'),
                 ),
-              ]),
+              ),
             ],
             const SizedBox(height: 20),
             SizedBox(
