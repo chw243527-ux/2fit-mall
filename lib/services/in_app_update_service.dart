@@ -88,10 +88,10 @@ class InAppUpdateService {
     try {
       final info = await InAppUpdate.checkForUpdate();
       if (info.updateAvailability != UpdateAvailability.updateAvailable) {
-        // Google Play API가 업데이트를 제공하지 않는 경우에는 최신이라고
-        // 단정하지 않습니다. Play Store에서 테스트 트랙·계정을 확인할 수
-        // 있도록 수동 확인 화면은 별도 안내를 표시합니다.
-        return ManualUpdateResult.noUpdate;
+        // 수동 확인에서는 Play Store 앱 페이지를 열어 사용자가 실제
+        // 업데이트 버튼과 테스트 트랙 상태를 확인할 수 있게 합니다.
+        final opened = await openPlayStore();
+        return opened ? ManualUpdateResult.storeOpened : ManualUpdateResult.noUpdate;
       }
       if (!context.mounted) return ManualUpdateResult.failed;
 
