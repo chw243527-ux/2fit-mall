@@ -2315,11 +2315,14 @@ class _AppVersionSettingsItemsState extends State<_AppVersionSettingsItems> {
 
     final message = switch (result) {
       ManualUpdateResult.started => '업데이트를 시작했습니다.',
-      ManualUpdateResult.noUpdate => '현재 최신 버전입니다.',
+      ManualUpdateResult.noUpdate =>
+        'Google Play에서 현재 제공되는 업데이트가 없습니다.\n내부 테스트 참여와 Play Store 계정을 확인해 주세요.',
+      ManualUpdateResult.storeOpened =>
+        'Google Play 앱 페이지를 열었습니다. 업데이트 버튼을 확인해 주세요.',
       ManualUpdateResult.unavailable =>
-        'Google Play에서 설치한 Android 앱에서만 확인할 수 있습니다.',
+        'Google Play에서 설치한 Android 앱에서만 업데이트할 수 있습니다.',
       ManualUpdateResult.failed =>
-        '업데이트 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+        '업데이트 확인에 실패했습니다. Play Store에서 직접 확인해 주세요.',
     };
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),

@@ -1,13 +1,20 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kDebugMode, kIsWeb, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_update/in_app_update.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Google Play 인앱 업데이트 처리 서비스입니다.
 ///
 /// Google Play에서 설치된 Android 앱에서만 동작합니다.
 /// 웹·iOS·직접 설치 APK에서는 조용히 종료하며 앱의 일반 실행을 막지 않습니다.
-enum ManualUpdateResult { started, noUpdate, unavailable, failed }
+enum ManualUpdateResult {
+  started,
+  noUpdate,
+  storeOpened,
+  unavailable,
+  failed,
+}
 
 class InAppUpdateService {
   InAppUpdateService._();
@@ -81,6 +88,9 @@ class InAppUpdateService {
     try {
       final info = await InAppUpdate.checkForUpdate();
       if (info.updateAvailability != UpdateAvailability.updateAvailable) {
+        // Google Play API가 업데이트를 제공하지 않는 경우에는 최신이라고
+        // 단정하지 않습니다. Play Store에서 테스트 트랙·계정을 확인할 수
+        // 있도록 수동 확인 화면은 별도 안내를 표시합니다.
         return ManualUpdateResult.noUpdate;
       }
       if (!context.mounted) return ManualUpdateResult.failed;
@@ -96,14 +106,32 @@ class InAppUpdateService {
         await _promptRestart(context);
         return ManualUpdateResult.started;
       }
-      return ManualUpdateResult.failed;
+      await openPlayStore();
+      return ManualUpdateResult.storeOpened;
     } catch (e) {
       if (kDebugMode) {
         debugPrint('ℹ️ 수동 Google Play 업데이트 확인 건너뜀: $e');
       }
-      return ManualUpdateResult.failed;
+      final opened = await openPlayStore();
+      return opened ? ManualUpdateResult.storeOpened : ManualUpdateResult.failed;
     } finally {
       _updateInProgress = false;
+    }
+  }
+
+  static Future<bool> openPlayStore() async {
+    const appId = 'com.twofit.twofit';
+    final marketUri = Uri.parse('market://details?id=$appId');
+    final webUri = Uri.parse(
+      'https://play.google.com/store/apps/details?id=$appId',
+    );
+    try {
+      if (await canLaunchUrl(marketUri)) {
+        return await launchUrl(marketUri, mode: LaunchMode.externalApplication);
+      }
+      return await launchUrl(webUri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      return false;
     }
   }
 
