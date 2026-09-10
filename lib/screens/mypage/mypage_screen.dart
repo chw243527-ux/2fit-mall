@@ -5409,23 +5409,26 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
               Row(children: [
                 Expanded(
                   child: TextField(
+                    key: const ValueKey<String>('profile-otp-field'),
                     controller: _phoneOtpCtrl,
                     focusNode: _phoneOtpFocusNode,
                     autofocus: false,
+                    enabled: true,
                     readOnly: false,
-                    enabled: !_phoneVerifying,
                     enableInteractiveSelection: true,
-                    keyboardType: const TextInputType.numberWithOptions(
-                        decimal: false, signed: false),
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    keyboardType: TextInputType.phone,
                     textInputAction: TextInputAction.done,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     maxLength: 6,
-                    onChanged: (_) => setState(() {}),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    onTap: () => _phoneOtpFocusNode.requestFocus(),
                     onSubmitted: (_) => _verifyPhoneOtp(),
                     decoration: InputDecoration(
-                      labelText: '인증번호 6자리',
-                      counterText: '',
-                      border: OutlineInputBorder(),
+                      labelText: '인증번호',
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
