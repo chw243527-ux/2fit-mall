@@ -157,13 +157,26 @@ class _MyPageScreenState extends State<MyPageScreen>
   }
 
   Future<void> _showProfileEdit(BuildContext ctx, UserModel user) async {
-    final currentPassword = await showModalBottomSheet<String>(
-      context: ctx,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const _ProfilePasswordGate(),
-    );
-    if (!mounted || currentPassword == null || currentPassword.isEmpty) return;
+    final isEmailAccount = user.loginProvider == 'email';
+    final currentPassword = isEmailAccount
+        ? await showModalBottomSheet<String>(
+            context: ctx,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => const _ProfilePasswordGate(),
+          )
+        : null;
+    final socialReauthenticated = !isEmailAccount
+        ? await showModalBottomSheet<bool>(
+            context: ctx,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => _SocialProfileAuthGate(provider: user.loginProvider),
+          )
+        : false;
+    if (!mounted) return;
+    if (isEmailAccount && (currentPassword == null || currentPassword.isEmpty)) return;
+    if (!isEmailAccount && socialReauthenticated != true) return;
     await showModalBottomSheet<void>(
       context: ctx,
       isScrollControlled: true,
@@ -249,6 +262,13 @@ class _MyPageScreenState extends State<MyPageScreen>
   }
 
   void _showChangePasswordDialog(BuildContext ctx) {
+    final user = ctx.read<UserProvider>().user;
+    if (user != null && user.loginProvider != 'email') {
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        const SnackBar(content: Text('소셜 계정의 비밀번호는 해당 서비스에서 변경해주세요.')),
+      );
+      return;
+    }
     final currentCtrl = TextEditingController();
     final newCtrl = TextEditingController();
     final confirmCtrl = TextEditingController();
@@ -5319,14 +5339,99 @@ class _ProfilePasswordGateState extends State<_ProfilePasswordGate> {
   }
 }
 
+class _SocialProfileAuthGate extends StatefulWidget {
+  final String provider;
+  const _SocialProfileAuthGate({required this.provider});
+
+  @override
+  State<_SocialProfileAuthGate> createState() => _SocialProfileAuthGateState();
+}
+
+class _SocialProfileAuthGateState extends State<_SocialProfileAuthGate> {
+  bool _checking = false;
+  String? _error;
+
+  String get _providerName {
+    switch (widget.provider) {
+      case 'google':
+        return 'Google';
+      case 'kakao':
+        return '카카오';
+      case 'naver':
+        return '네이버';
+      default:
+        return '소셜 계정';
+    }
+  }
+
+  Future<void> _reauthenticate() async {
+    setState(() {
+      _checking = true;
+      _error = null;
+    });
+    final result = await AuthService.reauthenticateSocial(widget.provider);
+    if (!mounted) return;
+    if (result.success) {
+      Navigator.of(context).pop(true);
+    } else {
+      setState(() {
+        _checking = false;
+        _error = result.error ?? '재인증에 실패했습니다.';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Text('프로필 수정 인증', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                ),
+                IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text('프로필 수정 전에 $_providerName 계정으로 다시 인증해주세요.'),
+            const SizedBox(height: 8),
+            const Text('소셜 계정에는 2FIT 비밀번호가 없으므로 비밀번호 대신 소셜 로그인을 사용합니다.'),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(_error!, style: const TextStyle(color: Colors.red)),
+            ],
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _checking ? null : _reauthenticate,
+                icon: const Icon(Icons.login),
+                label: Text(_checking ? '인증 중...' : '$_providerName으로 다시 인증'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // 프로필 수정 시트
 // ═══════════════════════════════════════════════════════
 class _ProfileEditSheet extends StatefulWidget {
   final UserModel user;
-  final String currentPassword;
+  final String? currentPassword;
   const _ProfileEditSheet({
     required this.user,
-    required this.currentPassword,
+    this.currentPassword,
   });
 
   @override
@@ -5584,27 +5689,29 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
                 ),
               ),
             ],
-            const SizedBox(height: 20),
-            const Text('비밀번호 변경', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _newPasswordCtrl,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: '새 비밀번호',
-                hintText: '8자 이상, 영문·숫자·특수문자 포함',
-                border: OutlineInputBorder(),
+            if (widget.user.loginProvider == 'email') ...[
+              const SizedBox(height: 20),
+              const Text('비밀번호 변경', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _newPasswordCtrl,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: '새 비밀번호',
+                  hintText: '8자 이상, 영문·숫자·특수문자 포함',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _confirmPasswordCtrl,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: '새 비밀번호 확인',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _confirmPasswordCtrl,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: '새 비밀번호 확인',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
+            ],
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -5621,7 +5728,9 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
                   }
                   final nickname = _nicknameCtrl.text.trim();
                   if (nickname.length > 20) return;
-                  final newPassword = _newPasswordCtrl.text;
+                  final newPassword = widget.user.loginProvider == 'email'
+                      ? _newPasswordCtrl.text
+                      : '';
                   if (newPassword.isNotEmpty) {
                     final passwordError = AuthService.validatePasswordStrength(newPassword);
                     if (passwordError != null) {

@@ -838,6 +838,20 @@ class AuthService {
     }
   }
 
+  /// 프로필 수정 전 소셜 계정 재인증을 수행합니다.
+  static Future<AuthResult> reauthenticateSocial(String provider) async {
+    switch (provider) {
+      case 'google':
+        return signInWithGoogle();
+      case 'kakao':
+        return signInWithKakao();
+      case 'naver':
+        return signInWithNaver();
+      default:
+        return const AuthResult(success: false, error: '지원하지 않는 로그인 방식입니다.');
+    }
+  }
+
   // ────────────────────────────────────────────
   // 비밀번호 재설정 이메일 발송
   // ────────────────────────────────────────────
