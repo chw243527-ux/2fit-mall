@@ -119,6 +119,14 @@ jobs:
             rm -f "${BUILD_DIR}/flutter_service_worker.js"
           fi
 
+      - name: Prepare payment widget compatibility route
+        run: |
+          set -euo pipefail
+          test -f "${BUILD_DIR}/payment-widget.html"
+          mkdir -p "${BUILD_DIR}/payment-widget"
+          cp "${BUILD_DIR}/payment-widget.html" "${BUILD_DIR}/payment-widget/index.html"
+          test -f "${BUILD_DIR}/payment-widget/index.html"
+
       - name: Prepare public account deletion page
         run: |
           set -euo pipefail
