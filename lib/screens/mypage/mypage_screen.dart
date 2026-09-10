@@ -156,12 +156,22 @@ class _MyPageScreenState extends State<MyPageScreen>
     );
   }
 
-  void _showProfileEdit(BuildContext ctx, UserModel user) {
-    showModalBottomSheet(
+  Future<void> _showProfileEdit(BuildContext ctx, UserModel user) async {
+    final currentPassword = await showModalBottomSheet<String>(
       context: ctx,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _ProfileEditSheet(user: user),
+      builder: (_) => const _ProfilePasswordGate(),
+    );
+    if (!mounted || currentPassword == null || currentPassword.isEmpty) return;
+    await showModalBottomSheet<void>(
+      context: ctx,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ProfileEditSheet(
+        user: user,
+        currentPassword: currentPassword,
+      ),
     );
   }
 
@@ -5210,11 +5220,114 @@ class _MobileEmptyState extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════
+// 프로필 수정 전 비밀번호 확인
+// ═══════════════════════════════════════════════════════
+class _ProfilePasswordGate extends StatefulWidget {
+  const _ProfilePasswordGate();
+
+  @override
+  State<_ProfilePasswordGate> createState() => _ProfilePasswordGateState();
+}
+
+class _ProfilePasswordGateState extends State<_ProfilePasswordGate> {
+  final _passwordCtrl = TextEditingController();
+  bool _obscure = true;
+  bool _checking = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _passwordCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _verify() async {
+    final password = _passwordCtrl.text;
+    if (password.isEmpty) {
+      setState(() => _error = '현재 비밀번호를 입력해주세요.');
+      return;
+    }
+    setState(() {
+      _checking = true;
+      _error = null;
+    });
+    final result = await AuthService.reauthenticateWithPassword(password);
+    if (!mounted) return;
+    if (result.success) {
+      Navigator.of(context).pop(password);
+    } else {
+      setState(() {
+        _checking = false;
+        _error = result.error ?? '비밀번호 확인에 실패했습니다.';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Material(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text('프로필 수정 인증', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                  ),
+                  IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Text('프로필 정보를 수정하려면 현재 비밀번호를 입력해주세요.'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _passwordCtrl,
+                obscureText: _obscure,
+                autofocus: true,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _verify(),
+                decoration: InputDecoration(
+                  labelText: '현재 비밀번호',
+                  border: const OutlineInputBorder(),
+                  errorText: _error,
+                  suffixIcon: IconButton(
+                    onPressed: () => setState(() => _obscure = !_obscure),
+                    icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _checking ? null : _verify,
+                  child: Text(_checking ? '확인 중...' : '확인 후 프로필 수정'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // 프로필 수정 시트
 // ═══════════════════════════════════════════════════════
 class _ProfileEditSheet extends StatefulWidget {
   final UserModel user;
-  const _ProfileEditSheet({required this.user});
+  final String currentPassword;
+  const _ProfileEditSheet({
+    required this.user,
+    required this.currentPassword,
+  });
 
   @override
   State<_ProfileEditSheet> createState() => _ProfileEditSheetState();
@@ -5231,6 +5344,9 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
   bool _phoneVerified = true;
   bool _phoneSending = false;
   bool _phoneVerifying = false;
+  late TextEditingController _newPasswordCtrl;
+  late TextEditingController _confirmPasswordCtrl;
+  bool _changingPassword = false;
 
   String _normalizePhone(String value) {
     final raw = value.trim().replaceAll(RegExp(r'[^0-9+]'), '');
@@ -5337,6 +5453,8 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
     _phoneCtrl = TextEditingController(text: widget.user.phone);
     _phoneOtpCtrl = TextEditingController();
     _phoneOtpFocusNode = FocusNode();
+    _newPasswordCtrl = TextEditingController();
+    _confirmPasswordCtrl = TextEditingController();
   }
   @override
   void dispose() {
@@ -5345,6 +5463,8 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
     _phoneCtrl.dispose();
     _phoneOtpCtrl.dispose();
     _phoneOtpFocusNode.dispose();
+    _newPasswordCtrl.dispose();
+    _confirmPasswordCtrl.dispose();
     super.dispose();
   }
 
@@ -5465,10 +5585,31 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
               ),
             ],
             const SizedBox(height: 20),
+            const Text('비밀번호 변경', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _newPasswordCtrl,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: '새 비밀번호',
+                hintText: '8자 이상, 영문·숫자·특수문자 포함',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _confirmPasswordCtrl,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: '새 비밀번호 확인',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () async {
+                onPressed: _changingPassword ? null : () async {
                   final userProvider = context.read<UserProvider>();
                   final normalizedPhone = _normalizePhone(_phoneCtrl.text);
                   final originalPhone = _normalizePhone(widget.user.phone);
@@ -5480,6 +5621,36 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
                   }
                   final nickname = _nicknameCtrl.text.trim();
                   if (nickname.length > 20) return;
+                  final newPassword = _newPasswordCtrl.text;
+                  if (newPassword.isNotEmpty) {
+                    final passwordError = AuthService.validatePasswordStrength(newPassword);
+                    if (passwordError != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(passwordError)),
+                      );
+                      return;
+                    }
+                    if (newPassword != _confirmPasswordCtrl.text) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('새 비밀번호가 일치하지 않습니다.')),
+                      );
+                      return;
+                    }
+                    setState(() => _changingPassword = true);
+                    final passwordChanged = await AuthService.updateProfile(
+                      email: widget.user.email,
+                      newPassword: newPassword,
+                      currentPassword: widget.currentPassword,
+                    );
+                    if (!mounted) return;
+                    setState(() => _changingPassword = false);
+                    if (!passwordChanged) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('비밀번호 변경에 실패했습니다.')),
+                      );
+                      return;
+                    }
+                  }
                   await userProvider.updateUserProfile(
                       name: _nameCtrl.text.trim(),
                       nickname: nickname,
@@ -5489,8 +5660,10 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
                 style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14)),
-                child:
-                    Text(loc.save, style: const TextStyle(color: Colors.white)),
+                child: Text(
+                  _changingPassword ? '변경 중...' : loc.save,
+                  style: const TextStyle(color: Colors.white),
+                ),
               ),
             ),
           ],

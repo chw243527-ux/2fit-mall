@@ -814,6 +814,30 @@ class AuthService {
     }
   }
 
+  /// 현재 로그인 계정의 비밀번호를 재인증합니다.
+  static Future<AuthResult> reauthenticateWithPassword(String password) async {
+    try {
+      final user = _auth.currentUser;
+      final email = user?.email;
+      if (user == null || email == null || email.isEmpty) {
+        return const AuthResult(success: false, error: '이 계정은 이메일 비밀번호 로그인을 사용하지 않습니다.');
+      }
+      final credential = EmailAuthProvider.credential(
+        email: email,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+      return const AuthResult(success: true);
+    } on FirebaseAuthException catch (e) {
+      final message = e.code == 'wrong-password' || e.code == 'invalid-credential'
+          ? '현재 비밀번호가 올바르지 않습니다.'
+          : '비밀번호 확인에 실패했습니다. 다시 시도해주세요.';
+      return AuthResult(success: false, error: message);
+    } catch (_) {
+      return const AuthResult(success: false, error: '비밀번호 확인에 실패했습니다. 다시 시도해주세요.');
+    }
+  }
+
   // ────────────────────────────────────────────
   // 비밀번호 재설정 이메일 발송
   // ────────────────────────────────────────────
