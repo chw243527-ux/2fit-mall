@@ -210,11 +210,18 @@ service cloud.firestore {
       // 클라이언트가 상품 가격·할인·상태를 위조한 주문을 직접 만들 수 없습니다.
       allow create: if isAdmin();
 
-      // 수정: 본인(상태 변경 제한) 또는 관리자
+      // 수정: 관리자 또는 본인 주문의 제한된 요청 필드만 허용
+      // 가격·상품·결제상태·소유자·배송정보 등 핵심 주문 데이터는 고객이 변경할 수 없습니다.
       allow update: if isSignedIn() && (
-        (
+        isAdmin()
+        || (
           resource.data.userId == request.auth.uid
-          // 고객은 status를 'cancelled'로만 변경 가능 (pending 또는 confirmed 상태에서)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'cancelReason', 'cancelledAt', 'updatedAt',
+            'colorEditRequested', 'colorEditRequestedAt',
+            'requestedColorName', 'requestedTeamName', 'colorEditMemo',
+            'colorEditCount'
+          ])
           && (
             !('status' in request.resource.data.diff(resource.data).affectedKeys())
             || (
@@ -222,9 +229,16 @@ service cloud.firestore {
               && (resource.data.status == 'pending' || resource.data.status == 'confirmed')
             )
           )
-          // 고객은 totalAmount 변경 불가
-          && !('totalAmount' in request.resource.data.diff(resource.data).affectedKeys())
-        ) || isAdmin()
+          && (!('cancelReason' in request.resource.data) || request.resource.data.cancelReason is string)
+          && (!('cancelledAt' in request.resource.data) || request.resource.data.cancelledAt is timestamp)
+          && (!('colorEditRequested' in request.resource.data) || request.resource.data.colorEditRequested == true)
+          && (!('colorEditRequestedAt' in request.resource.data) || request.resource.data.colorEditRequestedAt is timestamp)
+          && (!('requestedColorName' in request.resource.data) || validStr(request.resource.data.requestedColorName, 100))
+          && (!('requestedTeamName' in request.resource.data) || validStr(request.resource.data.requestedTeamName, 100))
+          && (!('colorEditMemo' in request.resource.data) || validStr(request.resource.data.colorEditMemo, 2000))
+          && (!('colorEditCount' in request.resource.data)
+              || request.resource.data.colorEditCount == resource.data.get('colorEditCount', 0) + 1)
+        )
       );
 
       // 삭제: 관리자만

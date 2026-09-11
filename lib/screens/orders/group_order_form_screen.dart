@@ -847,7 +847,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       try {
         final bytes = base64Decode(_refBase64!);
         final ref = FirebaseStorage.instance
-            .ref('group_orders/${user?.id ?? 'guest'}/$orderId/ref_image.jpg');
+            .ref('group_orders/${user!.id}/$orderId/ref_image.jpg');
         await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
         refImageUrl = await ref.getDownloadURL();
       } catch (e) {
@@ -869,7 +869,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           'eps': 'application/postscript',
         };
         final ref = FirebaseStorage.instance.ref(
-            'group_orders/${user?.id ?? 'guest'}/$orderId/design_logo.$ext');
+            'group_orders/${user!.id}/$orderId/design_logo.$ext');
         await ref.putData(
           Uint8List.fromList(_designLogoBytes!),
           SettableMetadata(
@@ -895,7 +895,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           'eps': 'application/postscript',
         };
         final ref = FirebaseStorage.instance.ref(
-            'group_orders/${user?.id ?? 'guest'}/$orderId/waistband_logo.$ext');
+            'group_orders/${user!.id}/$orderId/waistband_logo.$ext');
         await ref.putData(
           Uint8List.fromList(_waistbandLogoBytes!),
           SettableMetadata(
@@ -987,7 +987,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     // ignore: unused_local_variable
     final order = OrderModel(
       id: orderId,
-      userId: user?.id ?? 'guest',
+      userId: user!.id,
       userName: _managerNameCtrl.text.trim().isNotEmpty
           ? _managerNameCtrl.text.trim()
           : _teamNameCtrl.text.trim(),
