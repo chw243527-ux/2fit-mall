@@ -178,7 +178,7 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary)),
                     const SizedBox(height: 8),
-                    const Text('chw243527@gmail.com',
+                    Text(AppConstants.customerServiceEmail,
                         style: TextStyle(
                             fontSize: 14,
                             color: Color(0xFF6C63FF),

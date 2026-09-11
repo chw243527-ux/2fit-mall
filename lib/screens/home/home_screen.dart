@@ -6245,15 +6245,20 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               Row(
                 children: [
-                  Text(loc.homeTermsOfUse,
-                      style:
-                          TextStyle(color: Colors.white38, fontSize: r.sp(11))),
+                  InkWell(
+                    onTap: () => Navigator.pushNamed(context, '/terms-of-service'),
+                    child: Text(loc.homeTermsOfUse,
+                        style: TextStyle(color: Colors.white38, fontSize: r.sp(11))),
+                  ),
                   SizedBox(width: r.w(10)),
-                  Text(loc.homePrivacyPolicy,
-                      style: TextStyle(
-                          color: Colors.white38,
-                          fontSize: r.sp(11),
-                          fontWeight: FontWeight.w600)),
+                  InkWell(
+                    onTap: () => Navigator.pushNamed(context, '/privacy-policy'),
+                    child: Text(loc.homePrivacyPolicy,
+                        style: TextStyle(
+                            color: Colors.white38,
+                            fontSize: r.sp(11),
+                            fontWeight: FontWeight.w600)),
+                  ),
                 ],
               ),
             ],

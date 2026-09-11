@@ -563,12 +563,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   _PolicySection(
                       title: context.loc.t('제6조_이용자의_권리', '제6조 (이용자의 권리)'),
                       content: context.loc.t('이용자_권리_전체',
-                          '이용자는 언제든지 아래 권리를 행사할 수 있습니다.\n\n• 개인정보 열람 요청\n• 오류 정정 요청\n• 삭제 요청 (회원 탈퇴)\n• 처리 정지 요청\n\n문의: chw243527@gmail.com')),
+                          '이용자는 언제든지 아래 권리를 행사할 수 있습니다.\n\n• 개인정보 열람 요청\n• 오류 정정 요청\n• 삭제 요청 (회원 탈퇴)\n• 처리 정지 요청\n\n문의: ${AppConstants.customerServiceEmail}')),
                   _PolicySection(
                       title:
                           context.loc.t('제7조_개인정보_보호책임자', '제7조 (개인정보 보호책임자)'),
                       content: context.loc.t('개인정보_보호책임자_전체',
-                          '• 책임자: 2FIT MALL 운영팀\n• 이메일: chw243527@gmail.com\n\n본 방침은 2025년 3월 21일부터 적용됩니다.')),
+                          '• 책임자: ${AppConstants.ceoName}\n• 이메일: ${AppConstants.customerServiceEmail}\n\n본 방침은 2026년 9월 11일부터 적용됩니다.')),
                 ],
               ),
             ),

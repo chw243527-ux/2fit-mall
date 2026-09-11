@@ -805,7 +805,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 const Icon(Icons.email_rounded,
                     size: 14, color: AppColors.textHint),
                 const SizedBox(width: 8),
-                const Text('chw243527@gmail.com',
+                Text(AppConstants.customerServiceEmail,
                     style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,

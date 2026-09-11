@@ -1826,7 +1826,7 @@ class _PcOrderCard extends StatelessWidget {
                                     SizedBox(width: 8),
                                     Text(
                                         context.loc.t('전화_문의__010_7227_140b47',
-                                            '전화 문의  010-7227-6914'),
+                                            '전화 문의  ${AppConstants.customerServicePhone}'),
                                         style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w700,
@@ -2813,8 +2813,17 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                   row(context.loc.t('사업자등록번호', '사업자등록번호'),
                       AppConstants.businessRegNumber),
                   divider(),
+                  row(context.loc.t('통신판매업신고', '통신판매업신고'),
+                      AppConstants.ecommerceRegNumber),
+                  divider(),
                   row(context.loc.t('전화번호', '전화번호'),
                       AppConstants.customerServicePhone),
+                  divider(),
+                  row(context.loc.t('이메일', '이메일'),
+                      AppConstants.customerServiceEmail),
+                  divider(),
+                  row(context.loc.t('카카오톡', '카카오톡'),
+                      AppConstants.kakaoTalkId),
                   divider(),
                   row('URL', 'www.2fit-mall.co.kr'),
                   divider(),
@@ -4311,7 +4320,7 @@ class _MobileOrderCard extends StatelessWidget {
                                     SizedBox(width: 8),
                                     Text(
                                         context.loc.t('전화_문의__010_7227_140b47',
-                                            '전화 문의  010-7227-6914'),
+                                            '전화 문의  ${AppConstants.customerServicePhone}'),
                                         style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w700,

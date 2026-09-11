@@ -113,7 +113,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
               _buildSection(
                 context.loc.t('제8조_이용자의_권리', '제8조 (이용자의 권리)'),
                 context.loc.t('개인정보_이용자_권리_내용',
-                    '이용자는 언제든지 아래 권리를 행사할 수 있습니다.\n\n• 개인정보 열람 요청\n• 오류 정정 요청\n• 삭제 요청 (회원 탈퇴)\n• 처리 정지 요청\n\n문의: chw243527@gmail.com'),
+                    '이용자는 언제든지 아래 권리를 행사할 수 있습니다.\n\n• 개인정보 열람 요청\n• 오류 정정 요청\n• 삭제 요청 (회원 탈퇴)\n• 처리 정지 요청\n\n문의: ${AppConstants.customerServiceEmail}'),
               ),
               _buildSection(
                 context.loc.t('제9조_개인정보_보호책임자', '제9조 (개인정보 보호책임자)'),
@@ -144,7 +144,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary)),
                     const SizedBox(height: 8),
-                    const Text('chw243527@gmail.com',
+                    Text(AppConstants.customerServiceEmail,
                         style: TextStyle(
                             fontSize: 14,
                             color: Color(0xFF6C63FF),

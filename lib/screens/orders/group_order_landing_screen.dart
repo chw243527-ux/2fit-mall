@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
 
 import '../../utils/theme.dart';
+import '../../utils/constants.dart';
 // ═══════════════════════════════════════════════════════════════
 // GroupOrderLandingScreen — 사이드바 "단체주문방법" 안내 페이지
 // • product 파라미터 없음 (사이드바 진입 전용)
@@ -673,7 +674,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             SizedBox(width: 8),
             Text(
               context.loc
-                  .t('이메일_chw243527_gmail_com', '이메일: chw243527@gmail.com'),
+                  .t('이메일_chw243527_gmail_com', '이메일: ${AppConstants.customerServiceEmail}'),
               style: TextStyle(color: Colors.white, fontSize: 12),
             ),
           ]),
