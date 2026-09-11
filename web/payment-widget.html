@@ -186,9 +186,13 @@
       // _redirect 모드면 main() 실행 안 함
       if (p.get('_redirect') === '1') return;
 
-      // 결제위젯은 일반 위젯 클라이언트 키(test_ck_/live_ck_)로 초기화합니다.
-      // 간편결제용 gck 키는 위젯 초기화 키로 사용하지 않습니다.
-      const clientKey           = p.get('clientKey') || '';
+      // 토스 공식 결제위젯은 주문서형·결제창형 결제 클라이언트 키
+      // (test_gck_/live_gck_)로 초기화합니다. API 개별 연동 키
+      // (test_ck_/live_ck_)가 전달되면 운영 위젯 키로 교정합니다.
+      const requestedClientKey = p.get('clientKey') || '';
+      const clientKey = /(^|_)gck_/.test(requestedClientKey)
+        ? requestedClientKey
+        : 'live_gck_eqRGgYO1r5yAb12QKyZorQnN2Eya';
       const rawCustomerKey      = p.get('customerKey')          || '';
       const orderId             = p.get('orderId')              || '';
       const orderName           = p.get('orderName')            || '주문';
