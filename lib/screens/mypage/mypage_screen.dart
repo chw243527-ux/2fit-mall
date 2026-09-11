@@ -10986,7 +10986,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
         'shippingBySelf': _shippingBySelf,
         'payMethod': _payMethod ?? '',
         'status': 'pending',
-        'createdAt': DateTime.now().toIso8601String(),
+        'createdAt': FieldValue.serverTimestamp(),
         'userId': widget.order.userId,
         'userName': widget.order.userName,
       });
