@@ -1927,13 +1927,17 @@ async function _prepareOrderFromServerData(uid, payload) {
   for (const requested of payload.items) {
     const productId = String(requested?.productId || '').slice(0, 120);
     const quantity = Math.floor(Number(requested?.quantity || 0));
-    const size = String(requested?.size || '').slice(0, 80);
+    const size = String(requested?.size || '').trim().slice(0, 80);
+    const normalizedSize = size.toLocaleLowerCase('ko-KR');
     const requestedColor = String(requested?.color || '').slice(0, 80);
     if (!productId || quantity < 1 || quantity > 50) throw new Error('Invalid product quantity');
     const productSnap = await db.collection('products').doc(productId).get();
     const product = productSnap.data();
     if (!productSnap.exists || product.isActive === false || !Number.isFinite(Number(product.price))) throw new Error('Product is unavailable');
-    if (Array.isArray(product.sizes) && product.sizes.length && !product.sizes.includes(size)) throw new Error('Invalid product size');
+    const availableSizes = Array.isArray(product.sizes)
+      ? product.sizes.map((value) => String(value).trim().toLocaleLowerCase('ko-KR'))
+      : [];
+    if (availableSizes.length && !availableSizes.includes(normalizedSize)) throw new Error('Invalid product size');
     const color = _resolveProductOption(requestedColor, product.colors);
     // 색상 선택이 없는 상품은 클라이언트가 '-'를 전송하므로 검증에서 제외합니다.
     const hasColorSelection = !['', '-', '없음', '미지정'].includes(requestedColor.trim());

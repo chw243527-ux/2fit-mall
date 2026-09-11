@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 
 class TossConfig {
-  static const clientKey = 'live_ck_kYG57Eba3GbJ4WOYa1vE8pWDOxmA';
+  static const clientKey = 'live_gck_eqRGgYO1r5yAb12QKyZorQnN2Eya';
   static const secretKey = '';
   static const easyPayClientKey = 'live_gck_eqRGgYO1r5yAb12QKyZorQnN2Eya';
   static const confirmEdgeFunctionUrl = 'https://us-central1-fit-mall.cloudfunctions.net/confirmSecurePayment';
