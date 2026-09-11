@@ -1419,6 +1419,7 @@ class _PcOrderCard extends StatelessWidget {
       {required this.order,
       required this.loc,
       required this.onAdditionalOrder,
+      required this.onSameDesignReorder,
       this.onDesignRevision,
       this.onDesignConfirm});
 
@@ -3893,6 +3894,7 @@ class _MobileOrderCard extends StatelessWidget {
       {required this.order,
       required this.loc,
       required this.onAdditionalOrder,
+      required this.onSameDesignReorder,
       this.onDesignRevision,
       this.onDesignConfirm});
 
