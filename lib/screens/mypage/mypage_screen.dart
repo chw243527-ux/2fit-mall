@@ -3871,6 +3871,7 @@ class _MobileOrderHistoryTabState extends State<_MobileOrderHistoryTab> {
                       order: filteredOrders[i],
                       loc: widget.loc,
                       onAdditionalOrder: widget.onAdditionalOrder,
+                      onSameDesignReorder: widget.onSameDesignReorder,
                       onDesignRevision: widget.onDesignRevision,
                       onDesignConfirm: widget.onDesignConfirm,
                     ),
