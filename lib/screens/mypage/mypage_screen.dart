@@ -1818,6 +1818,15 @@ class _PcOrderCard extends StatelessWidget {
               }
 
               final btns = <Widget>[];
+              if (canAdditional) {
+                btns.add(_ActionBtn(
+                  icon: Icons.replay_rounded,
+                  label: '동일 디자인 재주문',
+                  color: const Color(0xFF0B7A53),
+                  prominent: true,
+                  onTap: () => onAdditionalOrder(order),
+                ));
+              }
               btns.add(_ActionBtn(
                   icon: Icons.receipt_long_rounded,
                   label: context.loc.t('주문상세', '주문상세'),
@@ -1923,13 +1932,6 @@ class _PcOrderCard extends StatelessWidget {
                   color: AppColors.success,
                   onTap: null,
                 ));
-              // 추가제작
-              if (canAdditional)
-                btns.add(_ActionBtn(
-                    icon: Icons.add_circle_outline_rounded,
-                    label: context.loc.t('추가제작', '추가제작'),
-                    color: AppColors.success,
-                    onTap: () => onAdditionalOrder(order)));
               // 단체주문 디자인 확인 버튼 (단체주문이면 항상 표시)
               if (isGroup && !order.userDesignApproved)
                 btns.add(_ActionBtn(
@@ -4285,6 +4287,17 @@ class _MobileOrderCard extends StatelessWidget {
               final row1 = <Widget>[];
               final row2 = <Widget>[];
 
+              // ── 행1: 동일 디자인 재주문을 가장 먼저 노출 ──
+              if (canAdditional) {
+                row1.add(_ActionBtn(
+                  icon: Icons.replay_rounded,
+                  label: '동일 디자인 재주문',
+                  color: const Color(0xFF0B7A53),
+                  prominent: true,
+                  onTap: () => onAdditionalOrder(order),
+                ));
+              }
+
               // ── 행1: 채팅문의 (항상 표시) ──
               row1.add(_ActionBtn(
                 icon: Icons.chat_bubble_outline_rounded,
@@ -4414,14 +4427,6 @@ class _MobileOrderCard extends StatelessWidget {
                   label: context.loc.t('제작시작', '제작시작'),
                   color: AppColors.success,
                   onTap: null,
-                ));
-              // 추가제작
-              if (canAdditional)
-                row2.add(_ActionBtn(
-                  icon: Icons.add_circle_outline_rounded,
-                  label: context.loc.t('추가제작', '추가제작'),
-                  color: AppColors.success,
-                  onTap: () => onAdditionalOrder(order),
                 ));
               // 디자인 확인 버튼 (단체주문이면 항상 표시)
               if (isGroup && !order.userDesignApproved)
@@ -4569,6 +4574,7 @@ class _ActionBtn extends StatelessWidget {
   final Color color;
   final String? badge;
   final VoidCallback? onTap;
+  final bool prominent;
 
   const _ActionBtn({
     required this.icon,
@@ -4576,15 +4582,26 @@ class _ActionBtn extends StatelessWidget {
     this.color = AppColors.textSecondary,
     this.badge,
     this.onTap,
+    this.prominent = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+      child: Container(
+        margin: prominent ? const EdgeInsets.symmetric(horizontal: 5, vertical: 6) : EdgeInsets.zero,
+        padding: prominent ? const EdgeInsets.symmetric(horizontal: 8, vertical: 7) : EdgeInsets.zero,
+        decoration: prominent
+            ? BoxDecoration(
+                color: color.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: color.withValues(alpha: 0.30)),
+              )
+            : null,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
           Stack(
             clipBehavior: Clip.none,
             children: [
@@ -4608,15 +4625,18 @@ class _ActionBtn extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-                fontSize: 10, color: color, fontWeight: FontWeight.w700),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+            Text(
+              label,
+              style: TextStyle(
+                  fontSize: prominent ? 11 : 10,
+                  color: color,
+                  fontWeight: FontWeight.w800),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
