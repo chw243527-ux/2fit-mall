@@ -553,6 +553,14 @@ class OrderModel {
       id.startsWith('GRP_') ||
       id.startsWith('GROUP-');
 
+  /// 배송 완료·구매 확정 후에도 가능한 동일 디자인 재주문 여부.
+  /// 무료 추가제작 7일 정책과 별개로, 취소·환불되지 않은 단체주문은
+  /// 기존 customOptions의 디자인 정보를 사용해 유료 재주문할 수 있습니다.
+  bool get canReorderSameDesign =>
+      isGroupOrder &&
+      status != OrderStatus.cancelled &&
+      status != OrderStatus.refunded;
+
   /// 신규 단체주문 여부 (추가제작 제외)
   bool get isNewGroupOrder => isGroupOrder && !isAdditionalOrder;
 

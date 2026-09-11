@@ -1411,10 +1411,8 @@ class _PcOrderCard extends StatelessWidget {
         order.orderType == 'additional' ||
         order.id.startsWith('GRP_') ||
         order.id.startsWith('GROUP-');
-    final isActive = order.status != OrderStatus.cancelled &&
-        order.status != OrderStatus.refunded;
-    // 추가제작: 취소/환불 아니면 배송완료 후에도 항상 가능 (같은 디자인 재주문)
-    final canAdditional = isGroup && isActive;
+    // 무료 추가제작 7일 정책과 무관하게 동일 디자인 재주문 허용
+    final canAdditional = order.canReorderSameDesign;
     // 배송조회: 운송장 등록된 경우
     final trackingNumberMobile =
         (order.customOptions?['trackingNumber'] as String? ?? '').trim();
@@ -3868,10 +3866,8 @@ class _MobileOrderCard extends StatelessWidget {
         order.orderType == 'additional' ||
         order.id.startsWith('GRP_') ||
         order.id.startsWith('GROUP-');
-    final isActive = order.status != OrderStatus.cancelled &&
-        order.status != OrderStatus.refunded;
-    // 추가제작: 취소/환불 아니면 배송완료 후에도 항상 가능 (같은 디자인 재주문)
-    final canAdditional = isGroup && isActive;
+    // 무료 추가제작 7일 정책과 무관하게 동일 디자인 재주문 허용
+    final canAdditional = order.canReorderSameDesign;
 
     // 운송장 등록 여부
     final trackingNumber =
