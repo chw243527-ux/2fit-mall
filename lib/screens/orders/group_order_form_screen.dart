@@ -359,7 +359,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       final gender = raw['gender']?.toString().trim();
       if (gender == 'male' || gender == 'female') person.gender = gender;
       final sizeType = raw['sizeType']?.toString().trim();
-      if (sizeType == '성인' || sizeType == '주니어') person.sizeType = sizeType;
+      if (sizeType == '성인' || sizeType == '주니어') {
+        person.sizeType = sizeType!;
+      }
 
       final topSize = raw['topSize']?.toString().trim() ?? '';
       final bottomSize = raw['bottomSize']?.toString().trim() ?? '';
