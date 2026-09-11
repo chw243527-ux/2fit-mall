@@ -5811,6 +5811,15 @@ class _AdditionalOrderSheetState extends State<_AdditionalOrderSheet> {
   int _quantity = 1;
 
   @override
+  void initState() {
+    super.initState();
+    final originalCount = widget.order.customOptions?['persons'] is List
+        ? (widget.order.customOptions!['persons'] as List).length
+        : (widget.order.groupCount ?? 1);
+    _quantity = originalCount > 0 ? originalCount : 1;
+  }
+
+  @override
   void dispose() {
     super.dispose();
   }

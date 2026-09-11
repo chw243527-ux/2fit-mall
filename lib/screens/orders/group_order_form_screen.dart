@@ -337,8 +337,43 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     for (int i = 0; i < _count; i++) {
       _persons.add(_PersonEntry(index: i));
     }
+    _prefillOriginalPersons();
     _loadSavedImages();
     _colorTabCtrl = TabController(length: 3, vsync: this);
+  }
+
+  void _prefillOriginalPersons() {
+    if (!widget.isAdditionalOrder || widget.originalOrder == null) return;
+    final order = widget.originalOrder!;
+    final orderOptions = order.customOptions ?? <String, dynamic>{};
+    final itemOptions = order.items.isNotEmpty
+        ? (order.items.first.customOptions ?? <String, dynamic>{})
+        : <String, dynamic>{};
+    final rawPersons = orderOptions['persons'] ?? itemOptions['persons'];
+    if (rawPersons is! List) return;
+
+    for (var i = 0; i < rawPersons.length && i < _persons.length; i++) {
+      final raw = rawPersons[i];
+      if (raw is! Map) continue;
+      final person = _persons[i];
+      final gender = raw['gender']?.toString().trim();
+      if (gender == 'male' || gender == 'female') person.gender = gender;
+      final sizeType = raw['sizeType']?.toString().trim();
+      if (sizeType == '성인' || sizeType == '주니어') person.sizeType = sizeType;
+
+      final topSize = raw['topSize']?.toString().trim() ?? '';
+      final bottomSize = raw['bottomSize']?.toString().trim() ?? '';
+      person.topSize = topSize.isNotEmpty ? topSize : null;
+      person.bottomSize = bottomSize.isNotEmpty ? bottomSize : null;
+      person.topSizeCtrl.text = topSize;
+      person.bottomSizeCtrl.text = bottomSize;
+      person.nameCtrl.text = raw['name']?.toString() ?? '';
+      person.heightCtrl.text = raw['height']?.toString() ?? '';
+      person.weightCtrl.text = raw['weight']?.toString() ?? '';
+      person.waistCtrl.text = raw['waist']?.toString() ?? '';
+      person.thighCtrl.text = raw['thigh']?.toString() ?? '';
+      person.showDetail = raw['hasCustomMeasure'] == true;
+    }
   }
 
   @override
