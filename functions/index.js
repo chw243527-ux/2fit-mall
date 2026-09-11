@@ -1930,6 +1930,10 @@ async function _prepareOrderFromServerData(uid, payload) {
     const size = String(requested?.size || '').trim().slice(0, 80);
     const normalizedSize = size.toLocaleLowerCase('ko-KR');
     const requestedColor = String(requested?.color || '').slice(0, 80);
+    const requestedOptions = requested?.customOptions && typeof requested.customOptions === 'object'
+      ? requested.customOptions
+      : null;
+    const isGroupItem = requestedOptions?.orderType === 'group' || requestedOptions?.orderType === 'additional';
     if (!productId || quantity < 1 || quantity > 50) throw new Error('Invalid product quantity');
     const productSnap = await db.collection('products').doc(productId).get();
     const product = productSnap.data();
@@ -1937,7 +1941,11 @@ async function _prepareOrderFromServerData(uid, payload) {
     const availableSizes = Array.isArray(product.sizes)
       ? product.sizes.map((value) => String(value).trim().toLocaleLowerCase('ko-KR'))
       : [];
-    if (availableSizes.length && !availableSizes.includes(normalizedSize)) throw new Error('Invalid product size');
+    // 단체주문은 장바구니에서 실제 의류 사이즈가 아닌 가상 사이즈 `단체`를
+    // 사용하고, 실제 팀원별 사이즈는 customOptions.persons에 저장합니다.
+    if (!isGroupItem && availableSizes.length && !availableSizes.includes(normalizedSize)) {
+      throw new Error('Invalid product size');
+    }
     const color = _resolveProductOption(requestedColor, product.colors);
     // 색상 선택이 없는 상품은 클라이언트가 '-'를 전송하므로 검증에서 제외합니다.
     const hasColorSelection = !['', '-', '없음', '미지정'].includes(requestedColor.trim());
@@ -1952,11 +1960,15 @@ async function _prepareOrderFromServerData(uid, payload) {
       });
       throw new Error('Invalid product color');
     }
-    if ((Array.isArray(product.soldOutSizes) && product.soldOutSizes.includes(size)) || Number(product.stockCount || 0) < quantity) throw new Error('Product is out of stock');
+    const soldOutSizes = Array.isArray(product.soldOutSizes)
+      ? product.soldOutSizes.map((value) => String(value).trim().toLocaleLowerCase('ko-KR'))
+      : [];
+    if ((!isGroupItem && soldOutSizes.includes(normalizedSize)) || Number(product.stockCount || 0) < quantity) {
+      throw new Error('Product is out of stock');
+    }
     const unitPrice = Math.round(Number(product.price));
     subtotal += unitPrice * quantity;
-    const requestedOptions = requested?.customOptions && typeof requested.customOptions === 'object' ? requested.customOptions : null;
-    if (requestedOptions?.orderType === 'group' || requestedOptions?.orderType === 'additional') isGroup = true;
+    if (isGroupItem) isGroup = true;
     items.push({ productId, productName: String(product.name || '').slice(0, 200), size, color, quantity, price: unitPrice, customOptions: requestedOptions || null, imageUrl: Array.isArray(product.images) ? String(product.images[0] || '') : '' });
   }
   const shippingFee = subtotal >= SHIPPING_FREE_THRESHOLD ? 0 : DEFAULT_SHIPPING_FEE;
