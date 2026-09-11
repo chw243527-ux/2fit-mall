@@ -105,6 +105,7 @@ class _MyPageScreenState extends State<MyPageScreen>
         tabController: _tabController,
         userProvider: userProvider,
         onShowAdditionalOrder: _showAdditionalOrderSheet,
+        onShowSameDesignReorder: _showSameDesignReorderSheet,
         onShowProfileEdit: _showProfileEdit,
         onShowAddressManager: _showAddressManager,
         onShowLogout: _showLogoutDialog,
@@ -119,6 +120,7 @@ class _MyPageScreenState extends State<MyPageScreen>
       userProvider: userProvider,
       onBack: widget.onBack,
       onShowAdditionalOrder: _showAdditionalOrderSheet,
+      onShowSameDesignReorder: _showSameDesignReorderSheet,
       onShowProfileEdit: _showProfileEdit,
       onShowAddressManager: _showAddressManager,
       onShowLogout: _showLogoutDialog,
@@ -135,6 +137,15 @@ class _MyPageScreenState extends State<MyPageScreen>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _AdditionalOrderSheet(order: order),
+    );
+  }
+
+  void _showSameDesignReorderSheet(OrderModel order) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _AdditionalOrderSheet(order: order, sameDesignReorder: true),
     );
   }
 
@@ -559,6 +570,7 @@ class _PcMyPage extends StatelessWidget {
   final TabController tabController;
   final UserProvider userProvider;
   final void Function(OrderModel) onShowAdditionalOrder;
+  final void Function(OrderModel) onShowSameDesignReorder;
   final void Function(BuildContext, UserModel) onShowProfileEdit;
   final void Function(BuildContext) onShowAddressManager;
   final void Function(BuildContext, UserProvider) onShowLogout;
@@ -571,6 +583,7 @@ class _PcMyPage extends StatelessWidget {
     required this.tabController,
     required this.userProvider,
     required this.onShowAdditionalOrder,
+    required this.onShowSameDesignReorder,
     required this.onShowProfileEdit,
     required this.onShowAddressManager,
     required this.onShowLogout,
@@ -813,6 +826,7 @@ class _PcMyPage extends StatelessWidget {
                                   userProvider: userProvider,
                                   loc: loc,
                                   onAdditionalOrder: onShowAdditionalOrder,
+                                  onSameDesignReorder: onShowSameDesignReorder,
                                   onDesignRevision: onShowDesignRevision,
                                   onDesignConfirm: onShowDesignConfirm);
                             case 1:
@@ -1287,6 +1301,7 @@ class _PcOrderHistoryTab extends StatefulWidget {
   final UserProvider userProvider;
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
+  final void Function(OrderModel) onSameDesignReorder;
   final void Function(OrderModel)? onDesignRevision;
   final void Function(OrderModel)? onDesignConfirm;
 
@@ -1294,6 +1309,7 @@ class _PcOrderHistoryTab extends StatefulWidget {
     required this.userProvider,
     required this.loc,
     required this.onAdditionalOrder,
+    required this.onSameDesignReorder,
     this.onDesignRevision,
     this.onDesignConfirm,
   });
@@ -1380,6 +1396,7 @@ class _PcOrderHistoryTabState extends State<_PcOrderHistoryTab> {
                             order: filteredOrders[i],
                         loc: widget.loc,
                         onAdditionalOrder: widget.onAdditionalOrder,
+                        onSameDesignReorder: widget.onSameDesignReorder,
                         onDesignRevision: widget.onDesignRevision,
                         onDesignConfirm: widget.onDesignConfirm,
                       ),
@@ -1394,6 +1411,7 @@ class _PcOrderCard extends StatelessWidget {
   final OrderModel order;
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
+  final void Function(OrderModel) onSameDesignReorder;
   final void Function(OrderModel)? onDesignRevision;
   final void Function(OrderModel)? onDesignConfirm;
 
@@ -1411,8 +1429,11 @@ class _PcOrderCard extends StatelessWidget {
         order.orderType == 'additional' ||
         order.id.startsWith('GRP_') ||
         order.id.startsWith('GROUP-');
-    // 무료 추가제작 7일 정책과 무관하게 동일 디자인 재주문 허용
-    final canAdditional = order.canReorderSameDesign;
+    final isActive = order.status != OrderStatus.cancelled &&
+        order.status != OrderStatus.refunded;
+    // 주문 후 7일 이내의 추가주문과 기간 제한 없는 재주문을 별도 노출
+    final canAdditional = isGroup && isActive && order.canOrderAdditionalFree;
+    final canSameDesignReorder = order.canReorderSameDesign;
     // 배송조회: 운송장 등록된 경우
     final trackingNumberMobile =
         (order.customOptions?['trackingNumber'] as String? ?? '').trim();
@@ -1820,11 +1841,19 @@ class _PcOrderCard extends StatelessWidget {
               final btns = <Widget>[];
               if (canAdditional) {
                 btns.add(_ActionBtn(
+                  icon: Icons.add_circle_outline_rounded,
+                  label: '추가주문',
+                  color: AppColors.success,
+                  onTap: () => onAdditionalOrder(order),
+                ));
+              }
+              if (canSameDesignReorder) {
+                btns.add(_ActionBtn(
                   icon: Icons.replay_rounded,
                   label: '동일 디자인 재주문',
                   color: const Color(0xFF0B7A53),
                   prominent: true,
-                  onTap: () => onAdditionalOrder(order),
+                  onTap: () => onSameDesignReorder(order),
                 ));
               }
               btns.add(_ActionBtn(
@@ -3377,6 +3406,7 @@ class _MobileMyPage extends StatelessWidget {
   final UserProvider userProvider;
   final VoidCallback? onBack; // 탭0(홈)으로 돌아가기 콜백
   final void Function(OrderModel) onShowAdditionalOrder;
+  final void Function(OrderModel) onShowSameDesignReorder;
   final void Function(BuildContext, UserModel) onShowProfileEdit;
   final void Function(BuildContext) onShowAddressManager;
   final void Function(BuildContext, UserProvider) onShowLogout;
@@ -3390,6 +3420,7 @@ class _MobileMyPage extends StatelessWidget {
     required this.userProvider,
     this.onBack,
     required this.onShowAdditionalOrder,
+    required this.onShowSameDesignReorder,
     required this.onShowProfileEdit,
     required this.onShowAddressManager,
     required this.onShowLogout,
@@ -3469,6 +3500,7 @@ class _MobileMyPage extends StatelessWidget {
                           userProvider: userProvider,
                           loc: loc,
                           onAdditionalOrder: onShowAdditionalOrder,
+                          onSameDesignReorder: onShowSameDesignReorder,
                           onDesignRevision: onShowDesignRevision,
                           onDesignConfirm: onShowDesignConfirm),
                       _MobileWishlistTab(userProvider: userProvider, loc: loc),
@@ -3755,6 +3787,7 @@ class _MobileOrderHistoryTab extends StatefulWidget {
   final UserProvider userProvider;
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
+  final void Function(OrderModel) onSameDesignReorder;
   final void Function(OrderModel)? onDesignRevision;
   final void Function(OrderModel)? onDesignConfirm;
 
@@ -3762,6 +3795,7 @@ class _MobileOrderHistoryTab extends StatefulWidget {
     required this.userProvider,
     required this.loc,
     required this.onAdditionalOrder,
+    required this.onSameDesignReorder,
     this.onDesignRevision,
     this.onDesignConfirm,
   });
@@ -3851,6 +3885,7 @@ class _MobileOrderCard extends StatelessWidget {
   final OrderModel order;
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
+  final void Function(OrderModel) onSameDesignReorder;
   final void Function(OrderModel)? onDesignRevision;
   final void Function(OrderModel)? onDesignConfirm;
 
@@ -3868,8 +3903,11 @@ class _MobileOrderCard extends StatelessWidget {
         order.orderType == 'additional' ||
         order.id.startsWith('GRP_') ||
         order.id.startsWith('GROUP-');
-    // 무료 추가제작 7일 정책과 무관하게 동일 디자인 재주문 허용
-    final canAdditional = order.canReorderSameDesign;
+    final isActive = order.status != OrderStatus.cancelled &&
+        order.status != OrderStatus.refunded;
+    // 주문 후 7일 이내의 추가주문과 기간 제한 없는 재주문을 별도 노출
+    final canAdditional = isGroup && isActive && order.canOrderAdditionalFree;
+    final canSameDesignReorder = order.canReorderSameDesign;
 
     // 운송장 등록 여부
     final trackingNumber =
@@ -4290,11 +4328,19 @@ class _MobileOrderCard extends StatelessWidget {
               // ── 행1: 동일 디자인 재주문을 가장 먼저 노출 ──
               if (canAdditional) {
                 row1.add(_ActionBtn(
+                  icon: Icons.add_circle_outline_rounded,
+                  label: '추가주문',
+                  color: AppColors.success,
+                  onTap: () => onAdditionalOrder(order),
+                ));
+              }
+              if (canSameDesignReorder) {
+                row1.add(_ActionBtn(
                   icon: Icons.replay_rounded,
                   label: '동일 디자인 재주문',
                   color: const Color(0xFF0B7A53),
                   prominent: true,
-                  onTap: () => onAdditionalOrder(order),
+                  onTap: () => onSameDesignReorder(order),
                 ));
               }
 
@@ -5818,7 +5864,11 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
 // ════════════════════════════════════════════════
 class _AdditionalOrderSheet extends StatefulWidget {
   final OrderModel order;
-  const _AdditionalOrderSheet({required this.order});
+  final bool sameDesignReorder;
+  const _AdditionalOrderSheet({
+    required this.order,
+    this.sameDesignReorder = false,
+  });
 
   @override
   State<_AdditionalOrderSheet> createState() => _AdditionalOrderSheetState();
@@ -5881,10 +5931,14 @@ class _AdditionalOrderSheetState extends State<_AdditionalOrderSheet> {
               ),
               const SizedBox(width: 10),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(_loc.additionalProduction,
+                Text(
+                    widget.sameDesignReorder ? '동일 디자인 재주문' : _loc.additionalProduction,
                     style: const TextStyle(
                         fontSize: 17, fontWeight: FontWeight.w900)),
-                Text(_loc.groupCustomOnly,
+                Text(
+                    widget.sameDesignReorder
+                        ? '기존 디자인으로 다시 주문'
+                        : _loc.groupCustomOnly,
                     style: const TextStyle(
                         fontSize: 11, color: Color(0xFF795548))),
               ]),
@@ -6010,7 +6064,9 @@ class _AdditionalOrderSheetState extends State<_AdditionalOrderSheet> {
             // 안내
             _noticeBox(
               color: const Color(0xFF795548),
-              title: loc.mypageAdditionalGuide,
+              title: widget.sameDesignReorder
+                  ? '동일 디자인 재주문 안내'
+                  : loc.mypageAdditionalGuide,
               items: [
                 loc.mypageAdditionalNote1,
                 loc.mypageAdditionalNote2,
