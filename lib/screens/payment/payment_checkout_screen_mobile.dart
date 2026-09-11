@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../providers/providers.dart';
 import '../../services/payment_service.dart';
@@ -78,11 +79,78 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
             }
             return NavigationDecision.prevent;
           }
+
+          // Toss 결제위젯은 카드사 앱을 intent: 또는 카드사 전용 스킴으로
+          // 호출한다. 이를 WebView 안에서 navigate 하게 두면
+          // ERR_UNKNOWN_URL_SCHEME가 발생하므로 Android 외부 앱으로 전달한다.
+          final scheme = uri?.scheme.toLowerCase();
+          if (scheme != null &&
+              scheme.isNotEmpty &&
+              scheme != 'http' &&
+              scheme != 'https' &&
+              scheme != 'about' &&
+              scheme != 'data') {
+            _openExternalPaymentApp(request.url);
+            return NavigationDecision.prevent;
+          }
           return NavigationDecision.navigate;
         },
       ))
       ..loadRequest(widgetUri);
     _controller = controller;
+  }
+
+  Future<void> _openExternalPaymentApp(String rawUrl) async {
+    final externalUri = _parseExternalPaymentUri(rawUrl);
+    if (externalUri == null) {
+      _showPaymentAppError('카드사 앱을 열 수 없는 결제 링크입니다.');
+      return;
+    }
+
+    try {
+      final launched = await launchUrl(
+        externalUri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        _showPaymentAppError('카드사 앱이 설치되어 있지 않거나 실행할 수 없습니다.');
+      }
+    } catch (_) {
+      _showPaymentAppError('카드사 앱을 실행하지 못했습니다. 카드 결제를 다시 시도해 주세요.');
+    }
+  }
+
+  Uri? _parseExternalPaymentUri(String rawUrl) {
+    if (!rawUrl.startsWith('intent:')) {
+      return Uri.tryParse(rawUrl);
+    }
+
+    // intent:foo://bar?...#Intent;scheme=foo;package=...;end 형식을
+    // url_launcher가 실행할 수 있는 foo://bar... 형식으로 변환한다.
+    final intentBody = rawUrl.substring('intent:'.length);
+    final marker = intentBody.indexOf('#Intent;');
+    final target = marker >= 0 ? intentBody.substring(0, marker) : intentBody;
+    final parameters = marker >= 0
+        ? intentBody.substring(marker + '#Intent;'.length).split(';')
+        : const <String>[];
+    final scheme = parameters
+        .map((item) => item.split('='))
+        .where((parts) => parts.length >= 2 && parts.first == 'scheme')
+        .map((parts) => parts.sublist(1).join('='))
+        .firstOrNull;
+
+    if (scheme != null && target.startsWith('//')) {
+      return Uri.tryParse('$scheme:$target');
+    }
+    return Uri.tryParse(target);
+  }
+
+  void _showPaymentAppError(String message) {
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+      _error = message;
+    });
   }
 
   Future<void> _handlePaymentResult(Uri uri) async {
