@@ -1148,7 +1148,21 @@ exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAY
     intentRef = db.collection('payment_intents').doc(orderId);
     const intentSnap = await intentRef.get();
     const intent = intentSnap.data();
-    if (!intentSnap.exists || intent.userId !== decoded.uid || !['pending', 'approving'].includes(intent.status)) {
+    if (!intentSnap.exists || intent.userId !== decoded.uid) {
+      res.status(403).json({ error: 'Payment request is unavailable' }); return;
+    }
+    // 결제 성공 리디렉션이 새로고침·중복 호출된 경우 이미 확정된 주문을
+    // 오류로 처리하지 않고 성공으로 반환합니다. 결제키와 금액은 계속 대조합니다.
+    if (intent.status === 'confirmed') {
+      if (intent.paymentKey && intent.paymentKey !== paymentKey) {
+        res.status(409).json({ error: 'Payment key does not match the payment request' }); return;
+      }
+      if (intent.amount !== amount) {
+        res.status(400).json({ error: 'Payment amount does not match the secure order' }); return;
+      }
+      res.status(200).json({ success: true, orderId, paymentKey, method: intent.paymentMethod || '' }); return;
+    }
+    if (!['pending', 'approving'].includes(intent.status)) {
       res.status(403).json({ error: 'Payment request is unavailable' }); return;
     }
     if (intent.paymentKey && intent.paymentKey !== paymentKey) {
