@@ -114,9 +114,11 @@ class AuthService {
         if (snapshot.exists && snapshot.data()?['uid'] != user.uid) {
           return false;
         }
+        // phoneIndex의 문서 ID와 phone 필드를 동일한 비식별화 키로 저장합니다.
+        // 실제 국제전화번호는 users.phone에만 저장합니다.
         tx.set(ref, {
           'uid': user.uid,
-          'phone': normalized,
+          'phone': _phoneIndexId(normalized),
           'updatedAt': FieldValue.serverTimestamp(),
         });
         return true;

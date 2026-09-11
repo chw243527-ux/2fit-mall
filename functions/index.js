@@ -2175,6 +2175,7 @@ exports.migratePhoneIndexes = onRequest({ cors: PAYMENT_CORS }, async (req, res)
   let eligible = 0;
   let alreadyIndexed = 0;
   let migrated = 0;
+  let repaired = 0;
   const conflicts = [];
   const pendingOwners = new Map();
   let batch = db.batch();
@@ -2197,8 +2198,20 @@ exports.migratePhoneIndexes = onRequest({ cors: PAYMENT_CORS }, async (req, res)
       const indexSnap = await indexRef.get();
       if (indexSnap.exists) {
         const ownerUid = String(indexSnap.data()?.uid || '');
-        if (ownerUid === userDoc.id) alreadyIndexed += 1;
-        else conflicts.push({ phone: maskPhone(phone), userId: userDoc.id, indexedUid: ownerUid });
+        if (ownerUid === userDoc.id) {
+          alreadyIndexed += 1;
+          if (apply && indexSnap.data()?.phone !== phoneId) {
+            batch.set(indexRef, {
+              uid: userDoc.id,
+              phone: phoneId,
+              updatedAt: FieldValue.serverTimestamp(),
+            }, { merge: true });
+            writes += 1;
+            repaired += 1;
+          }
+        } else {
+          conflicts.push({ phone: maskPhone(phone), userId: userDoc.id, indexedUid: ownerUid });
+        }
         continue;
       }
       pendingOwners.set(phoneId, userDoc.id);
@@ -2220,7 +2233,7 @@ exports.migratePhoneIndexes = onRequest({ cors: PAYMENT_CORS }, async (req, res)
       }
     }
     if (apply && writes > 0) await batch.commit();
-    res.json({ success: true, dryRun: !apply, eligible, alreadyIndexed, migrated, conflicts });
+    res.json({ success: true, dryRun: !apply, eligible, alreadyIndexed, migrated, repaired, conflicts });
   } catch (error) {
     console.error('migratePhoneIndexes failed:', { code: error?.code || 'phone-index-migration-failed' });
     res.status(500).json({ error: 'Phone index migration failed' });
