@@ -19216,15 +19216,23 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                                     color:
                                                         AppColors.textPrimary)),
                                           ),
-                                          GestureDetector(
-                                            onTap: () => _deleteSubCat(sub),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(4),
-                                              child: const Icon(
-                                                  Icons.close_rounded,
-                                                  size: 14,
-                                                  color: AppColors.textHint),
-                                            ),
+                                          IconButton(
+                                            tooltip: '수정',
+                                            onPressed: () => _editSubCat(sub),
+                                            icon: const Icon(Icons.edit_rounded,
+                                                size: 15,
+                                                color: Color(0xFF3F51B5)),
+                                            padding: const EdgeInsets.all(4),
+                                            constraints: const BoxConstraints(),
+                                          ),
+                                          IconButton(
+                                            tooltip: '삭제',
+                                            onPressed: () => _deleteSubCat(sub),
+                                            icon: const Icon(Icons.close_rounded,
+                                                size: 15,
+                                                color: AppColors.textHint),
+                                            padding: const EdgeInsets.all(4),
+                                            constraints: const BoxConstraints(),
                                           ),
                                         ],
                                       ),
@@ -19475,6 +19483,75 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
           SnackBar(
               content: Text('삭제 실패: $e'), backgroundColor: AppColors.error),
         );
+      }
+    }
+  }
+
+  // ── 하위 카테고리 이름 수정
+  Future<void> _editSubCat(String oldName) async {
+    if (_selectedMain == null) return;
+    final ctrl = TextEditingController(text: oldName);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('하위 카테고리 수정',
+            style: TextStyle(fontWeight: FontWeight.w700)),
+        content: SizedBox(
+          width: 320,
+          child: TextField(
+            controller: ctrl,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: '하위 카테고리 이름',
+              filled: true,
+              fillColor: AppColors.surfaceGray,
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none),
+            ),
+            onSubmitted: (value) {
+              if (value.trim().isNotEmpty) Navigator.pop(ctx, value.trim());
+            },
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3F51B5)),
+            onPressed: () {
+              final value = ctrl.text.trim();
+              if (value.isNotEmpty) Navigator.pop(ctx, value);
+            },
+            child: const Text('저장', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || result == null || result.trim().isEmpty || result == oldName) {
+      return;
+    }
+    final newName = result.trim();
+    final existing = CategoryService.subCatsFor(_selectedMain!);
+    if (existing.contains(newName)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('이미 존재합니다: $newName')));
+      return;
+    }
+    try {
+      await CategoryService.renameSubCategory(_selectedMain!, oldName, newName);
+      if (mounted) {
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('하위 카테고리 이름이 "$newName"으로 수정되었습니다.'),
+          backgroundColor: const Color(0xFF3F51B5),
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('저장 실패: $e'), backgroundColor: AppColors.error));
       }
     }
   }

@@ -177,6 +177,28 @@ class CategoryService {
     }
   }
 
+  // ── 하위 카테고리 이름 변경 ────────────────────────────────
+  static Future<void> renameSubCategory(
+      String mainCat, String oldName, String newName) async {
+    final prevSubs = _cachedSubCatMap;
+    final trimmed = newName.trim();
+    if (trimmed.isEmpty || oldName == trimmed) return;
+    final subs = Map<String, List<String>>.from(subCatMap);
+    final list = List<String>.from(subs[mainCat] ?? []);
+    final index = list.indexOf(oldName);
+    if (index < 0 || list.contains(trimmed)) return;
+    list[index] = trimmed;
+    subs[mainCat] = list;
+    _cachedSubCatMap = subs;
+    try {
+      await _saveToFirestore(List<String>.from(mainCategories), subs);
+    } catch (e) {
+      _cachedSubCatMap = prevSubs;
+      debugPrint('❌ CategoryService.renameSubCategory 실패: $e');
+      rethrow;
+    }
+  }
+
   // ── 하위 카테고리 순서 변경 ────────────────────────────────
   static Future<void> reorderSubCategories(String mainCat, List<String> newOrder) async {
     final prevSubs = _cachedSubCatMap;
