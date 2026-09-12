@@ -18979,12 +18979,17 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
 
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = constraints.maxWidth < 600;
+          return Flex(
+            direction: isMobile ? Axis.vertical : Axis.horizontal,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           // ── 왼쪽: 메인 카테고리 목록
           SizedBox(
-            width: 220,
+            width: isMobile ? double.infinity : 220,
+            height: isMobile ? 220 : null,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -19095,7 +19100,9 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
               ],
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(
+              width: isMobile ? 0 : 16,
+              height: isMobile ? 16 : 0),
           // ── 오른쪽: 하위 카테고리 목록
           Expanded(
             child: Column(
@@ -19106,14 +19113,18 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                     const Icon(Icons.subdirectory_arrow_right_rounded,
                         size: 16, color: Color(0xFF3F51B5)),
                     const SizedBox(width: 6),
-                    Text(
-                      _selectedMain != null
-                          ? '"$_selectedMain" 하위 카테고리'
-                          : '하위 카테고리',
-                      style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF3F51B5)),
+                    Expanded(
+                      child: Text(
+                        _selectedMain != null
+                            ? '"$_selectedMain" 하위 카테고리'
+                            : '하위 카테고리',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF3F51B5)),
+                      ),
                     ),
                     const Spacer(),
                     if (_selectedMain != null)
@@ -19269,7 +19280,9 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
               ],
             ),
           ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -19289,7 +19302,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ]),
         content: SizedBox(
-          width: 320,
+          width: double.infinity,
           child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -19374,7 +19387,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                       fontSize: 16, fontWeight: FontWeight.w700))),
         ]),
         content: SizedBox(
-          width: 320,
+          width: double.infinity,
           child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
