@@ -118,16 +118,12 @@ class _AppDrawerState extends State<AppDrawer> {
       // 언어 변경 시 번역 트리거
       context.read<LanguageProvider>().triggerTranslation();
     });
-    // CategoryService가 아직 로드되지 않은 경우 로드 후 rebuild
-    if (CategoryService.mainCategories ==
-            CategoryService.defaultMainCategories &&
-        CategoryService.mainCategories.length ==
-            CategoryService.defaultMainCategories.length) {
-      // 이미 기본값이라도 Firestore에서 최신값 확인
-      CategoryService.load().then((_) {
-        if (mounted) setState(() {});
-      });
-    }
+    // 드로어를 열 때마다 Firestore의 최신 카테고리를 확인합니다.
+    // 관리자에서 하위 카테고리 순서·추가·삭제를 변경한 뒤에도
+    // 앱을 완전히 재시작하지 않고 다음 드로어 오픈 시 반영됩니다.
+    CategoryService.load().then((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   Future<void> _checkForUpdates() async {
