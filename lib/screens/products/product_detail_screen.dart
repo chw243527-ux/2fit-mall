@@ -888,6 +888,7 @@ $productUrl
                   icon: Icons.support_agent_rounded,
                   color: const Color(0xFF2DB400),
                   label: context.loc.t('채널_문의', '채널 문의'),
+                  outlined: true,
                   onTap: () {
                     Navigator.pop(context);
                     _openKakaoChannel();
@@ -907,6 +908,7 @@ $productUrl
     required String label,
     required VoidCallback onTap,
     Color? iconColor,
+    bool outlined = false,
   }) {
     final r = Responsive.of(context);
     return GestureDetector(
@@ -916,13 +918,25 @@ $productUrl
           Container(
             width: 52,
             height: 52,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            child: Icon(icon, color: iconColor ?? Colors.white, size: 24),
+            decoration: BoxDecoration(
+              color: outlined ? Colors.white : color,
+              shape: BoxShape.circle,
+              border: outlined
+                  ? Border.all(color: AppColors.border, width: 0.8)
+                  : null,
+            ),
+            child: Icon(
+              icon,
+              color: iconColor ?? (outlined ? color : Colors.white),
+              size: 24,
+            ),
           ),
           SizedBox(height: r.h(8)),
           Text(label,
-              style:
-                  TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w600)),
+              style: TextStyle(
+                  fontSize: r.sp(11),
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.textPrimary)),
         ],
       ),
     );
