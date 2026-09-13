@@ -81,7 +81,6 @@ class _SplashScreenState extends State<SplashScreen>
   /// Firebase 자동로그인 확인 후 라우팅
   Future<void> _checkAutoLogin() async {
     if (!mounted || _navigated) return;
-    _navigated = true;
 
     // ── 웹 URL 파싱 ──────────────────────────────────────────────────
     // 1) pathname 우선: 토스페이먼츠가 top.location.href로 리다이렉트하면
@@ -283,7 +282,8 @@ class _SplashScreenState extends State<SplashScreen>
   // ──────────────────────────────────────────────────────────────────
   void _navigateAfterLogin(_DeepLink? link,
       {required bool isLoggedIn, required bool isAdmin}) {
-    if (!mounted) return;
+    if (!mounted || _navigated) return;
+    _navigated = true;
 
     Widget target;
 
@@ -417,7 +417,8 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _goToPublicHome() {
-    if (!mounted) return;
+    if (!mounted || _navigated) return;
+    _navigated = true;
     Navigator.of(context, rootNavigator: true).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => const MainScreen(),
@@ -429,7 +430,8 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _goToLogin() {
-    if (!mounted) return;
+    if (!mounted || _navigated) return;
+    _navigated = true;
     Navigator.of(context, rootNavigator: true).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => const LoginScreen(),
@@ -441,7 +443,8 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _goToLoginWithRedirect(_DeepLink link) {
-    if (!mounted) return;
+    if (!mounted || _navigated) return;
+    _navigated = true;
     // 로그인 후 딥링크로 이동할 수 있도록 arguments 전달
     Navigator.of(context, rootNavigator: true).pushReplacement(
       PageRouteBuilder(
@@ -465,7 +468,6 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _fallbackToRoute() {
     if (!mounted || _navigated) return;
-    _navigated = true;
 
     _DeepLink? link;
     if (kIsWeb) {
