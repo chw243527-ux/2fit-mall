@@ -1019,23 +1019,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (p.rating > 0 || p.reviewCount > 0) ...[
-                        Row(
-                          children: [
-                            const Icon(Icons.star_rounded,
-                                size: 16, color: Color(0xFF9B8A78)),
-                            const SizedBox(width: 3),
-                            Text(
-                              '${p.rating.toStringAsFixed(1)}  리뷰 ${p.reviewCount}건',
-                              style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                      ],
                       if (p.isGroupOnly) ...[
                         Container(
                           margin: const EdgeInsets.only(bottom: 4),
