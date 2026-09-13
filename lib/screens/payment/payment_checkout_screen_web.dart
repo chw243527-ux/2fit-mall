@@ -135,19 +135,25 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
     final args = _args;
 
     return Scaffold(
-      backgroundColor: AppColors.surfaceGray,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0064FF),
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.textPrimary,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(0.8),
+          child: Divider(height: 0.8, thickness: 0.8, color: AppColors.border),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded,
-              color: Colors.white, size: 20),
+              color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           '결제',
           style: TextStyle(
-              color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
+              color: AppColors.textPrimary, fontWeight: FontWeight.w500, fontSize: 18),
         ),
       ),
       body: args == null
@@ -166,10 +172,10 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(Icons.account_balance_outlined,
-                  size: 56, color: Color(0xFF0064FF)),
+                  size: 56, color: AppColors.primary),
               const SizedBox(height: 16),
               const Text('무통장입금',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
               const SizedBox(height: 8),
               const Text(
                 '주문 완료 후 입금 계좌 안내 문자를 발송합니다.\n입금 확인 후 주문이 처리됩니다.',
@@ -180,8 +186,8 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
               Text('결제 금액: $_formattedAmount원',
                   style: const TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF0064FF))),
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textPrimary)),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
@@ -189,16 +195,17 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
                 child: ElevatedButton(
                   onPressed: _onVirtualAccountPressed,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0064FF),
+                    backgroundColor: AppColors.primary,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(10)),
                   ),
                   child: Text(
                     '$_formattedAmount원 주문하기',
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 17,
-                        fontWeight: FontWeight.w800),
+                        fontWeight: FontWeight.w500),
                   ),
                 ),
               ),

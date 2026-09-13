@@ -251,7 +251,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         orElse: () => widget.product);
     final product = liveProduct;
 
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
 
     final media = MediaQuery.of(context);
     final screenW = media.size.width;
@@ -6371,13 +6371,13 @@ $productUrl
     final r = Responsive.of(context);
     final buyNowLabel = context.loc.t('바로구매', '바로구매');
     final compactTextStyle = TextStyle(
-        fontWeight: FontWeight.w900,
+        fontWeight: FontWeight.w500,
         fontSize: r.sp(14),
         letterSpacing: -0.1);
 
     return Container(
-      color: Colors.white,
       decoration: const BoxDecoration(
+        color: Colors.white,
         border: Border(top: BorderSide(color: AppColors.border, width: 1)),
       ),
       child: SafeArea(
@@ -6400,11 +6400,12 @@ $productUrl
                     icon: const Icon(Icons.groups_rounded, size: 18),
                     label: Text(loc.groupOrderBtn,
                         style: TextStyle(
-                            fontWeight: FontWeight.w900, fontSize: r.sp(15))),
+                            fontWeight: FontWeight.w500, fontSize: r.sp(15))),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.textPrimary,
-                      side: const BorderSide(color: AppColors.textPrimary),
-                      shape: const RoundedRectangleBorder(),
+                      side: const BorderSide(color: AppColors.border, width: 0.8),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                     ),
                     onPressed: () => _showGroupOrderGuide(product),
                   ),
@@ -6424,7 +6425,7 @@ $productUrl
                             size: 16),
                         label: Text(context.loc.t('재입고_알림_신청', '재입고 알림 신청'),
                             style: TextStyle(
-                                fontWeight: FontWeight.w900, fontSize: r.sp(14))),
+                                fontWeight: FontWeight.w500, fontSize: r.sp(14))),
                         style: TextButton.styleFrom(
                             foregroundColor: AppColors.textPrimary),
                       ),

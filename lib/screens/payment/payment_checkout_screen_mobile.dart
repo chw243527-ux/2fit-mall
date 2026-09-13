@@ -204,10 +204,23 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('결제'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.textPrimary,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(0.8),
+          child: Divider(height: 0.8, thickness: 0.8, color: AppColors.border),
+        ),
+        titleTextStyle: const TextStyle(
+          fontFamily: AppTheme.fontFamily,
+          color: AppColors.textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w500,
+        ),
       ),
       body: _error != null
           ? Center(
