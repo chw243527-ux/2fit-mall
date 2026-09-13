@@ -6264,21 +6264,21 @@ $productUrl
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Divider(height: 1, color: AppColors.textPrimary),
+              const Divider(height: 1, color: AppColors.border),
               SizedBox(height: r.h(20)),
               Text(
                 'REVIEW / ${reviews.length}',
                 style: TextStyle(
                     fontSize: r.sp(11),
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.accent,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
                     letterSpacing: 1.25),
               ),
               SizedBox(height: r.h(10)),
               Text(loc.productReviewLabel,
                   style: TextStyle(
                       fontSize: r.sp(22),
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w500,
                       color: AppColors.textPrimary)),
               if (avg > 0) ...[
                 SizedBox(height: r.h(14)),
@@ -6287,7 +6287,7 @@ $productUrl
                     Text(avg.toStringAsFixed(1),
                         style: TextStyle(
                             fontSize: r.sp(40),
-                            fontWeight: FontWeight.w900,
+                            fontWeight: FontWeight.w500,
                             color: AppColors.textPrimary)),
                     SizedBox(width: r.w(12)),
                     Column(
@@ -6335,7 +6335,7 @@ $productUrl
                   children: [
                     Text(context.loc.moreReviews,
                         style: TextStyle(
-                            fontSize: r.sp(13), fontWeight: FontWeight.w800)),
+                            fontSize: r.sp(13), fontWeight: FontWeight.w400)),
                     const SizedBox(width: 6),
                     const Icon(Icons.arrow_forward_rounded, size: 16),
                   ],
@@ -10769,8 +10769,8 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                           padding: EdgeInsets.symmetric(
                               horizontal: r.w(12), vertical: r.h(6)),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF6C63FF),
-                            borderRadius: BorderRadius.circular(20),
+                            color: AppColors.textPrimary,
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             children: [
@@ -10787,7 +10787,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                       : '리뷰 작성',
                                   style: TextStyle(
                                       fontSize: r.sp(12),
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w400,
                                       color: Colors.white)),
                             ],
                           ),
@@ -10817,12 +10817,12 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                 label: Text(context.loc
                                     .t('첫 번째 리뷰를 작성해보세요', '첫 번째 리뷰를 작성해보세요')),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF6C63FF),
+                                  backgroundColor: AppColors.textPrimary,
                                   foregroundColor: Colors.white,
                                   padding: EdgeInsets.symmetric(
                                       horizontal: r.w(20), vertical: r.h(10)),
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20)),
+                                      borderRadius: BorderRadius.circular(8)),
                                 ),
                               ),
                             ],
@@ -10893,8 +10893,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                                     horizontal: r.w(6),
                                                     vertical: r.h(2)),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFF6C63FF)
-                                                      .withValues(alpha: 0.1),
+                                                  color: AppColors.surfaceGray,
                                                   borderRadius:
                                                       BorderRadius.circular(4),
                                                 ),
@@ -10904,9 +10903,9 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                                     style: TextStyle(
                                                         fontSize: r.sp(10),
                                                         color:
-                                                            Color(0xFF6C63FF),
+                                                            AppColors.textPrimary,
                                                         fontWeight:
-                                                            FontWeight.w700)),
+                                                            FontWeight.w400)),
                                               ),
                                             ],
                                           ],
@@ -11244,7 +11243,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                               ? context.loc.t('리뷰 수정', '리뷰 수정')
                               : '리뷰 작성',
                           style: TextStyle(
-                              fontSize: r.sp(18), fontWeight: FontWeight.w800)),
+                              fontSize: r.sp(18), fontWeight: FontWeight.w500)),
                       const Spacer(),
                       IconButton(
                           icon: const Icon(Icons.close),
@@ -11314,7 +11313,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: const BorderSide(
-                              color: Color(0xFF6C63FF), width: 2),
+                              color: AppColors.textPrimary, width: 1),
                         ),
                       ),
                     ),
@@ -11341,7 +11340,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide: const BorderSide(
-                                        color: Color(0xFF6C63FF)),
+                                        color: AppColors.textPrimary),
                                   ),
                                 ),
                               ),
@@ -11369,7 +11368,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide: const BorderSide(
-                                        color: Color(0xFF6C63FF)),
+                                        color: AppColors.textPrimary),
                                   ),
                                 ),
                               ),
@@ -11386,10 +11385,10 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                       child: ElevatedButton(
                         onPressed: _isSubmitting ? null : _submit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6C63FF),
+                          backgroundColor: AppColors.textPrimary,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                              borderRadius: BorderRadius.circular(8)),
                           elevation: 0,
                         ),
                         child: _isSubmitting
@@ -11404,7 +11403,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                                     : '리뷰 등록',
                                 style: TextStyle(
                                     fontSize: r.sp(16),
-                                    fontWeight: FontWeight.w700)),
+                                    fontWeight: FontWeight.w500)),
                       ),
                     ),
                   ],
