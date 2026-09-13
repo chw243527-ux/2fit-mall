@@ -59,6 +59,31 @@ class _ProductListScreenState extends State<ProductListScreen> {
   bool _onlyFreeShip = false;
   // 서브카테고리 필터
   String _selectedSubCategory = ''; // '' = 전체
+  static const int _pageSize = 12;
+  int _visibleProductCount = _pageSize;
+  bool _isLoadingMore = false;
+
+  void _loadMoreProducts(int totalCount) {
+    if (_isLoadingMore || _visibleProductCount >= totalCount) return;
+    setState(() => _isLoadingMore = true);
+    Future<void>.delayed(const Duration(milliseconds: 180), () {
+      if (!mounted) return;
+      setState(() {
+        _visibleProductCount = (_visibleProductCount + _pageSize)
+            .clamp(0, totalCount)
+            .toInt();
+        _isLoadingMore = false;
+      });
+    });
+  }
+
+  bool _handleProductScroll(ScrollNotification notification, int totalCount) {
+    if (notification.metrics.axis == Axis.vertical &&
+        notification.metrics.extentAfter < 420) {
+      _loadMoreProducts(totalCount);
+    }
+    return false;
+  }
 
   @override
   void initState() {
@@ -905,17 +930,27 @@ class _ProductListScreenState extends State<ProductListScreen> {
         const padding = 10.0;
         final cardW =
             (constraints.maxWidth - padding * 2 - spacing * (cols - 1)) / cols;
-        return SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.all(padding),
-            child: Wrap(
-              spacing: spacing,
-              runSpacing: spacing,
-              children: products
-                  .map((p) =>
-                      SizedBox(width: cardW, child: _buildProductCard(p)))
-                  .toList(),
+        final visibleProducts = products.take(_visibleProductCount).toList();
+        return NotificationListener<ScrollNotification>(
+          onNotification: (notification) =>
+              _handleProductScroll(notification, products.length),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(padding, padding, padding, 0),
+              child: Column(
+                children: [
+                  Wrap(
+                    spacing: spacing,
+                    runSpacing: spacing,
+                    children: visibleProducts
+                        .map((p) => SizedBox(
+                            width: cardW, child: _buildProductCard(p)))
+                        .toList(),
+                  ),
+                  _buildLoadMoreFooter(products.length),
+                ],
+              ),
             ),
           ),
         );
@@ -925,11 +960,40 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   // ── 리스트 뷰 ──
   Widget _buildListView(List<ProductModel> products) {
-    return ListView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(10),
-      itemCount: products.length,
-      itemBuilder: (_, i) => _buildProductListTile(products[i]),
+    final visibleProducts = products.take(_visibleProductCount).toList();
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) =>
+          _handleProductScroll(notification, products.length),
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+        itemCount: visibleProducts.length + 1,
+        itemBuilder: (_, i) => i < visibleProducts.length
+            ? _buildProductListTile(visibleProducts[i])
+            : _buildLoadMoreFooter(products.length),
+      ),
+    );
+  }
+
+  Widget _buildLoadMoreFooter(int totalCount) {
+    final hasMore = _visibleProductCount < totalCount;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Center(
+        child: _isLoadingMore
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: AppColors.primary))
+            : Text(
+                hasMore ? '아래로 내려 더 보기' : '모든 상품을 확인했습니다',
+                style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500),
+              ),
+      ),
     );
   }
 
