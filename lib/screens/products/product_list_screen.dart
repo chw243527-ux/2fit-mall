@@ -85,6 +85,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
     return false;
   }
 
+  void _selectSort(String label) {
+    setState(() {
+      _sortBy = label;
+      _visibleProductCount = _pageSize;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -606,7 +613,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 return InkWell(
                   onTap: () {
                     setModal(() {});
-                    setState(() => _sortBy = label);
+                    _selectSort(label);
                     Navigator.pop(ctx);
                   },
                   child: Container(
@@ -687,8 +694,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
           if (_onlyBest) ...[
             Container(
               margin: const EdgeInsets.only(right: 6),
@@ -826,7 +836,51 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ),
             ),
           ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 32,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              children: [
+                _sortQuickChip(
+                    loc.sortPopular, Icons.local_fire_department_outlined),
+                _sortQuickChip(loc.sortLatest, Icons.schedule_rounded),
+                _sortQuickChip(loc.sortPriceLow, Icons.south_rounded),
+                _sortQuickChip(loc.sortPriceHigh, Icons.north_rounded),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _sortQuickChip(String label, IconData icon) {
+    final selected = _sortBy == label;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        selected: selected,
+        onSelected: (_) => _selectSort(label),
+        avatar: Icon(icon,
+            size: 15,
+            color: selected ? Colors.white : AppColors.textSecondary),
+        label: Text(label),
+        labelStyle: TextStyle(
+            fontSize: 11.5,
+            fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+            color: selected ? Colors.white : AppColors.textPrimary),
+        selectedColor: AppColors.primary,
+        backgroundColor: const Color(0xFFF7F7F7),
+        side: BorderSide(
+            color: selected ? AppColors.primary : const Color(0xFFE5E5E5)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        padding: const EdgeInsets.symmetric(horizontal: 7),
+        showCheckmark: false,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
     );
   }
