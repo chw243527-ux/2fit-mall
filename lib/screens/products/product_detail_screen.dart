@@ -280,7 +280,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             children: [
               CustomScrollView(
                 controller: _scrollCtrl,
-                cacheExtent: 9999,
+                cacheExtent: 600,
                 slivers: [
                   _buildSliverAppBarOnly(product),
                   SliverToBoxAdapter(child: _buildImageSlider(product)),
@@ -352,7 +352,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             children: [
               CustomScrollView(
                 controller: _scrollCtrl,
-                cacheExtent: 9999,
+                cacheExtent: 600,
                 slivers: [
                   _buildSliverAppBarOnly(product),
                   // 콘텐츠 영역 maxWidth 720 중앙 정렬
@@ -510,7 +510,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                             children: [
                               CustomScrollView(
                                 controller: _scrollCtrl,
-                                cacheExtent: 9999,
+                                cacheExtent: 600,
                                 slivers: [
                                   SliverToBoxAdapter(
                                       child: Container(

@@ -1,15 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:shimmer/shimmer.dart';
-
 import '../utils/theme.dart';
 
 /// 전역 이미지 헬퍼
-/// • 웹: Image.network + ResizeImage(cacheWidth/cacheHeight) + shimmer
+/// • 웹: Image.network + ResizeImage(cacheWidth/cacheHeight) + 정적 placeholder
 ///   - width/height가 null/infinity인 경우 LayoutBuilder로 실제 크기 측정 후 캐시
 /// • 네이티브: CachedNetworkImage (메모리+디스크 캐시)
-/// • 로딩 중: shimmer 애니메이션
+/// • 로딩 중: 정적 placeholder로 스크롤 중 애니메이션 비용 최소화
 /// • 에러: 회색 아이콘
 class NetImage extends StatelessWidget {
   final String url;
@@ -105,8 +103,8 @@ class NetImage extends StatelessWidget {
           alignment: alignment,
           placeholder: (_, __) => _placeholder(),
           errorWidget: (_, __, ___) => _errorWidget(),
-          fadeInDuration: const Duration(milliseconds: 200),
-          fadeOutDuration: const Duration(milliseconds: 100),
+          fadeInDuration: const Duration(milliseconds: 120),
+          fadeOutDuration: Duration.zero,
           memCacheWidth: _memWidth(),
           memCacheHeight: _memHeight(),
         ),
@@ -136,12 +134,12 @@ class NetImage extends StatelessWidget {
 
   int? _memWidth() {
     if (_needsMeasure(width)) return null;
-    return (width! * 3).clamp(1, 2400).toInt();
+    return (width! * 2).clamp(1, 1600).toInt();
   }
 
   int? _memHeight() {
     if (_needsMeasure(height)) return null;
-    return (height! * 3).clamp(1, 2400).toInt();
+    return (height! * 2).clamp(1, 1600).toInt();
   }
 }
 
@@ -173,6 +171,8 @@ class _WebImageState extends State<_WebImage> {
   late ImageProvider _provider;
   bool _loaded = false;
   bool _error = false;
+  ImageStream? _stream;
+  ImageStreamListener? _listener;
 
   @override
   void initState() {
@@ -193,19 +193,22 @@ class _WebImageState extends State<_WebImage> {
   }
 
   void _loadImage() {
+    if (_stream != null && _listener != null) {
+      _stream!.removeListener(_listener!);
+    }
     final rawW = widget.width;
     final rawH = widget.height;
 
-    // PC 고해상도 대응: 픽셀 비율 2× 최대 2400px 상한
+    // 화면 표시 크기 기준으로 디코딩해 메모리 사용량과 스크롤 중 작업량을 제한
     final devicePixelRatio =
         WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
-    final dpr = devicePixelRatio.clamp(1.0, 3.0);
+    final dpr = devicePixelRatio.clamp(1.0, 2.0);
 
     final w = (rawW != null && rawW.isFinite && rawW > 0)
-        ? ((rawW * dpr).clamp(1, 2400)).toInt()
+        ? ((rawW * dpr).clamp(1, 1600)).toInt()
         : null;
     final h = (rawH != null && rawH.isFinite && rawH > 0)
-        ? ((rawH * dpr).clamp(1, 2400)).toInt()
+        ? ((rawH * dpr).clamp(1, 1600)).toInt()
         : null;
 
     _provider = ResizeImage.resizeIfNeeded(
@@ -223,7 +226,17 @@ class _WebImageState extends State<_WebImage> {
         if (mounted) setState(() => _error = true);
       },
     );
+    _stream = stream;
+    _listener = listener;
     stream.addListener(listener);
+  }
+
+  @override
+  void dispose() {
+    if (_stream != null && _listener != null) {
+      _stream!.removeListener(_listener!);
+    }
+    super.dispose();
   }
 
   @override
@@ -265,6 +278,7 @@ class _WebImageState extends State<_WebImage> {
                 image: _provider,
                 fit: widget.fit,
                 alignment: widget.alignment,
+                filterQuality: FilterQuality.low,
                 gaplessPlayback: true,
               ),
             ),
@@ -285,14 +299,11 @@ class _ShimmerBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: backgroundColor ?? AppColors.border,
-      highlightColor: AppColors.background,
-      child: Container(
-        width: width,
-        height: height,
-        color: Colors.white,
-      ),
+    // 스크롤 중 각 카드마다 shimmer 애니메이션을 만들지 않는 정적 placeholder
+    return Container(
+      width: width,
+      height: height,
+      color: backgroundColor ?? AppColors.surfaceGray,
     );
   }
 }
