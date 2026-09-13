@@ -20,10 +20,10 @@ class AppColors {
   static const Color accentGold = Color(0xFFFFD600);
 
   // ── Background ──
-  static const Color background = Color(0xFFF8F8FA); // warm off-white
+  static const Color background = Color(0xFFFFFFFF); // pure white across the storefront
   static const Color surface = Color(0xFFFFFFFF); // pure white cards
   static const Color cardBg = Color(0xFFFFFFFF);
-  static const Color surfaceGray = Color(0xFFF2F2F6); // subtle section bg
+  static const Color surfaceGray = Color(0xFFFAFAFA); // near-white utility surface
 
   // ── Text ──
   static const Color textPrimary = Color(0xFF1A1A2E);
@@ -79,24 +79,24 @@ class AppTheme {
 
     return TextTheme(
       // 대형 제목 (헤로 배너, 섹션 제목)
-      displayLarge: _ts(32 * s, FontWeight.w900, -1.0),
-      displayMedium: _ts(28 * s, FontWeight.w900, -0.8),
-      displaySmall: _ts(24 * s, FontWeight.w800, -0.6),
+      displayLarge: _ts(32 * s, FontWeight.w500, -0.6),
+      displayMedium: _ts(28 * s, FontWeight.w500, -0.5),
+      displaySmall: _ts(24 * s, FontWeight.w500, -0.4),
       // 화면 제목
-      headlineLarge: _ts(22 * s, FontWeight.w800, -0.5),
-      headlineMedium: _ts(20 * s, FontWeight.w700, -0.4),
-      headlineSmall: _ts(18 * s, FontWeight.w700, -0.3),
+      headlineLarge: _ts(22 * s, FontWeight.w500, -0.3),
+      headlineMedium: _ts(20 * s, FontWeight.w500, -0.2),
+      headlineSmall: _ts(18 * s, FontWeight.w500, -0.2),
       // AppBar / 카드 제목
-      titleLarge: _ts(17 * s, FontWeight.w700, -0.3),
-      titleMedium: _ts(15 * s, FontWeight.w600, -0.2),
-      titleSmall: _ts(13 * s, FontWeight.w600, -0.1),
+      titleLarge: _ts(17 * s, FontWeight.w500, -0.2),
+      titleMedium: _ts(15 * s, FontWeight.w400, -0.1),
+      titleSmall: _ts(13 * s, FontWeight.w400, -0.1),
       // 본문
       bodyLarge: _ts(15 * s, FontWeight.w400, 0.0),
       bodyMedium: _ts(14 * s, FontWeight.w400, 0.0),
       bodySmall: _ts(12 * s, FontWeight.w400, 0.0),
       // 라벨 (버튼, 탭, 뱃지)
-      labelLarge: _ts(14 * s, FontWeight.w600, -0.1),
-      labelMedium: _ts(12 * s, FontWeight.w600, -0.1),
+      labelLarge: _ts(14 * s, FontWeight.w400, -0.1),
+      labelMedium: _ts(12 * s, FontWeight.w400, -0.1),
       labelSmall: _ts(10 * s, FontWeight.w500, 0.0),
     );
   }
@@ -124,7 +124,7 @@ class AppTheme {
         surface: AppColors.surface,
         error: AppColors.error,
       ),
-      scaffoldBackgroundColor: AppColors.background,
+      scaffoldBackgroundColor: Colors.white,
 
       // ── AppBar: crisp white, ultra-thin bottom line ──
       appBarTheme: const AppBarTheme(
@@ -138,8 +138,8 @@ class AppTheme {
           fontFamily: 'Pretendard Variable',
           color: AppColors.textPrimary,
           fontSize: 16,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.3,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.1,
         ),
         iconTheme: IconThemeData(color: AppColors.textPrimary),
         surfaceTintColor: Colors.transparent,

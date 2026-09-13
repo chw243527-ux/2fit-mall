@@ -42,9 +42,9 @@ class ProductCard extends StatelessWidget {
         ),
         child: Material(
           // Material.clipBehavior 는 Flutter에서 clip을 100% 보장
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(10),
-          clipBehavior: Clip.antiAlias,
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(0),
+          clipBehavior: Clip.none,
           child: Stack(
             children: [
               Column(
@@ -54,17 +54,6 @@ class ProductCard extends StatelessWidget {
                   _buildImage(context),
                   _buildInfo(context),
                 ],
-              ),
-              // border overlay (Material은 border 미지원 → Stack으로 overlay)
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFF2A2A2A)),
-                    ),
-                  ),
-                ),
               ),
             ],
           ),
@@ -102,15 +91,23 @@ class ProductCard extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // ── 상품 이미지 (카드 완전히 채움) ──
+          // ── 상품 이미지 영역만 얇은 박스로 표시 ──
           Positioned.fill(
-            child: product.images.isNotEmpty
-                ? NetImage(
-                    product.images.first,
-                    fit: BoxFit.cover,
-                    alignment: Alignment.topCenter,
-                  )
-                : _placeholder(),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFFAFAFA),
+                border: Border.all(color: const Color(0xFFE8E8E8), width: 0.8),
+                borderRadius: BorderRadius.circular(2),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: product.images.isNotEmpty
+                  ? NetImage(
+                      product.images.first,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.topCenter,
+                    )
+                  : _placeholder(),
+            ),
           ),
 
           // ── 좌상단 배지 (GROUP / NEW / SALE) ──
@@ -233,7 +230,7 @@ class ProductCard extends StatelessWidget {
         : 0;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 7, 8, 8),
+      padding: const EdgeInsets.fromLTRB(2, 10, 2, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -294,10 +291,11 @@ class ProductCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-                height: 1.3,
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+                color: AppColors.textPrimary,
+                letterSpacing: -0.1,
+                height: 1.45,
               ),
             ),
           ),
@@ -325,9 +323,9 @@ class ProductCard extends StatelessWidget {
                   _fmt(product.price),
                   style: const TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: -0.3,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.2,
                   ),
                 ),
                 const SizedBox(width: 2),
@@ -335,8 +333,8 @@ class ProductCard extends StatelessWidget {
                   loc.productWonUnit,
                   style: const TextStyle(
                     fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(width: 5),
@@ -364,9 +362,9 @@ class ProductCard extends StatelessWidget {
               '${_fmt(product.price)}${loc.productWonUnit}',
               style: const TextStyle(
                 fontSize: 13,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-                letterSpacing: -0.3,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textPrimary,
+                letterSpacing: -0.2,
               ),
             ),
           ],
@@ -383,7 +381,7 @@ class ProductCard extends StatelessWidget {
                   '${product.rating} (${product.reviewCount})',
                   style: const TextStyle(
                     fontSize: 9,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w400,
                     color: AppColors.textSecondary,
                   ),
                 ),
