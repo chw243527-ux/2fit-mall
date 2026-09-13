@@ -902,11 +902,13 @@ class _PcTopBarState extends State<_PcTopBar> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // ══════════════════════════════════════════
-          // 줄 1: 최상단 유틸바 (검정 배경)
+          // 줄 1: 최상단 유틸바 (화이트 미니멀)
           // ══════════════════════════════════════════
           Container(
             height: 36,
-            color: AppColors.textPrimary,
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: AppColors.border, width: 0.8)),
+            ),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1280),
@@ -915,11 +917,11 @@ class _PcTopBarState extends State<_PcTopBar> {
                   child: Row(
                     children: [
                       const Icon(Icons.local_shipping_outlined,
-                          color: Colors.white38, size: 13),
+                          color: AppColors.textSecondary, size: 13),
                       SizedBox(width: r.w(6)),
                       Text(loc.pcFreeShipping,
                           style: TextStyle(
-                              color: Colors.white60, fontSize: r.sp(12))),
+                              color: AppColors.textSecondary, fontSize: r.sp(12))),
                       const Spacer(),
                       _utilBtn(loc.pcCustomerCenter, Icons.headset_mic_outlined,
                           onTap: () => Navigator.push(
@@ -1051,10 +1053,10 @@ class _PcTopBarState extends State<_PcTopBar> {
         onTap: onTap,
         child: Row(
           children: [
-            Icon(icon, color: Colors.white38, size: 12),
+            Icon(icon, color: AppColors.textSecondary, size: 12),
             SizedBox(width: r.w(4)),
             Text(label,
-                style: TextStyle(color: Colors.white60, fontSize: r.sp(11.5))),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: r.sp(11.5), fontWeight: FontWeight.w400)),
           ],
         ),
       ),
@@ -1072,17 +1074,25 @@ class _PcTopBarState extends State<_PcTopBar> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 24, color: AppColors.primary),
-            SizedBox(height: r.h(2)),
-            Text(label,
-                style: TextStyle(
-                    fontSize: r.sp(10),
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500)),
-          ],
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(7)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.border, width: 0.8),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 22, color: AppColors.primary),
+              SizedBox(height: r.h(2)),
+              Text(label,
+                  style: TextStyle(
+                      fontSize: r.sp(10),
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w400)),
+            ],
+          ),
         ),
       ),
     );
@@ -1100,12 +1110,19 @@ class _PcTopBarState extends State<_PcTopBar> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(7)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.border, width: 0.8),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
                 Icon(icon, size: 24, color: AppColors.primary),
                 if (badge > 0)
                   Positioned(
@@ -1123,20 +1140,21 @@ class _PcTopBarState extends State<_PcTopBar> {
                           style: TextStyle(
                               color: Colors.white,
                               fontSize: r.sp(9),
-                              fontWeight: FontWeight.w800),
+                              fontWeight: FontWeight.w500),
                         ),
                       ),
                     ),
                   ),
-              ],
-            ),
-            SizedBox(height: r.h(2)),
-            Text(label,
-                style: TextStyle(
-                    fontSize: r.sp(10),
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500)),
-          ],
+                ],
+              ),
+              SizedBox(height: r.h(2)),
+              Text(label,
+                  style: TextStyle(
+                      fontSize: r.sp(10),
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w400)),
+            ],
+          ),
         ),
       ),
     );
