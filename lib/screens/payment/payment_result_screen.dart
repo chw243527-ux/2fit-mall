@@ -113,7 +113,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
             ? const Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(color: Color(0xFF0064FF)),
+                  CircularProgressIndicator(color: AppColors.primary),
                   SizedBox(height: 20),
                   Text('결제를 처리하고 있습니다...',
                       style: TextStyle(
@@ -133,7 +133,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                       const SizedBox(height: 16),
                       Text('결제 처리 오류',
                           style: const TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.w800)),
+                              fontSize: 20, fontWeight: FontWeight.w500)),
                       const SizedBox(height: 8),
                       Text(_errorMsg!,
                           style: const TextStyle(
@@ -201,8 +201,8 @@ class _PaymentFailScreenState extends State<PaymentFailScreen> {
             const Text('결제 실패',
                 style: TextStyle(
                     fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.primary)),
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary)),
             const SizedBox(height: 10),
             Text(message,
                 style: const TextStyle(
@@ -225,7 +225,7 @@ class _PaymentFailScreenState extends State<PaymentFailScreen> {
                 const SizedBox(width: 12),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0064FF)),
+                      backgroundColor: AppColors.primary),
                   onPressed: () => Navigator.pushNamedAndRemoveUntil(
                       context, '/cart', (r) => false),
                   child: const Text('다시 결제하기',

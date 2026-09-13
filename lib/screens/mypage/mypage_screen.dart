@@ -609,7 +609,7 @@ class _PcMyPage extends StatelessWidget {
     ];
 
     return Container(
-      color: const Color(0xFFF3F0F7),
+      color: Colors.white,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1280),
@@ -879,18 +879,9 @@ class _PcProfileCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.primary, Color(0xFF2D2B55)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 6))
-          ],
+          color: Colors.white,
+          border: Border.all(color: AppColors.border, width: 0.8),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [
@@ -901,11 +892,11 @@ class _PcProfileCard extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle),
               child: const Icon(Icons.person_outline_rounded,
-                  size: 36, color: Colors.white),
+                  size: 36, color: AppColors.primary),
             ),
             const SizedBox(height: 12),
             Text(loc.mypageLoginPrompt,
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 textAlign: TextAlign.center),
           ],
         ),
@@ -918,18 +909,9 @@ class _PcProfileCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primary, Color(0xFF2D2B55)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 6))
-        ],
+        color: Colors.white,
+        border: Border.all(color: AppColors.border, width: 0.8),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
@@ -938,11 +920,10 @@ class _PcProfileCard extends StatelessWidget {
               Container(
                 width: 56,
                 height: 56,
-                decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                    color: AppColors.surfaceGray, shape: BoxShape.circle),
                 child: const Icon(Icons.person_rounded,
-                    size: 32, color: Colors.white),
+                    size: 32, color: AppColors.primary),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -951,9 +932,9 @@ class _PcProfileCard extends StatelessWidget {
                   children: [
                     Text(user!.name,
                         style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontSize: 16,
-                            fontWeight: FontWeight.w700)),
+                            fontWeight: FontWeight.w500)),
                     const SizedBox(height: 4),
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -973,7 +954,7 @@ class _PcProfileCard extends StatelessWidget {
               IconButton(
                 onPressed: () => onShowProfileEdit(context, user!),
                 icon: const Icon(Icons.edit_rounded,
-                    size: 18, color: Colors.white70),
+                    size: 18, color: AppColors.textSecondary),
               ),
             ],
           ),
@@ -3448,13 +3429,19 @@ class _MobileMyPage extends StatelessWidget {
     return wrapWithPopScope(
         context,
         Scaffold(
-          backgroundColor: const Color(0xFFF3F0F7),
+          backgroundColor: Colors.white,
           appBar: AppBar(
-            backgroundColor: AppColors.primary,
+            backgroundColor: Colors.white,
+            foregroundColor: AppColors.textPrimary,
             elevation: 0,
+            scrolledUnderElevation: 0,
+            bottom: const PreferredSize(
+              preferredSize: Size.fromHeight(0.8),
+              child: Divider(height: 0.8, thickness: 0.8, color: AppColors.border),
+            ),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                  size: 20, color: Colors.white),
+                  size: 20, color: AppColors.textPrimary),
               onPressed: onBack ?? () => goBackOrHome(context),
               tooltip: context.loc.t('이전으로', '이전으로'),
             ),
@@ -3462,8 +3449,8 @@ class _MobileMyPage extends StatelessWidget {
             title: Text(context.loc.t('마이페이지', '마이페이지'),
                 style: TextStyle(
                     fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white)),
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary)),
           ),
           body: SafeArea(
             child: Column(
@@ -3480,18 +3467,21 @@ class _MobileMyPage extends StatelessWidget {
                     user: user, loc: loc, tabController: tabController),
                 // 탭바
                 Container(
-                  color: AppColors.primary,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    border: Border(bottom: BorderSide(color: AppColors.border, width: 0.8)),
+                  ),
                   child: TabBar(
                     controller: tabController,
                     isScrollable: true,
                     tabAlignment: TabAlignment.start,
                     indicatorColor: const Color(0xFFCE93D8),
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white60,
+                    labelColor: AppColors.textPrimary,
+                    unselectedLabelColor: AppColors.textSecondary,
                     labelStyle: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700),
-                    unselectedLabelStyle: const TextStyle(
                         fontSize: 13, fontWeight: FontWeight.w500),
+                    unselectedLabelStyle: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w400),
                     tabs: [
                       Tab(text: loc.myOrders),
                       Tab(text: loc.wishlist),
@@ -3559,10 +3549,8 @@ class _MobileProfileHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-            colors: [AppColors.primary, Color(0xFF2D2B55)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight),
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 0.8)),
       ),
       child: Column(
         children: [
@@ -3571,11 +3559,10 @@ class _MobileProfileHeader extends StatelessWidget {
               Container(
                 width: 56,
                 height: 56,
-                decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                    color: AppColors.surfaceGray, shape: BoxShape.circle),
                 child: const Icon(Icons.person_rounded,
-                    size: 32, color: Colors.white),
+                    size: 32, color: AppColors.primary),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -3590,9 +3577,9 @@ class _MobileProfileHeader extends StatelessWidget {
                             children: [
                               Text(user!.name,
                                   style: const TextStyle(
-                                      color: Colors.white,
+                                      color: AppColors.textPrimary,
                                       fontSize: 17,
-                                      fontWeight: FontWeight.w800)),
+                                      fontWeight: FontWeight.w500)),
                               const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
@@ -3610,7 +3597,7 @@ class _MobileProfileHeader extends StatelessWidget {
                           ),
                           Text(user!.email,
                               style: const TextStyle(
-                                  color: Colors.white60, fontSize: 12)),
+                                  color: AppColors.textSecondary, fontSize: 12)),
                         ],
                       ),
               ),
@@ -3618,7 +3605,7 @@ class _MobileProfileHeader extends StatelessWidget {
                 IconButton(
                   onPressed: () => onShowProfileEdit(context, user!),
                   icon: const Icon(Icons.edit_rounded,
-                      color: Colors.white70, size: 20),
+                      color: AppColors.textSecondary, size: 20),
                 ),
             ],
           ),
@@ -3682,7 +3669,7 @@ class _InfoChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.12),
+          color: AppColors.surfaceGray,
           borderRadius: BorderRadius.circular(10)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -3691,9 +3678,9 @@ class _InfoChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(label,
               style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontSize: 12,
-                  fontWeight: FontWeight.w600)),
+                  fontWeight: FontWeight.w400)),
         ],
       ),
     );
@@ -3722,7 +3709,10 @@ class _MobileQuickStats extends StatelessWidget {
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
 
     return Container(
-      color: AppColors.primary,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 0.8)),
+      ),
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
@@ -3772,11 +3762,11 @@ class _MobileStatItem extends StatelessWidget {
             Text(display,
                 style: const TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white)),
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary)),
             const SizedBox(height: 2),
             Text(label,
-                style: const TextStyle(fontSize: 10, color: Colors.white60)),
+                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
           ],
         ),
       ),
@@ -3787,7 +3777,7 @@ class _MobileStatItem extends StatelessWidget {
 class _VertDiv extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
-      Container(width: 1, height: 24, color: Colors.white24);
+      Container(width: 1, height: 24, color: AppColors.border);
 }
 
 // ═══════════════════════════════════════════════════════
