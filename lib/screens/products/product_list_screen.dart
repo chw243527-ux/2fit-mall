@@ -943,7 +943,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
       child: Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(4),
         clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
@@ -959,7 +959,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         child: p.images.isNotEmpty
                             ? NetImage(
                                 p.images.first,
-                                fit: BoxFit.cover,
+                                fit: BoxFit.contain,
                               )
                             : Container(
                                 color: AppColors.surfaceGray,
@@ -1015,16 +1015,27 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 ),
                 // 정보 영역
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                  padding: const EdgeInsets.fromLTRB(2, 12, 2, 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('2FIT KOREA',
-                          style: TextStyle(
-                              fontSize: 10,
-                              color: AppColors.textSecondary,
-                              letterSpacing: 0.5)),
-                      const SizedBox(height: 2),
+                      if (p.rating > 0 || p.reviewCount > 0) ...[
+                        Row(
+                          children: [
+                            const Icon(Icons.star_rounded,
+                                size: 16, color: Color(0xFF9B8A78)),
+                            const SizedBox(width: 3),
+                            Text(
+                              '${p.rating.toStringAsFixed(1)}  리뷰 ${p.reviewCount}건',
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                      ],
                       if (p.isGroupOnly) ...[
                         Container(
                           margin: const EdgeInsets.only(bottom: 4),
@@ -1046,11 +1057,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
                               color: AppColors.primary,
-                              height: 1.3)),
-                      const SizedBox(height: 6),
+                              height: 1.35)),
+                      if (p.subCategory.isNotEmpty) ...[
+                        const SizedBox(height: 5),
+                        Text(p.subCategory,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                height: 1.3)),
+                      ],
+                      const SizedBox(height: 10),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -1076,23 +1097,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                   ],
                                   Text('${_fmt(p.price)}${loc.wonUnit}',
                                       style: const TextStyle(
-                                          fontSize: 14,
+                                          fontSize: 17,
                                           fontWeight: FontWeight.w900,
                                           color: AppColors.primary)),
                                 ],
                               ),
-                            ],
-                          ),
-                          const Spacer(),
-                          Row(
-                            children: [
-                              const Icon(Icons.star_rounded,
-                                  size: 11, color: Color(0xFFFFB300)),
-                              const SizedBox(width: 1),
-                              Text('${p.rating}',
-                                  style: const TextStyle(
-                                      fontSize: 10,
-                                      color: AppColors.textSecondary)),
                             ],
                           ),
                         ],
@@ -1107,8 +1116,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
               child: IgnorePointer(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.border),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: const Color(0xFFEAEAEA)),
                   ),
                 ),
               ),

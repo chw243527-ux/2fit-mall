@@ -4765,11 +4765,8 @@ $productUrl
   // 기성품 싱글렛 단품에만 적용하며, 단체주문 상품에는 표시하지 않습니다.
   // ═══════════════════════════════════════════════════════════
   bool _isLimitedSinglet(ProductModel product) {
-    final label = '${product.category} ${product.subCategory} ${product.name}';
-    final isSingletSet = product.category == '세트' ||
-        label.contains('싱글렛세트') ||
-        label.contains('싱글렛 세트');
-    return !product.isGroupOnly && !isSingletSet && label.contains('싱글렛');
+    // 200명 한정 전용 상세페이지는 더 이상 사용하지 않습니다.
+    return false;
   }
 
   String _limitedSingletMaterial(ProductModel product) {
@@ -6372,12 +6369,10 @@ $productUrl
   // ═══════════════════════════════════════════════════════════
   Widget _buildBottomBar(ProductModel product) {
     final r = Responsive.of(context);
-    final buyNowLabel = _isLimitedSinglet(product)
-        ? '200명 중 한 명이 되기'
-        : context.loc.t('바로구매', '바로구매');
+    final buyNowLabel = context.loc.t('바로구매', '바로구매');
     final compactTextStyle = TextStyle(
         fontWeight: FontWeight.w900,
-        fontSize: r.sp(_isLimitedSinglet(product) ? 13 : 14),
+        fontSize: r.sp(14),
         letterSpacing: -0.1);
 
     return Container(
