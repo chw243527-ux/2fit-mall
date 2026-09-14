@@ -6360,6 +6360,36 @@ class _AdminScreenState extends State<AdminScreen>
     }
   }
 
+  Future<void> _setSelectedProductsActive(bool active) async {
+    final ids = Set<String>.from(_selectedProductIds);
+    if (ids.isEmpty) return;
+    final label = active ? '공개' : '숨김';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('상품 $label 처리'),
+        content: Text('선택한 ${ids.length}개 상품을 ${label} 처리하시겠습니까?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(label),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await context.read<ProductProvider>().setProductsActive(ids, active);
+    if (!mounted) return;
+    setState(() => _selectedProductIds.clear());
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${ids.length}개 상품을 $label 처리했습니다.')),
+    );
+  }
+
   Widget _buildProductManagement() {
     final allProducts = context.watch<ProductProvider>().adminProducts;
     final isAdminLoading = context.watch<ProductProvider>().isAdminLoading;
@@ -6547,6 +6577,41 @@ class _AdminScreenState extends State<AdminScreen>
                 style: const TextStyle(
                     fontSize: 11, color: AppColors.textSecondary)),
             const Spacer(),
+            // 선택 공개·숨김 버튼
+            if (anySelected) ...[
+              GestureDetector(
+                onTap: () => _setSelectedProductsActive(false),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceGray,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(children: [
+                    Icon(Icons.visibility_off_outlined, color: AppColors.textSecondary, size: 14),
+                    SizedBox(width: 4),
+                    Text('선택숨김', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w700)),
+                  ]),
+                ),
+              ),
+              const SizedBox(width: 6),
+              GestureDetector(
+                onTap: () => _setSelectedProductsActive(true),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(children: [
+                    Icon(Icons.visibility_outlined, color: AppColors.success, size: 14),
+                    SizedBox(width: 4),
+                    Text('선택공개', style: TextStyle(color: AppColors.success, fontSize: 12, fontWeight: FontWeight.w700)),
+                  ]),
+                ),
+              ),
+              const SizedBox(width: 6),
+            ],
             // 선택 삭제 버튼
             if (anySelected)
               GestureDetector(

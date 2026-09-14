@@ -1564,6 +1564,24 @@ class ProductProvider extends ChangeNotifier {
     return result;
   }
 
+  Future<bool> setProductsActive(Iterable<String> ids, bool active) async {
+    final targetIds = ids.where((id) => id.isNotEmpty).toSet();
+    if (targetIds.isEmpty) return true;
+    for (final id in targetIds) {
+      final index = _adminProducts.indexWhere((product) => product.id == id);
+      if (index < 0) continue;
+      final updated = _adminProducts[index].copyWith(isActive: active);
+      _adminProducts[index] = updated;
+      final publicIndex = _products.indexWhere((product) => product.id == id);
+      if (publicIndex >= 0) _products[publicIndex] = updated;
+      await ProductService.updateProduct(updated);
+    }
+    notifyListeners();
+    await refresh();
+    await loadAdminProducts();
+    return true;
+  }
+
   Future<bool> deleteProduct(String id) async {
     // 1) 메모리에서 즉시 제거 → UI 즉시 반영
     _adminProducts.removeWhere((p) => p.id == id);
