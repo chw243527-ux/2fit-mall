@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/models.dart';
 import 'notification_web_stub.dart'
     if (dart.library.html) 'notification_web_impl.dart' as web_notif;
+import 'notification_service.dart';
 
 class FcmService {
   static final _db = FirebaseFirestore.instance;
@@ -75,6 +76,15 @@ class FcmService {
               : receivedAt.difference(DateTime.parse(serverSentAt)).inMilliseconds;
           if (kDebugMode) {
             debugPrint('FCM_DELIVERY_TIMING mode=foreground serverSentAt=$serverSentAt receivedAt=${receivedAt.toIso8601String()} delayMs=$deliveryDelayMs');
+          }
+          if (message.data['type']?.toString() == 'low_stock') {
+            AdminNotificationStore.add(AdminNotification(
+              id: 'low_stock_${message.data['productId']}_${message.data['size']}_${message.data['color']}',
+              title: title,
+              body: body,
+              time: receivedAt.toLocal(),
+              type: 'low_stock',
+            ));
           }
           if (kIsWeb) {
             // 웹은 포그라운드 수신 시 자동으로 알림창을 띄우지 않으므로 직접 표시합니다.

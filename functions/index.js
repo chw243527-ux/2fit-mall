@@ -75,6 +75,23 @@ exports.onNewOrder = onDocumentCreated(
         data: { type: 'new_order', orderId: event.params.orderId },
       });
     }
+
+    const lowStockAlerts = await _detectLowStockAlerts(data.items || []);
+    if (lowStockAlerts.length > 0 && tokens.length > 0) {
+      for (const alert of lowStockAlerts) {
+        await _sendMulticast(tokens, {
+          title: alert.outOfStock ? '⚠️ 옵션 품절 알림' : '⚠️ 옵션 재고 부족',
+          body: alert.body,
+          data: {
+            type: 'low_stock',
+            productId: alert.productId,
+            size: alert.size,
+            color: alert.color,
+            stock: String(alert.stock),
+          },
+        });
+      }
+    }
   } catch (e) { console.error('onNewOrder error:', e);   }
 });
 
@@ -2615,6 +2632,58 @@ async function _getOrCreateNaverUser({ naverId, email, name, photoUrl }) {
 async function _getAdminTokens() {
   const doc = await db.doc(ADMIN_TOKENS_DOC).get();
   return (doc.data()?.tokens || []).filter(t => t && t.length > 10);
+}
+
+// 색상×사이즈 조합별 현재 재고가 임계치 이하로 내려갔을 때
+// 한 번만 알림을 만들고, 재입고 후 다시 부족해지면 재알림합니다.
+async function _detectLowStockAlerts(orderItems) {
+  const alerts = [];
+  const seen = new Set();
+  for (const item of Array.isArray(orderItems) ? orderItems : []) {
+    const productId = String(item?.productId || '').trim();
+    const size = String(item?.size || '').trim();
+    const color = String(item?.color || '').trim();
+    if (!productId || !size || !color || seen.has(`${productId}|${size}|${color}`)) continue;
+    seen.add(`${productId}|${size}|${color}`);
+    const result = await db.runTransaction(async (tx) => {
+      const productRef = db.collection('products').doc(productId);
+      const productSnap = await tx.get(productRef);
+      if (!productSnap.exists) return null;
+      const product = productSnap.data() || {};
+      const stockData = product.stockData && typeof product.stockData === 'object'
+        ? product.stockData : {};
+      const sizeStock = stockData[size] && typeof stockData[size] === 'object'
+        ? stockData[size] : null;
+      if (!sizeStock || sizeStock[color] == null) return null;
+      const stock = Math.max(0, Math.floor(Number(sizeStock[color] || 0)));
+      const threshold = Math.max(0, Math.floor(Number(product.lowStockThreshold ?? 5)));
+      const stateId = `low_stock_${crypto.createHash('sha1').update(`${productId}|${size}|${color}`).digest('hex')}`;
+      const stateRef = db.collection('inventory_alert_states').doc(stateId);
+      const stateSnap = await tx.get(stateRef);
+      const wasAlerted = stateSnap.data()?.alerted === true;
+      if (stock > threshold) {
+        if (wasAlerted) tx.set(stateRef, { alerted: false, stock, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+        return null;
+      }
+      if (wasAlerted) {
+        tx.set(stateRef, { stock, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+        return null;
+      }
+      const productName = String(product.name || '상품').slice(0, 120);
+      const alertRef = db.collection('admin_notifications').doc(stateId);
+      tx.set(stateRef, { alerted: true, stock, productId, size, color, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+      tx.set(alertRef, {
+        id: stateId,
+        title: stock === 0 ? '⚠️ 옵션 품절' : '⚠️ 옵션 재고 부족',
+        body: `${productName} · ${size} · ${color}: ${stock === 0 ? '품절' : `재고 ${stock}개`}`,
+        type: 'low_stock', productId, productName, size, color, stock,
+        isRead: false, createdAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+      return { productId, size, color, stock, outOfStock: stock === 0, body: `${productName} · ${size} · ${color}: ${stock === 0 ? '품절' : `재고 ${stock}개`}` };
+    });
+    if (result) alerts.push(result);
+  }
+  return alerts;
 }
 
 async function _sendMulticast(tokens, { title, body, data: msgData = {} }) {
