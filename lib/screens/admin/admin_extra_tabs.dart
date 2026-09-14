@@ -31,6 +31,8 @@ class AdminSalesStatsTab extends StatefulWidget {
 }
 
 class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
+  int _optionPeriodDays = 30;
+
   String _fmtMillions(double amount) {
     if (amount >= 1000000) {
       return '${(amount / 1000000).toStringAsFixed(1)}M';
@@ -49,6 +51,98 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
       buf.write(s[i]);
     }
     return buf.toString();
+  }
+
+  Widget _buildOptionStats(List<OrderModel> orders) {
+    final cutoff = DateTime.now().subtract(Duration(days: _optionPeriodDays));
+    final rows = <String, Map<String, dynamic>>{};
+    for (final order in orders) {
+      if (order.createdAt.isBefore(cutoff) ||
+          order.status == OrderStatus.cancelled ||
+          order.status == OrderStatus.refunded) continue;
+      for (final item in order.items) {
+        final color = item.color.trim().isEmpty ? '미지정' : item.color.trim();
+        final size = item.size.trim().isEmpty ? '미지정' : item.size.trim();
+        final key = '${item.productId}::$size::$color';
+        final row = rows.putIfAbsent(key, () => {
+              'productId': item.productId,
+              'name': item.productName,
+              'size': size,
+              'color': color,
+              'quantity': 0,
+              'revenue': 0.0,
+              'orders': <String>{},
+            });
+        row['quantity'] = (row['quantity'] as int) + item.quantity;
+        row['revenue'] = (row['revenue'] as double) + item.price * item.quantity;
+        (row['orders'] as Set<String>).add(order.id);
+      }
+    }
+    final sorted = rows.values.toList()
+      ..sort((a, b) => (b['revenue'] as double).compareTo(a['revenue'] as double));
+    final totalQty = sorted.fold<int>(0, (sum, row) => sum + row['quantity'] as int);
+    final totalRevenue = sorted.fold<double>(0, (sum, row) => sum + row['revenue'] as double);
+
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Expanded(
+              child: Text('옵션별 판매 통계', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            ),
+            DropdownButton<int>(
+              value: _optionPeriodDays,
+              underline: const SizedBox.shrink(),
+              items: const [7, 30, 90, 365].map((days) => DropdownMenuItem(
+                    value: days,
+                    child: Text('최근 $days일', style: TextStyle(fontSize: 12)),
+                  )).toList(),
+              onChanged: (value) => setState(() => _optionPeriodDays = value ?? 30),
+            ),
+          ]),
+          const SizedBox(height: 6),
+          Text('판매 ${totalQty}개 · 매출 ₩${_fmtPrice(totalRevenue)}',
+              style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          const SizedBox(height: 14),
+          if (sorted.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: Text('선택한 기간에 옵션 판매 데이터가 없습니다.')),
+            )
+          else
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowColor: WidgetStatePropertyAll(Color(0xFFF5F6F8)),
+                columns: const [
+                  DataColumn(label: Text('상품')),
+                  DataColumn(label: Text('사이즈')),
+                  DataColumn(label: Text('색상')),
+                  DataColumn(label: Text('판매량')),
+                  DataColumn(label: Text('매출')),
+                  DataColumn(label: Text('주문 수')),
+                ],
+                rows: sorted.take(50).map((row) => DataRow(cells: [
+                  DataCell(SizedBox(width: 190, child: Text(row['name'], overflow: TextOverflow.ellipsis))),
+                  DataCell(Text(row['size'])),
+                  DataCell(Text(row['color'])),
+                  DataCell(Text('${row['quantity']}개')),
+                  DataCell(Text('₩${_fmtPrice(row['revenue'])}')),
+                  DataCell(Text('${(row['orders'] as Set<String>).length}건')),
+                ])).toList(),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   Widget _statsKpiCard(String title, String value, IconData icon, Color color) {
@@ -664,6 +758,7 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                   ),
                 ],
               ),
+              _buildOptionStats(orders),
             ],
           ),
         );
