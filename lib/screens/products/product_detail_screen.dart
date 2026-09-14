@@ -42,6 +42,12 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen>
     with SingleTickerProviderStateMixin {
+  bool _isSingletGroupProduct(ProductModel product) {
+    final haystack = '${product.name} ${product.subCategory}'.toLowerCase();
+    return product.isGroupOnly &&
+        (haystack.contains('싱글렛') || haystack.contains('singlet'));
+  }
+
   // ── 이미지 관련 ──
   int _mainImageIndex = 0;
   final PageController _pageCtrl = PageController();
@@ -1161,7 +1167,7 @@ $productUrl
           // ═══════════════════════════════════════════════
           // 상품 속성 뱃지 (단체전용 / 기성품)
           // ═══════════════════════════════════════════════
-          if (!product.isGroupOnly && product.isReadyMade)
+          if (!_isSingletGroupProduct(product) && product.isReadyMade)
             Padding(
               padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
               child: Row(children: [
@@ -1169,7 +1175,7 @@ $productUrl
                     activeColor: AppColors.primary),
               ]),
             ),
-          if (product.isGroupOnly)
+          if (_isSingletGroupProduct(product))
             Padding(
               padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
               child: Row(children: [
@@ -1355,7 +1361,7 @@ $productUrl
           // ═══════════════════════════════════════════════
           // 탑텐 스타일: 색상 선택 원형 그리드 (단체주문 상품은 색상 선택 UI 없음)
           // ═══════════════════════════════════════════════
-          if (product.colors.isNotEmpty && !product.isGroupOnly) ...[
+          if (product.colors.isNotEmpty && !_isSingletGroupProduct(product)) ...[
             SizedBox(height: r.h(18)),
             const Divider(height: 1, color: AppColors.surfaceGray),
             _buildToptenColorSection(product),
@@ -1430,7 +1436,7 @@ $productUrl
     // 골지 텍스처 적용 대상: 타이즈, 단체주문 하의, 5부, 2.5부
     final sub = product.subCategory;
     final name = product.name;
-    final showRib = product.isGroupOnly && product.category == '하의' ||
+    final showRib = _isSingletGroupProduct(product) && product.category == '하의' ||
         sub.contains(context.loc.t('타이즈', '타이즈')) ||
         name.contains(context.loc.t('타이즈', '타이즈')) ||
         sub.contains(context.loc.t('k_5부', '5부')) ||
@@ -1800,7 +1806,7 @@ $productUrl
     final isTaiz = sub.contains(context.loc.t('타이즈', '타이즈')) ||
         name.contains(context.loc.t('타이즈', '타이즈')) ||
         cat == context.loc.t('하의', '하의');
-    final isGroupOnly = product.isGroupOnly;
+    final isGroupOnly = _isSingletGroupProduct(product);
 
     // ── 1) MATERIAL: 상품 유형별 섬유 혼용률 ─────────────────────
     // 싱글렛·라운드티·골지타이즈·펄원단 상품은 확정된 기준값을 우선 적용합니다.
@@ -3111,7 +3117,7 @@ $productUrl
     final showFixedLength9 = isTrainingSet;
 
     // 타이즈/싱글렛세트: 하의 색상 선택 안내 표시 여부
-    final isSingletTop = !product.isGroupOnly && _showBottomColorBadge(product);
+    final isSingletTop = !_isSingletGroupProduct(product) && _showBottomColorBadge(product);
 
     // 싱글렛세트 여부: 상의+하의 세트라서 "하의 색상 선택"으로 표기
     final isSingletSet = product.category == '세트' ||
@@ -3449,7 +3455,7 @@ $productUrl
             SizedBox(height: r.h(10)),
           ],
 
-          if (!product.isGroupOnly) ...[
+          if (!_isSingletGroupProduct(product)) ...[
             Text(loc.purchaseType,
                 style: TextStyle(
                     fontSize: r.sp(13),
@@ -3459,7 +3465,7 @@ $productUrl
           ],
 
           // ── 기성품 원단 선택 버튼 (일반원단 / 심리스) ──
-          if (!product.isGroupOnly) ...[
+          if (!_isSingletGroupProduct(product)) ...[
             SizedBox(height: r.h(4)),
             const Divider(height: 1, color: AppColors.surfaceGray),
             SizedBox(height: r.h(10)),
@@ -3484,7 +3490,7 @@ $productUrl
           ],
 
           // ── 구매방식 버튼: 단체주문 전용 → 단체주문 1개, 기성품 → 기성품 1개 ──
-          if (product.isGroupOnly) ...[
+          if (_isSingletGroupProduct(product)) ...[
             GestureDetector(
               onTap: () => _showGroupOrderGuide(product),
               child: Container(
@@ -3550,7 +3556,7 @@ $productUrl
           ],
 
           // ── 성별 선택 (단체주문 전용 상품 제외) ──
-          if (!product.isGroupOnly) ...[
+          if (!_isSingletGroupProduct(product)) ...[
             SizedBox(height: r.h(12)),
             const Divider(height: 1, color: AppColors.surfaceGray),
             SizedBox(height: r.h(10)),
@@ -3684,7 +3690,7 @@ $productUrl
                 ),
               ),
             ],
-          ], // end if (!product.isGroupOnly)
+          ], // end if (!_isSingletGroupProduct(product))
         ],
       ),
     );
@@ -4801,7 +4807,7 @@ $productUrl
       _generalEditorialCopy(ProductModel product) {
     final name = product.name;
 
-    if (product.isGroupOnly) {
+    if (_isSingletGroupProduct(product)) {
       return (
         label: 'TEAM ORDER / CUSTOM MADE',
         headline: 'MADE FOR\nTHE TEAM.',
@@ -4957,7 +4963,7 @@ $productUrl
     final material = _materialTextForProduct(product);
     final heroCopy = _generalEditorialCopy(product);
     final productType = heroCopy.label;
-    final isGroupOrder = product.isGroupOnly;
+    final isGroupOrder = _isSingletGroupProduct(product);
     final details = [
       if (isGroupOrder) '팀의 필요 수량과 원하는 사양에 맞춰 상담 가능한 단체주문 상품',
       if (!isGroupOrder) '운동과 일상에서 편안하게 활용할 수 있는 2FIT 스포츠웨어',
@@ -5983,7 +5989,7 @@ $productUrl
     final sub = product.subCategory;
     final name = product.name;
     // 단체주문은 항상 표시
-    if (product.isGroupOnly) return true;
+    if (_isSingletGroupProduct(product)) return true;
     // 하의 카테고리이면서 타이즈·5부·2.5부 포함 시만 표시
     if (cat == context.loc.t('하의', '하의')) {
       return sub.contains(context.loc.t('타이즈', '타이즈')) ||
@@ -6406,7 +6412,7 @@ $productUrl
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (product.isGroupOnly)
+              if (_isSingletGroupProduct(product))
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -6566,7 +6572,7 @@ $productUrl
   /// + isGroupOnly(단체전용) / isReadyMade(기성품) 상품도 항상 표시
   bool _showGroupOrderBtn(ProductModel p) {
     // 단체전용 or 기성품이면 무조건 표시
-    if (p.isGroupOnly || p.isReadyMade) return true;
+    if (_isSingletGroupProduct(p) || p.isReadyMade) return true;
 
     // 1) 타이즈 / 하의 카테고리 전체
     final isTights = p.category == context.loc.t('하의', '하의') ||
@@ -6849,7 +6855,7 @@ $productUrl
                 if (_showGroupOrderBtn(product)) ...[
                   SizedBox(height: r.h(12)),
                   // 기성품 + 단체전용 모두 선택된 경우 → 두 버튼 따로 표시
-                  if (product.isReadyMade && product.isGroupOnly) ...[
+                  if (product.isReadyMade && _isSingletGroupProduct(product)) ...[
                     _orderTypeBtn(
                       emoji: '📦',
                       title: context.loc.t('기성품_단체주문', '기성품 단체주문'),
