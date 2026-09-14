@@ -6211,10 +6211,10 @@ class _AdminScreenState extends State<AdminScreen>
   // ── 단체주문 상세 PDF 내보내기 ──
   Future<void> _exportGroupOrderPdf(OrderModel order, {bool productionOnly = false}) async {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('${productionOnly ? '발주용' : '고객용'} 단체주문 PDF 생성 중...'),
-        duration: Duration(seconds: 10),
-        backgroundColor: Color(0xFF00897B),
+        duration: const Duration(seconds: 10),
+        backgroundColor: const Color(0xFF00897B),
       ));
     }
     try {
