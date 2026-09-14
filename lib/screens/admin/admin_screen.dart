@@ -6409,6 +6409,7 @@ class _AdminScreenState extends State<AdminScreen>
           category: selectedCategory,
           subCategory: '',
           price: 0,
+          description: '',
           createdAt: DateTime.now(),
         ),
       );
