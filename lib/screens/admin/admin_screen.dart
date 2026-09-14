@@ -2248,7 +2248,7 @@ class _AdminScreenState extends State<AdminScreen>
                   const SizedBox(width: 8),
                   // 예시 PDF 다운로드 버튼
                   Tooltip(
-                    message: '예시 PDF 파일 다운로드 (샘플 데이터)',
+                    message: '단체주문 예시 PDF 다운로드 (다양한 테스트 데이터)',
                     child: InkWell(
                       onTap: _downloadSamplePdf,
                       borderRadius: BorderRadius.circular(8),
@@ -2267,7 +2267,7 @@ class _AdminScreenState extends State<AdminScreen>
                             Icon(Icons.file_download_outlined,
                                 size: 15, color: AppColors.warning),
                             SizedBox(width: 4),
-                            Text('예시파일',
+                            Text('단체예시PDF',
                                 style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
@@ -2781,7 +2781,7 @@ class _AdminScreenState extends State<AdminScreen>
   // ── 예시(샘플) PDF 파일 다운로드 ──
   Future<void> _downloadSamplePdf() async {
     const mimeType = 'application/pdf';
-    const fileName = '2FIT_주문_PDF_예시파일.pdf';
+    const fileName = '2FIT_단체주문_다양한_예시.pdf';
     try {
       final bytes = await OrderExcelService.generateSamplePdf();
       if (kIsWeb) {
@@ -2793,7 +2793,7 @@ class _AdminScreenState extends State<AdminScreen>
               const Icon(Icons.file_download_done_rounded,
                   color: Colors.white, size: 16),
               const SizedBox(width: 8),
-              Expanded(child: Text('예시 PDF 파일 다운로드 완료')),
+              Expanded(child: Text('단체주문 예시 PDF 다운로드 완료')),
             ]),
             backgroundColor: AppColors.warning,
             duration: const Duration(seconds: 4),
@@ -2808,7 +2808,7 @@ class _AdminScreenState extends State<AdminScreen>
         await SharePlus.instance.share(
           ShareParams(
             files: [XFile(filePath, mimeType: mimeType, name: fileName)],
-            subject: '2FIT MALL PDF 예시 파일',
+            subject: '2FIT MALL 단체주문 예시 PDF',
             text: fileName,
           ),
         );
