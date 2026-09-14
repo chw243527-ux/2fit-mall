@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
+import '../../services/product_service.dart';
+import '../../services/group_order_policy_service.dart';
+import 'group_order_form_screen.dart';
 import '../../utils/app_localizations.dart';
 import '../../models/models.dart';
 import '../../widgets/pc_layout.dart';
@@ -13,7 +16,8 @@ import '../../utils/navigation_helper.dart';
 import 'group_order_landing_screen.dart';
 
 class GroupOrderOnlyScreen extends StatefulWidget {
-  const GroupOrderOnlyScreen({super.key});
+  final bool eligibleOnly;
+  const GroupOrderOnlyScreen({super.key, this.eligibleOnly = false});
   @override
   State<GroupOrderOnlyScreen> createState() => _GroupOrderOnlyScreenState();
 }
@@ -25,6 +29,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
   TabController? _tabCtrl;
   List<String> _tabs = [];
   bool _isGridView = true;
+  List<ProductModel> _eligibleProducts = [];
+  GroupOrderPolicy _policy = const GroupOrderPolicy();
 
   // 카테고리 메타 (아이콘 + 색상)
   static const Map<String, Map<String, dynamic>> _catMeta = {
@@ -47,28 +53,53 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
       context.read<LanguageProvider>().triggerTranslation();
 
       final pp = context.read<ProductProvider>();
-      // 항상 최신 단체주문 상품 재로드 (화면 진입 시마다)
-      pp.loadGroupOnlyProducts().then((_) {
-        if (mounted) _initTabs();
-      });
-      pp.addListener(_onProductsUpdated);
-      // 이미 데이터 있으면 바로 탭 초기화
-      if (pp.groupOnlyProducts.isNotEmpty) _initTabs();
+      if (widget.eligibleOnly) {
+        _loadEligibleProducts();
+      } else {
+        // 기존 단체주문 전용 상품 목록은 기존 흐름을 유지합니다.
+        pp.loadGroupOnlyProducts().then((_) {
+          if (mounted) _initTabs();
+        });
+        pp.addListener(_onProductsUpdated);
+        if (pp.groupOnlyProducts.isNotEmpty) _initTabs();
+      }
     });
   }
 
-  void _onProductsUpdated() {
+  Future<void> _loadEligibleProducts() async {
+    final policy = await GroupOrderPolicyService.getPolicy();
+    final products = await ProductService.getBulkOrderProducts(
+      predicate: (product) => policy.allowsProduct(
+        category: product.category,
+        name: product.name,
+        subCategory: product.subCategory,
+      ),
+    );
     if (!mounted) return;
+    setState(() {
+      _policy = policy;
+      _eligibleProducts = products;
+      _tabs = ['전체', ...products.map((p) => p.category).where((c) => c.isNotEmpty).toSet()];
+      _tabCtrl?.dispose();
+      _tabCtrl = TabController(length: _tabs.length, vsync: this);
+    });
+  }
+
+  List<ProductModel> _sourceProducts(ProductProvider pp) =>
+      widget.eligibleOnly ? _eligibleProducts : pp.groupOnlyProducts;
+
+  void _onProductsUpdated() {
+    if (widget.eligibleOnly || !mounted) return;
     _initTabs();
   }
 
   void _initTabs() {
-    if (!mounted) return;
+    if (widget.eligibleOnly || !mounted) return;
     final pp = context.read<ProductProvider>();
     // 단체주문 전용 상품 로딩 중이고 아직 데이터 없으면 대기
     if (pp.isGroupOnlyLoading && pp.groupOnlyProducts.isEmpty) return;
     // groupOnlyProducts: Firestore에서 직접 로드된 isGroupOnly=true & isActive=true 상품
-    final groupProducts = pp.groupOnlyProducts;
+    final groupProducts = _sourceProducts(pp);
 
     // subCategory 유니크 목록 (등장 순서 유지)
     final seen = <String>{};
@@ -217,7 +248,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
             children: _tabs.map((tab) {
               return Consumer<ProductProvider>(
                 builder: (_, pp, __) {
-                  final list = _filterByTab(pp.groupOnlyProducts, tab);
+                  final list = _filterByTab(_sourceProducts(pp), tab);
                   return _buildProductBody(list, gridColumns: 2);
                 },
               );
@@ -344,7 +375,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                   child: TabBarView(
                     controller: _tabCtrl,
                     children: _tabs.map((tab) {
-                      final list = _filterByTab(pp.groupOnlyProducts, tab);
+                      final list = _filterByTab(_sourceProducts(pp), tab);
                       return Center(
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 1280),
@@ -703,7 +734,10 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p)),
+        MaterialPageRoute(
+            builder: (_) => widget.eligibleOnly
+                ? GroupOrderFormScreen(product: p, initialCount: _policy.minimumQuantity)
+                : ProductDetailScreen(product: p)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -876,7 +910,10 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p)),
+        MaterialPageRoute(
+            builder: (_) => widget.eligibleOnly
+                ? GroupOrderFormScreen(product: p, initialCount: _policy.minimumQuantity)
+                : ProductDetailScreen(product: p)),
       ),
       child: Container(
         decoration: BoxDecoration(
@@ -1029,9 +1066,10 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
   // 헬퍼
   // ════════════════════════════════════════════
   List<ProductModel> _filterByTab(List<ProductModel> groupOnly, String tab) {
-    // groupOnly는 이미 isGroupOnly=true, isActive=true 필터링된 목록
     if (tab == '전체') return groupOnly;
-    return groupOnly.where((p) => p.subCategory == tab).toList();
+    return groupOnly
+        .where((p) => widget.eligibleOnly ? p.category == tab : p.subCategory == tab)
+        .toList();
   }
 
   void _goToLanding() {

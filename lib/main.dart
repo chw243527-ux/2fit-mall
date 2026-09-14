@@ -271,9 +271,13 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
                 settings: settings,
               );
             case '/group-form':
-            case '/bulk-order':
               return MaterialPageRoute(
                 builder: (_) => const GroupOrderFormScreen(initialCount: 5),
+                settings: settings,
+              );
+            case '/bulk-order':
+              return MaterialPageRoute(
+                builder: (_) => const GroupOrderOnlyScreen(eligibleOnly: true),
                 settings: settings,
               );
             case '/group-only':

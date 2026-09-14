@@ -890,6 +890,32 @@ class ProductService {
     }
   }
 
+  /// 별도 단체주문 페이지용 활성 상품 조회.
+  static Future<List<ProductModel>> getBulkOrderProducts({
+    required bool Function(ProductModel product) predicate,
+  }) async {
+    try {
+      final snapshot = await _db
+          .collection('products')
+          .where('isActive', isEqualTo: true)
+          .get()
+          .timeout(const Duration(seconds: 10));
+      return snapshot.docs.map((doc) {
+        final data = Map<String, dynamic>.from(doc.data());
+        data['id'] ??= doc.id;
+        if (data['createdAt'] is Timestamp) {
+          data['createdAt'] =
+              (data['createdAt'] as Timestamp).toDate().toIso8601String();
+        }
+        return ProductModel.fromJson(data);
+      }).where(predicate).toList();
+    } catch (_) {
+      _ensureCache();
+      return _cache.where((product) =>
+          product.isActive && predicate(product)).toList();
+    }
+  }
+
   static Future<ProductModel?> getProductById(String id) async {
     if (!_loaded) await _loadFromFirestore();
     // 1) 캐시에서 먼저 탐색

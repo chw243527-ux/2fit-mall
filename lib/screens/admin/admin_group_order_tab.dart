@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/models.dart';
 import '../../services/order_service.dart';
+import '../../services/group_order_policy_service.dart';
 import '../../utils/theme.dart';
 
 /// 관리자 전용 단체주문 접수 관리 화면.
@@ -127,6 +128,12 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               ),
               Text('$count건', style: const TextStyle(color: AppColors.textSecondary)),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: _openPolicyDialog,
+                icon: const Icon(Icons.tune_rounded, size: 16),
+                label: const Text('정책 설정'),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -166,6 +173,72 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
         ],
       ),
     );
+  }
+
+  Future<void> _openPolicyDialog() async {
+    final policy = await GroupOrderPolicyService.getPolicy();
+    if (!mounted) return;
+    final minCtrl = TextEditingController(text: '${policy.minimumQuantity}');
+    final discountCtrl = TextEditingController(text: '${policy.discountRate}');
+    final result = await showDialog<GroupOrderPolicy>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('단체주문 정책 설정'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: minCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: '최소 주문 수량',
+                suffixText: '명',
+                helperText: '단체주문 폼에서 이 수량 미만은 제출할 수 없습니다.',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: discountCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(
+                labelText: '단체주문 할인율',
+                suffixText: '%',
+                helperText: '상품 합계에 적용됩니다. 0~90% 범위.',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('취소')),
+          FilledButton(
+            onPressed: () {
+              final minimum = int.tryParse(minCtrl.text.trim());
+              final discount = double.tryParse(discountCtrl.text.trim());
+              if (minimum == null || minimum < 1 || discount == null || discount < 0 || discount > 90) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('수량과 할인율을 올바르게 입력해 주세요.')));
+                return;
+              }
+              Navigator.pop(
+                dialogContext,
+                GroupOrderPolicy(minimumQuantity: minimum, discountRate: discount),
+              );
+            },
+            child: const Text('저장'),
+          ),
+        ],
+      ),
+    );
+    minCtrl.dispose();
+    discountCtrl.dispose();
+    if (!mounted || result == null) return;
+    try {
+      await GroupOrderPolicyService.savePolicy(result);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('단체주문 정책을 저장했습니다.')));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('정책 저장 실패: $error')));
+    }
   }
 
   Widget _buildEmpty() {

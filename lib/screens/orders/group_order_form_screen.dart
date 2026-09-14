@@ -20,6 +20,7 @@ import '../cart/cart_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../widgets/address_search_widget.dart';
 import '../../utils/navigation_helper.dart';
+import '../../services/group_order_policy_service.dart';
 
 // ══════════════════════════════════════════════════════════════
 // 단체 주문 폼 v6 - 완전 재작성
@@ -212,6 +213,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   // ── 독점 디자인 ──
   bool _exclusiveDesign = false; // ignore: prefer_final_fields
+  int _groupMinimumQuantity = 5;
+  double _groupDiscountRate = 0;
 
   // ── 추가 옵션 ──
   bool _hasPocket = false; // 주머니 선택 (+10,000원)
@@ -306,6 +309,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       +
       (_hasPocket ? _pocketPrice : 0); // 주머니: 인원당 +10,000
   double get _subTotal => _unitPrice * _totalCount;
+  double get _discountAmount => _subTotal * (_groupDiscountRate / 100);
+  double get _discountedSubtotal => _subTotal - _discountAmount;
   // 배송비: 5장 이상 무료, 5장 미만 4,000원
   double get _shipping => _totalCount >= AppConstants.groupMinFreeShipping
       ? 0
@@ -313,7 +318,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // 최종 = 소계(단가×인원) + 배송비 + 허리밴드 + 독점
   // ※ 주머니는 단가에 이미 포함 — 별도 가산 없음
   double get _finalPrice =>
-      _subTotal +
+      _discountedSubtotal +
       _shipping +
       _waistbandExtra +
       (_exclusiveDesign ? _exclusivePrice : 0);
@@ -330,8 +335,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       context.read<LanguageProvider>().triggerTranslation();
     });
     _printType = widget.initialPrintType.clamp(0, 3);
-    // 추가제작: 1장부터 가능 / 신규 단체: 최소 5장
-    final minCount = widget.isAdditionalOrder ? 1 : 5;
+    // 추가제작은 1장부터 가능하며 신규 단체주문은 관리자 정책을 사용합니다.
+    final minCount = widget.isAdditionalOrder ? 1 : _groupMinimumQuantity;
     _count = widget.initialCount >= minCount ? widget.initialCount : minCount;
     _countFixed = widget.initialCount >= minCount;
     for (int i = 0; i < _count; i++) {
@@ -340,6 +345,22 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     _prefillOriginalPersons();
     _loadSavedImages();
     _colorTabCtrl = TabController(length: 3, vsync: this);
+    _loadGroupOrderPolicy();
+  }
+
+  Future<void> _loadGroupOrderPolicy() async {
+    if (_isAdditional) return;
+    final policy = await GroupOrderPolicyService.getPolicy();
+    if (!mounted) return;
+    setState(() {
+      _groupMinimumQuantity = policy.minimumQuantity;
+      _groupDiscountRate = policy.discountRate;
+      while (_persons.length < _groupMinimumQuantity) {
+        _persons.add(_PersonEntry(index: _persons.length));
+      }
+      _count = _persons.length;
+      _countFixed = true;
+    });
   }
 
   void _prefillOriginalPersons() {
@@ -477,7 +498,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       _printType = 0;
     }
     // 나머지 옵션(0~3)은 5명 이상 필요
-    if (_totalCount < 5) {
+    if (_totalCount < _groupMinimumQuantity) {
       _printType = 0;
     }
   }
@@ -783,6 +804,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   }
 
   Future<void> _submitOrder({required bool isBuyNow}) async {
+    if (!_isAdditional && _totalCount < _groupMinimumQuantity) {
+      _showSnack('단체주문은 최소 ${_groupMinimumQuantity}명부터 가능합니다.');
+      return;
+    }
     final userProvider = context.read<UserProvider>();
     if (!userProvider.isLoggedIn) {
       _showSnack(context.loc.t('로그인이_필요합니다', '구매하려면 로그인해 주세요.'));
@@ -909,6 +934,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
     final customOptions = <String, dynamic>{
       'orderType': _isAdditional ? 'additional' : 'group',
+      'groupMinimumQuantity': _groupMinimumQuantity,
+      'groupDiscountRate': _groupDiscountRate,
+      'groupDiscountAmount': _discountAmount,
       'designFileUrl': designImg,
       'productImageUrl': designImg,
       'refImageUrl': refImageUrl, // 참고이미지 URL
@@ -1355,7 +1383,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         ]),
         const SizedBox(height: 4),
         if (!_isAdditional)
-          Text(context.loc.t('최소_5명_이상_주문_가능합_5c1358', '최소 5명 이상 주문 가능합니다.'),
+          Text(context.loc.t('최소_5명_이상_주문_가능합_5c1358', '최소 $_groupMinimumQuantity명 이상 주문 가능합니다.').replaceFirst('5명', '${_groupMinimumQuantity}명'),
               style: TextStyle(fontSize: 11, color: Colors.grey))
         else
           Text(context.loc.t('1장부터_추가제작_가능합니다', '1장부터 추가제작 가능합니다.'),
@@ -6431,6 +6459,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         const Divider(height: 20),
         _sumRow(context.loc.t('상품_합계', '상품 합계'),
             '${_fmt(_subTotal)}' + context.loc.t('원', '원')),
+        if (_discountAmount > 0)
+          _sumRow('단체주문 할인 (${_groupDiscountRate.toStringAsFixed(1)}%)',
+              '-${_fmt(_discountAmount)}원', valueColor: AppColors.success),
         _sumRow(
           context.loc.t('배송비', '배송비'),
           _totalCount >= AppConstants.groupMinFreeShipping
