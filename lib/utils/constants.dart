@@ -102,6 +102,7 @@ class AppConstants {
   // isFree 기준: 블랙(K) → +₩0 (기본가), 그 외 → +₩20,000 (PP 포함)
   static const List<Map<String, dynamic>> twoFitColors = [
     {'name': '블랙',       'nameEn': 'K (Black)',      'hex': 0xFF3A3A3A, 'isFree': true},
+    {'name': '차콜블랙',   'nameEn': 'CB (Charcoal Black)', 'hex': 0xFF242424, 'isFree': false},
     {'name': '네이비',     'nameEn': 'N (Navy)',       'hex': 0xFF2A3668, 'isFree': false},
     {'name': '화이트',     'nameEn': 'W (White)',      'hex': 0xFFF2F2F2, 'isFree': false},
     {'name': '그레이',     'nameEn': 'G (Gray)',       'hex': 0xFF9E9E9E, 'isFree': false},
