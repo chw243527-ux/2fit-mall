@@ -182,6 +182,15 @@ class _AppDrawerState extends State<AppDrawer> {
                             builder: (_) => const GroupOrderLandingScreen()));
                   },
                 ),
+                _buildMenuTile(
+                  context,
+                  icon: Icons.assignment_rounded,
+                  label: loc.t('단체주문_접수', '단체주문 접수'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/bulk-order');
+                  },
+                ),
                 _nikeRule(),
                 _sectionLabel('SUPPORT'),
                 _buildMenuTile(
