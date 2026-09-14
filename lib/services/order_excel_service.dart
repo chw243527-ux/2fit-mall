@@ -3750,7 +3750,7 @@ class OrderExcelService {
   }
 
   /// 관리자에서 내려받는 주문 입력 예시 PDF.
-  static Future<Uint8List> generateSamplePdf() async {
+  static Future<Uint8List> generateSamplePdf({bool productionOnly = false}) async {
     final font = pw.Font.ttf(
         await root_bundle.rootBundle.load('assets/fonts/NotoSansKR.ttf'));
     final pdf = pw.Document();
@@ -3762,22 +3762,33 @@ class OrderExcelService {
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.fromLTRB(30, 30, 30, 32),
       theme: pw.ThemeData.withFont(base: font, bold: font),
-      footer: (context) => pw.Align(alignment: pw.Alignment.centerRight, child: pw.Text('2FIT MALL · 주문 입력 예시 PDF · ${context.pageNumber}', style: cell)),
+      footer: (context) => pw.Align(alignment: pw.Alignment.centerRight, child: pw.Text('2FIT MALL · ${productionOnly ? '발주용' : '고객용'} 단체주문 예시 PDF · ${context.pageNumber}', style: cell)),
       build: (context) => [
-        pw.Text('2FIT MALL 주문 입력 예시', style: title),
+        pw.Text('2FIT MALL ${productionOnly ? '발주용' : '고객용'} 단체주문 예시', style: title),
         pw.SizedBox(height: 6),
-        pw.Text('관리자 주문 등록 및 단체주문 옵션 입력을 위한 예시 문서입니다.', style: cell),
+        pw.Text(productionOnly
+            ? '제작에 필요한 상품·옵션·명단·이미지 정보만 포함한 발주용 예시 문서입니다.'
+            : '고객 요청 시 전달할 수 있도록 주문·고객·배송·가격·옵션 정보를 포함한 예시 문서입니다.', style: cell),
         pw.SizedBox(height: 14),
         pw.Text('1. 주문 요약 예시', style: section),
         pw.SizedBox(height: 5),
         pw.Table.fromTextArray(
-          headers: const ['주문번호', '주문자명', '상품명', '사이즈', '색상', '수량', '금액', '주문상태'],
-          data: const [
-            ['ORD-GROUP-001', '김단체', '사려도 러닝 싱글렛', 'M', '블랙', '12', '348,000원', '주문 대기'],
-            ['ORD-GROUP-002', '이팀장', '퍼포먼스 반팔 상의', 'L', '화이트', '25', '875,000원', '주문 확인'],
-            ['ORD-GROUP-003', '박담당', '윈드브레이커 아우터', 'XL', '네이비', '8', '512,000원', '제작/준비 중'],
-            ['ORD-ADDITIONAL-001', '최추가', '2.5부 숏 여성 골지', 'S', '블랙', '3', '102,000원', '추가 제작'],
-          ],
+          headers: productionOnly
+              ? const ['주문번호', '상품명', '사이즈', '색상/HEX', '수량', '제작상태']
+              : const ['주문번호', '주문자명', '상품명', '사이즈', '색상', '수량', '금액', '주문상태'],
+          data: productionOnly
+              ? const [
+                  ['ORD-GROUP-001', '사려도 러닝 싱글렛', 'M', '블랙 / #242424', '12', '주문 대기'],
+                  ['ORD-GROUP-002', '퍼포먼스 반팔 상의', 'L', '화이트 / #FFFFFF', '25', '주문 확인'],
+                  ['ORD-GROUP-003', '윈드브레이커 아우터', 'XL', '네이비 / #202A5A', '8', '제작/준비 중'],
+                  ['ORD-ADDITIONAL-001', '2.5부 숏 여성 골지', 'S', '블랙 / #242424', '3', '추가 제작'],
+                ]
+              : const [
+                  ['ORD-GROUP-001', '김단체', '사려도 러닝 싱글렛', 'M', '블랙', '12', '348,000원', '주문 대기'],
+                  ['ORD-GROUP-002', '이팀장', '퍼포먼스 반팔 상의', 'L', '화이트', '25', '875,000원', '주문 확인'],
+                  ['ORD-GROUP-003', '박담당', '윈드브레이커 아우터', 'XL', '네이비', '8', '512,000원', '제작/준비 중'],
+                  ['ORD-ADDITIONAL-001', '최추가', '2.5부 숏 여성 골지', 'S', '블랙', '3', '102,000원', '추가 제작'],
+                ],
           headerStyle: header,
           cellStyle: cell,
           headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
@@ -3788,15 +3799,26 @@ class OrderExcelService {
         pw.Text('2. 단체주문 명단 예시', style: section),
         pw.SizedBox(height: 5),
         pw.Table.fromTextArray(
-          headers: const ['번호', '이름', '성별', '사이즈', '키', '몸무게', '수량', '비고'],
-          data: const [
-            ['1', '홍길동', '남', 'M', '175cm', '70kg', '1', '기본 옵션'],
-            ['2', '김하나', '여', 'S', '162cm', '52kg', '1', '이름 인쇄'],
-            ['3', '이둘', '남', 'L', '181cm', '78kg', '1', '긴팔 요청'],
-            ['4', '박셋', '여', 'M', '168cm', '60kg', '2', '블랙·화이트 각 1장'],
-            ['5', '최다섯', '남', 'XL', '188cm', '92kg', '1', '허리밴드 로고'],
-            ['6', '정여섯', '여', 'XS', '155cm', '45kg', '1', '개별 포장'],
-          ],
+          headers: productionOnly
+              ? const ['번호', '성별', '사이즈', '키', '몸무게', '수량', '제작 메모']
+              : const ['번호', '이름', '성별', '사이즈', '키', '몸무게', '수량', '비고'],
+          data: productionOnly
+              ? const [
+                  ['1', '남', 'M', '175cm', '70kg', '1', '기본 옵션'],
+                  ['2', '여', 'S', '162cm', '52kg', '1', '이름 인쇄'],
+                  ['3', '남', 'L', '181cm', '78kg', '1', '긴팔 요청'],
+                  ['4', '여', 'M', '168cm', '60kg', '2', '블랙·화이트 각 1장'],
+                  ['5', '남', 'XL', '188cm', '92kg', '1', '허리밴드 로고'],
+                  ['6', '여', 'XS', '155cm', '45kg', '1', '개별 포장'],
+                ]
+              : const [
+                  ['1', '홍길동', '남', 'M', '175cm', '70kg', '1', '기본 옵션'],
+                  ['2', '김하나', '여', 'S', '162cm', '52kg', '1', '이름 인쇄'],
+                  ['3', '이둘', '남', 'L', '181cm', '78kg', '1', '긴팔 요청'],
+                  ['4', '박셋', '여', 'M', '168cm', '60kg', '2', '블랙·화이트 각 1장'],
+                  ['5', '최다섯', '남', 'XL', '188cm', '92kg', '1', '허리밴드 로고'],
+                  ['6', '정여섯', '여', 'XS', '155cm', '45kg', '1', '개별 포장'],
+                ],
           headerStyle: header,
           cellStyle: cell,
           headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
@@ -3807,12 +3829,20 @@ class OrderExcelService {
         pw.Text('3. 옵션 조합 테스트 예시', style: section),
         pw.SizedBox(height: 5),
         pw.Table.fromTextArray(
-          headers: const ['팀명', '상품 유형', '색상 조합', '사이즈 범위', '최소 수량', '할인율', '배송 유형'],
-          data: const [
-            ['러닝크루 A', '싱글렛', '블랙 12 / 화이트 8', 'S·M·L', '10장', '10%', '팀 단위 일괄'],
-            ['피트니스 B', '상의·아우터', '네이비 15 / 그레이 10', 'M·L·XL', '20장', '15%', '개별 포장'],
-            ['추가 제작 C', '재주문', '블랙 3', 'S·M', '3장', '0%', '기존 주문 합배송'],
-          ],
+          headers: productionOnly
+              ? const ['팀명', '상품 유형', '색상·HEX 조합', '사이즈 범위', '제작 수량', '배송 메모']
+              : const ['팀명', '상품 유형', '색상 조합', '사이즈 범위', '최소 수량', '할인율', '배송 유형'],
+          data: productionOnly
+              ? const [
+                  ['러닝크루 A', '싱글렛', '블랙 #242424 12 / 화이트 #FFFFFF 8', 'S·M·L', '20장', '팀 단위 일괄'],
+                  ['피트니스 B', '상의·아우터', '네이비 #202A5A 15 / 그레이 #808080 10', 'M·L·XL', '25장', '개별 포장'],
+                  ['추가 제작 C', '재주문', '블랙 #242424 3', 'S·M', '3장', '기존 주문 합배송'],
+                ]
+              : const [
+                  ['러닝크루 A', '싱글렛', '블랙 12 / 화이트 8', 'S·M·L', '10장', '10%', '팀 단위 일괄'],
+                  ['피트니스 B', '상의·아우터', '네이비 15 / 그레이 10', 'M·L·XL', '20장', '15%', '개별 포장'],
+                  ['추가 제작 C', '재주문', '블랙 3', 'S·M', '3장', '0%', '기존 주문 합배송'],
+                ],
           headerStyle: header,
           cellStyle: cell,
           headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
@@ -3820,7 +3850,15 @@ class OrderExcelService {
           border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
         ),
         pw.SizedBox(height: 14),
-        pw.Text('4. 입력 안내', style: section),
+        if (!productionOnly) ...[
+          pw.SizedBox(height: 14),
+          pw.Text('4. 고객 전달 정보 예시', style: section),
+          pw.Bullet(text: '담당자: 김단체 / 010-1234-5678 / group@example.com', style: cell),
+          pw.Bullet(text: '배송지: 서울시 강남구 테스트로 123, 테스트빌딩 4층', style: cell),
+          pw.Bullet(text: '상품 합계 1,735,000원 · 할인 173,500원 · 배송비 0원 · 총 결제금액 1,561,500원', style: cell),
+          pw.Bullet(text: '업로드 디자인 이미지·로고·참고 이미지 열기 링크 포함', style: cell),
+        ],
+        pw.Text('${productionOnly ? '4' : '5'}. 입력 안내', style: section),
         pw.SizedBox(height: 5),
         pw.Bullet(text: '주문번호와 주문자 정보를 정확하게 입력합니다.', style: cell),
         pw.Bullet(text: '상품별 사이즈·색상·수량을 옵션 단위로 구분합니다.', style: cell),

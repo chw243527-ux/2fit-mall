@@ -2278,6 +2278,27 @@ class _AdminScreenState extends State<AdminScreen>
                     ),
                   ),
                   const SizedBox(width: 6),
+                  Tooltip(
+                    message: '단체주문 발주용 예시 PDF 다운로드 (고객정보·가격 제외)',
+                    child: InkWell(
+                      onTap: () => _downloadSamplePdf(productionOnly: true),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.success.withValues(alpha: 0.4)),
+                        ),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(Icons.factory_outlined, size: 15, color: AppColors.success),
+                          const SizedBox(width: 4),
+                          Text('발주예시PDF', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.success)),
+                        ]),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
                   // 일일 마감 PDF 버튼
                   Tooltip(
                     message: '단체 일일 PDF (전날 13:00 ~ 오늘 13:00, 단체주문만)',
@@ -2779,11 +2800,14 @@ class _AdminScreenState extends State<AdminScreen>
   // 일일 PDF 내보내기 (전날 오후 1시 ~ 당일 오후 1시)
   // ──────────────────────────────────────────────
   // ── 예시(샘플) PDF 파일 다운로드 ──
-  Future<void> _downloadSamplePdf() async {
+  Future<void> _downloadSamplePdf({bool productionOnly = false}) async {
     const mimeType = 'application/pdf';
-    const fileName = '2FIT_단체주문_다양한_예시.pdf';
+    final fileName = productionOnly
+        ? '2FIT_단체주문_발주용_예시.pdf'
+        : '2FIT_단체주문_고객용_예시.pdf';
     try {
-      final bytes = await OrderExcelService.generateSamplePdf();
+      final bytes = await OrderExcelService.generateSamplePdf(
+          productionOnly: productionOnly);
       if (kIsWeb) {
         downloadFileWeb(bytes, fileName, mimeType);
         if (!mounted) return;
@@ -2793,7 +2817,7 @@ class _AdminScreenState extends State<AdminScreen>
               const Icon(Icons.file_download_done_rounded,
                   color: Colors.white, size: 16),
               const SizedBox(width: 8),
-              Expanded(child: Text('단체주문 예시 PDF 다운로드 완료')),
+              Expanded(child: Text('${productionOnly ? '발주용' : '고객용'} 단체주문 예시 PDF 다운로드 완료')),
             ]),
             backgroundColor: AppColors.warning,
             duration: const Duration(seconds: 4),
@@ -2808,7 +2832,7 @@ class _AdminScreenState extends State<AdminScreen>
         await SharePlus.instance.share(
           ShareParams(
             files: [XFile(filePath, mimeType: mimeType, name: fileName)],
-            subject: '2FIT MALL 단체주문 예시 PDF',
+            subject: '2FIT MALL ${productionOnly ? '발주용' : '고객용'} 단체주문 예시 PDF',
             text: fileName,
           ),
         );
@@ -2817,7 +2841,7 @@ class _AdminScreenState extends State<AdminScreen>
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('예시 PDF 생성 오류: $e'), backgroundColor: AppColors.error),
+            content: Text('${productionOnly ? '발주용' : '고객용'} 예시 PDF 생성 오류: $e'), backgroundColor: AppColors.error),
       );
     }
   }
