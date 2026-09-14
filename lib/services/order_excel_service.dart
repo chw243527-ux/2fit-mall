@@ -3870,7 +3870,7 @@ class OrderExcelService {
     return Uint8List.fromList(await pdf.save());
   }
 
-  static Future<Uint8List> generateGroupOrderPdf(OrderModel order) async {
+  static Future<Uint8List> generateGroupOrderPdf(OrderModel order, {bool productionOnly = false}) async {
     final opts = order.customOptions ?? {};
     final persons = (opts['persons'] as List<dynamic>?) ?? [];
     final teamName = _optText(opts, ['teamName', 'groupName'], order.groupName ?? order.userName);
@@ -3883,10 +3883,10 @@ class OrderExcelService {
         ? _colorWithHex(mainColor, opts['adjustedColorHex']?.toString())
         : '상의: ${_colorWithHex(mainColor, opts['adjustedColorHex']?.toString())} / 하의: ${_colorWithHex(bottomColor, opts['bottomColorHex']?.toString())}';
     final orderDate = _fmtFull(order.createdAt);
-    final phone = _optText(opts, ['phone', 'contactPhone'], order.userPhone);
-    final email = _optText(opts, ['email', 'contactEmail'], order.userEmail);
-    final addressBase = _optText(opts, ['address', 'deliveryAddress'], order.userAddress);
-    final addressDetail = _optText(opts, ['addressDetail', 'deliveryAddressDetail']);
+    final phone = productionOnly ? '발주용 문서(고객 연락처 제외)' : _optText(opts, ['phone', 'contactPhone'], order.userPhone);
+    final email = productionOnly ? '발주용 문서(고객 이메일 제외)' : _optText(opts, ['email', 'contactEmail'], order.userEmail);
+    final addressBase = productionOnly ? '발주용 문서(배송지 제외)' : _optText(opts, ['address', 'deliveryAddress'], order.userAddress);
+    final addressDetail = productionOnly ? '' : _optText(opts, ['addressDetail', 'deliveryAddressDetail']);
     final address = addressDetail.isEmpty || addressBase.contains(addressDetail)
         ? addressBase
         : '$addressBase $addressDetail';
@@ -3981,7 +3981,7 @@ class OrderExcelService {
         ),
         pw.SizedBox(height: 12),
         pw.Table(border: pw.TableBorder.all(color: PdfColors.orange400), children: [
-          pw.TableRow(children: [infoRow('주문자/담당자', _optText(opts, ['manager', 'managerName'], order.userName)), infoRow('팀명', teamName)]),
+          pw.TableRow(children: [infoRow('주문자/담당자', productionOnly ? '발주용 문서(고객정보 제외)' : _optText(opts, ['manager', 'managerName'], order.userName)), infoRow('팀명', teamName)]),
           pw.TableRow(children: [infoRow('이메일', email), infoRow('전화번호', phone)]),
           pw.TableRow(children: [infoRow('주문날짜', orderDate), infoRow('주문상태', _statusLabel(order.status))]),
         ]),
@@ -3999,7 +3999,7 @@ class OrderExcelService {
         ])),
         section('2. 주문 상세 내역', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), columnWidths: {0: const pw.FlexColumnWidth(2.2), 1: const pw.FlexColumnWidth(1.4), 2: const pw.FlexColumnWidth(0.9), 3: const pw.FlexColumnWidth(1.4), 4: const pw.FlexColumnWidth(1.1), 5: const pw.FlexColumnWidth(1.1), 6: const pw.FlexColumnWidth(1.4), 7: const pw.FlexColumnWidth(0.7), 8: const pw.FlexColumnWidth(1.0), 9: const pw.FlexColumnWidth(1.1)}, children: [
           pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.indigo900), children: ['상품명','변경을 원하는 색상','사이즈','인쇄옵션','하의길이','허리밴드','원단/무게','수량','단가','금액'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: headerStyle, textAlign: pw.TextAlign.center))).toList()),
-          ...order.items.map((item) => pw.TableRow(children: [item.productName, colorText, '${item.size.isEmpty ? '-' : item.size}', printType, length, waistband, '$fabric / $fabricWeight', '${item.quantity}', _formatWon(item.price), _formatWon(item.price * item.quantity)].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: cellStyle, textAlign: pw.TextAlign.center))).toList())),
+          ...order.items.map((item) => pw.TableRow(children: [item.productName, colorText, '${item.size.isEmpty ? '-' : item.size}', printType, length, waistband, '$fabric / $fabricWeight', '${item.quantity}', productionOnly ? '-' : _formatWon(item.price), productionOnly ? '-' : _formatWon(item.price * item.quantity)].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: cellStyle, textAlign: pw.TextAlign.center))).toList())),
         ])),
         section('2-1. 1년 디자인 독점', pw.Container(width: double.infinity, padding: const pw.EdgeInsets.all(8), decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.orange400), color: PdfColors.orange50), child: pw.Text(_isExclusive(opts) ? '1년 디자인 독점: 신청함 · 배송 완료일 기준 1년 적용' : '1년 디자인 독점: 신청하지 않음', style: valueStyle))),
         section('3. 디자인 수정 요청사항', pw.Container(width: double.infinity, padding: const pw.EdgeInsets.all(8), decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.indigo300), color: PdfColors.indigo50), child: pw.Text(order.memo ?? _optText(opts, ['memoText', 'memo'], '-'), style: valueStyle))),
@@ -4041,7 +4041,7 @@ class OrderExcelService {
         ])),
 
         pw.SizedBox(height: 14),
-        pw.Container(alignment: pw.Alignment.centerRight, child: pw.Text('상품 합계 ${_formatWon(order.totalAmount)}  |  배송비 ${_formatWon(order.shippingFee)}  |  총 결제금액 ${_formatWon(order.totalAmount + order.shippingFee)}', style: pw.TextStyle(font: font, fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo900))),
+        if (!productionOnly) pw.Container(alignment: pw.Alignment.centerRight, child: pw.Text('상품 합계 ${_formatWon(order.totalAmount)}  |  배송비 ${_formatWon(order.shippingFee)}  |  총 결제금액 ${_formatWon(order.totalAmount + order.shippingFee)}', style: pw.TextStyle(font: font, fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo900))),
       ],
     ));
     return Uint8List.fromList(await pdf.save());

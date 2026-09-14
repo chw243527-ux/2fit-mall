@@ -5932,7 +5932,24 @@ class _AdminScreenState extends State<AdminScreen>
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _exportGroupOrderPdf(order, productionOnly: true);
+                          },
+                          icon: const Icon(Icons.factory_outlined, size: 15),
+                          label: const Text('발주용 PDF', style: TextStyle(fontSize: 12)),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            foregroundColor: const Color(0xFF5E35B1),
+                            side: const BorderSide(color: Color(0xFF5E35B1)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () => Navigator.pop(context),
@@ -6192,17 +6209,19 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   // ── 단체주문 상세 PDF 내보내기 ──
-  Future<void> _exportGroupOrderPdf(OrderModel order) async {
+  Future<void> _exportGroupOrderPdf(OrderModel order, {bool productionOnly = false}) async {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('단체주문 상세 PDF 생성 중...'),
+        content: Text('${productionOnly ? '발주용' : '고객용'} 단체주문 PDF 생성 중...'),
         duration: Duration(seconds: 10),
         backgroundColor: Color(0xFF00897B),
       ));
     }
     try {
-      final bytes = await OrderExcelService.generateGroupOrderPdf(order);
-      final fileName = '단체주문_${_groupOrderFileStem(order)}.pdf';
+      final bytes = await OrderExcelService.generateGroupOrderPdf(order, productionOnly: productionOnly);
+      final fileName = productionOnly
+          ? '단체주문_발주용_${_groupOrderFileStem(order)}.pdf'
+          : '단체주문_고객용_${_groupOrderFileStem(order)}.pdf';
       const mimeType = 'application/pdf';
       if (kIsWeb) {
         downloadFileWeb(bytes, fileName, mimeType);
@@ -6213,7 +6232,7 @@ class _AdminScreenState extends State<AdminScreen>
         if (!mounted) return;
         await Share.shareXFiles(
           [XFile(filePath, mimeType: mimeType, name: fileName)],
-          subject: '2FIT 단체주문 상세 주문서',
+          subject: '2FIT ${productionOnly ? '발주용' : '고객용'} 단체주문 상세 주문서',
           text: fileName,
         );
       }
