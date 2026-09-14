@@ -9729,6 +9729,7 @@ class _AdminScreenState extends State<AdminScreen>
       builder: (ctx) => _ProductFormDialog(
         existing: existing,
         isCopy: isCopy,
+        availableColors: List<Map<String, dynamic>>.from(_colorItems),
         onSaved: (product, isEdit) async {
           if (isEdit) {
             await context.read<ProductProvider>().updateProduct(product);
@@ -15202,10 +15203,15 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
 class _ProductFormDialog extends StatefulWidget {
   final ProductModel? existing;
   final bool isCopy; // true 이면 복사 모드 — 데이터 채우되 새 ID로 신규 등록
+  final List<Map<String, dynamic>> availableColors;
   final Future<void> Function(ProductModel, bool isEdit) onSaved;
 
-  const _ProductFormDialog(
-      {required this.onSaved, this.existing, this.isCopy = false});
+  const _ProductFormDialog({
+    required this.onSaved,
+    required this.availableColors,
+    this.existing,
+    this.isCopy = false,
+  });
 
   @override
   State<_ProductFormDialog> createState() => _ProductFormDialogState();
@@ -15305,8 +15311,30 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       '※ 단체 맞춤 제작 상품으로 주문 후 제작됩니다.\n'
       '※ 최소 주문 수량: 10벌 이상';
 
-  // ── 선택된 색상 (twoFitColors 기반)
+  // ── 선택된 색상 (기본 팔레트 + 관리자 추가 색상)
   final Set<String> _selectedColors = {};
+
+  List<Map<String, dynamic>> get _availableColorOptions {
+    final merged = <String, Map<String, dynamic>>{
+      for (final color in AppConstants.twoFitColors)
+        (color['name'] as String): Map<String, dynamic>.from(color),
+    };
+    for (final color in widget.availableColors) {
+      if (color['active'] == false) continue;
+      final name = (color['name'] as String?)?.trim() ?? '';
+      if (name.isEmpty) continue;
+      final rawHex = (color['hexCode'] as String?) ?? '#808080';
+      final normalizedHex = rawHex.replaceFirst('#', '').trim();
+      final parsedHex = int.tryParse(normalizedHex, radix: 16);
+      merged[name] = {
+        'name': name,
+        'nameEn': color['nameEn'] ?? name,
+        'hex': parsedHex == null ? 0xFF808080 : (0xFF000000 | parsedHex),
+        'isFree': color['isFree'] == true,
+      };
+    }
+    return merged.values.toList();
+  }
 
   // ── 이미지 항목 (업로드 상태 추적)
   // _imageItems[i] = {'url': String, 'pending': bool}
@@ -15688,6 +15716,11 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
           .where((e) => e.isNotEmpty)
           .toList(),
       colors: _selectedColors.toList(),
+      colorHexes: {
+        for (final option in _availableColorOptions)
+          if (_selectedColors.contains(option['name'] as String))
+            option['name'] as String: option['hex'] as int,
+      },
       colorPrices: {
         for (final entry in _colorPriceCtrls.entries)
           if ((double.tryParse(entry.value.text) ?? 0) > 0)
@@ -16583,7 +16616,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                       child: Wrap(
                         spacing: 6,
                         runSpacing: 6,
-                        children: AppConstants.twoFitColors.map<Widget>((c) {
+                        children: _availableColorOptions.map<Widget>((c) {
                           final name = c['name'] as String;
                           final hexVal = c['hex'] as int;
                           final isSelected = _selectedColors.contains(name);

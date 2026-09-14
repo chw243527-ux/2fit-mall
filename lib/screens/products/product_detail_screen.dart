@@ -2099,6 +2099,8 @@ $productUrl
   };
 
   Color _registeredColorForName(String name) {
+    final storedHex = widget.product.colorHexes[name];
+    if (storedHex != null) return Color(storedHex);
     final normalized = name.trim().toLowerCase();
     for (final entry in AppConstants.twoFitColors) {
       final local = (entry['name'] as String?)?.trim().toLowerCase();

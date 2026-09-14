@@ -16,6 +16,8 @@ class ProductModel {
   final List<String> colors;
   /// 색상별 추가 가격 (색상명 → 추가 금액)
   final Map<String, double> colorPrices;
+  /// 상품에 실제 선택된 색상별 HEX 값 (관리자 커스텀 색상 지원)
+  final Map<String, int> colorHexes;
   final String material;
   /// 신상품 여부 (저장값) — 실제 노출은 [isNewActive] getter 사용
   final bool isNew;
@@ -75,6 +77,7 @@ class ProductModel {
     required this.sizes,
     required this.colors,
     this.colorPrices = const {},
+    this.colorHexes = const {},
     this.material = '78% Nylon, 22% Spandex / 4-way Stretch',
     this.isNew = false,
     this.newExpiresAt,
@@ -160,6 +163,7 @@ class ProductModel {
     List<String>? sizes,
     List<String>? colors,
     Map<String, double>? colorPrices,
+    Map<String, int>? colorHexes,
     String? material,
     bool? isNew,
     DateTime? newExpiresAt,
@@ -203,6 +207,7 @@ class ProductModel {
       sizes: sizes ?? this.sizes,
       colors: colors ?? this.colors,
       colorPrices: colorPrices ?? this.colorPrices,
+      colorHexes: colorHexes ?? this.colorHexes,
       material: material ?? this.material,
       isNew: isNew ?? this.isNew,
       newExpiresAt: newExpiresAt ?? this.newExpiresAt,
@@ -244,7 +249,9 @@ class ProductModel {
     return ProductModel(
       id: id, name: name, category: category, subCategory: subCategory,
       price: price, originalPrice: originalPrice, description: description,
-      images: images, sizes: sizes, colors: colors, colorPrices: colorPrices, material: material,
+      images: images, sizes: sizes, colors: colors, colorPrices: colorPrices,
+      colorHexes: this.colorHexes,
+      material: material,
       isNew: isNew, newExpiresAt: newExpiresAt,
       isSale: isSale, isFreeShipping: isFreeShipping,
       isGroupOnly: isGroupOnly, isReadyMade: isReadyMade,
@@ -321,6 +328,9 @@ class ProductModel {
       colorPrices: (json['colorPrices'] as Map<String, dynamic>?)?.map(
             (k, v) => MapEntry(k, (v as num).toDouble()),
           ) ?? const {},
+      colorHexes: (json['colorHexes'] as Map<String, dynamic>?)?.map(
+            (k, v) => MapEntry(k, (v as num).toInt()),
+          ) ?? const {},
       material: json['material'] as String? ?? '78% Nylon, 22% Spandex',
       editorialLabel: json['editorialLabel'] as String? ?? '',
       editorialTitle: json['editorialTitle'] as String? ?? '',
@@ -383,6 +393,7 @@ class ProductModel {
       'sizes': sizes,
       'colors': colors,
       'colorPrices': colorPrices,
+      'colorHexes': colorHexes,
       'material': material,
       'editorialLabel': editorialLabel,
       'editorialTitle': editorialTitle,
@@ -422,7 +433,9 @@ class ProductModel {
     return ProductModel(
       id: id, name: name, category: category, subCategory: subCategory,
       price: price, originalPrice: originalPrice, description: description,
-      images: images, sizes: sizes, colors: colors, colorPrices: colorPrices, material: material,
+      images: images, sizes: sizes, colors: colors, colorPrices: colorPrices,
+      colorHexes: this.colorHexes,
+      material: material,
       isNew: isNew, newExpiresAt: newExpiresAt,
       isSale: isSale, isFreeShipping: isFreeShipping,
       isGroupOnly: isGroupOnly, isGroup: isGroup, isReadyMade: isReadyMade,

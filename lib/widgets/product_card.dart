@@ -450,6 +450,8 @@ class ProductCard extends StatelessWidget {
   }
 
   Color _colorForName(String name) {
+    final storedHex = product.colorHexes[name];
+    if (storedHex != null) return Color(storedHex);
     final normalized = name.trim().toLowerCase();
     Map<String, dynamic>? match;
     for (final entry in AppConstants.twoFitColors) {
