@@ -208,6 +208,33 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
               ],
             ),
           ),
+          const SizedBox(height: 14),
+
+          // 안내 페이지에서 주문서로 바로 이동하는 주요 CTA
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _goToForm,
+              icon: const Icon(Icons.edit_note_rounded, size: 21),
+              label: Text(
+                context.loc.t('단체주문서_바로_작성하기', '단체주문서 바로 작성하기'),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 54),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 20),
 
           // 주문 절차
