@@ -300,7 +300,11 @@ class ProductCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 3),
+          // ── 등록 색상 요약 ──
+          if (product.colors.isNotEmpty) ...[
+            _buildColorSummary(),
+            const SizedBox(height: 5),
+          ],
 
           // ── 가격 ──
           if (hasDiscount) ...[
@@ -391,6 +395,75 @@ class ProductCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildColorSummary() {
+    final visibleColors = product.colors.take(5).toList();
+    final extraCount = product.colors.length - visibleColors.length;
+    return Semantics(
+      label: '등록 색상: ${product.colors.join(', ')}',
+      child: Row(
+        children: [
+          ...visibleColors.map((name) => Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: _colorForName(name),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: _isLightColor(name)
+                          ? AppColors.border
+                          : Colors.transparent,
+                      width: 0.8,
+                    ),
+                  ),
+                ),
+              )),
+          if (extraCount > 0)
+            Text(
+              '+$extraCount',
+              style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w400,
+                color: AppColors.textSecondary,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Color _colorForName(String name) {
+    final value = name.replaceAll(' ', '').toLowerCase();
+    const colors = <String, Color>{
+      '블랙': Color(0xFF202124),
+      'black': Color(0xFF202124),
+      '네이비': Color(0xFF27345F),
+      'navy': Color(0xFF27345F),
+      '화이트': Color(0xFFFFFFFF),
+      'white': Color(0xFFFFFFFF),
+      '그레이': Color(0xFF9E9E9E),
+      'gray': Color(0xFF9E9E9E),
+      'grey': Color(0xFF9E9E9E),
+      '레드': Color(0xFFE53935),
+      'red': Color(0xFFE53935),
+      '블루': Color(0xFF3867C8),
+      'blue': Color(0xFF3867C8),
+      '그린': Color(0xFF607D45),
+      'green': Color(0xFF607D45),
+      '핑크': Color(0xFFE6A5B2),
+      'pink': Color(0xFFE6A5B2),
+      '아이보리': Color(0xFFEDE9DD),
+      'ivory': Color(0xFFEDE9DD),
+    };
+    return colors[value] ?? AppColors.surfaceGray;
+  }
+
+  bool _isLightColor(String name) {
+    final value = name.replaceAll(' ', '').toLowerCase();
+    return value == '화이트' || value == 'white' || value == '아이보리' || value == 'ivory';
   }
 
   String _fmt(double price) {
