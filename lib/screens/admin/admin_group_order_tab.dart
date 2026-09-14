@@ -116,62 +116,101 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
   }
 
   Widget _buildToolbar(int count) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-      color: Colors.white,
-      child: Column(
-        children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text('단체주문 접수 관리',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-              ),
-              Text('$count건', style: const TextStyle(color: AppColors.textSecondary)),
-              const SizedBox(width: 8),
-              OutlinedButton.icon(
-                onPressed: _openPolicyDialog,
-                icon: const Icon(Icons.tune_rounded, size: 16),
-                label: const Text('정책 설정'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  onChanged: (value) => setState(() => _query = value),
-                  decoration: InputDecoration(
-                    hintText: '팀명·주문번호·담당자 검색',
-                    prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                    isDense: true,
-                    filled: true,
-                    fillColor: AppColors.surfaceGray,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 620;
+        final title = const Text(
+          '단체주문 접수 관리',
+          maxLines: 1,
+          softWrap: false,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+        );
+        final countText = Text('$count건',
+            style: const TextStyle(color: AppColors.textSecondary));
+        final policyButton = OutlinedButton.icon(
+          onPressed: _openPolicyDialog,
+          icon: const Icon(Icons.tune_rounded, size: 16),
+          label: const Text('정책 설정'),
+        );
+        final header = compact
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  title,
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [countText, policyButton],
                   ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _statusFilter,
-                  items: _statusOptions.entries
-                      .map((entry) => DropdownMenuItem(
-                            value: entry.key,
-                            child: Text(entry.value, style: const TextStyle(fontSize: 12)),
-                          ))
-                      .toList(),
-                  onChanged: (value) => setState(() => _statusFilter = value ?? 'all'),
-                ),
-              ),
-            ],
+                ],
+              )
+            : Row(
+                children: [
+                  Expanded(child: title),
+                  countText,
+                  const SizedBox(width: 8),
+                  policyButton,
+                ],
+              );
+        final search = TextField(
+          onChanged: (value) => setState(() => _query = value),
+          decoration: InputDecoration(
+            hintText: '팀명·주문번호·담당자 검색',
+            prefixIcon: const Icon(Icons.search_rounded, size: 20),
+            isDense: true,
+            filled: true,
+            fillColor: AppColors.surfaceGray,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none,
+            ),
           ),
-        ],
-      ),
+        );
+        final status = DropdownButtonFormField<String>(
+          value: _statusFilter,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: '주문 상태',
+            isDense: true,
+            filled: true,
+            fillColor: AppColors.surfaceGray,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          items: _statusOptions.entries
+              .map((entry) => DropdownMenuItem(
+                    value: entry.key,
+                    child: Text(entry.value,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 12)),
+                  ))
+              .toList(),
+          onChanged: (value) => setState(() => _statusFilter = value ?? 'all'),
+        );
+        final filters = compact
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [search, const SizedBox(height: 8), status],
+              )
+            : Row(
+                children: [
+                  Expanded(child: search),
+                  const SizedBox(width: 10),
+                  SizedBox(width: 180, child: status),
+                ],
+              );
+        return Container(
+          padding: EdgeInsets.fromLTRB(20, compact ? 12 : 16, 20, 12),
+          color: Colors.white,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [header, const SizedBox(height: 12), filters],
+          ),
+        );
+      },
     );
   }
 
