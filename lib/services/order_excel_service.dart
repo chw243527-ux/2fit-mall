@@ -3741,6 +3741,59 @@ class OrderExcelService {
     return Uint8List.fromList(await pdf.save());
   }
 
+  /// 관리자에서 내려받는 주문 입력 예시 PDF.
+  static Future<Uint8List> generateSamplePdf() async {
+    final font = pw.Font.ttf(
+        await root_bundle.rootBundle.load('assets/fonts/NotoSansKR.ttf'));
+    final pdf = pw.Document();
+    final title = pw.TextStyle(font: font, fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo900);
+    final section = pw.TextStyle(font: font, fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo900);
+    final cell = pw.TextStyle(font: font, fontSize: 8);
+    final header = pw.TextStyle(font: font, fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.white);
+    pdf.addPage(pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.fromLTRB(30, 30, 30, 32),
+      theme: pw.ThemeData.withFont(base: font, bold: font),
+      footer: (context) => pw.Align(alignment: pw.Alignment.centerRight, child: pw.Text('2FIT MALL · 주문 입력 예시 PDF · ${context.pageNumber}', style: cell)),
+      build: (context) => [
+        pw.Text('2FIT MALL 주문 입력 예시', style: title),
+        pw.SizedBox(height: 6),
+        pw.Text('관리자 주문 등록 및 단체주문 옵션 입력을 위한 예시 문서입니다.', style: cell),
+        pw.SizedBox(height: 14),
+        pw.Text('1. 주문 요약 예시', style: section),
+        pw.SizedBox(height: 5),
+        pw.Table.fromTextArray(
+          headers: const ['주문번호', '주문자명', '상품명', '사이즈', '색상', '수량', '금액', '주문상태'],
+          data: const [['ORD-SAMPLE-001', '홍길동', '2.5부 숏 여성 골지', 'M', '블랙', '2', '68,000원', '주문 확인']],
+          headerStyle: header,
+          cellStyle: cell,
+          headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
+          cellPadding: const pw.EdgeInsets.all(5),
+          border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+        ),
+        pw.SizedBox(height: 14),
+        pw.Text('2. 단체주문 명단 예시', style: section),
+        pw.SizedBox(height: 5),
+        pw.Table.fromTextArray(
+          headers: const ['번호', '이름', '성별', '사이즈', '키', '몸무게', '수량', '비고'],
+          data: const [['1', '홍길동', '남', 'M', '175cm', '70kg', '1', '기본 옵션']],
+          headerStyle: header,
+          cellStyle: cell,
+          headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
+          cellPadding: const pw.EdgeInsets.all(5),
+          border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+        ),
+        pw.SizedBox(height: 14),
+        pw.Text('3. 입력 안내', style: section),
+        pw.SizedBox(height: 5),
+        pw.Bullet(text: '주문번호와 주문자 정보를 정확하게 입력합니다.', style: cell),
+        pw.Bullet(text: '상품별 사이즈·색상·수량을 옵션 단위로 구분합니다.', style: cell),
+        pw.Bullet(text: '단체주문은 팀명, 담당자, 명단 정보를 함께 확인합니다.', style: cell),
+      ],
+    ));
+    return Uint8List.fromList(await pdf.save());
+  }
+
   static Future<Uint8List> generateGroupOrderPdf(OrderModel order) async {
     final opts = order.customOptions ?? {};
     final persons = (opts['persons'] as List<dynamic>?) ?? [];
