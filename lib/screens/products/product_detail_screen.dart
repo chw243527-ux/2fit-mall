@@ -1475,7 +1475,7 @@ $productUrl
               runSpacing: 10,
               children: product.colors.map((colorName) {
                 final isSelected = _selectedColor == colorName;
-                final dotColor = _goljiColorMap[colorName] ?? AppColors.border;
+                final dotColor = _registeredColorForName(colorName);
                 final isLight = dotColor.computeLuminance() > 0.5;
                 return GestureDetector(
                   onTap: () => setSt(() => _selectedColor = colorName),
@@ -2098,6 +2098,20 @@ $productUrl
     '민트': Color(0xFF26C9A0),
   };
 
+  Color _registeredColorForName(String name) {
+    final normalized = name.trim().toLowerCase();
+    for (final entry in AppConstants.twoFitColors) {
+      final local = (entry['name'] as String?)?.trim().toLowerCase();
+      final english = (entry['nameEn'] as String?)?.trim().toLowerCase();
+      if ((local == normalized || english == normalized) && entry['hex'] is int) {
+        return Color(entry['hex'] as int);
+      }
+    }
+    return _goljiColorMap[name] ??
+        _goljiColorMap[name.toUpperCase()] ??
+        AppColors.border;
+  }
+
   // ── 색상 칩: 원형 스와치 (useRib=true 이면 골지 텍스처, false 이면 단색)
   Widget _infoColorChipRow(List<String> codes, {bool useRib = true}) {
     return Wrap(
@@ -2106,9 +2120,7 @@ $productUrl
       children: codes.map((c) {
         final r = Responsive.of(context);
 
-        final dotColor = _goljiColorMap[c] ??
-            _goljiColorMap[c.toUpperCase()] ??
-            AppColors.border;
+        final dotColor = _registeredColorForName(c);
         final isLight = dotColor.computeLuminance() > 0.5;
 
         return Column(

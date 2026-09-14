@@ -6,6 +6,7 @@ import '../providers/providers.dart';
 import '../screens/products/product_detail_screen.dart';
 
 import '../utils/theme.dart';
+import '../utils/constants.dart';
 // ignore: unused_import
 import '../utils/app_localizations.dart';
 
@@ -430,40 +431,55 @@ class ProductCard extends StatelessWidget {
                 color: AppColors.textSecondary,
               ),
             ),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              visibleColors.join(' · '),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w400,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Color _colorForName(String name) {
-    final value = name.replaceAll(' ', '').toLowerCase();
-    const colors = <String, Color>{
-      '블랙': Color(0xFF202124),
-      'black': Color(0xFF202124),
-      '네이비': Color(0xFF27345F),
-      'navy': Color(0xFF27345F),
-      '화이트': Color(0xFFFFFFFF),
-      'white': Color(0xFFFFFFFF),
-      '그레이': Color(0xFF9E9E9E),
-      'gray': Color(0xFF9E9E9E),
-      'grey': Color(0xFF9E9E9E),
-      '레드': Color(0xFFE53935),
-      'red': Color(0xFFE53935),
-      '블루': Color(0xFF3867C8),
-      'blue': Color(0xFF3867C8),
-      '그린': Color(0xFF607D45),
-      'green': Color(0xFF607D45),
-      '핑크': Color(0xFFE6A5B2),
-      'pink': Color(0xFFE6A5B2),
-      '아이보리': Color(0xFFEDE9DD),
-      'ivory': Color(0xFFEDE9DD),
+    final normalized = name.trim().toLowerCase();
+    Map<String, dynamic>? match;
+    for (final entry in AppConstants.twoFitColors) {
+      final local = (entry['name'] as String?)?.trim().toLowerCase();
+      final english = (entry['nameEn'] as String?)?.trim().toLowerCase();
+      if (local == normalized || english == normalized) {
+        match = entry;
+        break;
+      }
+    }
+    if (match != null && match['hex'] is int) return Color(match['hex'] as int);
+
+    // 기존 데이터의 영문/괄호 표기와 사용자 입력 색상도 최대한 복원합니다.
+    final compact = normalized.replaceAll(RegExp(r'[ ()_-]'), '');
+    final alias = <String, Color>{
+      'black': const Color(0xFF3A3A3A),
+      'navy': const Color(0xFF2A3668),
+      'white': const Color(0xFFF2F2F2),
+      'gray': const Color(0xFF9E9E9E),
+      'grey': const Color(0xFF9E9E9E),
+      'red': const Color(0xFFE03430),
+      'blue': const Color(0xFF3A6ACD),
+      'ivory': const Color(0xFFD2CEC3),
     };
-    return colors[value] ?? AppColors.surfaceGray;
+    return alias[compact] ?? AppColors.surfaceGray;
   }
 
   bool _isLightColor(String name) {
-    final value = name.replaceAll(' ', '').toLowerCase();
-    return value == '화이트' || value == 'white' || value == '아이보리' || value == 'ivory';
+    final color = _colorForName(name);
+    return color.computeLuminance() > 0.72;
   }
 
   String _fmt(double price) {
