@@ -1073,10 +1073,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
   }
 
   void _goToLanding() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const GroupOrderLandingScreen()),
-    );
+    Navigator.pushNamed(context, '/group-order');
   }
 
   Widget _gridBadge(String label, Color color) {
