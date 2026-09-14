@@ -3640,6 +3640,107 @@ class OrderExcelService {
   }
   /// 단체주문 상세 주문서 독립 PDF 생성
   /// 주문 생성 없이 기존 OrderModel 데이터만 사용하며, 저장된 수정값을 우선 반영한다.
+  /// 선택 주문 목록을 관리자용 한글 PDF로 생성한다.
+  /// 주문 1건당 요약 블록과 상품 옵션 표를 포함하며 단체주문 정보도 함께 표시한다.
+  static Future<Uint8List> generateSelectedOrdersPdf(
+      List<OrderModel> orders, DateTime generatedAt) async {
+    final font = pw.Font.ttf(
+        await root_bundle.rootBundle.load('assets/fonts/NotoSansKR.ttf'));
+    final pdf = pw.Document();
+    final labelStyle = pw.TextStyle(font: font, fontSize: 8, color: PdfColors.grey700);
+    final valueStyle = pw.TextStyle(font: font, fontSize: 8.5, color: PdfColors.black);
+    final titleStyle = pw.TextStyle(font: font, fontSize: 16, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo900);
+    final sectionStyle = pw.TextStyle(font: font, fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo900);
+    final cellStyle = pw.TextStyle(font: font, fontSize: 7.5);
+    final headerStyle = pw.TextStyle(font: font, fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: PdfColors.white);
+
+    String statusLabel(OrderStatus status) {
+      switch (status) {
+        case OrderStatus.pending: return '주문 대기';
+        case OrderStatus.confirmed: return '주문 확인';
+        case OrderStatus.processing: return '제작/준비 중';
+        case OrderStatus.shipped: return '배송 중';
+        case OrderStatus.delivered: return '배송 완료';
+        case OrderStatus.purchaseConfirmed: return '구매 확정';
+        case OrderStatus.cancelled: return '주문 취소';
+        case OrderStatus.refunded: return '환불';
+      }
+    }
+
+    String dateText(DateTime value) =>
+        '${value.year}.${value.month.toString().padLeft(2, '0')}.${value.day.toString().padLeft(2, '0')} ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+    String money(double value) => '${value.round()}원';
+    String text(dynamic value) => value?.toString().trim().isNotEmpty == true ? value.toString().trim() : '-';
+
+    pw.Widget infoCell(String label, String value) => pw.Row(children: [
+      pw.Container(width: 62, padding: const pw.EdgeInsets.all(4), color: PdfColors.indigo50, child: pw.Text(label, style: labelStyle)),
+      pw.Expanded(child: pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(value, style: valueStyle))),
+    ]);
+
+    pdf.addPage(pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 30),
+      theme: pw.ThemeData.withFont(base: font, bold: font),
+      footer: (context) => pw.Align(
+        alignment: pw.Alignment.centerRight,
+        child: pw.Text('2FIT MALL · 주문 목록 · ${context.pageNumber}', style: cellStyle),
+      ),
+      build: (context) => [
+        pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
+          pw.Text('2FIT MALL 주문 목록', style: titleStyle),
+          pw.Text('생성일시 ${dateText(generatedAt)}', style: cellStyle),
+        ]),
+        pw.SizedBox(height: 5),
+        pw.Text('선택 주문 ${orders.length}건', style: labelStyle),
+        pw.SizedBox(height: 10),
+        ...orders.map((order) {
+          final opts = order.customOptions ?? <String, dynamic>{};
+          final teamName = text(opts['teamName'] ?? order.groupName);
+          final manager = text(opts['manager'] ?? opts['managerName'] ?? order.userName);
+          final orderType = order.isGroupOrder ? '단체' : '개인';
+          final itemRows = <List<String>>[
+            ['상품명', '사이즈', '색상', '수량', '단가'],
+            ...order.items.map((item) => [
+              text(item.productName), text(item.size), text(item.color),
+              '${item.quantity}', money(item.price),
+            ]),
+          ];
+          return pw.Container(
+            margin: const pw.EdgeInsets.only(bottom: 12),
+            padding: const pw.EdgeInsets.all(9),
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: PdfColors.grey400),
+              borderRadius: pw.BorderRadius.circular(5),
+            ),
+            child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+              pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
+                pw.Text(order.id, style: sectionStyle),
+                pw.Container(padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3), color: order.isGroupOrder ? PdfColors.purple50 : PdfColors.blue50, child: pw.Text('$orderType · ${statusLabel(order.status)}', style: cellStyle)),
+              ]),
+              pw.SizedBox(height: 5),
+              infoCell('주문일시', dateText(order.createdAt)),
+              infoCell('주문자', '${text(order.userName)} · ${text(order.userPhone)}'),
+              if (order.isGroupOrder) infoCell('단체명/담당자', '$teamName / $manager'),
+              infoCell('금액', money(order.totalAmount)),
+              pw.SizedBox(height: 6),
+              pw.Table.fromTextArray(
+                headers: itemRows.first,
+                data: itemRows.skip(1).toList(),
+                headerStyle: headerStyle,
+                cellStyle: cellStyle,
+                headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
+                cellPadding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+                columnWidths: const {0: pw.FlexColumnWidth(3.2), 1: pw.FlexColumnWidth(1.1), 2: pw.FlexColumnWidth(1.3), 3: pw.FlexColumnWidth(0.8), 4: pw.FlexColumnWidth(1.5)},
+              ),
+            ]),
+          );
+        }),
+      ],
+    ));
+    return Uint8List.fromList(await pdf.save());
+  }
+
   static Future<Uint8List> generateGroupOrderPdf(OrderModel order) async {
     final opts = order.customOptions ?? {};
     final persons = (opts['persons'] as List<dynamic>?) ?? [];

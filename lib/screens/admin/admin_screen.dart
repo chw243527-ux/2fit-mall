@@ -2497,9 +2497,9 @@ class _AdminScreenState extends State<AdminScreen>
                   const Spacer(),
                   // 선택 시 액션 버튼들
                   if (anySelected) ...[
-                    // 선택 엑셀 다운로드
+                    // 선택 PDF 다운로드
                     GestureDetector(
-                      onTap: () => _exportSelectedOrdersExcel(
+                      onTap: () => _exportSelectedOrdersPdf(
                         filtered
                             .where((o) => _selectedOrderIds.contains(o.id))
                             .toList(),
@@ -2654,8 +2654,8 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   // CSV 내보내기
-  // ── 선택 주문 엑셀 내보내기 ──
-  Future<void> _exportSelectedOrdersExcel(
+  // ── 선택 주문 PDF 내보내기 ──
+  Future<void> _exportSelectedOrdersPdf(
       List<OrderModel> selectedOrders) async {
     if (selectedOrders.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2678,7 +2678,7 @@ class _AdminScreenState extends State<AdminScreen>
               children: [
                 CircularProgressIndicator(color: AppColors.primary),
                 SizedBox(height: 16),
-                Text('엑셀 파일 생성 중...', style: TextStyle(fontSize: 14)),
+                Text('PDF 파일 생성 중...', style: TextStyle(fontSize: 14)),
               ],
             ),
           ),
@@ -2688,22 +2688,22 @@ class _AdminScreenState extends State<AdminScreen>
 
     try {
       final now = DateTime.now();
-      final bytes = await OrderExcelService.generateSelectedOrdersExcel(
+      final bytes = await OrderExcelService.generateSelectedOrdersPdf(
           selectedOrders, now);
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
 
       final dateStr =
           '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
-      final fileName = '2FIT_선택주문_${selectedOrders.length}건_$dateStr.xlsx';
-      await _handleExcelDownload(
+      final fileName = '2FIT_선택주문_${selectedOrders.length}건_$dateStr.pdf';
+      await _handleFileDownload(
           bytes, fileName, selectedOrders.length, now, now);
     } catch (e) {
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('엑셀 생성 오류: $e'), backgroundColor: AppColors.error),
+            content: Text('PDF 생성 오류: $e'), backgroundColor: AppColors.error),
       );
     }
   }
@@ -3303,7 +3303,7 @@ class _AdminScreenState extends State<AdminScreen>
           '${finalRange.end.year}${finalRange.end.month.toString().padLeft(2, "0")}${finalRange.end.day.toString().padLeft(2, "0")}';
       final fileName = '2FIT_단체엑셀_${typeTag}_${startStr}_${endStr}.xlsx';
 
-      await _handleExcelDownload(bytes, fileName, groupOnlyOrders.length,
+      await _handleFileDownload(bytes, fileName, groupOnlyOrders.length,
           finalRange.start, finalRange.end);
     } catch (e) {
       if (!mounted) return;
@@ -3323,10 +3323,13 @@ class _AdminScreenState extends State<AdminScreen>
   // 엑셀 공유/저장 처리 (Android 11+ 보안정책 대응)
   // - 웹(PC/태블릿 브라우저): anchor 다운로드 → 브라우저 다운로드 폴더
   // - Android: 임시폴더 저장 후 공유 시트 → 사용자가 "내 파일에 저장" 선택
-  Future<void> _handleExcelDownload(Uint8List bytes, String fileName,
+  Future<void> _handleFileDownload(Uint8List bytes, String fileName,
       int orderCount, DateTime start, DateTime end) async {
-    const mimeType =
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    final isPdf = fileName.toLowerCase().endsWith('.pdf');
+    final mimeType = isPdf
+        ? 'application/pdf'
+        : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    final formatLabel = isPdf ? 'PDF' : '엑셀';
 
     if (kIsWeb) {
       // ── 웹(PC/태블릿) : 브라우저 자동 다운로드 ──
@@ -3343,7 +3346,7 @@ class _AdminScreenState extends State<AdminScreen>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('$orderCount건 엑셀 다운로드 완료!',
+                  Text('$orderCount건 $formatLabel 다운로드 완료!',
                       style: const TextStyle(
                           fontWeight: FontWeight.w700, fontSize: 13)),
                   const Text('📂 화면 하단 다운로드 바 또는 내 PC → 다운로드 폴더 확인',
@@ -3748,7 +3751,7 @@ class _AdminScreenState extends State<AdminScreen>
                     color: AppColors.primary, size: 22),
                 SizedBox(width: 8),
                 Expanded(
-                    child: Text('주문 내역 엑셀 내보내기',
+                    child: Text('주문 내역 PDF 내보내기',
                         style: TextStyle(
                             fontSize: 15, fontWeight: FontWeight.w800))),
               ],
@@ -4053,7 +4056,7 @@ class _AdminScreenState extends State<AdminScreen>
                             Expanded(
                                 child: Text(
                               previewCount > 0
-                                  ? '$previewCount건 확인됨 · 3개 시트(주문요약/배송목록/상품집계) 엑셀 파일'
+                                  ? '$previewCount건 확인됨 · 한글 지원 PDF 파일'
                                   : '로딩된 주문 범위 외 · 다운로드 시 Firestore 재조회',
                               style: TextStyle(
                                 fontSize: 11,
@@ -4083,8 +4086,8 @@ class _AdminScreenState extends State<AdminScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 ),
-                icon: const Icon(Icons.table_chart_rounded, size: 16),
-                label: Text('엑셀 다운로드',
+                icon: const Icon(Icons.picture_as_pdf_rounded, size: 16),
+                label: Text('PDF 다운로드',
                     style: TextStyle(fontWeight: FontWeight.w700)),
                 onPressed: () async {
                   Navigator.pop(ctx);
@@ -4101,7 +4104,7 @@ class _AdminScreenState extends State<AdminScreen>
                               CircularProgressIndicator(
                                   color: AppColors.primary),
                               SizedBox(height: 16),
-                              Text('엑셀 파일 생성 중...',
+                              Text('PDF 파일 생성 중...',
                                   style: TextStyle(fontSize: 14)),
                             ],
                           ),
@@ -4150,8 +4153,8 @@ class _AdminScreenState extends State<AdminScreen>
                       return;
                     }
 
-                    final bytes = await OrderExcelService.generateExcel(
-                        finalOrders, fStart, fEnd);
+                    final bytes = await OrderExcelService.generateSelectedOrdersPdf(
+                        finalOrders, DateTime.now());
                     final startStr =
                         '${fStart.year}${fStart.month.toString().padLeft(2, "0")}${fStart.day.toString().padLeft(2, "0")}';
                     final endStr =
@@ -4166,8 +4169,8 @@ class _AdminScreenState extends State<AdminScreen>
                         }[exportType] ??
                         'export';
                     final fileName =
-                        '2FIT_주문_${typeTag}_${startStr}_${endStr}.xlsx';
-                    await _handleExcelDownload(
+                        '2FIT_주문_${typeTag}_${startStr}_${endStr}.pdf';
+                    await _handleFileDownload(
                         bytes, fileName, finalOrders.length, fStart, fEnd);
                   } catch (e) {
                     if (!mounted) return;
@@ -4895,10 +4898,10 @@ class _AdminScreenState extends State<AdminScreen>
                           child: OutlinedButton.icon(
                             onPressed: () {
                               Navigator.pop(context);
-                              _exportPersonalOrderExcel(order);
+                              _exportPersonalOrderPdf(order);
                             },
                             icon: const Icon(Icons.download_rounded, size: 16),
-                            label: Text('엑셀 내보내기',
+                            label: Text('PDF 내보내기',
                                 style: TextStyle(
                                     fontSize: 13, fontWeight: FontWeight.w600)),
                             style: OutlinedButton.styleFrom(
@@ -6051,8 +6054,8 @@ class _AdminScreenState extends State<AdminScreen>
     return '${dateStr}_$teamName';
   }
 
-  // ── 개인 주문 엑셀 내보내기 ──
-  Future<void> _exportPersonalOrderExcel(OrderModel order) async {
+  // ── 개인 주문 PDF 내보내기 ──
+  Future<void> _exportPersonalOrderPdf(OrderModel order) async {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -6073,13 +6076,12 @@ class _AdminScreenState extends State<AdminScreen>
     try {
       final now = DateTime.now();
       final bytes =
-          await OrderExcelService.generateSelectedOrdersExcel([order], now);
+          await OrderExcelService.generateSelectedOrdersPdf([order], now);
       final dateStr =
           '${order.createdAt.month.toString().padLeft(2, '0')}${order.createdAt.day.toString().padLeft(2, '0')}';
       final safeName = order.userName.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-      final fileName = '주문_${safeName}_$dateStr.xlsx';
-      const mimeType =
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      final fileName = '주문_${safeName}_$dateStr.pdf';
+      const mimeType = 'application/pdf';
 
       if (kIsWeb) {
         downloadFileWeb(bytes, fileName, mimeType);
@@ -6120,7 +6122,7 @@ class _AdminScreenState extends State<AdminScreen>
         await SharePlus.instance.share(
           ShareParams(
             files: [XFile(filePath, mimeType: mimeType, name: fileName)],
-            subject: '2FIT 주문 ${order.userName} 엑셀',
+            subject: '2FIT 주문 ${order.userName} PDF',
             text: fileName,
           ),
         );
@@ -6130,7 +6132,7 @@ class _AdminScreenState extends State<AdminScreen>
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('엑셀 생성 오류: $e'), backgroundColor: AppColors.error),
+              content: Text('PDF 생성 오류: $e'), backgroundColor: AppColors.error),
         );
       }
     }
@@ -6276,7 +6278,7 @@ class _AdminScreenState extends State<AdminScreen>
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('엑셀 생성 오류: $e'), backgroundColor: AppColors.error),
+              content: Text('PDF 생성 오류: $e'), backgroundColor: AppColors.error),
         );
       }
     }
@@ -6354,7 +6356,7 @@ class _AdminScreenState extends State<AdminScreen>
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('엑셀 생성 오류: $e'), backgroundColor: AppColors.error),
+              content: Text('PDF 생성 오류: $e'), backgroundColor: AppColors.error),
         );
       }
     }
