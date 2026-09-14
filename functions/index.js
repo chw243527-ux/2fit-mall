@@ -1977,13 +1977,29 @@ async function _prepareOrderFromServerData(uid, payload) {
     const soldOutSizes = Array.isArray(product.soldOutSizes)
       ? product.soldOutSizes.map((value) => String(value).trim().toLocaleLowerCase('ko-KR'))
       : [];
-    if ((!isGroupItem && soldOutSizes.includes(normalizedSize)) || Number(product.stockCount || 0) < quantity) {
+    const stockData = product.stockData && typeof product.stockData === 'object'
+      ? product.stockData
+      : null;
+    const optionStock = !isGroupItem && stockData && stockData[size] &&
+      typeof stockData[size] === 'object'
+      ? Number(stockData[size][color] ?? stockData[size][requestedColor])
+      : null;
+    if ((!isGroupItem && soldOutSizes.includes(normalizedSize)) ||
+        (optionStock != null && Number.isFinite(optionStock) && optionStock < quantity) ||
+        (optionStock == null && Number(product.stockCount || 0) < quantity)) {
       throw new Error('Product is out of stock');
     }
-    const unitPrice = Math.round(Number(product.price));
+    const colorPrices = product.colorPrices && typeof product.colorPrices === 'object'
+      ? product.colorPrices
+      : {};
+    const configuredExtra = Number(colorPrices[color] ?? colorPrices[requestedColor] ?? 0);
+    const extraPrice = Number.isFinite(configuredExtra) && configuredExtra > 0
+      ? Math.round(configuredExtra)
+      : 0;
+    const unitPrice = Math.round(Number(product.price)) + extraPrice;
     subtotal += unitPrice * quantity;
     if (isGroupItem) isGroup = true;
-    items.push({ productId, productName: String(product.name || '').slice(0, 200), size, color, quantity, price: unitPrice, customOptions: requestedOptions || null, imageUrl: Array.isArray(product.images) ? String(product.images[0] || '') : '' });
+    items.push({ productId, productName: String(product.name || '').slice(0, 200), size, color, quantity, price: unitPrice, extraPrice, customOptions: requestedOptions || null, imageUrl: Array.isArray(product.images) ? String(product.images[0] || '') : '' });
   }
   const shippingFee = subtotal >= SHIPPING_FREE_THRESHOLD ? 0 : DEFAULT_SHIPPING_FEE;
   const coupons = await _calculateCoupons(uid, payload.couponIds, subtotal + shippingFee);

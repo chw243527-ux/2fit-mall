@@ -7114,7 +7114,7 @@ $productUrl
           child: _ReadyMadeOptionSheet(
             product: product,
             isBuyNow: isBuyNow,
-            calcExtraForColor: _calcExtraForColor,
+            calcExtraForColor: (color) => _calcExtraForColor(product, color),
             onCartUpdated: () {
               if (mounted) setState(() {});
             },
@@ -7125,10 +7125,13 @@ $productUrl
   }
 
   // 현재 선택된 색상의 추가금액 계산
-  double _calcExtraForColor(String color) =>
-      AppConstants.freeColors.contains(color)
-          ? 0.0
-          : AppConstants.extraColorPrice.toDouble();
+  double _calcExtraForColor(ProductModel product, String color) {
+    final configured = product.colorPrices[color];
+    if (configured != null) return configured;
+    return AppConstants.freeColors.contains(color)
+        ? 0.0
+        : AppConstants.extraColorPrice.toDouble();
+  }
 
   // 실제 장바구니 추가 처리
   // ignore: unused_element
@@ -7142,7 +7145,7 @@ $productUrl
     final r = Responsive.of(context);
 
     // ignore: unused_local_variable
-    final extra = _calcExtraForColor(color);
+    final extra = _calcExtraForColor(product, color);
     context.read<CartProvider>().addItem(
           product,
           size,
@@ -10044,9 +10047,15 @@ class _QuickSizeColorSelectSheetState
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
 
   // 색상 추가금액
-  double get _extraPrice => AppConstants.freeColors.contains(_selectedColor)
-      ? 0.0
-      : AppConstants.extraColorPrice.toDouble();
+  double get _extraPrice {
+    final color = _selectedColor;
+    if (color == null) return 0.0;
+    final configured = widget.product.colorPrices[color];
+    if (configured != null) return configured;
+    return AppConstants.freeColors.contains(color)
+        ? 0.0
+        : AppConstants.extraColorPrice.toDouble();
+  }
 
   @override
   void initState() {

@@ -1156,6 +1156,8 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
                   'size': item.selectedSize,
                   'color': item.selectedColor,
                   'quantity': item.quantity,
+                  'unitPrice': item.unitPrice,
+                  'extraPrice': item.extraPrice,
                   'customOptions': item.customOptions,
                 })
             .toList(),
@@ -1227,7 +1229,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
               size: c.selectedSize,
               color: c.selectedColor,
               quantity: c.quantity,
-              price: c.product.price,
+              price: c.unitPrice,
             ))
         .toList();
 

@@ -101,6 +101,8 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
                 'size': item.selectedSize,
                 'color': item.selectedColor,
                 'quantity': item.quantity,
+                'unitPrice': item.unitPrice,
+                'extraPrice': item.extraPrice,
                 'customOptions': item.customOptions,
               })
           .toList(),

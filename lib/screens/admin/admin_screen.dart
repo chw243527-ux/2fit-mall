@@ -15120,6 +15120,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
 
   // ── 사이즈별 재고 수량
   final Map<String, TextEditingController> _sizeStockCtrls = {};
+  final Map<String, TextEditingController> _colorPriceCtrls = {};
+  final Map<String, TextEditingController> _stockDataCtrls = {};
 
   // 성인 사이즈 전체 목록
   static const List<String> _adultSizeOptions = [
@@ -15266,6 +15268,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     } else {
       _selectedColors.addAll(['블랙', '화이트']); //// 기본값 K=블랙, PP=화이트
     }
+    _initOptionControllers(e?.colorPrices ?? {}, e?.stockData ?? {});
 
     // 하위카테고리 초기값 보정
     final subs = _currentSubCats;
@@ -15320,6 +15323,12 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     _materialCtrl.dispose();
     _bottomLengthCtrl.dispose();
     for (final c in _sizeStockCtrls.values) {
+      c.dispose();
+    }
+    for (final c in _colorPriceCtrls.values) {
+      c.dispose();
+    }
+    for (final c in _stockDataCtrls.values) {
       c.dispose();
     }
     super.dispose();
@@ -15524,6 +15533,11 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
           .where((e) => e.isNotEmpty)
           .toList(),
       colors: _selectedColors.toList(),
+      colorPrices: {
+        for (final entry in _colorPriceCtrls.entries)
+          if ((double.tryParse(entry.value.text) ?? 0) > 0)
+            entry.key: double.tryParse(entry.value.text) ?? 0,
+      },
       material: _materialCtrl.text.trim(),
       bottomLength: _bottomLengthCtrl.text.trim(),
       isNew: _isNew,
@@ -15540,11 +15554,17 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
         for (final entry in _sizeStockCtrls.entries)
           entry.key: int.tryParse(entry.value.text) ?? 0,
       },
-      stockCount: _sizeStockCtrls.isEmpty
-          ? (int.tryParse(_stockCtrl.text) ?? 100)
-          : _sizeStockCtrls.entries
-              .where((e) => !_soldOutSizes.contains(e.key))
-              .fold(0, (sum, e) => sum + (int.tryParse(e.value.text) ?? 0)),
+      stockData: _buildStockData(),
+      stockCount: _selectedColors.isNotEmpty && _selectedSizes.isNotEmpty
+          ? _buildStockData()
+              .values
+              .expand((colorMap) => colorMap.values)
+              .fold(0, (sum, qty) => sum + qty)
+          : _sizeStockCtrls.isEmpty
+              ? (int.tryParse(_stockCtrl.text) ?? 100)
+              : _sizeStockCtrls.entries
+                  .where((e) => !_soldOutSizes.contains(e.key))
+                  .fold(0, (sum, e) => sum + (int.tryParse(e.value.text) ?? 0)),
       soldOutSizes: _soldOutSizes.toList(),
       isActive: _isActive,
       createdAt: widget.existing?.createdAt ?? DateTime.now(),
@@ -16500,6 +16520,13 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     ),
                     const SizedBox(height: 14),
 
+                    // ── 색상별 옵션 가격·재고
+                    _buildColorPriceEditor(),
+                    if (_selectedColors.isNotEmpty)
+                      const SizedBox(height: 14),
+                    _buildColorStockEditor(),
+                    const SizedBox(height: 14),
+
                     // ── 토글 칩
                     Wrap(spacing: 8, runSpacing: 6, children: [
                       _newChip(),
@@ -17127,6 +17154,191 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
         text: (existingStocks[s] ?? 100).toString(),
       );
     }
+  }
+
+  void _initOptionControllers(
+      Map<String, double> existingPrices,
+      Map<String, Map<String, int>> existingStockData) {
+    for (final c in _colorPriceCtrls.values) {
+      c.dispose();
+    }
+    for (final c in _stockDataCtrls.values) {
+      c.dispose();
+    }
+    _colorPriceCtrls.clear();
+    _stockDataCtrls.clear();
+    for (final color in _selectedColors) {
+      _colorPriceCtrls[color] = TextEditingController(
+          text: (existingPrices[color] ?? 0) > 0
+              ? existingPrices[color]!.toStringAsFixed(0)
+              : '0');
+      for (final size in _selectedSizes) {
+        final key = '$size::$color';
+        _stockDataCtrls[key] = TextEditingController(
+            text: (existingStockData[size]?[color] ?? 100).toString());
+      }
+    }
+  }
+
+  void _syncOptionControllers() {
+    for (final color in _selectedColors) {
+      _colorPriceCtrls.putIfAbsent(
+          color, () => TextEditingController(text: '0'));
+      for (final size in _selectedSizes) {
+        final key = '$size::$color';
+        _stockDataCtrls.putIfAbsent(
+            key, () => TextEditingController(text: '0'));
+      }
+    }
+    final validColors = _selectedColors.toSet();
+    final validSizes = _selectedSizes.toSet();
+    final oldPrices = _colorPriceCtrls.keys
+        .where((c) => !validColors.contains(c))
+        .toList();
+    for (final color in oldPrices) {
+      _colorPriceCtrls[color]?.dispose();
+      _colorPriceCtrls.remove(color);
+    }
+    final oldStock = _stockDataCtrls.keys.where((key) {
+      final parts = key.split('::');
+      return parts.length != 2 ||
+          !validSizes.contains(parts[0]) ||
+          !validColors.contains(parts[1]);
+    }).toList();
+    for (final key in oldStock) {
+      _stockDataCtrls[key]?.dispose();
+      _stockDataCtrls.remove(key);
+    }
+  }
+
+  Map<String, Map<String, int>> _buildStockData() {
+    _syncOptionControllers();
+    return {
+      for (final size in _selectedSizes)
+        size: {
+          for (final color in _selectedColors)
+            color: int.tryParse(
+                    _stockDataCtrls['$size::$color']?.text ?? '0') ??
+                0,
+        },
+    };
+  }
+
+  // ── 색상별 가격 입력
+  Widget _buildColorPriceEditor() {
+    if (_selectedColors.isEmpty) return const SizedBox.shrink();
+    _syncOptionControllers();
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8E1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFD180)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(children: [
+            Icon(Icons.sell_outlined, size: 16, color: AppColors.accent),
+            SizedBox(width: 6),
+            Text('색상별 추가 가격',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+          ]),
+          const SizedBox(height: 4),
+          const Text('기본 가격에 더할 금액을 입력하세요. 0원은 기본가입니다.',
+              style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _selectedColors.map((color) {
+              return SizedBox(
+                width: 142,
+                child: TextField(
+                  controller: _colorPriceCtrls[color],
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: color,
+                    suffixText: '원',
+                    filled: true,
+                    fillColor: Colors.white,
+                    isDense: true,
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 색상별 재고 입력 위젯
+  Widget _buildColorStockEditor() {
+    if (_selectedSizes.isEmpty || _selectedColors.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    _syncOptionControllers();
+    final sizes = _selectedSizes.toList();
+    final colors = _selectedColors.toList();
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F7FF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFBBDEFB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(children: [
+            Icon(Icons.grid_on_rounded, size: 16, color: AppColors.info),
+            SizedBox(width: 6),
+            Text('사이즈 × 색상별 재고',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+          ]),
+          const SizedBox(height: 4),
+          const Text('각 옵션 조합의 재고 수량을 입력하세요. 판매 시 선택 조합의 재고를 검증합니다.',
+              style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+          const SizedBox(height: 10),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              headingRowHeight: 34,
+              dataRowMinHeight: 46,
+              dataRowMaxHeight: 52,
+              columns: [
+                const DataColumn(label: Text('사이즈')),
+                ...colors.map((c) => DataColumn(label: Text(c))),
+              ],
+              rows: sizes.map((size) {
+                return DataRow(cells: [
+                  DataCell(Text(size,
+                      style: const TextStyle(fontWeight: FontWeight.w700))),
+                  ...colors.map((color) => DataCell(SizedBox(
+                        width: 72,
+                        child: TextField(
+                          controller: _stockDataCtrls['$size::$color'],
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          decoration: const InputDecoration(
+                            hintText: '0',
+                            isDense: true,
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 8),
+                          ),
+                        ),
+                      ))),
+                ]);
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // ── 사이즈별 재고 입력 위젯

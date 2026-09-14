@@ -184,6 +184,16 @@ class CartProvider extends ChangeNotifier {
   bool get isEmpty => _items.isEmpty;
 
   void addItem(ProductModel product, String size, String color, {int quantity = 1, double extraPrice = 0, Map<String, dynamic>? customOptions}) {
+    // 색상×사이즈별 재고가 있으면 해당 옵션 조합을 초과하지 않도록 제한
+    final optionStock = product.stockData[size]?[color];
+    if (optionStock != null) {
+      final existingQty = _items
+          .where((item) => item.product.id == product.id &&
+              item.selectedSize == size && item.selectedColor == color)
+          .fold<int>(0, (sum, item) => sum + item.quantity);
+      quantity = quantity.clamp(0, optionStock - existingQty);
+      if (quantity <= 0) return;
+    }
     // 단체주문/추가제작 아이템은 항상 새로 추가 (customOptions 다를 수 있음)
     final isGroupOrder = customOptions != null &&
         (customOptions['orderType'] == 'group' || customOptions['orderType'] == 'additional');
