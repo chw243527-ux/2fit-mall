@@ -3200,7 +3200,7 @@ class _AdminScreenState extends State<AdminScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 10)),
               icon: const Icon(Icons.picture_as_pdf_rounded, size: 16),
-              label: Text('단체 PDF 다운로드',
+              label: Text('단체주문별 PDF 다운로드',
                   style: TextStyle(fontWeight: FontWeight.w700)),
               onPressed: () async {
                 Navigator.pop(ctx);
@@ -3285,8 +3285,6 @@ class _AdminScreenState extends State<AdminScreen>
         return;
       }
 
-      final bytes = await OrderExcelService.generateSelectedOrdersPdf(
-          groupOnlyOrders, DateTime.now());
       final typeTag = {
             '일일': 'daily',
             '일별': 'day',
@@ -3300,10 +3298,20 @@ class _AdminScreenState extends State<AdminScreen>
           '${finalRange.start.year}${finalRange.start.month.toString().padLeft(2, "0")}${finalRange.start.day.toString().padLeft(2, "0")}';
       final endStr =
           '${finalRange.end.year}${finalRange.end.month.toString().padLeft(2, "0")}${finalRange.end.day.toString().padLeft(2, "0")}';
-      final fileName = '2FIT_단체PDF_${typeTag}_${startStr}_${endStr}.pdf';
 
-      await _handleFileDownload(bytes, fileName, groupOnlyOrders.length,
-          finalRange.start, finalRange.end);
+      // 단체주문은 주문별 상세 PDF로 각각 생성합니다. 주문서의 선택사항,
+      // 색상 코드, 업로드 이미지가 주문마다 독립적으로 보존됩니다.
+      for (var i = 0; i < groupOnlyOrders.length; i++) {
+        final order = groupOnlyOrders[i];
+        final bytes = await OrderExcelService.generateGroupOrderPdf(order);
+        final fileName =
+            '2FIT_단체주문_${typeTag}_${startStr}_${endStr}_${_groupOrderFileStem(order)}.pdf';
+        await _handleFileDownload(bytes, fileName, 1, finalRange.start,
+            finalRange.end);
+        if (kIsWeb && i < groupOnlyOrders.length - 1) {
+          await Future<void>.delayed(const Duration(milliseconds: 350));
+        }
+      }
     } catch (e) {
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();

@@ -932,6 +932,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       }
     }
 
+    Map<String, dynamic>? selectedColorEntry;
+    for (final entry in AppColorPalette.registeredColors) {
+      if (entry['name'] == _mainColorName) {
+        selectedColorEntry = entry;
+        break;
+      }
+    }
+
     final customOptions = <String, dynamic>{
       'orderType': _isAdditional ? 'additional' : 'group',
       'groupMinimumQuantity': _groupMinimumQuantity,
@@ -960,6 +968,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           : null,
       'printType': _printType,
       'mainColor': _mainColorName,
+      'mainColorCode': selectedColorEntry?['code'] ?? '',
+      'mainColorHex':
+          '#${(_mainColor ?? Colors.grey).toARGB32().toRadixString(16).substring(2).toUpperCase()}',
+      'mainColorImageUrl': product.images.isNotEmpty ? product.images.first : '',
       'adjustedColorHex':
           '#${_adjustedColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
       'colorLightness': _colorLightness,
