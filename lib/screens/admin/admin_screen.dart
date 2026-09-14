@@ -6360,6 +6360,68 @@ class _AdminScreenState extends State<AdminScreen>
     }
   }
 
+  Future<void> _bulkChangeProductCategory() async {
+    final ids = Set<String>.from(_selectedProductIds);
+    if (ids.isEmpty) return;
+    const categories = ['상의', '하의', '세트', '아우터', '스킨슈트', '악세사리', '이벤트'];
+    String selectedCategory = categories.first;
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('카테고리 일괄 변경'),
+          content: DropdownButtonFormField<String>(
+            value: selectedCategory,
+            decoration: const InputDecoration(labelText: '변경할 카테고리'),
+            items: categories
+                .map((category) => DropdownMenuItem(
+                      value: category,
+                      child: Text(category),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              if (value != null) {
+                setDialogState(() => selectedCategory = value);
+              }
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('취소'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, selectedCategory),
+              child: const Text('변경'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    final provider = context.read<ProductProvider>();
+    for (final id in ids) {
+      final product = provider.adminProducts.firstWhere(
+        (item) => item.id == id,
+        orElse: () => ProductModel(
+          id: id,
+          name: '',
+          category: selectedCategory,
+          subCategory: '',
+          price: 0,
+          createdAt: DateTime.now(),
+        ),
+      );
+      if (product.name.isEmpty) continue;
+      await provider.updateProduct(product.copyWith(category: result));
+    }
+    if (!mounted) return;
+    setState(() => _selectedProductIds.clear());
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${ids.length}개 상품의 카테고리를 $result(으)로 변경했습니다.')),
+    );
+  }
+
   Future<void> _setSelectedProductsActive(bool active) async {
     final ids = Set<String>.from(_selectedProductIds);
     if (ids.isEmpty) return;
@@ -6607,6 +6669,25 @@ class _AdminScreenState extends State<AdminScreen>
                     Icon(Icons.visibility_outlined, color: AppColors.success, size: 14),
                     SizedBox(width: 4),
                     Text('선택공개', style: TextStyle(color: AppColors.success, fontSize: 12, fontWeight: FontWeight.w700)),
+                  ]),
+                ),
+              ),
+              const SizedBox(width: 6),
+            ],
+            // 카테고리 일괄 변경 버튼
+            if (anySelected) ...[
+              GestureDetector(
+                onTap: _bulkChangeProductCategory,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8EEF9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(children: [
+                    Icon(Icons.category_outlined, color: AppColors.info, size: 14),
+                    SizedBox(width: 4),
+                    Text('카테고리 변경', style: TextStyle(color: AppColors.info, fontSize: 12, fontWeight: FontWeight.w700)),
                   ]),
                 ),
               ),
