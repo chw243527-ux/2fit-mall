@@ -6410,6 +6410,9 @@ class _AdminScreenState extends State<AdminScreen>
           subCategory: '',
           price: 0,
           description: '',
+          images: const [],
+          sizes: const [],
+          colors: const [],
           createdAt: DateTime.now(),
         ),
       );
