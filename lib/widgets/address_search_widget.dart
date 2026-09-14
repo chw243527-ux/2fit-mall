@@ -175,15 +175,26 @@ class _AddressMobileBodyState extends State<_AddressMobileBody> {
 <script>
 (function(){
   function sendAddress(d){
-    var addr=d.userSelectedType==='R'?d.roadAddress:d.jibunAddress;
+    var addr=d.userSelectedType==='R'
+      ? (d.roadAddress||d.address||d.jibunAddress)
+      : (d.jibunAddress||d.address||d.roadAddress);
     var payload=JSON.stringify({
       zonecode:String(d.zonecode||''),address:addr||'',
       roadAddress:d.roadAddress||'',jibunAddress:d.jibunAddress||''
     });
-    // Android WebView 일부 기기에서 선택 완료와 닫힘 처리가 충돌하지 않도록 지연 전달합니다.
-    window.setTimeout(function(){
-      try { AddrBridge.postMessage(payload); } catch(e) {}
-    }, 0);
+    // 일부 Android WebView에서는 선택 직후 브리지 객체가 늦게 주입될 수 있어 재전송합니다.
+    var attempts=0;
+    function post(){
+      attempts++;
+      try {
+        if (window.AddrBridge && AddrBridge.postMessage) {
+          AddrBridge.postMessage(payload);
+          return;
+        }
+      } catch(e) {}
+      if (attempts < 12) window.setTimeout(post, 150);
+    }
+    window.setTimeout(post, 100);
   }
   function init(){
     if(typeof daum==='undefined'||typeof daum.Postcode==='undefined'){
@@ -210,8 +221,15 @@ class _AddressMobileBodyState extends State<_AddressMobileBody> {
     _ctrl = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(NavigationDelegate(
-        onPageStarted: (_) => setState(() => _loading = true),
-        onPageFinished: (_) => setState(() => _loading = false),
+        onPageStarted: (_) {
+          if (mounted) setState(() => _loading = true);
+        },
+        onPageFinished: (_) {
+          if (mounted) setState(() => _loading = false);
+        },
+        onWebResourceError: (_) {
+          if (mounted) setState(() => _loading = false);
+        },
       ))
       ..addJavaScriptChannel('AddrBridge', onMessageReceived: (msg) {
         try {

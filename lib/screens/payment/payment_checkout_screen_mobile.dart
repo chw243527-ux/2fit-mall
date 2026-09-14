@@ -157,15 +157,22 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
     if (!mounted) return;
     final args = _args;
     if (args == null) return;
-    final paymentKey = uri.queryParameters['paymentKey'] ?? '';
-    final orderId = uri.queryParameters['orderId'] ?? args.orderId;
-    final amount = int.tryParse(uri.queryParameters['amount'] ?? '') ?? args.amount;
+    final fragmentUri = uri.fragment.isNotEmpty
+        ? Uri.tryParse(uri.fragment.startsWith('/') ? uri.fragment : '/${uri.fragment}')
+        : null;
+    final params = <String, String>{
+      ...uri.queryParameters,
+      if (fragmentUri != null) ...fragmentUri.queryParameters,
+    };
+    final paymentKey = params['paymentKey'] ?? '';
+    final orderId = params['orderId'] ?? args.orderId;
+    final amount = int.tryParse(params['amount'] ?? '') ?? args.amount;
 
-    if (uri.path == '/payment/fail' || paymentKey.isEmpty) {
+    if (uri.path == '/payment/fail' || fragmentUri?.path == '/payment/fail' || paymentKey.isEmpty) {
       if (mounted) {
         setState(() {
           _loading = false;
-          _error = uri.queryParameters['message'] ?? '결제가 취소되었거나 승인되지 않았습니다.';
+          _error = params['message'] ?? '결제가 취소되었거나 승인되지 않았습니다.';
         });
       }
       return;
