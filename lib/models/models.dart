@@ -24,6 +24,7 @@ class ProductModel {
   final bool isSale;
   final bool isFreeShipping;
   final bool isGroupOnly;  // 단체주문 전용 상품
+  final bool isGroup;      // 홈 단체주문 영역 노출 상품
   final bool isReadyMade;  // 기성품 (단체주문에서 기성품 선택 가능)
   final double rating;
   final int reviewCount;
@@ -80,6 +81,7 @@ class ProductModel {
     this.isSale = false,
     this.isFreeShipping = false,
     this.isGroupOnly = false,
+    this.isGroup = false,
     this.isReadyMade = false,
     this.rating = 0.0,
     this.reviewCount = 0,
@@ -164,6 +166,7 @@ class ProductModel {
     bool? isSale,
     bool? isFreeShipping,
     bool? isGroupOnly,
+    bool? isGroup,
     bool? isReadyMade,
     double? rating,
     int? reviewCount,
@@ -206,6 +209,7 @@ class ProductModel {
       isSale: isSale ?? this.isSale,
       isFreeShipping: isFreeShipping ?? this.isFreeShipping,
       isGroupOnly: isGroupOnly ?? this.isGroupOnly,
+      isGroup: isGroup ?? this.isGroup,
       isReadyMade: isReadyMade ?? this.isReadyMade,
       rating: rating ?? this.rating,
       reviewCount: reviewCount ?? this.reviewCount,
@@ -334,6 +338,7 @@ class ProductModel {
       isSale: json['isSale'] as bool? ?? false,
       isFreeShipping: json['isFreeShipping'] as bool? ?? false,
       isGroupOnly: json['isGroupOnly'] as bool? ?? false,
+      isGroup: json['isGroup'] as bool? ?? false,
       isReadyMade: json['isReadyMade'] as bool? ?? false,
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviewCount: json['reviewCount'] as int? ?? 0,
@@ -393,6 +398,7 @@ class ProductModel {
       'isSale': isSale,
       'isFreeShipping': isFreeShipping,
       'isGroupOnly': isGroupOnly,
+      'isGroup': isGroup,
       'isReadyMade': isReadyMade,
       'rating': rating,
       'reviewCount': reviewCount,
@@ -419,7 +425,7 @@ class ProductModel {
       images: images, sizes: sizes, colors: colors, colorPrices: colorPrices, material: material,
       isNew: isNew, newExpiresAt: newExpiresAt,
       isSale: isSale, isFreeShipping: isFreeShipping,
-      isGroupOnly: isGroupOnly, isReadyMade: isReadyMade,
+      isGroupOnly: isGroupOnly, isGroup: isGroup, isReadyMade: isReadyMade,
       rating: rating, reviewCount: reviewCount, stockCount: stockCount,
       soldOutSizes: soldOutSizes,
       sizeStocks: sizeStocks,

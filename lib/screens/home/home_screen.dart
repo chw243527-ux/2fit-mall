@@ -315,18 +315,14 @@ class _HomeScreenState extends State<HomeScreen>
     // groupOnlyProducts 우선, 없으면 products에서 필터링
     final groupProds = (pp.groupOnlyProducts.isNotEmpty
             ? pp.groupOnlyProducts
-            : pp.products.where((p) => p.isGroupOnly && p.isActive).toList())
-        .where((p) {
-          if (!p.isActive) return false;
-          final haystack = '${p.name} ${p.subCategory}'.toLowerCase();
-          return haystack.contains('싱글렛') || haystack.contains('singlet');
-        })
+            : pp.products.where((p) => (p.isGroupOnly || p.isGroup) && p.isActive).toList())
+        .where((p) => p.isActive && (p.isGroupOnly || p.isGroup))
         .toList()
       ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
 
     // _buildProductSection 재사용 — 단체주문 전용 accent 색상
     return _buildProductSection(
-      title: context.loc.t('싱글렛_단체주문_전용', '싱글렛 단체주문 전용'),
+      title: context.loc.t('단체주문_전용', '단체주문 전용'),
       englishTitle: 'GROUP ORDER',
       accentColor: AppColors.primary,
       products: groupProds.take(10).toList(),
@@ -2567,11 +2563,10 @@ class _HomeScreenState extends State<HomeScreen>
     final r = Responsive.of(context);
     List<ProductModel> allProds = context.watch<ProductProvider>().products;
     // Firestore 원본이 로드된 상품만 노출한다.
-    final groupProducts = allProds.where((p) {
-      if (!p.isGroupOnly || !p.isActive) return false;
-      final haystack = '${p.name} ${p.subCategory}'.toLowerCase();
-      return haystack.contains('싱글렛') || haystack.contains('singlet');
-    }).toList();
+    final groupProducts = allProds
+        .where((p) => p.isActive && (p.isGroupOnly || p.isGroup))
+        .toList()
+      ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
     if (groupProducts.isEmpty) return const SizedBox.shrink();
     return Container(
       decoration: BoxDecoration(
@@ -2608,7 +2603,7 @@ class _HomeScreenState extends State<HomeScreen>
                           fontSize: r.sp(9),
                           fontWeight: FontWeight.w800,
                           letterSpacing: 2.0)),
-                  Text(context.loc.t('싱글렛_단체주문_전용', '싱글렛 단체주문 전용'),
+                  Text(context.loc.t('단체주문_전용', '단체주문 전용'),
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: r.sp(20),
@@ -2797,11 +2792,10 @@ class _HomeScreenState extends State<HomeScreen>
     final isTablet = screenW >= 600; // 600~899: 태블릿
 
     // 단체주문 목록도 ProductProvider가 Firestore에서 읽은 원본만 사용한다.
-    final groupProds = pp.groupOnlyProducts.where((p) {
-      final haystack = '${p.name} ${p.subCategory}'.toLowerCase();
-      return p.isActive &&
-          (haystack.contains('싱글렛') || haystack.contains('singlet'));
-    }).toList();
+    final groupProds = pp.groupOnlyProducts
+        .where((p) => p.isActive && (p.isGroupOnly || p.isGroup))
+        .toList()
+      ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
 
     final sortedGroupProds = [...groupProds]
       ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
@@ -4090,11 +4084,10 @@ class _HomeScreenState extends State<HomeScreen>
     final r = Responsive.of(context);
     List<ProductModel> allProds = context.watch<ProductProvider>().products;
     // 상품 목록은 ProductProvider가 로드한 Firestore 원본만 사용한다.
-    final groupProducts = allProds.where((p) {
-      if (!p.isGroupOnly || !p.isActive) return false;
-      final haystack = '${p.name} ${p.subCategory}'.toLowerCase();
-      return haystack.contains('싱글렛') || haystack.contains('singlet');
-    }).toList();
+    final groupProducts = allProds
+        .where((p) => p.isActive && (p.isGroupOnly || p.isGroup))
+        .toList()
+      ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
     if (groupProducts.isEmpty) return const SizedBox.shrink();
     return Container(
       color: AppColors.primary,
@@ -4137,7 +4130,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                     Text(
-                      context.loc.t('싱글렛_단체주문_전용', '싱글렛 단체주문 전용'),
+                      context.loc.t('단체주문_전용', '단체주문 전용'),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: r.sp(20),

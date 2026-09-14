@@ -185,7 +185,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 _buildMenuTile(
                   context,
                   icon: Icons.assignment_rounded,
-                  label: loc.t('단체주문_접수', '단체주문 접수'),
+                  label: loc.t('싱글렛_단체주문_전용', '싱글렛 단체주문 전용'),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/bulk-order');

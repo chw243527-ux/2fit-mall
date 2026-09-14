@@ -15332,6 +15332,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   bool _isSale = false;
   bool _isFreeShip = false;
   bool _isGroupOnly = false;
+  bool _isGroup = false;
   bool _isReadyMade = false; // 기성품
   bool _isActive = true;
 
@@ -15413,6 +15414,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     _isSale = e?.isSale ?? false;
     _isFreeShip = e?.isFreeShipping ?? false;
     _isGroupOnly = (e?.isGroupOnly ?? false) || (e?.category == '단체주문');
+    _isGroup = e?.isGroup ?? false;
     _isReadyMade = e?.isReadyMade ?? false;
     _isActive = e?.isActive ?? true;
 
@@ -15703,7 +15705,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
           : null,
       isSale: _isSale, isFreeShipping: _isFreeShip,
       // 단체주문 카테고리이면 isGroupOnly 강제 true, 그 외는 토글 값 그대로
-      isGroupOnly: _isGroupOnly || _selCat == '단체주문', isReadyMade: _isReadyMade,
+      isGroupOnly: _isGroupOnly || _selCat == '단체주문', isGroup: _isGroup, isReadyMade: _isReadyMade,
       sizeStocks: {
         for (final entry in _sizeStockCtrls.entries)
           entry.key: int.tryParse(entry.value.text) ?? 0,
@@ -16692,6 +16694,11 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                         setState(() => _isFreeShip = v);
                         _scheduleAutoSave();
                       }),
+                      // 일반 단체 칩 — 홈 단체주문 영역 노출용
+                      _chip('단체', _isGroup, (v) {
+                        setState(() => _isGroup = v);
+                        _scheduleAutoSave();
+                      }, ac: AppColors.info),
                       // 단체전용 칩 — 카테고리 무관, 단순 ON/OFF만 (카테고리 변경 없음)
                       _chip('단체전용', _isGroupOnly, (v) {
                         setState(() => _isGroupOnly = v);
@@ -16711,7 +16718,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                       }, ac: AppColors.success),
                     ]),
                     // ── 현재 상품 속성 상태 안내
-                    if (_isGroupOnly || _isReadyMade)
+                    if (_isGroup || _isGroupOnly || _isReadyMade)
                       Padding(
                         padding: const EdgeInsets.only(top: 8, bottom: 2),
                         child: Container(

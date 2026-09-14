@@ -1342,7 +1342,7 @@ class ProductProvider extends ChangeNotifier {
         final active = allProducts.where((p) => p.isActive).toList();
         _products = _filterProductsForCategory(active, _currentCategory);
         _groupOnlyProducts =
-            active.where((p) => p.isGroupOnly).toList();
+            active.where((p) => p.isGroupOnly || p.isGroup).toList();
         ProductService.updateCache(active);
         _isLoading = false;
         _error = null;
@@ -1386,7 +1386,7 @@ class ProductProvider extends ChangeNotifier {
       _isGroupOnlyLoading = false;
       // 폴백: 전체 상품에서 필터링
       _groupOnlyProducts = _products
-          .where((p) => p.isGroupOnly && p.isActive)
+          .where((p) => (p.isGroupOnly || p.isGroup) && p.isActive)
           .toList();
       notifyListeners();
     }
@@ -1634,6 +1634,7 @@ class ProductProvider extends ChangeNotifier {
           isNew: p.isNew, newExpiresAt: p.newExpiresAt,
           isSale: p.isSale, isFreeShipping: p.isFreeShipping,
           isGroupOnly: p.isGroupOnly,
+          isGroup: p.isGroup,
           isActive: p.isActive,
           rating: p.rating, reviewCount: p.reviewCount, stockCount: p.stockCount,
           salesCount: p.salesCount,

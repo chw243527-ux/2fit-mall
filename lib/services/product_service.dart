@@ -849,7 +849,7 @@ class ProductService {
     if (category == '세일') {
       return _products.where((p) => p.isSale && p.isActive).toList();
     }
-    // 단체주문 탭: isGroupOnly=true 상품 반환 (Firestore 직접 조회)
+    // 단체주문 탭: 단체전용 또는 일반 단체 노출 상품 반환
     if (category == '단체주문') {
       return getGroupOnlyProducts();
     }
@@ -858,12 +858,13 @@ class ProductService {
         .toList();
   }
 
-  /// 단체주문 전용 상품 Firestore 직접 조회 (isGroupOnly=true, isActive=true)
+  /// 홈 단체주문 영역용 활성 상품 조회 (단체전용 또는 일반 단체)
   static Future<List<ProductModel>> getGroupOnlyProducts() async {
     try {
+      // isGroupOnly와 isGroup을 OR로 조회하면 Firestore 인덱스·쿼리 호환성이
+      // 환경마다 달라질 수 있어 활성 상품을 한 번 읽고 클라이언트에서 필터링한다.
       final snapshot = await _db
           .collection('products')
-          .where('isGroupOnly', isEqualTo: true)
           .where('isActive', isEqualTo: true)
           .get()
           .timeout(const Duration(seconds: 10));
@@ -876,17 +877,17 @@ class ProductService {
               (data['createdAt'] as Timestamp).toDate().toIso8601String();
         }
         return ProductModel.fromJson(data);
-      }).toList();
+      }).where((product) => product.isGroupOnly || product.isGroup).toList();
 
       if (kDebugMode) {
-        debugPrint('✅ 단체주문 전용 상품 ${list.length}개 로드');
+        debugPrint('✅ 홈 단체주문 상품 ${list.length}개 로드');
       }
       return list;
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 단체주문 전용 상품 조회 실패: $e');
       // 폴백: 캐시에서 필터링
       _ensureCache();
-      return _cache.where((p) => p.isGroupOnly && p.isActive).toList();
+      return _cache.where((p) => (p.isGroupOnly || p.isGroup) && p.isActive).toList();
     }
   }
 
@@ -1147,7 +1148,7 @@ class ProductService {
       description: p.description, images: p.images,
       sizes: p.sizes, colors: p.colors, material: p.material,
       isNew: p.isNew, newExpiresAt: p.newExpiresAt, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
-      isGroupOnly: p.isGroupOnly, isActive: p.isActive,
+      isGroupOnly: p.isGroupOnly, isGroup: p.isGroup, isActive: p.isActive,
       rating: p.rating, reviewCount: p.reviewCount,
       stockCount: newStock,
       createdAt: p.createdAt, productCode: p.productCode, sectionImages: p.sectionImages,
@@ -1183,7 +1184,7 @@ class ProductService {
           description: p.description, images: p.images,
           sizes: p.sizes, colors: p.colors, material: p.material,
           isNew: p.isNew, newExpiresAt: p.newExpiresAt, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
-          isGroupOnly: p.isGroupOnly, isActive: p.isActive,
+          isGroupOnly: p.isGroupOnly, isGroup: p.isGroup, isActive: p.isActive,
           rating: p.rating, reviewCount: p.reviewCount,
           stockCount: newStock, sizeStocks: sizeStocks,
           soldOutSizes: p.soldOutSizes,
@@ -1219,7 +1220,7 @@ class ProductService {
       description: p.description, images: p.images,
       sizes: p.sizes, colors: p.colors, material: p.material,
       isNew: p.isNew, newExpiresAt: p.newExpiresAt, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
-      isGroupOnly: p.isGroupOnly, isActive: p.isActive,
+      isGroupOnly: p.isGroupOnly, isGroup: p.isGroup, isActive: p.isActive,
       rating: p.rating, reviewCount: p.reviewCount, stockCount: p.stockCount,
       createdAt: p.createdAt, productCode: p.productCode, sectionImages: newMap,
       nameTranslations: p.nameTranslations,
@@ -1248,7 +1249,7 @@ class ProductService {
       description: p.description, images: urls,
       sizes: p.sizes, colors: p.colors, material: p.material,
       isNew: p.isNew, newExpiresAt: p.newExpiresAt, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
-      isGroupOnly: p.isGroupOnly, isActive: p.isActive,
+      isGroupOnly: p.isGroupOnly, isGroup: p.isGroup, isActive: p.isActive,
       rating: p.rating, reviewCount: p.reviewCount, stockCount: p.stockCount,
       createdAt: p.createdAt, productCode: p.productCode, sectionImages: p.sectionImages,
       nameTranslations: p.nameTranslations,
@@ -1284,8 +1285,10 @@ class ProductService {
     if (category == '전체') return _cache;
     if (category == '신상품') return _cache.where((p) => p.isNewActive).toList();
     if (category == '세일') return _cache.where((p) => p.isSale).toList();
-    // 단체주문 탭: isGroupOnly=true 상품 반환
-    if (category == '단체주문') return _cache.where((p) => p.isGroupOnly && p.isActive).toList();
+    // 단체주문 탭: 단체전용 또는 일반 단체 상품 반환
+    if (category == '단체주문') {
+      return _cache.where((p) => (p.isGroupOnly || p.isGroup) && p.isActive).toList();
+    }
     return _cache.where((p) => p.category == category).toList();
   }
 
