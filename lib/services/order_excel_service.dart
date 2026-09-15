@@ -4045,6 +4045,9 @@ class OrderExcelService {
         section('6. 기타 주문 정보', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), children: [
           pw.TableRow(children: [infoRow('주문번호', order.id), infoRow('주문자', order.userName)]),
           pw.TableRow(children: [infoRow('주문유형', order.isAdditionalOrder ? '추가제작' : '단체주문'), infoRow('배송지', address)]),
+          pw.TableRow(children: [infoRow('최소 주문수량', _optText(opts, ['groupMinimumQuantity'], '-')), infoRow('단체 할인율', '${_optText(opts, ['groupDiscountRate'], '0')}%')]),
+          pw.TableRow(children: [infoRow('단체 할인액', productionOnly ? '발주용 문서(가격 제외)' : _formatWon(discount)), infoRow('최종 적용금액', productionOnly ? '발주용 문서(가격 제외)' : _formatWon(finalPrice))]),
+          if (order.isAdditionalOrder) pw.TableRow(children: [infoRow('원주문번호', _optText(opts, ['originalOrderId'], '-')), infoRow('원주문 팀명', _optText(opts, ['originalTeamName'], '-'))]),
           pw.TableRow(children: [infoRow('배송메모', _optText(opts, ['deliveryMemo', 'shippingMemo'], '-')), infoRow('결제수단', order.paymentMethod)]),
           pw.TableRow(children: [infoRow('독점디자인', _isExclusive(opts) ? '예' : '아니오'), infoRow('남/여 인원', '남 ${_countGender(order, '남')}명 / 여 ${_countGender(order, '여')}명')]),
           pw.TableRow(children: [infoRow('재봉방법/원단', '$fabric / $fabricWeight'), infoRow('디자인 요청사항 (필수)', order.memo ?? _optText(opts, ['memoText', 'memo'], '-'))]),
