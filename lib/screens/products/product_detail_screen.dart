@@ -8246,6 +8246,9 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
           // ── 색상 ──
           _ColorSelectionWidget(
             isBottomCategory: isBottom,
+            productColors: widget.product.colors,
+            colorHexes: widget.product.colorHexes,
+            colorPrices: widget.product.colorPrices,
             selectedColor: _selectedColor,
             onColorChanged: (c) => setState(() => _selectedColor = c),
           ),
@@ -9569,6 +9572,9 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     SizedBox(height: r.h(6)),
                     _ColorSelectionWidget(
                       isBottomCategory: true,
+                      productColors: widget.product.colors,
+                      colorHexes: widget.product.colorHexes,
+                      colorPrices: widget.product.colorPrices,
                       selectedColor: _color,
                       onColorChanged: (c) => setState(() => _color = c),
                     ),

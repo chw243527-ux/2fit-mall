@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/net_image.dart';
+import '../../widgets/color_picker_widget.dart';
 import '../../utils/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../utils/constants.dart';
