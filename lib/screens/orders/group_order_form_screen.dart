@@ -1002,6 +1002,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'memo': _memoCtrl.text.trim(),
       'memoText': _memoCtrl.text.trim(),
       'deliveryMemo': _memoCtrl.text.trim(),
+      'designRevisionRequest': _memoCtrl.text.trim(),
       'maleRef': _refBase64 != null,
       'femaleRef': false,
       'designLogoFileName': _designLogoFileName ?? '',
@@ -1067,7 +1068,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       groupName: _teamNameCtrl.text.trim(),
       groupCount: _totalCount,
       memo: _memoCtrl.text.trim(),
-      designRevisionRequest: _memoCtrl.text.trim(),
       createdAt: DateTime.now(),
       customOptions: customOptions,
       cashReceiptNum: user?.cashReceiptNum?.isNotEmpty == true
