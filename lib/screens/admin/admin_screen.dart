@@ -42,6 +42,7 @@ import 'admin_exchange_tab.dart';
 import 'admin_group_order_tab.dart';
 import 'admin_review_tab.dart';
 import 'admin_coupon_tab.dart';
+import 'admin_settlement_tab.dart';
 import '../orders/group_order_test_screen.dart';
 import 'dart:typed_data';
 import '../../services/order_excel_service.dart';
@@ -305,10 +306,10 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 19, vsync: this);
+    _tabCtrl = TabController(length: 20, vsync: this);
     _verifyAdminAccess();
     // initialTab이 지정된 경우 해당 탭으로 이동
-    if (widget.initialTab > 0 && widget.initialTab < 19) {
+    if (widget.initialTab > 0 && widget.initialTab < 20) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _tabCtrl.animateTo(widget.initialTab);
       });
@@ -947,6 +948,7 @@ class _AdminScreenState extends State<AdminScreen>
        {'icon': Icons.layers_rounded, 'label': '섹션관리', 'sub': true},
        {'icon': Icons.local_activity_rounded, 'label': '쿠폰관리', 'sub': true},
        {'icon': Icons.palette_rounded, 'label': '색상관리', 'sub': true},
+      {'icon': Icons.account_balance_rounded, 'label': '정산·매입관리'},
      ];
 
     return Scaffold(
@@ -1344,6 +1346,7 @@ class _AdminScreenState extends State<AdminScreen>
     '쿠폰관리',
     '색상관리',
     '단체주문관리',
+    '정산·매입관리',
   ];
   static const _tabIcons = [
     Icons.dashboard_rounded,
@@ -1365,6 +1368,7 @@ class _AdminScreenState extends State<AdminScreen>
     Icons.local_activity_rounded,
     Icons.palette_rounded,
     Icons.groups_rounded,
+    Icons.account_balance_rounded,
   ];
   // 소분류(들여쓰기) 인덱스
   static const _subTabIndices = {14, 15, 16, 17};
@@ -1724,7 +1728,7 @@ class _AdminScreenState extends State<AdminScreen>
     // Stack+Offstage: 모든 탭을 미리 빌드해두고 보이기/숨기기만 전환
     // 새 순서: 0대시보드 1주문관리 2디자인요청 3배송관리 4채팅상담
     //          5재고관리  6상품관리  7교환/반품  8리뷰관리  9배너관리
-    //          10직원관리 11회원관리 12공지관리 13매출통계 14카테고리관리 15섹션관리 16쿠폰관리 17색상관리 18단체주문관리
+    //          10직원관리 11회원관리 12공지관리 13매출통계 14카테고리관리 15섹션관리 16쿠폰관리 17색상관리 18단체주문관리 19정산·매입관리
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -1750,6 +1754,7 @@ class _AdminScreenState extends State<AdminScreen>
         Offstage(offstage: index != 16, child: const AdminCouponTab()),
         Offstage(offstage: index != 17, child: _buildColorManagement()),
         Offstage(offstage: index != 18, child: const AdminGroupOrderTab()),
+        Offstage(offstage: index != 19, child: const AdminSettlementTab()),
       ],
     );
   }

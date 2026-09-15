@@ -570,6 +570,11 @@ service cloud.firestore {
       }
     }
 
+    // 매입 내역: 계약서 기반 원가·공급가 기록은 관리자 전용
+    match /purchase_records/{purchaseId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
     // ════════════════════════════════════════════════════════
     // 그 외 모든 컬렉션: 기본 차단
     // ════════════════════════════════════════════════════════
