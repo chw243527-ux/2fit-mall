@@ -71,10 +71,12 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
         onNavigationRequest: (request) {
           final uri = Uri.tryParse(request.url);
           if (uri != null &&
-              (uri.path == '/payment/success' ||
-                  uri.path == '/payment/fail')) {
+              (uri.path.endsWith('/payment/success') ||
+                  uri.path.endsWith('/payment/fail') ||
+                  uri.fragment.contains('paymentKey='))) {
             if (!_handlingResult) {
               _handlingResult = true;
+              _loading = false;
               _handlePaymentResult(uri);
             }
             return NavigationDecision.prevent;
@@ -157,55 +159,77 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
     if (!mounted) return;
     final args = _args;
     if (args == null) return;
-    final fragmentUri = uri.fragment.isNotEmpty
-        ? Uri.tryParse(uri.fragment.startsWith('/') ? uri.fragment : '/${uri.fragment}')
-        : null;
-    final params = <String, String>{
-      ...uri.queryParameters,
-      if (fragmentUri != null) ...fragmentUri.queryParameters,
-    };
-    final paymentKey = params['paymentKey'] ?? '';
-    final orderId = params['orderId'] ?? args.orderId;
-    final amount = int.tryParse(params['amount'] ?? '') ?? args.amount;
 
-    if (uri.path == '/payment/fail' || fragmentUri?.path == '/payment/fail' || paymentKey.isEmpty) {
+    try {
+      final params = <String, String>{...uri.queryParameters};
+      final fragment = uri.fragment.trim();
+      if (fragment.isNotEmpty) {
+        final fragmentUri = fragment.startsWith('/')
+            ? Uri.tryParse(fragment)
+            : (fragment.contains('=')
+                ? Uri(query: fragment)
+                : Uri.tryParse('/$fragment'));
+        if (fragmentUri != null) {
+          params.addAll(fragmentUri.queryParameters);
+        }
+      }
+      final paymentKey = params['paymentKey'] ?? '';
+      final orderId = params['orderId'] ?? args.orderId;
+      final amount = int.tryParse(params['amount'] ?? '') ?? args.amount;
+      final isFailure = uri.path.endsWith('/payment/fail') ||
+          fragment.startsWith('/payment/fail') ||
+          params['code'] != null;
+
+      if (isFailure || paymentKey.isEmpty) {
+        if (mounted) {
+          setState(() {
+            _loading = false;
+            _error = params['message'] ?? '결제가 취소되었거나 승인되지 않았습니다.';
+          });
+        }
+        return;
+      }
+
       if (mounted) {
         setState(() {
-          _loading = false;
-          _error = params['message'] ?? '결제가 취소되었거나 승인되지 않았습니다.';
+          _loading = true;
+          _error = null;
         });
       }
-      return;
-    }
+      final result = await PaymentService.confirmPayment(
+        paymentKey: paymentKey,
+        orderId: orderId,
+        amount: amount,
+      );
+      if (!mounted) return;
+      if (!result.success) {
+        setState(() {
+          _loading = false;
+          _error = result.error ?? '결제 승인에 실패했습니다.';
+        });
+        return;
+      }
 
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    final result = await PaymentService.confirmPayment(
-      paymentKey: paymentKey,
-      orderId: orderId,
-      amount: amount,
-    );
-    if (!mounted) return;
-    if (!result.success) {
+      context.read<CartProvider>().clearCart();
+      final user = context.read<UserProvider>().user;
+      if (user != null) {
+        await context
+            .read<OrderProvider>()
+            .loadUserOrders(user.id)
+            .timeout(const Duration(seconds: 8), onTimeout: () {});
+      }
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MyPageScreen()),
+        (route) => false,
+      );
+    } catch (error) {
+      if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = result.error ?? '결제 승인에 실패했습니다.';
+        _error = '결제 처리 중 오류가 발생했습니다. 잠시 후 주문내역을 확인해 주세요.';
       });
-      return;
     }
-
-    context.read<CartProvider>().clearCart();
-    final user = context.read<UserProvider>().user;
-    if (user != null) {
-      await context.read<OrderProvider>().loadUserOrders(user.id);
-    }
-    if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const MyPageScreen()),
-      (route) => false,
-    );
   }
 
   @override

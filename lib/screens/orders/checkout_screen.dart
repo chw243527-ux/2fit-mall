@@ -465,9 +465,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _searchAddress() async {
     final result = await showAddressSearch(context);
     if (result != null) {
+      final selectedAddress = result.address.trim().isNotEmpty
+          ? result.address.trim()
+          : (result.roadAddress.trim().isNotEmpty
+              ? result.roadAddress.trim()
+              : result.jibunAddress.trim());
+      if (selectedAddress.isEmpty) return;
       setState(() {
-        _zonecode = result.zonecode;
-        _addressController.text = result.address;
+        _zonecode = result.zonecode.trim();
+        _addressController.text = selectedAddress;
         // 상세주소 초기화 (새 주소 선택 시 이전 상세주소 제거)
         _detailAddressController.clear();
       });

@@ -234,13 +234,18 @@ class _AddressMobileBodyState extends State<_AddressMobileBody> {
       ..addJavaScriptChannel('AddrBridge', onMessageReceived: (msg) {
         try {
           final data = jsonDecode(msg.message) as Map<String, dynamic>;
+          final road = data['roadAddress']?.toString().trim() ?? '';
+          final jibun = data['jibunAddress']?.toString().trim() ?? '';
+          final address = (data['address']?.toString().trim().isNotEmpty == true)
+              ? data['address'].toString().trim()
+              : (road.isNotEmpty ? road : jibun);
           final result = AddressResult(
-            zonecode: data['zonecode']?.toString() ?? '',
-            address: data['address']?.toString() ?? '',
-            roadAddress: data['roadAddress']?.toString() ?? '',
-            jibunAddress: data['jibunAddress']?.toString() ?? '',
+            zonecode: data['zonecode']?.toString().trim() ?? '',
+            address: address,
+            roadAddress: road,
+            jibunAddress: jibun,
           );
-          if (_resultSent || result.zonecode.isEmpty || result.address.isEmpty) return;
+          if (_resultSent || result.address.isEmpty) return;
           _resultSent = true;
           widget.onResult(result);
         } catch (_) {}
