@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -207,13 +208,23 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
     }).fold<double>(0, (s, p) => s + ((p['totalAmount'] as num?)?.toDouble() ?? 0));
 
     final doc = pw.Document();
-    final font = pw.Font.helvetica();
+    // Helvetica에는 한글 글리프가 없어 PDF에서 네모 문자로 표시되므로
+    // 프로젝트에 포함된 Noto Sans KR을 PDF에 직접 임베드합니다.
+    final fontData = await rootBundle.load('assets/fonts/NotoSansKR.ttf');
+    final font = pw.Font.ttf(fontData);
     doc.addPage(pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
-      theme: pw.ThemeData.withFont(base: font),
+      theme: pw.ThemeData.withFont(base: font, bold: font),
       build: (_) => [
         pw.Header(level: 0, child: pw.Text('2FIT MALL 본사 정산내역', style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold))),
         pw.Text('정산기간: ${_date(_from)} ~ ${_date(_to)}'),
+        if (confirmed.isEmpty)
+          pw.Container(
+            margin: const pw.EdgeInsets.only(top: 10, bottom: 4),
+            padding: const pw.EdgeInsets.all(8),
+            color: PdfColors.grey100,
+            child: pw.Text('선택한 기간에 정산 대상 매출이 없습니다. 금액은 0원으로 표시됩니다.'),
+          ),
         pw.SizedBox(height: 16),
         pw.Table.fromTextArray(
           headers: const ['구분', '금액', '비고'],
