@@ -11,6 +11,7 @@ import 'group_order_form_screen.dart';
 import '../../utils/app_localizations.dart';
 import '../../models/models.dart';
 import '../../widgets/pc_layout.dart';
+import '../../widgets/product_card.dart';
 import '../../utils/navigation_helper.dart';
 import 'group_order_landing_screen.dart';
 
@@ -146,7 +147,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     // Firestore 로딩 중이고 탭이 아직 없으면 로딩 표시
     if ((pp.isLoading || pp.isGroupOnlyLoading) && _tabs.isEmpty) {
       return Scaffold(
-        backgroundColor: AppColors.primary,
+        backgroundColor: Colors.white,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -168,7 +169,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     if (_tabs.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _initTabs());
       return Scaffold(
-        backgroundColor: AppColors.primary,
+        backgroundColor: Colors.white,
         body: const Center(
             child: CircularProgressIndicator(color: AppColors.accent)),
       );
@@ -184,7 +185,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     return wrapWithPopScope(
       context,
       Scaffold(
-        backgroundColor: AppColors.surfaceGray,
+        backgroundColor: Colors.white,
         body: NestedScrollView(
           headerSliverBuilder: (_, __) => [
             // ── SliverAppBar (히어로 배너 포함) ──
@@ -267,7 +268,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     return wrapWithPopScope(
       context,
       Scaffold(
-        backgroundColor: AppColors.surfaceGray,
+        backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.white,
           foregroundColor: AppColors.primary,
@@ -709,20 +710,27 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
 
   // ── 그리드 뷰 ──
   Widget _buildGridView(List<ProductModel> list, {int columns = 2}) {
-    // childAspectRatio = 카드너비 / (카드너비×1.25 + 정보영역높이)
-    // 정보영역: 카테고리+상품명2줄+가격+할인율+패딩 ≈ 106px (고정)
-    // 4열일 때 카드가 좁으므로 정보영역 비중 증가 → 별도 계산
-    final ratio = columns == 4 ? 0.58 : 0.54;
     return GridView.builder(
       padding: const EdgeInsets.all(12),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: columns,
         crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: ratio,
+        mainAxisSpacing: 16,
+        childAspectRatio: columns >= 4 ? 0.68 : 0.62,
       ),
       itemCount: list.length,
-      itemBuilder: (_, i) => _buildGridCard(list[i]),
+      itemBuilder: (_, i) => ProductCard(
+        product: list[i],
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => widget.eligibleOnly
+                ? GroupOrderFormScreen(
+                    product: list[i], initialCount: _policy.minimumQuantity)
+                : GroupOrderLandingScreen(product: list[i]),
+          ),
+        ),
+      ),
     );
   }
 
@@ -846,11 +854,24 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
 
   // ── 리스트 뷰 ──
   Widget _buildListView(List<ProductModel> list) {
-    return ListView.separated(
-      padding: const EdgeInsets.all(12),
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       itemCount: list.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (_, i) => _buildListCard(list[i]),
+      itemBuilder: (_, i) => Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: ProductCard(
+          product: list[i],
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => widget.eligibleOnly
+                  ? GroupOrderFormScreen(
+                      product: list[i], initialCount: _policy.minimumQuantity)
+                  : GroupOrderLandingScreen(product: list[i]),
+            ),
+          ),
+        ),
+      ),
     );
   }
 

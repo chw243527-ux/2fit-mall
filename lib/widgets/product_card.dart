@@ -26,21 +26,27 @@ class ProductCard extends StatelessWidget {
   /// (홈화면 단체주문 전용 섹션 카드에서 중복 표시 방지)
   final bool showGroupBadge;
 
-  const ProductCard(
-      {super.key,
-      required this.product,
-      this.isHorizontal = false,
-      this.showGroupBadge = true});
+  /// 화면별 이동이 필요할 때 사용합니다. 없으면 일반 상품 상세로 이동합니다.
+  final VoidCallback? onTap;
+
+  const ProductCard({
+    super.key,
+    required this.product,
+    this.isHorizontal = false,
+    this.showGroupBadge = true,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
       child: GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (_) => ProductDetailScreen(product: product)),
-        ),
+        onTap: onTap ??
+            () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => ProductDetailScreen(product: product)),
+                ),
         child: Material(
           // Material.clipBehavior 는 Flutter에서 clip을 100% 보장
           color: Colors.white,
@@ -314,9 +320,9 @@ class ProductCard extends StatelessWidget {
               '${_fmt(product.originalPrice!)}${loc.productWonUnit}',
               style: TextStyle(
                 fontSize: 9,
-                color: Colors.white.withValues(alpha: 0.35),
+                color: AppColors.textHint,
                 decoration: TextDecoration.lineThrough,
-                decorationColor: Colors.white.withValues(alpha: 0.35),
+                decorationColor: AppColors.textHint,
               ),
             ),
             const SizedBox(height: 1),

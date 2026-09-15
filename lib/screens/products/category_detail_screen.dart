@@ -47,14 +47,15 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
   bool _onlyFreeShipping = false;
 
   // ── 색상 팔레트: 약간 밝게 조정 ──
-  static const Color _bg = AppColors.primary; // 이전 0xFF111111 → 더 밝게
-  static const Color _surface = Color(0xFF222222); // 이전 0xFF181818
-  static const Color _card = Color(0xFF2A2A2A); // 이전 0xFF1C1C1C
-  static const Color _border = Color(0xFF3A3A3A); // 이전 0xFF2A2A2A
-  static const Color _divider = Color(0xFF303030); // 이전 0xFF222222
-  static const Color _white = Colors.white;
-  static const Color _grey = AppColors.textHint; // 이전 0xFF888888 → 더 밝게
-  static const Color _greyDim = Color(0xFF777777); // 이전 0xFF555555 → 더 밝게
+  // 전체 쇼핑몰 미니멀 화이트 테마
+  static const Color _bg = Colors.white;
+  static const Color _surface = Colors.white;
+  static const Color _card = Colors.white;
+  static const Color _border = Color(0xFFE8E8E8);
+  static const Color _divider = Color(0xFFEDEDED);
+  static const Color _white = AppColors.textPrimary;
+  static const Color _grey = AppColors.textSecondary;
+  static const Color _greyDim = AppColors.textHint;
 
   // 카테고리 사이드 드로어용 스크롤 키
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -182,7 +183,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                       if (provider.isLoading) {
                         return const Center(
                           child: CircularProgressIndicator(
-                            color: Colors.white38,
+                            color: AppColors.textSecondary,
                             strokeWidth: 1.5,
                           ),
                         );
@@ -1260,7 +1261,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.only(bottom: 24),
       itemCount: products.length,
-      itemBuilder: (ctx, i) => _buildListItem(ctx, products[i], pc: true),
+      itemBuilder: (_, i) => Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: ProductCard(product: products[i]),
+      ),
     );
   }
 
@@ -1289,7 +1293,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       itemCount: products.length,
-      itemBuilder: (ctx, i) => _buildListItem(ctx, products[i]),
+      itemBuilder: (_, i) => Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: ProductCard(product: products[i]),
+      ),
     );
   }
 
