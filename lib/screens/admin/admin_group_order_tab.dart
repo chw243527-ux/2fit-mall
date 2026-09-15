@@ -422,7 +422,7 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
                         runSpacing: 8,
                         children: [
                           OutlinedButton.icon(
-                            onPressed: () => _downloadSingletPdf(order),
+                            onPressed: () => _downloadSingletPdf(order, productionOnly: false),
                             icon: const Icon(Icons.picture_as_pdf, size: 17),
                             label: const Text('고객용 PDF 다운로드'),
                           ),
