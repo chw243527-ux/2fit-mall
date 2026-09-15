@@ -1162,8 +1162,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               fontWeight: FontWeight.w800,
                               color: AppColors.primary,
                               height: 1.35)),
+                      if (!p.isGroupOnly) ...[
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 5),
+                          child: const Text('기성품',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                        ),
+                      ],
                       if (p.subCategory.isNotEmpty) ...[
-                        const SizedBox(height: 5),
+                        const SizedBox(height: 2),
                         Text(p.subCategory,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -1171,6 +1178,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                 fontSize: 12,
                                 color: AppColors.textSecondary,
                                 height: 1.3)),
+                      ],
+                      if (p.colors.isNotEmpty) ...[
+                        const SizedBox(height: 7),
+                        _buildColorDots(p),
                       ],
                       const SizedBox(height: 10),
                       Row(
@@ -1229,6 +1240,35 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
+  Widget _buildColorDots(ProductModel p) {
+    final palette = AppColorPalette.registeredColors;
+    final byName = <String, Map<String, dynamic>>{
+      for (final c in palette) c['name'] as String: c,
+    };
+    return Row(
+      children: [
+        ...p.colors.take(6).map((name) {
+          final entry = byName[name];
+          final hex = p.colorHexes[name] ?? (entry?['hex'] as int?) ?? 0xFF777777;
+          return Padding(
+            padding: const EdgeInsets.only(right: 5),
+            child: Container(
+              width: 15,
+              height: 15,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Color(hex),
+                border: Border.all(color: AppColors.border),
+              ),
+            ),
+          );
+        }),
+        if (p.colors.length > 6)
+          Text('+${p.colors.length - 6}', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+      ],
+    );
+  }
+
   // ── 리스트 타일 ──
   Widget _buildProductListTile(ProductModel p) {
     final discount = p.originalPrice != null && p.originalPrice! > p.price
@@ -1284,6 +1324,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     ]),
                     if (p.isGroupOnly || p.isNewActive || p.isFreeShipping)
                       const SizedBox(height: 4),
+                    if (!p.isGroupOnly)
+                      const Text('기성품',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                    if (!p.isGroupOnly) const SizedBox(height: 3),
                     Text(p.localizedName(_lang),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -1291,6 +1335,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: AppColors.primary)),
+                    if (p.colors.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      _buildColorDots(p),
+                    ],
                     const SizedBox(height: 6),
                     if (p.originalPrice != null)
                       Text('${_fmt(p.originalPrice!)}${loc.wonUnit}',

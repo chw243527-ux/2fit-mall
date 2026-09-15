@@ -10335,6 +10335,9 @@ class _QuickSizeColorSelectSheetState
             // 컬러 섹션 (하의: 19가지 + 팔레트, 기타: 검정/남색)
             _ColorSelectionWidget(
               isBottomCategory: isBottom,
+              productColors: widget.product.colors,
+              colorHexes: widget.product.colorHexes,
+              colorPrices: widget.product.colorPrices,
               selectedColor: _selectedColor,
               onColorChanged: (c) => setState(() => _selectedColor = c),
             ),
@@ -10463,11 +10466,17 @@ class _QuickSizeColorSelectSheetState
 // ══════════════════════════════════════════════════════════════
 class _ColorSelectionWidget extends StatefulWidget {
   final bool isBottomCategory;
+  final List<String> productColors;
+  final Map<String, int> colorHexes;
+  final Map<String, double> colorPrices;
   final String? selectedColor;
   final void Function(String color) onColorChanged;
 
   const _ColorSelectionWidget({
     required this.isBottomCategory,
+    required this.productColors,
+    required this.colorHexes,
+    required this.colorPrices,
     required this.selectedColor,
     required this.onColorChanged,
   });
@@ -10482,8 +10491,26 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
   @override
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
-    // 상세 페이지 _buildColorSection과 완전히 동일한 팔레트 사용
+    // 기성품 옵션에서는 해당 상품에 실제 등록된 색상만 표시합니다.
+    // 상품별 colorHexes가 있으면 관리자 커스텀 색상도 그대로 사용합니다.
     const palette = AppColorPalette.registeredColors;
+    final registeredByName = <String, Map<String, dynamic>>{
+      for (final c in palette) c['name'] as String: c,
+    };
+    final optionNames = widget.productColors.isNotEmpty
+        ? widget.productColors
+        : <String>['블랙', '네이비'];
+    final optionPalette = optionNames.map((name) {
+      final existing = registeredByName[name];
+      final hex = widget.colorHexes[name] ?? (existing?['hex'] as int?);
+      final code = existing?['code'] as String? ?? name;
+      return <String, dynamic>{
+        'name': name,
+        'hex': hex ?? 0xFF777777,
+        'code': code,
+        'price': widget.colorPrices[name] ?? 0.0,
+      };
+    }).toList();
     final freeColors = AppConstants.freeColors;
 
     return Column(
@@ -10520,12 +10547,13 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
             final r = Responsive.of(context);
 
             final col = widget.selectedColor!;
-            final found = palette.firstWhere(
+            final found = optionPalette.firstWhere(
               (c) => c['name'] == col,
               orElse: () => <String, dynamic>{},
             );
             if (found.isEmpty) return const SizedBox.shrink();
-            final isFree = freeColors.contains(col);
+            final configuredPrice = (found['price'] as num?)?.toDouble() ?? 0.0;
+            final isFree = configuredPrice <= 0 && freeColors.contains(col);
             final selHex = found['hex'] as int;
             final selColor = Color(selHex);
             return Padding(
@@ -10566,14 +10594,15 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
         Wrap(
           spacing: 8,
           runSpacing: 10,
-          children: palette.map((c) {
+          children: optionPalette.map((c) {
             final r = Responsive.of(context);
 
             final name = c['name'] as String;
             final hex = c['hex'] as int;
             final code = c['code'] as String;
             final sel = widget.selectedColor == name;
-            final isFree = freeColors.contains(name);
+            final configuredPrice = (c['price'] as num?)?.toDouble() ?? 0.0;
+            final isFree = configuredPrice <= 0 && freeColors.contains(name);
             return GestureDetector(
               onTap: () => widget.onColorChanged(name),
               child: Column(
@@ -10604,7 +10633,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                     ),
                   ),
                   if (!isFree)
-                    Text('+₩',
+                    Text(configuredPrice > 0 ? '+${configuredPrice.toInt()}원' : '+₩',
                         style: TextStyle(
                             fontSize: r.sp(8), color: Color(0xFFCC0000))),
                 ],
