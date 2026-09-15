@@ -3894,6 +3894,19 @@ class OrderExcelService {
     final refImageUrl = _optText(opts, ['refImageUrl', 'maleRefImageUrl', 'femaleRefImageUrl']);
     final fabric = _optText(opts, ['fabricType', 'fabricName', 'fabric'], '-');
     final fabricWeight = _optText(opts, ['fabricWeight', 'weight'], '-');
+    double numberValue(dynamic value, [double fallback = 0]) {
+      if (value is num) return value.toDouble();
+      return double.tryParse(value?.toString().replaceAll(',', '') ?? '') ?? fallback;
+    }
+    final calculatedSubtotal = order.items.fold<double>(
+      0,
+      (sum, item) => sum + item.price * item.quantity,
+    );
+    final subtotal = numberValue(opts['subtotal'], calculatedSubtotal);
+    final discount = numberValue(opts['discountAmount'],
+        (subtotal - order.totalAmount).clamp(0, double.infinity));
+    final finalPrice = numberValue(opts['finalPrice'], order.totalAmount);
+    final shippingFee = numberValue(opts['shippingFee'], order.shippingFee);
     final length = _lengthDisplay(opts);
     final waistband = _extractWaistbandInfo(opts);
     final designUrl = _extractDesignImageUrl(order);
@@ -4041,7 +4054,13 @@ class OrderExcelService {
         ])),
 
         pw.SizedBox(height: 14),
-        if (!productionOnly) pw.Container(alignment: pw.Alignment.centerRight, child: pw.Text('상품 합계 ${_formatWon(order.totalAmount)}  |  배송비 ${_formatWon(order.shippingFee)}  |  총 결제금액 ${_formatWon(order.totalAmount + order.shippingFee)}', style: pw.TextStyle(font: font, fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo900))),
+        if (!productionOnly) pw.Container(
+          alignment: pw.Alignment.centerRight,
+          child: pw.Text(
+            '상품 합계 ${_formatWon(subtotal)}  |  단체 할인 ${_formatWon(discount)}  |  배송비 ${_formatWon(shippingFee)}  |  총 결제금액 ${_formatWon(finalPrice + shippingFee)}',
+            style: pw.TextStyle(font: font, fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo900),
+          ),
+        ),
       ],
     ));
     return Uint8List.fromList(await pdf.save());

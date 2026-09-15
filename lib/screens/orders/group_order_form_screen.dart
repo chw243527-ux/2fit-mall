@@ -948,6 +948,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'designFileUrl': designImg,
       'productImageUrl': designImg,
       'refImageUrl': refImageUrl, // 참고이미지 URL
+      // 업로드가 완료되지 않은 환경에서도 주문서 입력값을 보존해 PDF가 누락되지 않도록 저장
+      'refImageBase64': refImageUrl.isEmpty ? (_refBase64 ?? '') : '',
       'designLogoUrl': designLogoUrl, // 상의 디자인 로고 URL
       'waistbandLogoUrl': waistbandLogoUrl, // 허리밴드 로고 URL
       'originalOrderId':
@@ -997,11 +999,21 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'email': _emailCtrl.text.trim(),
       'address': _address,
       'addressDetail': _addressDetailCtrl.text.trim(),
+      'memo': _memoCtrl.text.trim(),
+      'memoText': _memoCtrl.text.trim(),
+      'deliveryMemo': _memoCtrl.text.trim(),
       'maleRef': _refBase64 != null,
       'femaleRef': false,
       'designLogoFileName': _designLogoFileName ?? '',
       'designLogoBase64':
           _designLogoBytes != null ? base64Encode(_designLogoBytes!) : '',
+      'productId': product.id,
+      'productName': product.name,
+      'unitPrice': _unitPrice,
+      'subtotal': _subTotal,
+      'discountAmount': _discountAmount,
+      'shippingFee': _shipping,
+      'finalPrice': _finalPrice,
       'persons': _persons
           .map((p) => <String, dynamic>{
                 'index': p.index,
@@ -1055,6 +1067,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       groupName: _teamNameCtrl.text.trim(),
       groupCount: _totalCount,
       memo: _memoCtrl.text.trim(),
+      designRevisionRequest: _memoCtrl.text.trim(),
       createdAt: DateTime.now(),
       customOptions: customOptions,
       cashReceiptNum: user?.cashReceiptNum?.isNotEmpty == true
