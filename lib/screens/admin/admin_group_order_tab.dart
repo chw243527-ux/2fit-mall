@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../models/models.dart';
+import '../../services/order_excel_service.dart';
+import '../../utils/web_utils.dart'
+    if (dart.library.html) '../../utils/web_utils_html.dart';
 import '../../services/order_service.dart';
 import '../../services/group_order_policy_service.dart';
 import '../../utils/theme.dart';
@@ -405,6 +412,29 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
                           padding: const EdgeInsets.only(bottom: 6),
                           child: Text('${item.productName} · ${item.color} · ${item.size} · ${item.quantity}개'),
                         )),
+                    if (_isSingletOrder(order)) ...[
+                      const SizedBox(height: 16),
+                      const Text('싱글렛 단체주문 주문서',
+                          style: TextStyle(fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () => _downloadSingletPdf(order),
+                            icon: const Icon(Icons.picture_as_pdf, size: 17),
+                            label: const Text('고객용 PDF 다운로드'),
+                          ),
+                          FilledButton.icon(
+                            onPressed: () =>
+                                _downloadSingletPdf(order, productionOnly: true),
+                            icon: const Icon(Icons.factory_outlined, size: 17),
+                            label: const Text('발주용 PDF 다운로드'),
+                          ),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     const Text('상태 변경', style: TextStyle(fontWeight: FontWeight.w800)),
                     const SizedBox(height: 6),
@@ -449,6 +479,60 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('상태 변경에 실패했습니다: $error')),
+      );
+    }
+  }
+
+  bool _isSingletOrder(OrderModel order) {
+    final options = order.customOptions ?? const <String, dynamic>{};
+    final values = <dynamic>[
+      ...order.items.map((item) => item.productName),
+      options['productName'],
+      options['productNames'],
+      options['category'],
+      options['subCategory'],
+      options['groupProductName'],
+    ];
+    final text = values.whereType<Object>().join(' ').toLowerCase();
+    return text.contains('싱글렛') || text.contains('singlet');
+  }
+
+  Future<void> _downloadSingletPdf(OrderModel order,
+      {required bool productionOnly}) async {
+    if (!_isSingletOrder(order)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('싱글렛 단체주문 전용 주문서가 아닙니다.'),
+        ));
+      }
+      return;
+    }
+    try {
+      final bytes = await OrderExcelService.generateGroupOrderPdf(
+        order,
+        productionOnly: productionOnly,
+      );
+      final suffix = productionOnly ? '발주용' : '고객용';
+      final fileName = '싱글렛단체주문_${order.id}_$suffix.pdf';
+      if (kIsWeb) {
+        downloadFileWeb(bytes, fileName, 'application/pdf');
+      } else {
+        final directory = await getTemporaryDirectory();
+        final path = '${directory.path}/$fileName';
+        await File(path).writeAsBytes(bytes, flush: true);
+        await SharePlus.instance.share(ShareParams(
+          files: [XFile(path, mimeType: 'application/pdf', name: fileName)],
+          subject: '싱글렛 단체주문 $suffix 주문서',
+        ));
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$fileName 다운로드를 시작했습니다.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('싱글렛 주문서 생성에 실패했습니다: $error')),
       );
     }
   }
