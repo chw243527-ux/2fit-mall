@@ -575,6 +575,11 @@ service cloud.firestore {
       allow read, create, update, delete: if isAdmin();
     }
 
+    // 성과연동 배분 조건은 관리자만 확정·변경
+    match /settlement_settings/{settingId} {
+      allow read, write: if isAdmin();
+    }
+
     // ════════════════════════════════════════════════════════
     // 그 외 모든 컬렉션: 기본 차단
     // ════════════════════════════════════════════════════════
