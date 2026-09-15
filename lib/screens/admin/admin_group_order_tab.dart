@@ -508,12 +508,18 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
       return;
     }
     try {
+      // 목록에 캐시된 주문이 아니라 Firestore의 최신 주문 원문을 다시 읽습니다.
+      // 따라서 주문서 저장 직후 수정된 옵션·명단·첨부 URL·금액도 PDF에 반영됩니다.
+      final latestOrder = await OrderService.getOrderById(order.id) ?? order;
+      if (!_isSingletOrder(latestOrder)) {
+        throw StateError('싱글렛 단체주문 데이터를 찾을 수 없습니다.');
+      }
       final bytes = await OrderExcelService.generateGroupOrderPdf(
-        order,
+        latestOrder,
         productionOnly: productionOnly,
       );
       final suffix = productionOnly ? '발주용' : '고객용';
-      final fileName = '싱글렛단체주문_${order.id}_$suffix.pdf';
+      final fileName = '싱글렛단체주문_${latestOrder.id}_$suffix.pdf';
       if (kIsWeb) {
         downloadFileWeb(bytes, fileName, 'application/pdf');
       } else {
@@ -527,7 +533,7 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
       }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$fileName 다운로드를 시작했습니다.')),
+        SnackBar(content: Text('최신 주문 데이터로 $fileName 생성을 완료했습니다.')),
       );
     } catch (error) {
       if (!mounted) return;
