@@ -3893,6 +3893,11 @@ class OrderExcelService {
     // 주문서에서 선택한 인쇄옵션 이름을 변형하지 않고 그대로 표시
     final printType = _optText(opts, ['printType', 'printTypeLabel'], '-');
     final refImageUrl = _optText(opts, ['refImageUrl', 'maleRefImageUrl', 'femaleRefImageUrl']);
+    final referenceImageUrls = <String>[
+      if (refImageUrl.isNotEmpty) refImageUrl,
+      if (opts['refImageUrls'] is List)
+        ...(opts['refImageUrls'] as List).map((e) => e.toString()).where((e) => e.isNotEmpty),
+    ].toSet().toList();
     final fabric = _optText(opts, ['fabricType', 'fabricName', 'fabric'], '-');
     final fabricWeight = _optText(opts, ['fabricWeight', 'weight'], '-');
     double numberValue(dynamic value, [double fallback = 0]) {
@@ -4044,7 +4049,23 @@ class OrderExcelService {
         section('5. 업로드 파일 / PDF 확인', pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
           pw.Text('디자인 참고 이미지 (일반회원 업로드)', style: headingStyle),
           pw.Text(referenceImages.isEmpty ? '업로드된 디자인 참고 이미지 없음' : '업로드된 디자인 참고 이미지 ${referenceImages.length}개', style: valueStyle),
-          if (waistbandDesignImages.isNotEmpty) pw.Text('허리밴드 디자인 참고 이미지 ${waistbandDesignImages.length}개', style: valueStyle),
+          if (referenceImages.isNotEmpty) ...[
+            pw.SizedBox(height: 6),
+            ...referenceImages.map((image) => pw.Padding(padding: const pw.EdgeInsets.only(bottom: 6), child: imageCard('디자인 참고 이미지', image))),
+          ],
+          if (referenceImageUrls.isNotEmpty) ...[
+            pw.SizedBox(height: 3),
+            ...referenceImageUrls.map((url) => pw.UrlLink(destination: url, child: pw.Text('디자인 참고 이미지 열기', style: pw.TextStyle(font: font, fontSize: 9, color: PdfColors.blue)))),
+          ],
+          if (waistbandDesignImages.isNotEmpty) ...[
+            pw.SizedBox(height: 6),
+            pw.Text('허리밴드 디자인 참고 이미지 ${waistbandDesignImages.length}개', style: valueStyle),
+            ...waistbandDesignImages.map((image) => pw.Padding(padding: const pw.EdgeInsets.only(bottom: 6), child: imageCard('허리밴드 디자인 참고 이미지', image))),
+          ],
+          if (waistbandRefImageUrls.isNotEmpty) ...[
+            pw.SizedBox(height: 3),
+            ...waistbandRefImageUrls.map((url) => pw.UrlLink(destination: url, child: pw.Text('허리밴드 디자인 이미지 열기', style: pw.TextStyle(font: font, fontSize: 9, color: PdfColors.blue)))),
+          ],
           pw.Divider(color: PdfColors.grey400),
           pw.Text('상의 로고 이미지', style: headingStyle),
           pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
@@ -4060,7 +4081,7 @@ class OrderExcelService {
           if (waistbandLogoImage != null) pw.Padding(padding: const pw.EdgeInsets.only(top: 6), child: imageCard('허리밴드 로고 이미지', waistbandLogoImage)),
         ])),
         section('6. 기타 주문 정보', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), children: [
-          pw.TableRow(children: [infoRow('주문번호', order.id), infoRow('주문자', order.userName)]),
+          pw.TableRow(children: [infoRow('주문번호', order.id), infoRow('주문자', productionOnly ? '발주용 문서(고객정보 제외)' : _optText(opts, ['manager'], order.userName))]),
           pw.TableRow(children: [infoRow('주문유형', order.isAdditionalOrder ? '추가제작' : '단체주문'), infoRow('배송지', address)]),
           pw.TableRow(children: [infoRow('남성 하의', maleLength.isEmpty ? '미선택' : '$maleLength (3부까지)'), infoRow('여성 하의', femaleLength.isEmpty ? '미선택' : femaleLength)]),
           pw.TableRow(children: [infoRow('허리밴드 색상', waistbandColorName), infoRow('허리밴드 HEX', waistbandColorHex.isEmpty ? '기본' : waistbandColorHex.toUpperCase())]),

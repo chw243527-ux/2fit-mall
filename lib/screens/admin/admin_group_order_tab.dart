@@ -24,6 +24,7 @@ class AdminGroupOrderTab extends StatefulWidget {
 class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
   String _statusFilter = 'all';
   String _query = '';
+  bool _isGeneratingPdf = false;
 
   static const _statusOptions = <String, String>{
     'all': '전체 상태',
@@ -422,13 +423,16 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
                         runSpacing: 8,
                         children: [
                           OutlinedButton.icon(
-                            onPressed: () => _downloadSingletPdf(order, productionOnly: false),
+                            onPressed: _isGeneratingPdf
+                                ? null
+                                : () => _downloadSingletPdf(order, productionOnly: false),
                             icon: const Icon(Icons.picture_as_pdf, size: 17),
                             label: const Text('고객용 PDF 다운로드'),
                           ),
                           FilledButton.icon(
-                            onPressed: () =>
-                                _downloadSingletPdf(order, productionOnly: true),
+                            onPressed: _isGeneratingPdf
+                                ? null
+                                : () => _downloadSingletPdf(order, productionOnly: true),
                             icon: const Icon(Icons.factory_outlined, size: 17),
                             label: const Text('발주용 PDF 다운로드'),
                           ),
@@ -507,10 +511,12 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
       }
       return;
     }
+    if (_isGeneratingPdf) return;
+    setState(() => _isGeneratingPdf = true);
     try {
       // 목록에 캐시된 주문이 아니라 Firestore의 최신 주문 원문을 다시 읽습니다.
       // 따라서 주문서 저장 직후 수정된 옵션·명단·첨부 URL·금액도 PDF에 반영됩니다.
-      final latestOrder = await OrderService.getOrderById(order.id) ?? order;
+      final latestOrder = await OrderService.getOrderByIdStrict(order.id);
       if (!_isSingletOrder(latestOrder)) {
         throw StateError('싱글렛 단체주문 데이터를 찾을 수 없습니다.');
       }
@@ -538,8 +544,10 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('싱글렛 주문서 생성에 실패했습니다: $error')),
+        SnackBar(content: Text('최신 주문 데이터를 읽거나 PDF를 생성하지 못했습니다: $error')),
       );
+    } finally {
+      if (mounted) setState(() => _isGeneratingPdf = false);
     }
   }
 

@@ -72,13 +72,25 @@ class OrderService {
   /// 주문번호로 단일 주문을 조회합니다.
   static Future<OrderModel?> getOrderById(String orderId) async {
     try {
-      final doc = await _db.collection('orders').doc(orderId).get();
-      if (!doc.exists || doc.data() == null) return null;
-      return _orderFromFirestore(doc.data()!, docId: doc.id);
+      return await getOrderByIdStrict(orderId);
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 주문 단건 조회 실패: $e');
       return null;
     }
+  }
+
+  /// PDF·관리자 작업처럼 최신 Firestore 원문이 반드시 필요한 경우 사용합니다.
+  /// 조회 실패를 null로 숨기지 않아 권한·네트워크 오류와 주문 미존재를 구분할 수 있습니다.
+  static Future<OrderModel> getOrderByIdStrict(String orderId) async {
+    final normalizedId = orderId.trim();
+    if (normalizedId.isEmpty) {
+      throw ArgumentError('주문번호가 비어 있습니다.');
+    }
+    final doc = await _db.collection('orders').doc(normalizedId).get();
+    if (!doc.exists || doc.data() == null) {
+      throw StateError('주문을 찾을 수 없습니다: $normalizedId');
+    }
+    return _orderFromFirestore(doc.data()!, docId: doc.id);
   }
 
   // ────────────────────────────────────────────
