@@ -932,6 +932,21 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       }
     }
 
+    // 허리밴드 디자인 참고 이미지 Storage 업로드
+    final waistbandRefImageUrls = <String>[];
+    for (var i = 0; i < _waistbandRefImages.length; i++) {
+      try {
+        final raw = _waistbandRefImages[i];
+        final bytes = base64Decode(raw.contains(',') ? raw.substring(raw.indexOf(',') + 1) : raw);
+        final ref = FirebaseStorage.instance.ref(
+            'group_orders/${user!.id}/$orderId/waistband_ref_$i.jpg');
+        await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
+        waistbandRefImageUrls.add(await ref.getDownloadURL());
+      } catch (e) {
+        if (kDebugMode) debugPrint('⚠️ 허리밴드 참고이미지 업로드 실패 (무시): $e');
+      }
+    }
+
     Map<String, dynamic>? selectedColorEntry;
     for (final entry in AppColorPalette.registeredColors) {
       if (entry['name'] == _mainColorName) {
@@ -974,6 +989,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'mainColorHex':
           '#${(_mainColor ?? Colors.grey).toARGB32().toRadixString(16).substring(2).toUpperCase()}',
       'mainColorImageUrl': product.images.isNotEmpty ? product.images.first : '',
+      'productImageUrl': designImg,
+      'productCategory': product.category,
+      'productSubCategory': product.subCategory,
+      'productName': product.name,
+      'hasBottom': !_isTopOnly,
+      'bottomOnly': _isBottomOnly,
+      'bottomProduct': (!_isTopOnly && !_isBottomOnly) ? product.subCategory : (_isBottomOnly ? product.name : ''),
       'adjustedColorHex':
           '#${_adjustedColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
       'colorLightness': _colorLightness,
@@ -989,6 +1011,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'waistbandColorHex':
           _waistbandOptions.contains(2) ? _waistbandColorHex : '',
       'waistbandRefImages': _waistbandRefImages,
+      'waistbandRefImageUrls': waistbandRefImageUrls,
       'waistbandLogoFileName': _waistbandLogoFileName ?? '',
       'waistbandLogoBase64':
           _waistbandLogoBytes != null ? base64Encode(_waistbandLogoBytes!) : '',

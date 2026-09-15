@@ -3916,6 +3916,13 @@ class OrderExcelService {
     final waistbandLogoUrl = _optText(opts, ['waistbandLogoUrl']);
     final designLogoName = _optText(opts, ['designLogoFileName'], '디자인 로고 파일');
     final waistbandLogoName = _optText(opts, ['waistbandLogoFileName'], '허리밴드 로고 파일');
+    final waistbandRefImageUrls = (opts['waistbandRefImageUrls'] is List)
+        ? (opts['waistbandRefImageUrls'] as List).map((e) => e.toString()).where((e) => e.isNotEmpty).toList()
+        : <String>[];
+    final hasBottom = opts['hasBottom'] == true;
+    final bottomProduct = _optText(opts, ['bottomProduct', 'bottomName', 'productSubCategory'], hasBottom ? '하의 포함' : '하의 없음');
+    final shortShorts = _optText(opts, ['femaleLength']).contains('숏쇼츠');
+    final pocketText = shortShorts ? '추가 불가 (숏쇼츠 선택)' : (opts['pocket'] == true ? '선택함' : '선택 안 함');
     final productImage = await _pdfImage(designUrl);
     final designLogoImage = await _pdfImage(designLogoUrl) ??
         _pdfImageFromBase64(_optText(opts, ['designLogoBase64']));
@@ -4008,16 +4015,19 @@ class OrderExcelService {
             if (refImageUrl.isNotEmpty) pw.UrlLink(destination: refImageUrl, child: pw.Text('참고 이미지 열기', style: pw.TextStyle(font: font, fontSize: 8, color: PdfColors.blue))),
             if (designLogoUrl.isNotEmpty) pw.UrlLink(destination: designLogoUrl, child: pw.Text('상의 로고 파일 열기', style: pw.TextStyle(font: font, fontSize: 8, color: PdfColors.blue))),
             if (waistbandLogoUrl.isNotEmpty) pw.UrlLink(destination: waistbandLogoUrl, child: pw.Text('허리밴드 로고 파일 열기', style: pw.TextStyle(font: font, fontSize: 8, color: PdfColors.blue))),
+            ...waistbandRefImageUrls.asMap().entries.map((entry) => pw.UrlLink(destination: entry.value, child: pw.Text('허리밴드 디자인 첨부 ${entry.key + 1} 열기', style: pw.TextStyle(font: font, fontSize: 8, color: PdfColors.blue)))),
           ]),
         ])),
-        section('2. 주문 상세 내역', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), columnWidths: {0: const pw.FlexColumnWidth(2.2), 1: const pw.FlexColumnWidth(1.4), 2: const pw.FlexColumnWidth(0.9), 3: const pw.FlexColumnWidth(1.4), 4: const pw.FlexColumnWidth(1.1), 5: const pw.FlexColumnWidth(1.1), 6: const pw.FlexColumnWidth(1.4), 7: const pw.FlexColumnWidth(0.7), 8: const pw.FlexColumnWidth(1.0), 9: const pw.FlexColumnWidth(1.1)}, children: [
-          pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.indigo900), children: ['상품명','변경을 원하는 색상','사이즈','인쇄옵션','하의길이','허리밴드','원단/무게','수량','단가','금액'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: headerStyle, textAlign: pw.TextAlign.center))).toList()),
-          ...order.items.map((item) => pw.TableRow(children: [item.productName, colorText, '${item.size.isEmpty ? '-' : item.size}', printType, length, waistband, '$fabric / $fabricWeight', '${item.quantity}', productionOnly ? '-' : _formatWon(item.price), productionOnly ? '-' : _formatWon(item.price * item.quantity)].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: cellStyle, textAlign: pw.TextAlign.center))).toList())),
+        section('2. 주문 상세 내역', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), columnWidths: {0: const pw.FlexColumnWidth(2.0), 1: const pw.FlexColumnWidth(1.7), 2: const pw.FlexColumnWidth(0.8), 3: const pw.FlexColumnWidth(1.3), 4: const pw.FlexColumnWidth(1.2), 5: const pw.FlexColumnWidth(1.0), 6: const pw.FlexColumnWidth(1.1), 7: const pw.FlexColumnWidth(1.2), 8: const pw.FlexColumnWidth(0.7), 9: const pw.FlexColumnWidth(1.0), 10: const pw.FlexColumnWidth(1.0)}, children: [
+          pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.indigo900), children: ['상품명','선택 색상·코드·HEX','사이즈','공통 인쇄방법','하의 상품','하의길이','허리밴드','원단/무게','수량','단가','금액'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: headerStyle, textAlign: pw.TextAlign.center))).toList()),
+          ...order.items.map((item) => pw.TableRow(children: [item.productName, '$mainColor / $mainColorCode / ${mainColorHex.isEmpty ? '-' : mainColorHex.toUpperCase()}', '${item.size.isEmpty ? '-' : item.size}', printType, bottomProduct, length, waistband, '$fabric / $fabricWeight', '${item.quantity}', productionOnly ? '-' : _formatWon(item.price), productionOnly ? '-' : _formatWon(item.price * item.quantity)].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: cellStyle, textAlign: pw.TextAlign.center))).toList())),
         ])),
         section('2-1. 1년 디자인 독점', pw.Container(width: double.infinity, padding: const pw.EdgeInsets.all(8), decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.orange400), color: PdfColors.orange50), child: pw.Text(_isExclusive(opts) ? '1년 디자인 독점: 신청함 · 배송 완료일 기준 1년 적용' : '1년 디자인 독점: 신청하지 않음', style: valueStyle))),
         section('3. 디자인 수정 요청사항', pw.Container(width: double.infinity, padding: const pw.EdgeInsets.all(8), decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.indigo300), color: PdfColors.indigo50), child: pw.Text(order.memo ?? _optText(opts, ['memoText', 'memo'], '-'), style: valueStyle))),
-        section('4. 인원별 상세 사이즈 내역', pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-          pw.Container(width: double.infinity, padding: const pw.EdgeInsets.all(6), color: PdfColors.orange50, child: pw.Text('전체 인원 공통 적용 · 변경을 원하는 색상: $colorText', style: valueStyle)),
+        section('4. 공통 적용 및 인원별 상세 사이즈 내역', pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+          pw.Container(width: double.infinity, padding: const pw.EdgeInsets.all(6), color: PdfColors.indigo50, child: pw.Text('모든 인원 공통 적용 · 인쇄방법: $printType · 선택 색상: $mainColor / $mainColorCode / ${mainColorHex.isEmpty ? '-' : mainColorHex.toUpperCase()} · 하의: $bottomProduct · 주머니: $pocketText · 1년 독점: ${_isExclusive(opts) ? '신청함' : '신청하지 않음'}', style: valueStyle)),
+          pw.SizedBox(height: 5),
+          pw.Container(width: double.infinity, padding: const pw.EdgeInsets.all(6), color: PdfColors.orange50, child: pw.Text('전체 인원 공통 적용 · 선택 색상: $colorText · 하의: $bottomProduct · 주머니: $pocketText', style: valueStyle)),
           pw.SizedBox(height: 5),
           pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), children: [
           pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.indigo900), children: ['번호','이름','성별','사이즈구분','상의','하의','하의길이','키','몸무게','허리','허벅지','비고'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: headerStyle, textAlign: pw.TextAlign.center))).toList()),
