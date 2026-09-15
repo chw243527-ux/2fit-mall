@@ -11,7 +11,6 @@ import 'group_order_form_screen.dart';
 import '../../utils/app_localizations.dart';
 import '../../models/models.dart';
 import '../../widgets/pc_layout.dart';
-import '../products/product_detail_screen.dart';
 import '../../utils/navigation_helper.dart';
 import 'group_order_landing_screen.dart';
 
@@ -737,7 +736,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
         MaterialPageRoute(
             builder: (_) => widget.eligibleOnly
                 ? GroupOrderFormScreen(product: p, initialCount: _policy.minimumQuantity)
-                : ProductDetailScreen(product: p)),
+                : GroupOrderLandingScreen(product: p)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -838,54 +837,6 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                   ),
                 ),
               ),
-              // 정보 영역
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (p.subCategory.isNotEmpty)
-                      Text(p.subCategory,
-                          style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: accentColor)),
-                    const SizedBox(height: 2),
-                    Text(p.name,
-                        style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primary),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 6),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '${_fmt(p.price)}원',
-                          style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.primary),
-                        ),
-                        if (p.originalPrice != null &&
-                            p.originalPrice! > p.price) ...[
-                          const SizedBox(width: 5),
-                          Text(
-                            '${_fmt(p.originalPrice!)}원',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.textHint,
-                              decoration: TextDecoration.lineThrough,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
@@ -913,119 +864,32 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
         MaterialPageRoute(
             builder: (_) => widget.eligibleOnly
                 ? GroupOrderFormScreen(product: p, initialCount: _policy.minimumQuantity)
-                : ProductDetailScreen(product: p)),
+                : GroupOrderLandingScreen(product: p)),
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: AspectRatio(
+            aspectRatio: 4 / 5,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                p.images.isNotEmpty
+                    ? NetImage(p.images.first, fit: BoxFit.cover, alignment: Alignment.topCenter)
+                    : _imgPlaceholder(full: true),
+                if (p.stockCount <= 0)
+                  Container(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    child: const Center(child: Text('SOLD OUT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900))),
+                  ),
+              ],
             ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 썸네일
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.horizontal(left: Radius.circular(12)),
-              child: p.images.isNotEmpty
-                  ? NetImage(
-                      p.images.first,
-                      width: 110,
-                      height: 120,
-                      fit: BoxFit.cover,
-                      alignment: Alignment.topCenter,
-                    )
-                  : _imgPlaceholder(),
-            ),
-            // 정보
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (p.isSale || p.isNewActive) ...[
-                      Row(
-                        children: [
-                          if (p.isSale) _badge('SALE', const Color(0xFFC62828)),
-                          if (p.isSale && p.isNewActive)
-                            const SizedBox(width: 4),
-                          if (p.isNewActive) _badge('NEW', AppColors.info),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                    ],
-                    Text(p.name,
-                        style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primary),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis),
-                    if (p.subCategory.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(p.subCategory,
-                          style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: accentColor)),
-                    ],
-                    const SizedBox(height: 8),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text('${_fmt(p.price)}원',
-                            style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.primary)),
-                        if (p.originalPrice != null &&
-                            p.originalPrice! > p.price) ...[
-                          const SizedBox(width: 6),
-                          Text('${_fmt(p.originalPrice!)}원',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textHint,
-                                decoration: TextDecoration.lineThrough,
-                              )),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${(((p.originalPrice! - p.price) / p.originalPrice!) * 100).round()}%',
-                            style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.error,
-                                fontWeight: FontWeight.w700),
-                          ),
-                        ],
-                      ],
-                    ),
-                    if (p.isFreeShipping)
-                      Padding(
-                        padding: EdgeInsets.only(top: 4),
-                        child: Text(context.loc.t('무료배송', '무료배송'),
-                            style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.success,
-                                fontWeight: FontWeight.w700)),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(right: 8, top: 44),
-              child: Icon(Icons.chevron_right_rounded,
-                  color: AppColors.textHint, size: 22),
-            ),
-          ],
+          ),
         ),
       ),
     );

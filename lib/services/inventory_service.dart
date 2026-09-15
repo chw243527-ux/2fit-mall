@@ -291,6 +291,33 @@ class InventoryService {
         createdAt:   DateTime.now(),
       ).toJson());
     });
+
+    // 같은 디자인(productCode)의 다른 색상 상품은 동일한 재고표를 사용합니다.
+    // 대표 상품의 최신 표를 복제해 색상 변형 간 사이즈×색상 재고가 어긋나지 않게 합니다.
+    await _syncRelatedDesignStock(productId);
+  }
+
+  static Future<void> _syncRelatedDesignStock(String productId) async {
+    final source = await _products.doc(productId).get();
+    final sourceData = source.data();
+    if (!source.exists || sourceData == null) return;
+    final code = (sourceData['productCode'] as String? ?? '').trim();
+    if (code.isEmpty) return;
+    final rawStock = sourceData['stockData'];
+    if (rawStock is! Map) return;
+
+    final siblings = await _products.where('productCode', isEqualTo: code).get();
+    final batch = _db.batch();
+    var count = 0;
+    for (final doc in siblings.docs) {
+      if (doc.id == productId) continue;
+      batch.update(doc.reference, {
+        'stockData': rawStock,
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+      count++;
+    }
+    if (count > 0) await batch.commit();
   }
 
   // ─────────────────────────────────────────────

@@ -334,6 +334,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                       child: RepaintBoundary(
                           key: _keyReview,
                           child: _buildReviewSection(product))),
+                  SliverToBoxAdapter(child: _buildSameDesignColorRecommendations(product)),
                   SliverToBoxAdapter(child: SizedBox(height: r.h(120))),
                 ],
               ),
@@ -378,6 +379,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                   child: _buildBasicInfo(product)),
                               // 태블릿에서는 상품 정보 바로 아래에 구매 액션을 표시합니다.
                               _buildBottomBar(product),
+                              _buildSameDesignColorRecommendations(product),
                               const Divider(
                                   height: 1,
                                   color: AppColors.border,
@@ -531,6 +533,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                             child: _buildBasicInfo(product)),
                                         // PC에서는 상품 정보 패널 바로 아래에 표시합니다.
                                         _buildBottomBar(product),
+                                        _buildSameDesignColorRecommendations(product),
                                         const Divider(
                                             height: 1,
                                             color: AppColors.border,
@@ -6395,6 +6398,79 @@ $productUrl
       ),
       child: Text(text,
           style: TextStyle(fontSize: r.sp(10), color: AppColors.textSecondary)),
+    );
+  }
+
+  // ─── 같은 디자인·다른 색상 추천 ────────────────────────────────
+  Widget _buildSameDesignColorRecommendations(ProductModel product) {
+    final code = product.productCode.trim();
+    if (code.isEmpty) return const SizedBox.shrink();
+    final siblings = context
+        .read<ProductProvider>()
+        .products
+        .where((p) => p.id != product.id &&
+            p.isActive &&
+            p.productCode.trim() == code &&
+            p.colors.join('|') != product.colors.join('|'))
+        .take(8)
+        .toList();
+    if (siblings.isEmpty) return const SizedBox.shrink();
+    final r = Responsive.of(context);
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(r.w(16), r.h(22), r.w(16), r.h(10)),
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(context.loc.t('같은_디자인_다른_색상', '같은 디자인, 다른 색상'),
+              style: TextStyle(fontSize: r.sp(17), fontWeight: FontWeight.w800, color: AppColors.primary)),
+          SizedBox(height: r.h(5)),
+          Text(context.loc.t('구매하기_아래_추천', '구매하기 아래에서 다른 색상도 확인해 보세요.'),
+              style: TextStyle(fontSize: r.sp(12), color: AppColors.textSecondary)),
+          SizedBox(height: r.h(12)),
+          SizedBox(
+            height: r.isMobile ? 190 : 220,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: siblings.length,
+              separatorBuilder: (_, __) => SizedBox(width: r.w(10)),
+              itemBuilder: (_, index) {
+                final sibling = siblings[index];
+                final colorLabel = sibling.colors.isEmpty ? '' : sibling.colors.join(' · ');
+                return SizedBox(
+                  width: r.isMobile ? 128 : 150,
+                  child: GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(product: sibling))),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: sibling.images.isNotEmpty
+                                  ? NetImage(sibling.images.first, fit: BoxFit.cover, alignment: Alignment.topCenter)
+                                  : Container(color: AppColors.surface, child: const Icon(Icons.image_outlined, color: AppColors.textHint)),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: r.h(7)),
+                        Text(colorLabel.isEmpty ? sibling.name : colorLabel,
+                            maxLines: 1, overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w700, color: AppColors.primary)),
+                        SizedBox(height: r.h(3)),
+                        Text('${_fmt(sibling.price)}원', style: TextStyle(fontSize: r.sp(12), color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
