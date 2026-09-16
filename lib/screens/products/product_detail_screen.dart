@@ -7257,6 +7257,8 @@ $productUrl
     if (isSingletReadyMade) return 0.0;
     final configured = product.colorPrices[color];
     if (configured != null) return configured;
+    // 기성품은 관리자에서 색상별 추가요금을 명시한 경우에만 부과합니다.
+    if (product.isReadyMade) return 0.0;
     return AppConstants.freeColors.contains(color)
         ? 0.0
         : AppConstants.extraColorPrice.toDouble();

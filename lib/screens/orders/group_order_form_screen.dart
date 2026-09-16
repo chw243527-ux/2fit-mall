@@ -227,19 +227,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ══ 파생값 ══
   bool get _isAdditional => widget.isAdditionalOrder;
   int get _totalCount => _persons.length;
-  // 옵션별: 0=색상변경만, 1=단체명만, 2=단체명+색상, 3=디자인+단체명+색상, 4=디자인+색상+단체명+후면이름
-  // ignore: unused_element
-  // 0: 색상만, 1: 단체명+색상, 2: 디자인+단체명+색상, 3: 디자인유지+색상+단체명+이름(후면), 4: 디자인변경+색상+단체명+이름(후면)
-  bool get _hasColorChange =>
-      _printType == 0 ||
-      _printType == 1 ||
-      _printType == 2 ||
-      _printType == 3 ||
-      _printType == 4;
-  bool get _hasTeamName =>
-      _printType == 1 || _printType == 2 || _printType == 3 || _printType == 4;
-
-  bool get _nameEnabled => _totalCount >= 10;
+  // 옵션별: 0=색상 변경, 1=단체명 적용, 2=단체명+색상 변경, 3=단체명+색상 변경+개인 이름
+  bool get _hasColorChange => _printType == 0 || _printType == 2 || _printType == 3;
+  bool get _hasTeamName => _printType == 1 || _printType == 2 || _printType == 3;
+  bool get _nameEnabled => _printType == 3 && _totalCount >= 10;
   OrderModel? get _originalOrder => widget.originalOrder;
 
   /// 허리밴드 옵션 레이블 (중복 선택 반영)
@@ -273,6 +264,27 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         p.subCategory.contains('남성 5부') ||
         p.subCategory.contains('여성 2.5부') ||
         p.name.contains('타이즈');
+  }
+
+  /// 허리밴드 색상·참고이미지 업로드를 허용하는 상품은 싱글렛 세트 또는 타이즈뿐입니다.
+  bool get _showWaistbandSections {
+    final p = widget.product;
+    if (p == null) return false;
+    final text = '${p.category} ${p.subCategory} ${p.name}';
+    return text.contains('타이즈') ||
+        text.contains('싱글렛세트') ||
+        text.contains('싱글렛 A타입세트') ||
+        text.contains('싱글렛 A타입 세트');
+  }
+
+  /// 싱글렛·라운드티 단체주문은 인쇄 옵션을 제외합니다.
+  bool get _showPrintTypeSection {
+    final p = widget.product;
+    if (p == null) return false;
+    final text = '${p.category} ${p.subCategory} ${p.name}';
+    final isSinglet = text.contains('싱글렛');
+    final isRoundTee = text.contains('라운드티') || text.contains('라운드 티');
+    return !_isBottomOnly && !isSinglet && !isRoundTee;
   }
 
   /// 상의 카테고리 단체주문: 인쇄타입·하의길이·허리밴드·주머니 숨김, 하의 사이즈 숨김
@@ -493,8 +505,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   /// 인원 변경 시 선택된 인쇄 옵션이 조건 미달이면 자동 리셋
   void _resetInvalidPrintType() {
-    // 5번(id=4) 옵션은 10명 이상 필요
-    if ((_printType == 3 || _printType == 4) && _totalCount < 10) {
+    // 개인 이름 적용 옵션(id=3)은 10명 이상 필요
+    if (_printType == 3 && _totalCount < 10) {
       _printType = 0;
     }
     // 나머지 옵션(0~3)은 5명 이상 필요
@@ -1192,17 +1204,17 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   // ── 신규 단체주문: 전체 섹션 표시 ──
                 ] else ...[
                   _buildAllMembersNotice(),
-                  if (!_isBottomOnly) _buildPrintTypeSection(),
+                  if (_showPrintTypeSection) _buildPrintTypeSection(),
                   if (!_isBottomOnly) _build2FitLogoBanner(),
                   if (widget.product != null) _buildProductCard(),
                   if (!_isBottomOnly) _buildFabricSection(),
                   if (!_isTopOnly) _buildLengthSection(),
                   if (!_isTopOnly) _buildPocketSection(),
                   // 하의 사이즈 선택이 없는 상의 전용 상품에서는 숨깁니다.
-                  if (!_isTopOnly) _buildWaistbandSection(),
+                  if (_showWaistbandSections) _buildWaistbandSection(),
                   _buildColorSection(),
                   if (!_isBottomOnly) _buildRefImageSection(),
-                  if (!_isTopOnly) _buildWaistbandDesignSection(),
+                  if (_showWaistbandSections) _buildWaistbandDesignSection(),
                   _buildMemoSection(),
                   _buildPersonListSection(),
                   _buildBasicInfoSection(),
@@ -1536,52 +1548,36 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ══════════════════════════════════════════════
   Widget _buildPrintTypeSection() {
     // id, title, desc, badgeColor, condMin (최소 인원), condLabel
-    // 0: 색상변경, 1: 단체명+색상, 2: 디자인변경+단체명+색상, 3: 디자인유지+색상변경+단체명+이름(후면), 4: 디자인변경+색상변경+단체명+이름(후면)
     final options = [
       {
         'id': 0,
-        'title': context.loc.t('디자인_유지_색상_변경', '디자인 유지 + 색상 변경'),
-        'desc': context.loc.t('2FIT_로고_적용_전면_색상_변경_단체명_인쇄_없음',
-            '2FIT 로고 적용(전면) + 색상 변경 (단체명 인쇄 없음)'),
+        'title': context.loc.t('색상_변경', '색상 변경'),
+        'desc': context.loc.t('색상_변경만_적용', '색상 변경만 적용'),
         'badgeColor': AppColors.info, // 파랑
         'condMin': 5,
         'condLabel': context.loc.t('5명', '5명↑'),
       },
       {
         'id': 1,
-        'title': context.loc.t('디자인_유지_단체명_색상_변경', '디자인 유지 + 단체명 + 색상 변경'),
-        'desc': context.loc
-            .t('기존_디자인_유지_단체명_전면_색상_변경', '기존 디자인 유지 + 단체명(전면) + 색상 변경'),
+        'title': context.loc.t('단체명_적용', '단체명 적용'),
+        'desc': context.loc.t('단체명만_적용', '단체명만 적용'),
         'badgeColor': AppColors.primary, // 블랙
         'condMin': 5,
         'condLabel': context.loc.t('5명', '5명↑'),
       },
       {
         'id': 2,
-        'title': context.loc.t('디자인_변경_단체명_색상_변경', '디자인 변경 + 단체명 + 색상 변경'),
-        'desc': context.loc
-            .t('새_디자인_변경_단체명_전면_색상_변경', '새 디자인 변경 + 단체명(전면) + 색상 변경'),
+        'title': context.loc.t('단체명_적용_색상변경', '단체명 적용 + 색상변경'),
+        'desc': context.loc.t('단체명과_색상변경', '단체명과 색상 변경 적용'),
         'badgeColor': const Color(0xFF00838F), // 청록
         'condMin': 5,
         'condLabel': context.loc.t('5명', '5명↑'),
       },
       {
         'id': 3,
-        'title': context.loc
-            .t('디자인_유지_색상변경_단체명_이름_후면', '디자인 유지 + 색상변경 + 단체명 + 이름(후면)'),
-        'desc': context.loc.t('기존_디자인_유지_색상_변경_단체명_전면_개인_이름_후면_등',
-            '기존 디자인 유지 + 색상 변경 + 단체명(전면) + 개인 이름(후면·등)'),
-        'badgeColor': AppColors.primary, // 보라
-        'condMin': 10,
-        'condLabel': context.loc.t('10명', '10명↑'),
-      },
-      {
-        'id': 4,
-        'title': context.loc
-            .t('디자인_변경_색상변경_단체명_이름_후면', '디자인 변경 + 색상변경 + 단체명 + 이름(후면)'),
-        'desc': context.loc.t('새_디자인_변경_색상_변경_단체명_전면_개인_이름_후면_등',
-            '새 디자인 변경 + 색상 변경 + 단체명(전면) + 개인 이름(후면·등)'),
-        'badgeColor': const Color(0xFFC62828), // 빨강
+        'title': context.loc.t('단체명_적용_색상변경_개인이름', '단체명 적용 + 색상변경 + 개인 이름 적용'),
+        'desc': context.loc.t('단체명_색상_개인이름', '단체명·색상 변경 + 인원별 개인 이름 적용'),
+        'badgeColor': const Color(0xFFC62828),
         'condMin': 10,
         'condLabel': context.loc.t('10명', '10명↑'),
       },
