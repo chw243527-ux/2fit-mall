@@ -59,7 +59,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   bool _isSingletGroupProduct(ProductModel product) {
     final haystack = '${product.name} ${product.subCategory}'.toLowerCase();
-    return product.isGroupOnly &&
+    return (product.isGroupOnly || product.isGroup) &&
         (haystack.contains('싱글렛') || haystack.contains('singlet'));
   }
 
