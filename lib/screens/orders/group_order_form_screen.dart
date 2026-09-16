@@ -227,10 +227,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ══ 파생값 ══
   bool get _isAdditional => widget.isAdditionalOrder;
   int get _totalCount => _persons.length;
-  // 옵션별: 0=색상 변경, 1=단체명 적용, 2=단체명+색상 변경, 3=단체명+색상 변경+개인 이름
-  bool get _hasColorChange => _printType == 0 || _printType == 2 || _printType == 3;
-  bool get _hasTeamName => _printType == 1 || _printType == 2 || _printType == 3;
-  bool get _nameEnabled => _printType == 3 && _totalCount >= 10;
+  // 현재 정책: 모든 단체주문은 색상 변경만 선택할 수 있습니다.
+  bool get _hasColorChange => true;
+  bool get _hasTeamName => false;
+  bool get _nameEnabled => false;
   OrderModel? get _originalOrder => widget.originalOrder;
 
   /// 허리밴드 옵션 레이블 (중복 선택 반영)
@@ -277,15 +277,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         text.contains('싱글렛 A타입 세트');
   }
 
-  /// 싱글렛·싱글렛 세트는 기존 인쇄 옵션을 유지하고, 라운드티만 제외합니다.
-  bool get _showPrintTypeSection {
-    final p = widget.product;
-    if (p == null) return false;
-    final text = '${p.category} ${p.subCategory} ${p.name}';
-    final isSinglet = text.contains('싱글렛');
-    final isRoundTee = text.contains('라운드티') || text.contains('라운드 티');
-    return !_isBottomOnly && (!isRoundTee || isSinglet);
-  }
+  /// 모든 단체주문 상품에서 색상변경 단일 인쇄 옵션을 표시합니다.
+  bool get _showPrintTypeSection => widget.product != null;
 
   /// 상의 카테고리 단체주문: 인쇄타입·하의길이·허리밴드·주머니 숨김, 하의 사이즈 숨김
   /// - category == '상의'
@@ -346,7 +339,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       // 언어 변경 시 번역 트리거
       context.read<LanguageProvider>().triggerTranslation();
     });
-    _printType = widget.initialPrintType.clamp(0, 3);
+    // 기존 주문 데이터와 관계없이 현재 정책은 색상 변경만 허용합니다.
+    _printType = 0;
     // 추가제작은 1장부터 가능하며 신규 단체주문은 관리자 정책을 사용합니다.
     final minCount = widget.isAdditionalOrder ? 1 : _groupMinimumQuantity;
     _count = widget.initialCount >= minCount ? widget.initialCount : minCount;
@@ -1557,30 +1551,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         'condMin': 5,
         'condLabel': context.loc.t('5명', '5명↑'),
       },
-      {
-        'id': 1,
-        'title': context.loc.t('단체명_적용', '단체명 적용'),
-        'desc': context.loc.t('단체명만_적용', '단체명만 적용'),
-        'badgeColor': AppColors.primary, // 블랙
-        'condMin': 5,
-        'condLabel': context.loc.t('5명', '5명↑'),
-      },
-      {
-        'id': 2,
-        'title': context.loc.t('단체명_적용_색상변경', '단체명 적용 + 색상변경'),
-        'desc': context.loc.t('단체명과_색상변경', '단체명과 색상 변경 적용'),
-        'badgeColor': const Color(0xFF00838F), // 청록
-        'condMin': 5,
-        'condLabel': context.loc.t('5명', '5명↑'),
-      },
-      {
-        'id': 3,
-        'title': context.loc.t('단체명_적용_색상변경_개인이름', '단체명 적용 + 색상변경 + 개인 이름 적용'),
-        'desc': context.loc.t('단체명_색상_개인이름', '단체명·색상 변경 + 인원별 개인 이름 적용'),
-        'badgeColor': const Color(0xFFC62828),
-        'condMin': 10,
-        'condLabel': context.loc.t('10명', '10명↑'),
-      },
+
     ];
 
     return _card(
