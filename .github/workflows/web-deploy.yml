@@ -175,11 +175,11 @@ jobs:
           mkdir -p "${UPLOAD_DIR}"
           cp -R "${BUILD_DIR}/." "${UPLOAD_DIR}/"
           cd "${UPLOAD_DIR}"
+          # --branch를 지정하지 않아 사용자 도메인에 연결된 production 배포로 게시합니다.
           npx --yes wrangler@${WRANGLER_VERSION} pages deploy \
             . \
             --no-bundle \
             --project-name="${CF_PROJECT}" \
-            --branch=main \
             --commit-dirty=true \
             --commit-message="web: ${GITHUB_SHA}"
 
