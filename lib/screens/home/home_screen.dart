@@ -3131,9 +3131,10 @@ class _HomeScreenState extends State<HomeScreen>
             }
             return SizedBox(
               width: cardW,
+              // 메인 기성품 목록과 동일한 ProductCard 렌더링을 사용합니다.
+              // groupOrderContext만 상세페이지 버튼 흐름을 위해 유지합니다.
               child: ProductCard(
                 product: preview[i],
-                showGroupBadge: false,
                 groupOrderContext: true,
               ),
             );
