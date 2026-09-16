@@ -70,9 +70,9 @@ class _SplashScreenState extends State<SplashScreen>
 
     _animController.forward();
 
-    // Firebase/Storage가 응답하지 않아도 스플래시가 무한히 남지 않도록
-    // 안전한 최대 대기 시간을 둡니다.
-    _fallbackTimer = Timer(const Duration(seconds: 15), _fallbackToRoute);
+    // Firebase/Storage 응답이 지연되어도 공개 메인 화면이 흰 로딩 상태로
+    // 오래 남지 않도록 6초 안에 공개 라우트로 전환합니다.
+    _fallbackTimer = Timer(const Duration(seconds: 6), _fallbackToRoute);
 
     // delay 완전 제거 → Firebase 응답 즉시 전환 (애니메이션은 독립 실행)
     _checkAutoLogin();
@@ -143,7 +143,11 @@ class _SplashScreenState extends State<SplashScreen>
     }
 
     try {
-      final firebaseReady = await AuthService.waitForFirebaseInitialization();
+      // 인증 초기화가 지연되어도 공개 콘텐츠는 먼저 표시합니다.
+      // Firebase는 백그라운드에서 계속 초기화되고 로그인 기능은 준비 후 동작합니다.
+      final firebaseReady = await AuthService.waitForFirebaseInitialization(
+        timeout: const Duration(seconds: 4),
+      );
       if (!firebaseReady) {
         if (deepLink != null && deepLink.requiresAuth) {
           _goToLoginWithRedirect(deepLink);
