@@ -227,10 +227,21 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ══ 파생값 ══
   bool get _isAdditional => widget.isAdditionalOrder;
   int get _totalCount => _persons.length;
-  // 현재 정책: 모든 단체주문은 색상 변경만 선택할 수 있습니다.
-  bool get _hasColorChange => true;
-  bool get _hasTeamName => false;
-  bool get _nameEnabled => false;
+  bool get _keepFullPrintOptions {
+    final p = widget.product;
+    if (p == null) return false;
+    final text = '${p.category} ${p.subCategory} ${p.name}';
+    return text.contains('싱글렛') ||
+        text.contains('라운드티') ||
+        text.contains('라운드 티');
+  }
+
+  // 전체 옵션 상품: 0=색상, 1=단체명, 2=단체명+색상, 3=단체명+색상+개인 이름
+  bool get _hasColorChange =>
+      !_keepFullPrintOptions || _printType == 0 || _printType == 2 || _printType == 3;
+  bool get _hasTeamName =>
+      _keepFullPrintOptions && (_printType == 1 || _printType == 2 || _printType == 3);
+  bool get _nameEnabled => _keepFullPrintOptions && _printType == 3 && _totalCount >= 10;
   OrderModel? get _originalOrder => widget.originalOrder;
 
   /// 허리밴드 옵션 레이블 (중복 선택 반영)
@@ -277,7 +288,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         text.contains('싱글렛 A타입 세트');
   }
 
-  /// 모든 단체주문 상품에서 색상변경 단일 인쇄 옵션을 표시합니다.
+  /// 모든 단체주문 상품에서 인쇄 옵션을 표시합니다.
+  /// 전체 옵션 유지 대상은 싱글렛·싱글렛 세트·라운드티입니다.
   bool get _showPrintTypeSection => widget.product != null;
 
   /// 상의 카테고리 단체주문: 인쇄타입·하의길이·허리밴드·주머니 숨김, 하의 사이즈 숨김
@@ -339,8 +351,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       // 언어 변경 시 번역 트리거
       context.read<LanguageProvider>().triggerTranslation();
     });
-    // 기존 주문 데이터와 관계없이 현재 정책은 색상 변경만 허용합니다.
-    _printType = 0;
+    // 싱글렛·싱글렛 세트·라운드티는 기존 옵션을 유지하고,
+    // 그 외 카테고리는 색상변경 단일 옵션으로 고정합니다.
+    _printType = _keepFullPrintOptions
+        ? widget.initialPrintType.clamp(0, 3)
+        : 0;
     // 추가제작은 1장부터 가능하며 신규 단체주문은 관리자 정책을 사용합니다.
     final minCount = widget.isAdditionalOrder ? 1 : _groupMinimumQuantity;
     _count = widget.initialCount >= minCount ? widget.initialCount : minCount;
@@ -1541,18 +1556,42 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // 인쇄 타입 섹션
   // ══════════════════════════════════════════════
   Widget _buildPrintTypeSection() {
-    // id, title, desc, badgeColor, condMin (최소 인원), condLabel
-    final options = [
+        // id, title, desc, badgeColor, condMin (최소 인원), condLabel
+    final allOptions = [
       {
         'id': 0,
         'title': context.loc.t('색상_변경', '색상 변경'),
         'desc': context.loc.t('색상_변경만_적용', '색상 변경만 적용'),
-        'badgeColor': AppColors.info, // 파랑
+        'badgeColor': AppColors.info,
         'condMin': 5,
         'condLabel': context.loc.t('5명', '5명↑'),
       },
-
+      {
+        'id': 1,
+        'title': context.loc.t('단체명_적용', '단체명 적용'),
+        'desc': context.loc.t('단체명만_적용', '단체명만 적용'),
+        'badgeColor': AppColors.primary,
+        'condMin': 5,
+        'condLabel': context.loc.t('5명', '5명↑'),
+      },
+      {
+        'id': 2,
+        'title': context.loc.t('단체명_적용_색상변경', '단체명 적용 + 색상변경'),
+        'desc': context.loc.t('단체명과_색상변경', '단체명과 색상 변경 적용'),
+        'badgeColor': const Color(0xFF00838F),
+        'condMin': 5,
+        'condLabel': context.loc.t('5명', '5명↑'),
+      },
+      {
+        'id': 3,
+        'title': context.loc.t('단체명_적용_색상변경_개인이름', '단체명 적용 + 색상변경 + 개인 이름 적용'),
+        'desc': context.loc.t('단체명_색상_개인이름', '단체명·색상 변경 + 인원별 개인 이름 적용'),
+        'badgeColor': const Color(0xFFC62828),
+        'condMin': 10,
+        'condLabel': context.loc.t('10명', '10명↑'),
+      },
     ];
+    final options = _keepFullPrintOptions ? allOptions : [allOptions.first];
 
     return _card(
       title: context.loc.t('인쇄_타입', '인쇄 타입'),
