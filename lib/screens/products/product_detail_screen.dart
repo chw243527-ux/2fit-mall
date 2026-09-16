@@ -7092,6 +7092,16 @@ $productUrl
 
   // ─── 단체주문 버튼 → 안내 화면 후 주문서 진입 ───
   void _showGroupOrderGuide(ProductModel product) {
+    // 싱글렛 단체주문은 일반 안내가 아니라 싱글렛 전용 상품 목록으로 이동합니다.
+    if (_isSingletGroupProduct(product)) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const GroupOrderOnlyScreen(eligibleOnly: true),
+        ),
+      );
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(

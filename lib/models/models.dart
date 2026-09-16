@@ -305,12 +305,47 @@ class ProductModel {
   }
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
+    bool parseBool(dynamic raw, {bool fallback = false}) {
+      if (raw is bool) return raw;
+      if (raw is num) return raw != 0;
+      if (raw is String) {
+        final v = raw.trim().toLowerCase();
+        if (const {'true', '1', 'yes', 'y', 'on', '단체', '단체전용', '기성품', '선택'}.contains(v)) return true;
+        if (const {'false', '0', 'no', 'n', 'off', '', '없음', '미선택'}.contains(v)) return false;
+      }
+      return fallback;
+    }
+
+    List<String> parseStrings(dynamic raw) {
+      if (raw is List) {
+        return raw.where((e) => e != null).map((e) => e.toString()).where((e) => e.trim().isNotEmpty).toList();
+      }
+      if (raw is String && raw.trim().isNotEmpty) {
+        return raw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+      }
+      return const [];
+    }
+
+    Map<String, int> parseIntMap(dynamic raw) {
+      if (raw is! Map) return const {};
+      return raw.map((key, value) {
+        final parsed = value is num ? value.toInt() : int.tryParse(value.toString()) ?? 0;
+        return MapEntry(key.toString(), parsed);
+      });
+    }
+
     // sectionImages 역직렬화: Map<String, dynamic> → Map<String, List<String>>
     Map<String, List<String>> parseSectionImages(dynamic raw) {
-      if (raw == null) return {};
-      final map = raw as Map<String, dynamic>;
-      return map.map((k, v) => MapEntry(k, List<String>.from(v as List)));
+      if (raw is! Map) return {};
+      return raw.map((k, v) => MapEntry(k.toString(), parseStrings(v)));
     }
+
+    final parsedColors = parseStrings(json['colors']);
+    final parsedColorHexes = parseIntMap(json['colorHexes']);
+    // 과거 데이터 중 colors가 비어 있고 colorHexes 키만 있는 상품도 옵션을 복원합니다.
+    final normalizedColors = parsedColors.isNotEmpty
+        ? parsedColors
+        : parsedColorHexes.keys.where((e) => e.trim().isNotEmpty).toList();
 
     return ProductModel(
       id: json['id'] as String,
@@ -322,15 +357,14 @@ class ProductModel {
           ? (json['originalPrice'] as num).toDouble()
           : null,
       description: json['description'] as String,
-      images: json['images'] != null ? List<String>.from(json['images'] as List) : const [],
-      sizes: json['sizes'] != null ? List<String>.from(json['sizes'] as List) : const [],
-      colors: json['colors'] != null ? List<String>.from(json['colors'] as List) : const [],
-      colorPrices: (json['colorPrices'] as Map<String, dynamic>?)?.map(
-            (k, v) => MapEntry(k, (v as num).toDouble()),
-          ) ?? const {},
-      colorHexes: (json['colorHexes'] as Map<String, dynamic>?)?.map(
-            (k, v) => MapEntry(k, (v as num).toInt()),
-          ) ?? const {},
+      images: parseStrings(json['images']),
+      sizes: parseStrings(json['sizes']),
+      colors: normalizedColors,
+      colorPrices: (json['colorPrices'] is Map)
+          ? (json['colorPrices'] as Map).map((k, v) => MapEntry(
+              k.toString(), v is num ? v.toDouble() : double.tryParse(v.toString()) ?? 0.0))
+          : const {},
+      colorHexes: parsedColorHexes,
       material: json['material'] as String? ?? '78% Nylon, 22% Spandex',
       editorialLabel: json['editorialLabel'] as String? ?? '',
       editorialTitle: json['editorialTitle'] as String? ?? '',
@@ -341,15 +375,15 @@ class ProductModel {
       editorialSource: json['editorialSource'] as String? ?? '',
       editorialLocked: json['editorialLocked'] as bool? ?? false,
       bottomLength: json['bottomLength'] as String? ?? '',
-      isNew: json['isNew'] as bool? ?? false,
+      isNew: parseBool(json['isNew']),
       newExpiresAt: json['newExpiresAt'] != null
           ? DateTime.tryParse(json['newExpiresAt'] as String)
           : null,
-      isSale: json['isSale'] as bool? ?? false,
-      isFreeShipping: json['isFreeShipping'] as bool? ?? false,
-      isGroupOnly: json['isGroupOnly'] as bool? ?? false,
-      isGroup: json['isGroup'] as bool? ?? false,
-      isReadyMade: json['isReadyMade'] as bool? ?? false,
+      isSale: parseBool(json['isSale']),
+      isFreeShipping: parseBool(json['isFreeShipping']),
+      isGroupOnly: parseBool(json['isGroupOnly']),
+      isGroup: parseBool(json['isGroup']),
+      isReadyMade: parseBool(json['isReadyMade']),
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviewCount: json['reviewCount'] as int? ?? 0,
       stockCount: json['stockCount'] as int? ?? 100,
@@ -367,7 +401,7 @@ class ProductModel {
         });
       }(),
       salesCount: json['salesCount'] as int? ?? 0,
-      isActive: json['isActive'] as bool? ?? true,
+      isActive: parseBool(json['isActive'], fallback: true),
       createdAt: DateTime.parse(json['createdAt'] as String),
       productCode: json['productCode'] as String? ?? '',
       sectionImages: parseSectionImages(json['sectionImages']),

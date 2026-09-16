@@ -16849,7 +16849,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                 ]),
                                 const SizedBox(height: 4),
                                 const Text(
-                                  '• 카테고리 무관 단체주문만 가능\n• 상품 상세에서 📦 기성품 단체주문 + 👥 커스텀 단체주문 버튼이 모두 표시됩니다',
+                                  '• 단체주문 전용 목록에서는 단체주문하기만 표시\n• 일반 상품 목록에서는 기성품 구매 흐름을 유지합니다',
                                   style: TextStyle(
                                       fontSize: 11,
                                       color: Color(0xFF7B1FA2),
