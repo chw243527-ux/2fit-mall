@@ -4089,18 +4089,18 @@ class _MobileOrderCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis),
                         if (order.items.isNotEmpty)
                           Text(
-                            '${order.items.first.size != context.loc.t('단체', '단체') && order.items.first.size.isNotEmpty ? order.items.first.size : ''}'
-                            '${order.items.first.color.isNotEmpty ? ' / ${order.items.first.color}' : ''}'
-                            ' · ${order.items.first.quantity}개',
+                            order.items.map((item) {
+                              final size = item.size != context.loc.t('단체', '단체') && item.size.isNotEmpty
+                                  ? '${item.size} / '
+                                  : '';
+                              final color = item.color.isNotEmpty ? item.color : '색상 미지정';
+                              return '$size$color · ${item.quantity}개';
+                            }).join('  ·  '),
                             style: TextStyle(
                                 fontSize: 11, color: Colors.grey[500]),
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        if (order.items.length > 1)
-                          Text('외 ${order.items.length - 1}개 상품 더보기',
-                              style: const TextStyle(
-                                  fontSize: 11, color: AppColors.primary)),
                       ],
                     ),
                   ),

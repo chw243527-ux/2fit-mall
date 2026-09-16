@@ -1198,6 +1198,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   if (!_isBottomOnly) _buildFabricSection(),
                   if (!_isTopOnly) _buildLengthSection(),
                   if (!_isTopOnly) _buildPocketSection(),
+                  // 하의 사이즈 선택이 없는 상의 전용 상품에서는 숨깁니다.
                   if (!_isTopOnly) _buildWaistbandSection(),
                   _buildColorSection(),
                   if (!_isBottomOnly) _buildRefImageSection(),

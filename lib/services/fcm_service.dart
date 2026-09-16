@@ -272,15 +272,18 @@ class FcmService {
   }) async {
     try {
       // 재입고 알림 신청자 조회
+      // 과거 문서는 isNotified, 신규 문서는 notified를 사용하므로
+      // productId로 조회한 뒤 두 필드를 모두 확인합니다.
       final wishlistSnap = await _db
           .collection('restock_alerts')
           .where('productId', isEqualTo: productId)
-          .where('notified', isEqualTo: false)
           .get();
 
       int sentCount = 0;
       for (final doc in wishlistSnap.docs) {
-        final targetUserId = doc.data()['userId'] as String? ?? '';
+        final data = doc.data();
+        if (data['notified'] == true || data['isNotified'] == true) continue;
+        final targetUserId = data['userId'] as String? ?? '';
         if (targetUserId.isEmpty) continue;
         if (!await _isNotificationEnabled(
             targetUserId, 'orderNotificationsEnabled', true)) {
@@ -300,7 +303,7 @@ class FcmService {
         });
 
         // 알림 발송 완료 표시
-        await doc.reference.update({'notified': true});
+        await doc.reference.update({'notified': true, 'isNotified': true});
         sentCount++;
       }
 

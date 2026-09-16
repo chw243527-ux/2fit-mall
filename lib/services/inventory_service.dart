@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/models.dart';
+import 'fcm_service.dart';
 
 /// 재고 관리 서비스
 ///
@@ -173,6 +174,9 @@ class InventoryService {
         }
       }
       updates['stockData'] = stockData;
+      updates['stockCount'] = stockData.values
+          .expand((colorMap) => colorMap.values)
+          .fold<int>(0, (sum, qty) => sum + qty);
       synced++;
 
       await doc.update(updates);
@@ -259,6 +263,7 @@ class InventoryService {
     required String adminId,
   }) async {
     final prodDoc = _products.doc(productId);
+    var wasOutOfStock = false;
     final logRef  = prodDoc.collection('stockLogs').doc();
 
     await _db.runTransaction((tx) async {
@@ -268,6 +273,7 @@ class InventoryService {
       final data = snap.data()!;
       final inv  = _toInventory(snap.id, data);
       final before = inv.stockForSizeColor(size, color);
+      wasOutOfStock = inv.stockCount <= 0;
       final after  = (before + delta).clamp(0, 999999);
 
       // stockData 업데이트 (dot-notation으로 해당 셀만 수정)
@@ -294,8 +300,33 @@ class InventoryService {
       ).toJson());
     });
 
+    // stockData만 바꾸면 상품 목록의 stockCount와 품절 상태가 늦게 갱신됩니다.
+    // 변경 직후 집계 필드도 함께 갱신해 상세·목록·재입고 알림이 같은 값을 사용하게 합니다.
+    final refreshed = await prodDoc.get();
+    final refreshedData = refreshed.data() ?? <String, dynamic>{};
+    final rawStock = refreshedData['stockData'];
+    var totalStock = 0;
+    if (rawStock is Map) {
+      for (final sizeMap in rawStock.values) {
+        if (sizeMap is Map) {
+          for (final qty in sizeMap.values) {
+            totalStock += qty is num ? qty.toInt() : int.tryParse('$qty') ?? 0;
+          }
+        }
+      }
+    }
+    await prodDoc.update({
+      'stockCount': totalStock,
+      'updatedAt': DateTime.now().toIso8601String(),
+    });
+    if (wasOutOfStock && totalStock > 0) {
+      await FcmService.sendRestockNotification(
+        productId: productId,
+        productName: refreshedData['name']?.toString() ?? '',
+      );
+    }
+
     // 같은 디자인(productCode)의 다른 색상 상품은 동일한 재고표를 사용합니다.
-    // 대표 상품의 최신 표를 복제해 색상 변형 간 사이즈×색상 재고가 어긋나지 않게 합니다.
     await _syncRelatedDesignStock(productId);
   }
 
@@ -314,8 +345,17 @@ class InventoryService {
     var count = 0;
     for (final doc in siblings.docs) {
       if (doc.id == productId) continue;
+      var siblingTotal = 0;
+      for (final sizeMap in rawStock.values) {
+        if (sizeMap is Map) {
+          for (final qty in sizeMap.values) {
+            siblingTotal += qty is num ? qty.toInt() : int.tryParse('$qty') ?? 0;
+          }
+        }
+      }
       batch.update(doc.reference, {
         'stockData': rawStock,
+        'stockCount': siblingTotal,
         'updatedAt': DateTime.now().toIso8601String(),
       });
       count++;

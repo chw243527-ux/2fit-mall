@@ -7127,6 +7127,8 @@ $productUrl
         'userName': user.name,
         'userEmail': email,
         'requestedAt': FieldValue.serverTimestamp(),
+        // 발송 서비스가 조회하는 필드명과 일치시킵니다.
+        'notified': false,
         'isNotified': false,
       });
       if (!mounted) return;
@@ -7229,6 +7231,12 @@ $productUrl
             product: product,
             isBuyNow: isBuyNow,
             calcExtraForColor: (color) => _calcExtraForColor(product, color),
+            hideColorExtraPrice: product.isReadyMade &&
+                (product.category.contains('상의') ||
+                    product.subCategory.contains('싱글렛') ||
+                    product.name.contains('싱글렛')) &&
+                !product.subCategory.contains('세트') &&
+                !product.name.contains('세트'),
             onCartUpdated: () {
               if (mounted) setState(() {});
             },
@@ -7240,6 +7248,13 @@ $productUrl
 
   // 현재 선택된 색상의 추가금액 계산
   double _calcExtraForColor(ProductModel product, String color) {
+    final isSingletReadyMade = product.isReadyMade &&
+        (product.category.contains('상의') ||
+            product.subCategory.contains('싱글렛') ||
+            product.name.contains('싱글렛')) &&
+        !product.subCategory.contains('세트') &&
+        !product.name.contains('세트');
+    if (isSingletReadyMade) return 0.0;
     final configured = product.colorPrices[color];
     if (configured != null) return configured;
     return AppConstants.freeColors.contains(color)
@@ -8690,12 +8705,14 @@ class _ReadyMadeOptionSheet extends StatefulWidget {
   final bool isBuyNow;
   final double Function(String color) calcExtraForColor;
   final VoidCallback onCartUpdated;
+  final bool hideColorExtraPrice;
 
   const _ReadyMadeOptionSheet({
     required this.product,
     required this.isBuyNow,
     required this.calcExtraForColor,
     required this.onCartUpdated,
+    this.hideColorExtraPrice = false,
   });
 
   @override
@@ -9600,6 +9617,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                       productColors: widget.product.colors,
                       colorHexes: widget.product.colorHexes,
                       colorPrices: widget.product.colorPrices,
+                      hideExtraPrice: widget.hideColorExtraPrice,
                       selectedColor: _color,
                       onColorChanged: (c) => setState(() => _color = c),
                     ),
@@ -10502,6 +10520,7 @@ class _ColorSelectionWidget extends StatefulWidget {
   final List<String> productColors;
   final Map<String, int> colorHexes;
   final Map<String, double> colorPrices;
+  final bool hideExtraPrice;
   final String? selectedColor;
   final void Function(String color) onColorChanged;
 
@@ -10511,6 +10530,7 @@ class _ColorSelectionWidget extends StatefulWidget {
     required this.productColors,
     required this.colorHexes,
     required this.colorPrices,
+    this.hideExtraPrice = false,
     required this.selectedColor,
     required this.onColorChanged,
   });
@@ -10607,18 +10627,20 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                   showRib: widget.isTightsCategory,
                 ),
                 SizedBox(width: r.w(6)),
-                Text(col,
+                Text(
+                    widget.hideExtraPrice ? '원디자인 색상과 동일' : col,
                     style: TextStyle(
                         fontSize: r.sp(13), fontWeight: FontWeight.w700)),
                 SizedBox(width: r.w(6)),
-                Text(
-                  isFree ? context.loc.t('기본색상', '기본색상') : '+20,000원',
-                  style: TextStyle(
-                    fontSize: r.sp(11),
-                    fontWeight: FontWeight.w700,
-                    color: isFree ? AppColors.success : const Color(0xFFCC0000),
+                if (!widget.hideExtraPrice)
+                  Text(
+                    isFree ? context.loc.t('기본색상', '기본색상') : '+20,000원',
+                    style: TextStyle(
+                      fontSize: r.sp(11),
+                      fontWeight: FontWeight.w700,
+                      color: isFree ? AppColors.success : const Color(0xFFCC0000),
+                    ),
                   ),
-                ),
               ]),
             );
           }),
@@ -10660,7 +10682,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                       color: sel ? AppColors.primary : AppColors.textSecondary,
                     ),
                   ),
-                  if (!isFree)
+                  if (!widget.hideExtraPrice && !isFree)
                     Text(configuredPrice > 0 ? '+${configuredPrice.toInt()}원' : '+₩',
                         style: TextStyle(
                             fontSize: r.sp(8), color: Color(0xFFCC0000))),
@@ -10670,9 +10692,10 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
           }).toList(),
         ),
         SizedBox(height: r.h(4)),
-        Text(loc.productColorExtraFull,
-            style:
-                TextStyle(fontSize: r.sp(10), color: AppColors.textSecondary)),
+        if (!widget.hideExtraPrice)
+          Text(loc.productColorExtraFull,
+              style:
+                  TextStyle(fontSize: r.sp(10), color: AppColors.textSecondary)),
         SizedBox(height: r.h(12)),
       ],
     );
