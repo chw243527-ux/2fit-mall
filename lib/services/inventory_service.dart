@@ -273,7 +273,7 @@ class InventoryService {
       final data = snap.data()!;
       final inv  = _toInventory(snap.id, data);
       final before = inv.stockForSizeColor(size, color);
-      wasOutOfStock = inv.stockCount <= 0;
+      wasOutOfStock = inv.totalStock <= 0;
       final after  = (before + delta).clamp(0, 999999);
 
       // stockData 업데이트 (dot-notation으로 해당 셀만 수정)
