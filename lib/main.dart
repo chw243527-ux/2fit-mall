@@ -79,8 +79,55 @@ Future<bool>? _firebaseReadyFuture;
 // 관리자 전용 Cloudflare Pages 빌드에서만 true가 됩니다.
 const bool adminOnlyBuild = bool.fromEnvironment('ADMIN_ONLY', defaultValue: false);
 
+class _AppErrorFallback extends StatelessWidget {
+  final FlutterErrorDetails details;
+  const _AppErrorFallback({required this.details});
+
+  @override
+  Widget build(BuildContext context) {
+    final message = kDebugMode
+        ? details.exceptionAsString()
+        : '화면을 불러오는 중 문제가 발생했습니다.';
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme(),
+      home: Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline_rounded,
+                    size: 48, color: Color(0xFF6A1B9A)),
+                const SizedBox(height: 16),
+                const Text('화면을 불러오지 못했습니다.',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 8),
+                const Text('잠시 후 다시 시도해 주세요.', textAlign: TextAlign.center),
+                if (kDebugMode) ...[
+                  const SizedBox(height: 12),
+                  SelectableText(message, textAlign: TextAlign.center),
+                ],
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: () => runApp(const TwoFitMallApp()),
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('다시 시도'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  ErrorWidget.builder = (details) => _AppErrorFallback(details: details);
 
   // 어떤 SDK나 플랫폼 플러그인도 첫 Flutter 프레임을 막지 않도록
   // runApp을 가장 먼저 호출합니다. 초기화는 화면 표시 후 백그라운드에서 진행합니다.
