@@ -1871,7 +1871,7 @@ $productUrl
             'FP',
             'FO',
             'FG'
-          ], useRib: true),
+          ], useRib: false),
           SizedBox(height: r.h(12)),
           const Divider(height: 1, color: AppColors.border),
           SizedBox(height: r.h(10)),
@@ -2133,7 +2133,7 @@ $productUrl
   }
 
   // ── 색상 칩: 원형 스와치 (useRib=true 이면 골지 텍스처, false 이면 단색)
-  Widget _infoColorChipRow(List<String> codes, {bool useRib = true}) {
+  Widget _infoColorChipRow(List<String> codes, {bool useRib = false}) {
     return Wrap(
       spacing: 10,
       runSpacing: 14,
@@ -8271,6 +8271,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
           // ── 색상 ──
           _ColorSelectionWidget(
             isBottomCategory: isBottom,
+            isTightsCategory: '${widget.product.category} ${widget.product.subCategory}'.contains('타이즈'),
             productColors: widget.product.colors,
             colorHexes: widget.product.colorHexes,
             colorPrices: widget.product.colorPrices,
@@ -9602,6 +9603,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     SizedBox(height: r.h(6)),
                     _ColorSelectionWidget(
                       isBottomCategory: _isBottomItem,
+                      isTightsCategory: '${widget.product.category} ${widget.product.subCategory}'.contains('타이즈'),
                       productColors: widget.product.colors,
                       colorHexes: widget.product.colorHexes,
                       colorPrices: widget.product.colorPrices,
@@ -10371,6 +10373,7 @@ class _QuickSizeColorSelectSheetState
             // 컬러 섹션 (하의: 19가지 + 팔레트, 기타: 검정/남색)
             _ColorSelectionWidget(
               isBottomCategory: isBottom,
+              isTightsCategory: '${widget.product.category} ${widget.product.subCategory}'.contains('타이즈'),
               productColors: widget.product.colors,
               colorHexes: widget.product.colorHexes,
               colorPrices: widget.product.colorPrices,
@@ -10502,6 +10505,7 @@ class _QuickSizeColorSelectSheetState
 // ══════════════════════════════════════════════════════════════
 class _ColorSelectionWidget extends StatefulWidget {
   final bool isBottomCategory;
+  final bool isTightsCategory;
   final List<String> productColors;
   final Map<String, int> colorHexes;
   final Map<String, double> colorPrices;
@@ -10510,6 +10514,7 @@ class _ColorSelectionWidget extends StatefulWidget {
 
   const _ColorSelectionWidget({
     required this.isBottomCategory,
+    required this.isTightsCategory,
     required this.productColors,
     required this.colorHexes,
     required this.colorPrices,
@@ -10606,7 +10611,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                   accentColor: AppColors.primary,
                   isLight: selColor.computeLuminance() > 0.5,
                   borderRadius: 4,
-                  showRib: true,
+                  showRib: widget.isTightsCategory,
                 ),
                 SizedBox(width: r.w(6)),
                 Text(col,
@@ -10650,7 +10655,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                     isSelected: sel,
                     accentColor: AppColors.primary,
                     isLight: Color(hex).computeLuminance() > 0.5,
-                    showRib: true,
+                    showRib: widget.isTightsCategory,
                     child: sel
                         ? Icon(Icons.check_rounded,
                             size: 18,
