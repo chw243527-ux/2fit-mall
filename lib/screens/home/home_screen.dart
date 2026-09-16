@@ -3077,207 +3077,71 @@ class _HomeScreenState extends State<HomeScreen>
     final r = Responsive.of(context);
     final preview = allGroupProds.take(5).toList();
     final screenW = MediaQuery.of(context).size.width;
-    final isTabletW = screenW >= 600;
-    // 카드 너비: 모바일은 화면의 40%, 태블릿은 28%
-    final cardW = isTabletW ? screenW * 0.28 : screenW * 0.40;
-    final imgH = cardW * 1.25; // 4:5 비율
+    final cardW = screenW >= 600 ? screenW * 0.28 : screenW * 0.40;
 
+    // 기성품 베스트 목록과 동일한 공통 ProductCard를 사용합니다.
+    // 단체주문 전용 목록만 별도 수제 카드로 렌더링하던 문제를 제거하고,
+    // 이미지 비율·이미지 테두리·배지·상품명·색상·가격 표시를 통일합니다.
     return Container(
       color: Colors.white,
       padding: EdgeInsets.only(bottom: r.h(8)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: imgH + 82,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: r.w(12)),
-              itemCount: preview.length + 1, // +1 = 전체보기 카드
-              itemBuilder: (_, i) {
-                // 마지막 아이템: 전체보기 카드
-                if (i == preview.length) {
-                  final r = Responsive.of(context);
-
-                  return GestureDetector(
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const GroupOrderOnlyScreen())),
-                    child: Container(
-                      width: cardW * 0.75,
-                      margin: EdgeInsets.only(right: r.w(8)),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3E5F5),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                            color: AppColors.primary.withValues(alpha: 0.25)),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.arrow_forward_rounded,
-                                color: Colors.white, size: 22),
-                          ),
-                          SizedBox(height: r.h(10)),
-                          Text(
-                            context.loc
-                                .t('전체보기 _개', '전체보기\n${allGroupProds.length}개'),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: r.sp(12),
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.primary,
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-                final p = preview[i];
-                final discount =
-                    p.originalPrice != null && p.originalPrice! > p.price
-                        ? ((1 - p.price / p.originalPrice!) * 100).round()
-                        : 0;
-                return GestureDetector(
+      child: SizedBox(
+        height: cardW * 1.25 + 96,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.symmetric(horizontal: r.w(12)),
+          itemCount: preview.length + 1,
+          separatorBuilder: (_, __) => SizedBox(width: r.w(8)),
+          itemBuilder: (_, i) {
+            if (i == preview.length) {
+              return SizedBox(
+                width: cardW * 0.75,
+                child: GestureDetector(
                   onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => ProductDetailScreen(product: p))),
-                  child: Material(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    clipBehavior: Clip.antiAlias,
-                    elevation: 1,
-                    shadowColor: Colors.black.withValues(alpha: 0.05),
-                    child: SizedBox(
-                      width: cardW,
-                      child: Stack(
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // 이미지
-                              AspectRatio(
-                                aspectRatio: 4 / 5,
-                                child: Stack(
-                                  fit: StackFit.expand,
-                                  children: [
-                                    Positioned.fill(
-                                      child: p.images.isNotEmpty
-                                          ? NetImage(
-                                              p.images.first,
-                                              fit: BoxFit.cover,
-                                              alignment: Alignment.topCenter,
-                                            )
-                                          : const Icon(
-                                              Icons.image_not_supported_rounded,
-                                              color: AppColors.border,
-                                              size: 28),
-                                    ),
-                                    Positioned(
-                                      top: 6,
-                                      left: 6,
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: r.w(5),
-                                            vertical: r.h(2)),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primary,
-                                          borderRadius:
-                                              BorderRadius.circular(3),
-                                        ),
-                                        child: Text('GROUP',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: r.sp(8),
-                                                fontWeight: FontWeight.w900)),
-                                      ),
-                                    ),
-                                    if (discount > 0)
-                                      Positioned(
-                                        top: 6,
-                                        right: 6,
-                                        child: Container(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: r.w(5),
-                                              vertical: r.h(2)),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.accent,
-                                            borderRadius:
-                                                BorderRadius.circular(3),
-                                          ),
-                                          child: Text('$discount%',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: r.sp(9),
-                                                  fontWeight: FontWeight.w900)),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                              // 상품 정보
-                              Padding(
-                                padding: EdgeInsets.fromLTRB(
-                                    r.w(8), r.h(7), r.w(8), r.h(8)),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(_pName(p),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                            fontSize: r.sp(11),
-                                            fontWeight: FontWeight.w700,
-                                            color: AppColors.textPrimary,
-                                            height: 1.3)),
-                                    SizedBox(height: r.h(3)),
-                                    Text(
-                                      '${_fmtGroupPrice(p.price)}원',
-                                      style: TextStyle(
-                                          fontSize: r.sp(12),
-                                          fontWeight: FontWeight.w900,
-                                          color: AppColors.textPrimary),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          // border overlay
-                          Positioned.fill(
-                            child: IgnorePointer(
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: AppColors.border),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const GroupOrderOnlyScreen(),
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-        ],
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8F8FA),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.arrow_forward_rounded,
+                            color: AppColors.primary, size: 28),
+                        SizedBox(height: r.h(8)),
+                        Text(
+                          context.loc.t('전체보기 _개', '전체보기\\n${allGroupProds.length}개'),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: r.sp(12),
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
+            return SizedBox(
+              width: cardW,
+              child: ProductCard(
+                product: preview[i],
+                showGroupBadge: false,
+                groupOrderContext: true,
+              ),
+            );
+          },
+        ),
       ),
     );
   }
-
   // ── 고정 헤더 (흰 배경) ──
   Widget _buildFixedHeader(AppLocalizations loc) {
     final r = Responsive.of(context);
