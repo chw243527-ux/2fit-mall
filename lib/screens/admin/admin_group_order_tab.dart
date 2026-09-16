@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../models/models.dart';
@@ -537,17 +538,48 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
           subject: '싱글렛 단체주문 $suffix 주문서',
         ));
       }
+      await _writePdfAuditLog(
+        orderId: latestOrder.id,
+        documentType: productionOnly ? 'production' : 'customer',
+        outcome: 'success',
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('최신 주문 데이터로 $fileName 생성을 완료했습니다.')),
       );
     } catch (error) {
+      await _writePdfAuditLog(
+        orderId: order.id,
+        documentType: productionOnly ? 'production' : 'customer',
+        outcome: 'failure',
+        error: error.toString(),
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('최신 주문 데이터를 읽거나 PDF를 생성하지 못했습니다: $error')),
       );
     } finally {
       if (mounted) setState(() => _isGeneratingPdf = false);
+    }
+  }
+
+  Future<void> _writePdfAuditLog({
+    required String orderId,
+    required String documentType,
+    required String outcome,
+    String? error,
+  }) async {
+    try {
+      await FirebaseFirestore.instance.collection('admin_audit_logs').add({
+        'action': 'group_order_pdf_generation',
+        'orderId': orderId,
+        'documentType': documentType,
+        'outcome': outcome,
+        if (error != null) 'error': error.substring(0, error.length > 500 ? 500 : error.length),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (_) {
+      // 감사 로그 실패가 주문서 PDF 다운로드 자체를 막지 않도록 무시합니다.
     }
   }
 

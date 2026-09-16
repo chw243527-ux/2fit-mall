@@ -580,6 +580,12 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // 관리자 단체주문 PDF 생성 감사 로그
+    match /admin_audit_logs/{logId} {
+      allow read, create: if isAdmin();
+      allow update, delete: if false;
+    }
+
     // ════════════════════════════════════════════════════════
     // 그 외 모든 컬렉션: 기본 차단
     // ════════════════════════════════════════════════════════
