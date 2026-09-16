@@ -4014,7 +4014,7 @@ class OrderExcelService {
         pw.SizedBox(height: 12),
         pw.Table(border: pw.TableBorder.all(color: PdfColors.orange400), children: [
           pw.TableRow(children: [infoRow('주문자/담당자', productionOnly ? '발주용 문서(고객정보 제외)' : _optText(opts, ['manager', 'managerName'], order.userName)), infoRow('팀명', teamName)]),
-          pw.TableRow(children: [infoRow('이메일', email), infoRow('전화번호', phone)]),
+          pw.TableRow(children: [infoRow('이메일', productionOnly ? '발주용 문서(고객정보 제외)' : email), infoRow('전화번호', productionOnly ? '발주용 문서(고객정보 제외)' : phone)]),
           pw.TableRow(children: [infoRow('주문날짜', orderDate), infoRow('주문상태', _statusLabel(order.status))]),
         ]),
         section('1. 디자인 이미지 및 선택 색상', pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
@@ -4082,7 +4082,7 @@ class OrderExcelService {
         ])),
         section('6. 기타 주문 정보', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), children: [
           pw.TableRow(children: [infoRow('주문번호', order.id), infoRow('주문자', productionOnly ? '발주용 문서(고객정보 제외)' : _optText(opts, ['manager'], order.userName))]),
-          pw.TableRow(children: [infoRow('주문유형', order.isAdditionalOrder ? '추가제작' : '단체주문'), infoRow('배송지', address)]),
+          pw.TableRow(children: [infoRow('주문유형', order.isAdditionalOrder ? '추가제작' : '단체주문'), infoRow('배송지', productionOnly ? '발주용 문서(고객정보 제외)' : address)]),
           pw.TableRow(children: [infoRow('남성 하의', maleLength.isEmpty ? '미선택' : '$maleLength (3부까지)'), infoRow('여성 하의', femaleLength.isEmpty ? '미선택' : femaleLength)]),
           pw.TableRow(children: [infoRow('허리밴드 색상', waistbandColorName), infoRow('허리밴드 HEX', waistbandColorHex.isEmpty ? '기본' : waistbandColorHex.toUpperCase())]),
           pw.TableRow(children: [infoRow('최소 주문수량', _optText(opts, ['groupMinimumQuantity'], '-')), infoRow('단체 할인율', '${_optText(opts, ['groupDiscountRate'], '0')}%')]),

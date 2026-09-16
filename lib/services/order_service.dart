@@ -86,7 +86,11 @@ class OrderService {
     if (normalizedId.isEmpty) {
       throw ArgumentError('주문번호가 비어 있습니다.');
     }
-    final doc = await _db.collection('orders').doc(normalizedId).get();
+    final doc = await _db
+        .collection('orders')
+        .doc(normalizedId)
+        .get()
+        .timeout(const Duration(seconds: 15));
     if (!doc.exists || doc.data() == null) {
       throw StateError('주문을 찾을 수 없습니다: $normalizedId');
     }
