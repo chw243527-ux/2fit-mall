@@ -10649,13 +10649,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                     accentColor: AppColors.primary,
                     isLight: Color(hex).computeLuminance() > 0.5,
                     showRib: widget.isTightsCategory,
-                    child: sel
-                        ? Icon(Icons.check_rounded,
-                            size: 18,
-                            color: Color(hex).computeLuminance() > 0.5
-                                ? AppColors.textPrimary
-                                : Colors.white)
-                        : null,
+                    // 선택 상태는 테두리와 그림자로만 구분하고 체크표시는 표시하지 않습니다.
                   ),
                   SizedBox(height: r.h(3)),
                   Text(
