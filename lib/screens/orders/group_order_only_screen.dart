@@ -14,6 +14,7 @@ import '../../widgets/pc_layout.dart';
 import '../../widgets/product_card.dart';
 import '../../utils/navigation_helper.dart';
 import 'group_order_landing_screen.dart';
+import '../products/product_detail_screen.dart';
 
 class GroupOrderOnlyScreen extends StatefulWidget {
   final bool eligibleOnly;
@@ -725,10 +726,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => widget.eligibleOnly
-                ? GroupOrderFormScreen(
-                    product: list[i], initialCount: _policy.minimumQuantity)
-                : GroupOrderLandingScreen(product: list[i]),
+            builder: (_) => ProductDetailScreen(
+                    product: list[i], groupOrderContext: true),
           ),
         ),
       ),
@@ -743,9 +742,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (_) => widget.eligibleOnly
-                ? GroupOrderFormScreen(product: p, initialCount: _policy.minimumQuantity)
-                : GroupOrderLandingScreen(product: p)),
+            builder: (_) => ProductDetailScreen(
+                product: p, groupOrderContext: true)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -885,9 +883,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (_) => widget.eligibleOnly
-                ? GroupOrderFormScreen(product: p, initialCount: _policy.minimumQuantity)
-                : GroupOrderLandingScreen(product: p)),
+            builder: (_) => ProductDetailScreen(
+                product: p, groupOrderContext: true)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -954,9 +951,9 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
   // ════════════════════════════════════════════
   List<ProductModel> _filterByTab(List<ProductModel> groupOnly, String tab) {
     if (tab == '전체') return groupOnly;
-    return groupOnly
-        .where((p) => widget.eligibleOnly ? p.category == tab : p.subCategory == tab)
-        .toList();
+    // 탭은 _tabs에서 상품 category 값으로 생성하므로 동일한 필드로 필터링합니다.
+    // 기존에는 일반 모드에서 subCategory를 비교해 싱글렛 A 탭을 눌러도 목록이 변하지 않았습니다.
+    return groupOnly.where((p) => p.category == tab).toList();
   }
 
   void _goToLanding() {
