@@ -721,6 +721,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
       itemCount: list.length,
       itemBuilder: (_, i) => ProductCard(
         product: list[i],
+        groupOrderContext: true,
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
@@ -861,6 +862,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
         padding: const EdgeInsets.only(bottom: 16),
         child: ProductCard(
           product: list[i],
+          groupOrderContext: true,
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(

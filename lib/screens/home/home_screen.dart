@@ -2654,7 +2654,10 @@ class _HomeScreenState extends State<HomeScreen>
               mainAxisSpacing: 12,
             ),
             itemCount: groupProducts.length,
-            itemBuilder: (ctx, i) => ProductCard(product: groupProducts[i]),
+            itemBuilder: (ctx, i) => ProductCard(
+              product: groupProducts[i],
+              groupOrderContext: true,
+            ),
           ),
           SizedBox(height: r.h(20)),
           // 안내 메시지
