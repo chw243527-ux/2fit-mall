@@ -109,7 +109,8 @@ class InventoryService {
     final data = snap.data()!;
 
     // 이미 stockData가 있으면 건드리지 않음
-    if ((data['stockData'] as Map?)?.isNotEmpty == true) return;
+    final rawStock = data['stockData'];
+    if (rawStock is Map && rawStock.isNotEmpty) return;
 
     final sizes  = product.sizes.isNotEmpty  ? product.sizes  : ['FREE'];
     final colors = product.colors.isNotEmpty ? product.colors : ['기본'];
@@ -151,7 +152,8 @@ class InventoryService {
       final Map<String, dynamic> updates = {};
 
       // productCode 없으면 저장
-      if ((data['productCode'] as String?)?.isEmpty ?? true) {
+      final storedCode = data['productCode'];
+      if (storedCode == null || storedCode.toString().trim().isEmpty) {
         updates['productCode'] = code;
       }
 
@@ -301,7 +303,8 @@ class InventoryService {
     final source = await _products.doc(productId).get();
     final sourceData = source.data();
     if (!source.exists || sourceData == null) return;
-    final code = (sourceData['productCode'] as String? ?? '').trim();
+    final rawCode = sourceData['productCode'];
+    final code = rawCode?.toString().trim() ?? '';
     if (code.isEmpty) return;
     final rawStock = sourceData['stockData'];
     if (rawStock is! Map) return;
