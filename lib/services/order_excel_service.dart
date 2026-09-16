@@ -11,6 +11,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import '../models/models.dart';
+import '../models/group_order_document.dart';
 import '../utils/constants.dart';
 
 class OrderExcelService {
@@ -3871,8 +3872,9 @@ class OrderExcelService {
   }
 
   static Future<Uint8List> generateGroupOrderPdf(OrderModel order, {bool productionOnly = false}) async {
-    final opts = order.customOptions ?? {};
-    final persons = (opts['persons'] as List<dynamic>?) ?? [];
+    final document = GroupOrderDocument.fromOrder(order);
+    final opts = document.options;
+    final persons = document.persons;
     final teamName = _optText(opts, ['teamName', 'groupName'], order.groupName ?? order.userName);
     final mainColor = _optText(opts, ['mainColor', 'color', 'colorName'], '-');
     final mainColorHex = _optText(opts, ['mainColorHex', 'adjustedColorHex']);
@@ -3894,9 +3896,8 @@ class OrderExcelService {
     final printType = _optText(opts, ['printType', 'printTypeLabel'], '-');
     final refImageUrl = _optText(opts, ['refImageUrl', 'maleRefImageUrl', 'femaleRefImageUrl']);
     final referenceImageUrls = <String>[
+      ...document.referenceImageUrls,
       if (refImageUrl.isNotEmpty) refImageUrl,
-      if (opts['refImageUrls'] is List)
-        ...(opts['refImageUrls'] as List).map((e) => e.toString()).where((e) => e.isNotEmpty),
     ].toSet().toList();
     final fabric = _optText(opts, ['fabricType', 'fabricName', 'fabric'], '-');
     final fabricWeight = _optText(opts, ['fabricWeight', 'weight'], '-');
@@ -3922,9 +3923,11 @@ class OrderExcelService {
     final waistbandLogoUrl = _optText(opts, ['waistbandLogoUrl']);
     final designLogoName = _optText(opts, ['designLogoFileName'], '디자인 로고 파일');
     final waistbandLogoName = _optText(opts, ['waistbandLogoFileName'], '허리밴드 로고 파일');
-    final waistbandRefImageUrls = (opts['waistbandRefImageUrls'] is List)
-        ? (opts['waistbandRefImageUrls'] as List).map((e) => e.toString()).where((e) => e.isNotEmpty).toList()
-        : <String>[];
+    final waistbandRefImageUrls = <String>[
+      ...document.waistbandReferenceImageUrls,
+      if (opts['waistbandRefImageUrls'] is List)
+        ...(opts['waistbandRefImageUrls'] as List).map((e) => e.toString()).where((e) => e.isNotEmpty),
+    ].toSet().toList();
     final hasBottom = opts['hasBottom'] == true;
     final bottomProduct = _optText(opts, ['bottomProduct', 'bottomName', 'productSubCategory'], hasBottom ? '하의 포함' : '하의 없음');
     final shortShorts = _optText(opts, ['femaleLength']).contains('숏쇼츠');
