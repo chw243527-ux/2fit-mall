@@ -1059,6 +1059,28 @@ class AuthService {
   // 내부 유틸리티
   // ────────────────────────────────────────────
 
+  static List<AddressModel> _parseAddresses(dynamic value) {
+    if (value is! List) return <AddressModel>[];
+    return value.whereType<Map>().map((raw) {
+      try {
+        return AddressModel.fromJson(Map<String, dynamic>.from(raw));
+      } catch (_) {
+        return null;
+      }
+    }).whereType<AddressModel>().toList();
+  }
+
+  static bool _asBool(dynamic value, bool fallback) {
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      final normalized = value.trim().toLowerCase();
+      if (['true', '1', 'yes', 'y'].contains(normalized)) return true;
+      if (['false', '0', 'no', 'n'].contains(normalized)) return false;
+    }
+    return fallback;
+  }
+
   /// 현재 Firebase ID 토큰의 관리자 Custom Claim만 확인합니다.
   static Future<bool> _hasAdminClaim({bool forceRefresh = false}) async {
     try {
@@ -1082,34 +1104,35 @@ class AuthService {
 
       if (doc.exists) {
         final data = doc.data()!;
-        final emailKey = (data['email'] as String?) ?? email;
+        final emailKey = data['email']?.toString().trim().isNotEmpty == true
+            ? data['email'].toString().trim()
+            : email;
         // Firestore Rules와 동일하게 관리자 권한은 Firebase Auth Custom Claim만 신뢰합니다.
         // users/{uid}.isAdmin은 표시용 레거시 필드이며 권한 판정에 사용하지 않습니다.
         final isAdmin =
             await _hasAdminClaim(forceRefresh: forceRefreshAdminClaim);
         return UserModel(
           id: uid,
-          name: (data['name'] as String?) ?? '회원',
+          name: data['name']?.toString().trim().isNotEmpty == true
+              ? data['name'].toString().trim()
+              : '회원',
           email: emailKey,
-          phone: (data['phone'] as String?) ?? '',
-          profileImageUrl: (data['profileImageUrl'] as String?) ?? '',
+          phone: data['phone']?.toString() ?? '',
+          profileImageUrl: data['profileImageUrl']?.toString() ?? '',
           isAdmin: isAdmin,
-          memberTier: (data['memberTier'] as String?) ??
-              (data['grade'] as String?) ??
+          memberTier: data['memberTier']?.toString() ??
+              data['grade']?.toString() ??
               'bronze',
-          wishlist: List<String>.from(data['wishlist'] ?? []),
+          wishlist: (data['wishlist'] is List)
+              ? (data['wishlist'] as List).map((item) => item.toString()).toList()
+              : <String>[],
           createdAt:
               (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-          loginProvider: (data['loginProvider'] as String?) ?? 'email',
-          cashReceiptNum: data['cashReceiptNum'] as String?,
-          orderNotificationsEnabled:
-              data['orderNotificationsEnabled'] as bool? ?? true,
-          marketingNotificationsEnabled:
-              data['marketingNotificationsEnabled'] as bool? ?? false,
-          addresses: (data['addresses'] as List? ?? [])
-              .map((a) =>
-                  AddressModel.fromJson(Map<String, dynamic>.from(a as Map)))
-              .toList(),
+          loginProvider: data['loginProvider']?.toString() ?? 'email',
+          cashReceiptNum: data['cashReceiptNum']?.toString(),
+          orderNotificationsEnabled: _asBool(data['orderNotificationsEnabled'], true),
+          marketingNotificationsEnabled: _asBool(data['marketingNotificationsEnabled'], false),
+          addresses: _parseAddresses(data['addresses']),
         );
       }
 
