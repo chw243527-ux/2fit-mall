@@ -57,7 +57,12 @@ class FcmService {
           } else {
             _currentToken = await messaging.getToken();
           }
-          if (kDebugMode) debugPrint('FCM 토큰: ${_currentToken?.substring(0, 20)}...');
+          if (kDebugMode) {
+            final tokenPreview = _currentToken == null
+                ? 'null'
+                : (_currentToken!.length > 20 ? _currentToken!.substring(0, 20) : _currentToken!);
+            debugPrint('FCM 토큰: $tokenPreview...');
+          }
         } catch (e) {
           _lastError = 'FCM 토큰 발급 실패: $e';
           if (kDebugMode) debugPrint(_lastError!);
@@ -71,9 +76,13 @@ class FcmService {
               message.data['body']?.toString() ?? '새로운 알림이 있습니다.';
           final serverSentAt = message.data['sentAt']?.toString();
           final receivedAt = DateTime.now().toUtc();
-          final deliveryDelayMs = serverSentAt == null
-              ? null
-              : receivedAt.difference(DateTime.parse(serverSentAt)).inMilliseconds;
+          int? deliveryDelayMs;
+          if (serverSentAt != null && serverSentAt.isNotEmpty) {
+            final parsedSentAt = DateTime.tryParse(serverSentAt);
+            if (parsedSentAt != null) {
+              deliveryDelayMs = receivedAt.difference(parsedSentAt.toUtc()).inMilliseconds;
+            }
+          }
           if (kDebugMode) {
             debugPrint('FCM_DELIVERY_TIMING mode=foreground serverSentAt=$serverSentAt receivedAt=${receivedAt.toIso8601String()} delayMs=$deliveryDelayMs');
           }
@@ -155,7 +164,15 @@ class FcmService {
     if (userId.isEmpty) return false;
     try {
       final snap = await _db.collection('users').doc(userId).get();
-      return snap.data()?[field] as bool? ?? fallback;
+      final value = snap.data()?[field];
+      if (value is bool) return value;
+      if (value is num) return value != 0;
+      if (value is String) {
+        final normalized = value.trim().toLowerCase();
+        if (normalized == 'true' || normalized == '1' || normalized == 'yes') return true;
+        if (normalized == 'false' || normalized == '0' || normalized == 'no') return false;
+      }
+      return fallback;
     } catch (e) {
       if (kDebugMode) debugPrint('알림 설정 조회 실패: $e');
       return fallback;
