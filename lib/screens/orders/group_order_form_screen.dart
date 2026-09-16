@@ -277,14 +277,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         text.contains('싱글렛 A타입 세트');
   }
 
-  /// 싱글렛·라운드티 단체주문은 인쇄 옵션을 제외합니다.
+  /// 싱글렛·싱글렛 세트는 기존 인쇄 옵션을 유지하고, 라운드티만 제외합니다.
   bool get _showPrintTypeSection {
     final p = widget.product;
     if (p == null) return false;
     final text = '${p.category} ${p.subCategory} ${p.name}';
     final isSinglet = text.contains('싱글렛');
     final isRoundTee = text.contains('라운드티') || text.contains('라운드 티');
-    return !_isBottomOnly && !isSinglet && !isRoundTee;
+    return !_isBottomOnly && (!isRoundTee || isSinglet);
   }
 
   /// 상의 카테고리 단체주문: 인쇄타입·하의길이·허리밴드·주머니 숨김, 하의 사이즈 숨김
