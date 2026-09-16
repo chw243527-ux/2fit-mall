@@ -34,7 +34,17 @@ bool _isJuniorSizeLabel(String s) =>
 // ══════════════════════════════════════════════════════════════
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
-  const ProductDetailScreen({super.key, required this.product});
+
+  /// 단체주문 전용 목록에서 진입했는지 여부입니다.
+  /// 기성품 겸용 상품은 일반 목록에서는 일반 구매를 유지하고,
+  /// 단체주문 목록에서만 단체주문 흐름을 표시합니다.
+  final bool groupOrderContext;
+
+  const ProductDetailScreen({
+    super.key,
+    required this.product,
+    this.groupOrderContext = false,
+  });
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
@@ -42,6 +52,11 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen>
     with SingleTickerProviderStateMixin {
+  bool _isGroupOrderProduct(ProductModel product) {
+    return widget.groupOrderContext ||
+        (product.isGroupOnly && !product.isReadyMade);
+  }
+
   bool _isSingletGroupProduct(ProductModel product) {
     final haystack = '${product.name} ${product.subCategory}'.toLowerCase();
     return product.isGroupOnly &&
@@ -6502,7 +6517,7 @@ $productUrl
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (_isSingletGroupProduct(product))
+              if (_isGroupOrderProduct(product))
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -8810,8 +8825,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   /// 현재 선택 가능 여부
   bool get _canAddItem {
-    // 색상 선택이 필요한지: 싱글렛 A타입 세트 또는 타이즈만
-    final needsColor = _isSingletATypeSet || _isTaiz;
+    // 상품에 등록된 색상이 있으면 모든 기성품에서 색상을 선택해야 합니다.
+    // 기존에는 싱글렛 A타입 세트·타이즈에만 색상 조건이 적용되어
+    // 일반 상의와 단체주문 섹션 상품의 색상 선택이 누락되었습니다.
+    final needsColor = widget.product.colors.isNotEmpty;
 
     // 세트 상품: 상의+하의 사이즈 모두 선택
     if (_isSetProduct) {
@@ -8846,7 +8863,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   void _addCurrentOption() {
     if (!_canAddItem) return;
-    final needsColor = _isSingletATypeSet || _isTaiz;
+    final needsColor = widget.product.colors.isNotEmpty;
     final colorValue = needsColor ? (_color ?? '-') : '-';
     final colorExtra = needsColor ? widget.calcExtraForColor(colorValue) : 0.0;
     // 기성품 하의: 주머니 제거 선택 시 -10,000원
@@ -9563,15 +9580,18 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
                   // ══════════════════════════════
                   // [4] 색상 선택
-                  //   - 싱글렛 A타입 세트 / 타이즈만 색상 선택 표시
-                  //   - 상의, 그 외 카테고리는 색상 선택 없음
+                  //   - 상품등록에 저장된 모든 색상을 기성품 옵션에서 표시
+                  //   - 색상이 등록된 상품은 장바구니·바로구매 전에 선택 필수
                   // ══════════════════════════════
-                  if (_isSingletATypeSet || _isTaiz) ...[
-                    _sectionTitle(context.loc.t('하의_색상', '하의 색상'),
+                  if (widget.product.colors.isNotEmpty) ...[
+                    _sectionTitle(
+                        context.loc.t(
+                            _isBottomItem ? '하의_색상' : '상품_색상',
+                            _isBottomItem ? '하의 색상' : '상품 색상'),
                         required: true),
                     SizedBox(height: r.h(6)),
                     _ColorSelectionWidget(
-                      isBottomCategory: true,
+                      isBottomCategory: _isBottomItem,
                       productColors: widget.product.colors,
                       colorHexes: widget.product.colorHexes,
                       colorPrices: widget.product.colorPrices,

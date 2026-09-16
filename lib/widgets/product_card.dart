@@ -29,12 +29,17 @@ class ProductCard extends StatelessWidget {
   /// 화면별 이동이 필요할 때 사용합니다. 없으면 일반 상품 상세로 이동합니다.
   final VoidCallback? onTap;
 
+  /// 단체주문 전용 목록에서 진입한 상세 화면인지 여부입니다.
+  /// 이 경우 상품의 일반 장바구니·구매하기 대신 단체주문하기를 표시합니다.
+  final bool groupOrderContext;
+
   const ProductCard({
     super.key,
     required this.product,
     this.isHorizontal = false,
     this.showGroupBadge = true,
     this.onTap,
+    this.groupOrderContext = false,
   });
 
   @override
@@ -45,7 +50,10 @@ class ProductCard extends StatelessWidget {
             () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (_) => ProductDetailScreen(product: product)),
+                      builder: (_) => ProductDetailScreen(
+                            product: product,
+                            groupOrderContext: groupOrderContext,
+                          )),
                 ),
         child: Material(
           // Material.clipBehavior 는 Flutter에서 clip을 100% 보장

@@ -4200,8 +4200,11 @@ class _HomeScreenState extends State<HomeScreen>
                   children: groupProducts
                       .map((p) => SizedBox(
                           width: cardW,
-                          child:
-                              ProductCard(product: p, showGroupBadge: false)))
+                          child: ProductCard(
+                            product: p,
+                            showGroupBadge: false,
+                            groupOrderContext: true,
+                          )))
                       .toList(),
                 );
               },
