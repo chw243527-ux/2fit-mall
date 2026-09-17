@@ -20,10 +20,12 @@ class AppColors {
   static const Color accentGold = Color(0xFFFFD600);
 
   // ── Background ──
-  static const Color background = Color(0xFFFFFFFF); // pure white across the storefront
+  static const Color background =
+      Color(0xFFFFFFFF); // pure white across the storefront
   static const Color surface = Color(0xFFFFFFFF); // pure white cards
   static const Color cardBg = Color(0xFFFFFFFF);
-  static const Color surfaceGray = Color(0xFFFAFAFA); // near-white utility surface
+  static const Color surfaceGray =
+      Color(0xFFFAFAFA); // near-white utility surface
 
   // ── Text ──
   static const Color textPrimary = Color(0xFF1A1A2E);
@@ -273,22 +275,40 @@ class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
-        elevation: 8,
+        elevation: 10,
+        shadowColor: const Color(0x22000000),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.border, width: 0.8),
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.border, width: 0.7),
         ),
         titleTextStyle: const TextStyle(
           fontFamily: fontFamily,
           color: AppColors.textPrimary,
           fontSize: 18,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w500,
+          letterSpacing: -0.2,
         ),
         contentTextStyle: const TextStyle(
           fontFamily: fontFamily,
           color: AppColors.textSecondary,
           fontSize: 14,
           height: 1.45,
+          fontWeight: FontWeight.w400,
+        ),
+      ),
+
+      // ── Modal bottom sheet: same white minimal surface ──
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        modalBackgroundColor: AppColors.surface,
+        modalElevation: 10,
+        showDragHandle: true,
+        dragHandleColor: AppColors.border,
+        dragHandleSize: Size(36, 4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
         ),
       ),
 
@@ -302,8 +322,8 @@ class AppTheme {
         side: const BorderSide(color: AppColors.border, width: 1.2),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
       ),
-      radioTheme: RadioThemeData(
-        fillColor: const WidgetStatePropertyAll(AppColors.primary),
+      radioTheme: const RadioThemeData(
+        fillColor: WidgetStatePropertyAll(AppColors.primary),
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) =>
@@ -323,9 +343,16 @@ class AppTheme {
           fontFamily: fontFamily,
           color: AppColors.textWhite,
           fontSize: 13,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w400,
         ),
         behavior: SnackBarBehavior.floating,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
+        insetPadding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+        showCloseIcon: true,
+        closeIconColor: AppColors.textWhite,
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
