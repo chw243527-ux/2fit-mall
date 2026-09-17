@@ -244,6 +244,8 @@ class ProductCard extends StatelessWidget {
         ? ((1 - product.price / product.originalPrice!) * 100).round()
         : 0;
 
+    final hasGroupOrder = product.isGroupOnly || product.isGroup;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(2, 10, 2, 8),
       child: Column(
@@ -251,10 +253,9 @@ class ProductCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // ── 단체주문 전용 / 기성품 뱃지 (showGroupBadge=false 이면 숨김) ──
-          if ((product.isGroupOnly || product.isReadyMade) &&
-              showGroupBadge) ...[
+          if ((hasGroupOrder || product.isReadyMade) && showGroupBadge) ...[
             Row(children: [
-              if (product.isGroupOnly)
+              if (hasGroupOrder)
                 Container(
                   margin: const EdgeInsets.only(right: 4, bottom: 5),
                   padding:
@@ -264,12 +265,14 @@ class ProductCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: Text(
-                    context.loc.t('단체주문 전용', '단체주문 전용'),
+                    product.isGroupOnly
+                        ? context.loc.t('단체주문_전용', '단체주문 전용')
+                        : context.loc.t('단체주문', '단체주문'),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 9,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.2,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.1,
                     ),
                   ),
                 ),
@@ -287,24 +290,24 @@ class ProductCard extends StatelessWidget {
                     style: TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 9,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.2,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.1,
                     ),
                   ),
                 ),
             ]),
           ],
 
-          // ── 상품명 (2줄 고정 높이로 카드 크기 균일화) ──
-          SizedBox(
-            height: 11 * 1.3 * 2, // fontSize(11) × lineHeight(1.3) × 2줄
+          // ── 상품명: 고정 줄수로 자르지 않고 카드 폭에 맞춰 자연스럽게 줄바꿈 ──
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 12 * 1.45 * 2),
             child: Text(
               // Firestore 번역 데이터 우선, 없으면 loc.t()로 런타임 번역 등록
               product.localizedName(lang) != product.name
                   ? product.localizedName(lang)
                   : loc.t('product_name_${product.id}', product.name),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+              overflow: TextOverflow.visible,
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
@@ -342,7 +345,7 @@ class ProductCard extends StatelessWidget {
                   _fmt(product.price),
                   style: const TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
                     color: AppColors.textPrimary,
                     letterSpacing: -0.2,
                   ),
@@ -381,7 +384,7 @@ class ProductCard extends StatelessWidget {
               '${_fmt(product.price)}${loc.productWonUnit}',
               style: const TextStyle(
                 fontSize: 13,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w400,
                 color: AppColors.textPrimary,
                 letterSpacing: -0.2,
               ),
