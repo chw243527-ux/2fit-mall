@@ -1970,11 +1970,18 @@ async function _prepareOrderFromServerData(uid, payload) {
     const requestedOptions = requested?.customOptions && typeof requested.customOptions === 'object'
       ? requested.customOptions
       : null;
-    const isGroupItem = requestedOptions?.orderType === 'group' || requestedOptions?.orderType === 'additional';
+    const requestedGroupOrder = requestedOptions?.orderType === 'group' || requestedOptions?.orderType === 'additional';
     if (!productId || quantity < 1 || quantity > 50) throw new Error('Invalid product quantity');
     const productSnap = await db.collection('products').doc(productId).get();
     const product = productSnap.data();
     if (!productSnap.exists || product.isActive === false || !Number.isFinite(Number(product.price))) throw new Error('Product is unavailable');
+    const productAllowsGroupOrder = product.isGroup === true
+      || product.isGroupOnly === true
+      || String(product.category || '').trim() === '단체주문';
+    if (requestedGroupOrder && !productAllowsGroupOrder) {
+      throw new Error('Group order is not available for this product');
+    }
+    const isGroupItem = requestedGroupOrder && productAllowsGroupOrder;
     const availableSizes = Array.isArray(product.sizes)
       ? product.sizes.map((value) => String(value).trim().toLocaleLowerCase('ko-KR'))
       : [];
@@ -2171,7 +2178,7 @@ async function _releasePaymentIntent(uid, orderId, allowRecovery = false) {
 }
 
 function _safeCheckoutError(error) {
-  const allowed = new Set(['Invalid order items', 'Invalid delivery address', 'Invalid customer information', 'Invalid payment method', 'Invalid product quantity', 'Product is unavailable', 'Invalid product size', 'Invalid product color', 'Product is out of stock', 'Coupon is unavailable', 'Coupon minimum order amount is not met', 'Coupons cannot be combined', 'Too many coupons', 'Invalid points amount', 'Insufficient points']);
+  const allowed = new Set(['Invalid order items', 'Invalid delivery address', 'Invalid customer information', 'Invalid payment method', 'Invalid product quantity', 'Product is unavailable', 'Group order is not available for this product', 'Invalid product size', 'Invalid product color', 'Product is out of stock', 'Coupon is unavailable', 'Coupon minimum order amount is not met', 'Coupons cannot be combined', 'Too many coupons', 'Invalid points amount', 'Insufficient points']);
   return allowed.has(error?.message) ? error.message : 'Unable to prepare a secure order';
 }
 
