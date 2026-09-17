@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import '../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -41,8 +42,7 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => MainScreenState();
 }
 
-class MainScreenState extends State<MainScreen>
-    with WidgetsBindingObserver {
+class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   late int _currentIndex;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -137,8 +137,10 @@ class MainScreenState extends State<MainScreen>
   Widget _buildUpdateBanner() {
     // 실제 Google Play 업데이트가 감지된 경우에만 배너를 표시합니다.
     // 최신 버전이거나 Play 확인이 실패한 경우에는 사용자에게 혼동을 주지 않도록 숨깁니다.
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android ||
-        !_updateCheckCompleted || !_updateAvailable) {
+    if (kIsWeb ||
+        defaultTargetPlatform != TargetPlatform.android ||
+        !_updateCheckCompleted ||
+        !_updateAvailable) {
       return const SizedBox.shrink();
     }
     return _UpdateRequiredBanner(
@@ -351,23 +353,23 @@ class MainScreenState extends State<MainScreen>
             Expanded(
               child: IndexedStack(
                 index: _currentIndex,
-          children: [
-            HomeScreen(
-              scaffoldKey: _scaffoldKey,
-              onNavigate: navigateTo,
-            ),
-            ProductListScreen(
-              onBack: () => setState(() => _currentIndex = 0),
-              initialCategory: widget.initialCategory,
-              searchQuery: widget.initialSearch,
-            ),
-            CartScreen(
-              onBack: () => setState(() => _currentIndex = 0),
-            ),
-            MyPageScreen(
-              key: _myPageKey,
-              onBack: () => setState(() => _currentIndex = 0),
-            ),
+                children: [
+                  HomeScreen(
+                    scaffoldKey: _scaffoldKey,
+                    onNavigate: navigateTo,
+                  ),
+                  ProductListScreen(
+                    onBack: () => setState(() => _currentIndex = 0),
+                    initialCategory: widget.initialCategory,
+                    searchQuery: widget.initialSearch,
+                  ),
+                  CartScreen(
+                    onBack: () => setState(() => _currentIndex = 0),
+                  ),
+                  MyPageScreen(
+                    key: _myPageKey,
+                    onBack: () => setState(() => _currentIndex = 0),
+                  ),
                 ],
               ),
             ),
@@ -383,12 +385,12 @@ class _UpdateRequiredBanner extends StatelessWidget {
   final VoidCallback onDismiss;
   const _UpdateRequiredBanner({required this.onDismiss});
 
-
   Future<void> _openStore(BuildContext context) async {
     final opened = await InAppUpdateService.openPlayStore();
     if (!opened && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Google Play를 열 수 없습니다. 잠시 후 다시 시도해 주세요.')),
+        const SnackBar(
+            content: Text('Google Play를 열 수 없습니다. 잠시 후 다시 시도해 주세요.')),
       );
     }
   }
@@ -423,7 +425,8 @@ class _UpdateRequiredBanner extends StatelessWidget {
                     const SizedBox(height: 3),
                     const Text('새 버전을 설치하면 더 안정적인 서비스를 이용할 수 있습니다.'),
                     SizedBox(height: 3),
-                    Text('업데이트 방법: 아래 버튼을 누른 뒤 Google Play에서 ‘업데이트’를 선택하세요.', style: TextStyle(fontSize: 12)),
+                    Text('업데이트 방법: 아래 버튼을 누른 뒤 Google Play에서 ‘업데이트’를 선택하세요.',
+                        style: TextStyle(fontSize: 12)),
                   ],
                 ),
               ),
@@ -907,7 +910,8 @@ class _PcTopBarState extends State<_PcTopBar> {
           Container(
             height: 36,
             decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.border, width: 0.8)),
+              border: Border(
+                  bottom: BorderSide(color: AppColors.border, width: 0.8)),
             ),
             child: Center(
               child: ConstrainedBox(
@@ -921,7 +925,8 @@ class _PcTopBarState extends State<_PcTopBar> {
                       SizedBox(width: r.w(6)),
                       Text(loc.pcFreeShipping,
                           style: TextStyle(
-                              color: AppColors.textSecondary, fontSize: r.sp(12))),
+                              color: AppColors.textSecondary,
+                              fontSize: r.sp(12))),
                       const Spacer(),
                       _utilBtn(loc.pcCustomerCenter, Icons.headset_mic_outlined,
                           onTap: () => Navigator.push(
@@ -1056,7 +1061,10 @@ class _PcTopBarState extends State<_PcTopBar> {
             Icon(icon, color: AppColors.textSecondary, size: 12),
             SizedBox(width: r.w(4)),
             Text(label,
-                style: TextStyle(color: AppColors.textSecondary, fontSize: r.sp(11.5), fontWeight: FontWeight.w400)),
+                style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: r.sp(11.5),
+                    fontWeight: FontWeight.w400)),
           ],
         ),
       ),
@@ -1123,28 +1131,28 @@ class _PcTopBarState extends State<_PcTopBar> {
               Stack(
                 clipBehavior: Clip.none,
                 children: [
-                Icon(icon, size: 24, color: AppColors.primary),
-                if (badge > 0)
-                  Positioned(
-                    top: -6,
-                    right: -8,
-                    child: Container(
-                      constraints:
-                          const BoxConstraints(minWidth: 16, minHeight: 16),
-                      padding: EdgeInsets.all(r.w(2)),
-                      decoration: const BoxDecoration(
-                          color: AppColors.accent, shape: BoxShape.circle),
-                      child: Center(
-                        child: Text(
-                          badge > 9 ? '9+' : '$badge',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: r.sp(9),
-                              fontWeight: FontWeight.w500),
+                  Icon(icon, size: 24, color: AppColors.primary),
+                  if (badge > 0)
+                    Positioned(
+                      top: -6,
+                      right: -8,
+                      child: Container(
+                        constraints:
+                            const BoxConstraints(minWidth: 16, minHeight: 16),
+                        padding: EdgeInsets.all(r.w(2)),
+                        decoration: const BoxDecoration(
+                            color: AppColors.accent, shape: BoxShape.circle),
+                        child: Center(
+                          child: Text(
+                            badge > 9 ? '9+' : '$badge',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: r.sp(9),
+                                fontWeight: FontWeight.w500),
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
               SizedBox(height: r.h(2)),
@@ -1503,8 +1511,8 @@ class _PcFooter extends StatelessWidget {
                     Row(
                       children: [
                         InkWell(
-                          onTap: () => Navigator.pushNamed(
-                              context, '/terms-of-service'),
+                          onTap: () =>
+                              Navigator.pushNamed(context, '/terms-of-service'),
                           child: Text(
                             loc.footerTerms,
                             style: TextStyle(
@@ -1513,8 +1521,8 @@ class _PcFooter extends StatelessWidget {
                         ),
                         SizedBox(width: r.w(16)),
                         InkWell(
-                          onTap: () => Navigator.pushNamed(
-                              context, '/privacy-policy'),
+                          onTap: () =>
+                              Navigator.pushNamed(context, '/privacy-policy'),
                           child: Text(
                             loc.footerPrivacy,
                             style: TextStyle(
@@ -1525,8 +1533,8 @@ class _PcFooter extends StatelessWidget {
                         ),
                         SizedBox(width: r.w(16)),
                         InkWell(
-                          onTap: () => Navigator.pushNamed(
-                              context, '/account-deletion'),
+                          onTap: () =>
+                              Navigator.pushNamed(context, '/account-deletion'),
                           child: Text(
                             context.loc.t('계정 삭제 요청', '계정 삭제 요청'),
                             style: TextStyle(
@@ -1708,10 +1716,8 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
             : (sh * 0.30).clamp(120.0, 200.0))
         : (sh * 0.35).clamp(180.0, 300.0);
 
-    // PC: 전체 둥근 모서리 / 모바일: 상단만 둥근 모서리
-    final borderRadius = widget.isPc
-        ? BorderRadius.circular(20)
-        : const BorderRadius.vertical(top: Radius.circular(20));
+    // 팝업 외곽은 흰색 미니멀 컨셉에 맞춰 각진 사각형으로 표시한다.
+    const borderRadius = BorderRadius.zero;
 
     return Container(
       width: sheetW,
@@ -2222,7 +2228,7 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.zero,
           boxShadow: [
             BoxShadow(
                 color: Colors.black.withValues(alpha: 0.15),
@@ -2251,7 +2257,7 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
         ),
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: BorderRadius.zero,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -2284,7 +2290,7 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.zero,
       ),
       child: Row(
         children: [
