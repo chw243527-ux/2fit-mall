@@ -18,8 +18,8 @@ on:
         description: 'Android version name (e.g. 1.0.29)'
         required: false
         default: ''
-      track:
-        description: 'Google Play track'
+      tracks:
+        description: 'Google Play tracks'
         required: true
         default: 'internal'
         type: choice
@@ -152,7 +152,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ env.PACKAGE_NAME }}
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
-          track: ${{ inputs.track || 'internal' }}
+          tracks: ${{ inputs.tracks || 'internal' }}
           status: completed
 
       - name: Cleanup signing files
@@ -167,5 +167,5 @@ jobs:
             echo
             echo "- Package: ${{ env.PACKAGE_NAME }}"
             echo "- Version: ${{ steps.version.outputs.build_name }}+${{ steps.version.outputs.build_number }}"
-            echo "- Track: ${{ inputs.track || 'internal' }}"
+            echo "- Tracks: ${{ inputs.tracks || 'internal' }}"
           } >> "$GITHUB_STEP_SUMMARY"
