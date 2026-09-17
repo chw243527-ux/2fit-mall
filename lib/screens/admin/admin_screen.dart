@@ -716,7 +716,8 @@ class _AdminScreenState extends State<AdminScreen>
       }
       if (token == null || token.isEmpty) {
         final detail = FcmService.lastError;
-        throw Exception(detail ?? 'FCM 토큰이 없습니다. 브라우저 알림 권한을 허용한 뒤 다시 시도해 주세요.');
+        throw Exception(
+            detail ?? 'FCM 토큰이 없습니다. 브라우저 알림 권한을 허용한 뒤 다시 시도해 주세요.');
       }
       // 테스트 전송 직전에 Firebase ID 토큰을 갱신해 만료된 세션으로 401이 나지 않게 합니다.
       final idToken = await user.getIdToken(true);
@@ -945,11 +946,11 @@ class _AdminScreenState extends State<AdminScreen>
       {'icon': Icons.bar_chart_rounded, 'label': '매출통계'},
       // ── 주문관리 소분류 (들여쓰기로 표시) ──
       {'icon': Icons.folder_special_rounded, 'label': '카테고리관리', 'sub': true},
-       {'icon': Icons.layers_rounded, 'label': '섹션관리', 'sub': true},
-       {'icon': Icons.local_activity_rounded, 'label': '쿠폰관리', 'sub': true},
-       {'icon': Icons.palette_rounded, 'label': '색상관리', 'sub': true},
+      {'icon': Icons.layers_rounded, 'label': '섹션관리', 'sub': true},
+      {'icon': Icons.local_activity_rounded, 'label': '쿠폰관리', 'sub': true},
+      {'icon': Icons.palette_rounded, 'label': '색상관리', 'sub': true},
       {'icon': Icons.account_balance_rounded, 'label': '정산·매입관리'},
-     ];
+    ];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -2289,16 +2290,23 @@ class _AdminScreenState extends State<AdminScreen>
                       onTap: () => _downloadSamplePdf(productionOnly: true),
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
                         decoration: BoxDecoration(
                           color: AppColors.success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.success.withValues(alpha: 0.4)),
+                          border: Border.all(
+                              color: AppColors.success.withValues(alpha: 0.4)),
                         ),
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(Icons.factory_outlined, size: 15, color: AppColors.success),
+                          Icon(Icons.factory_outlined,
+                              size: 15, color: AppColors.success),
                           const SizedBox(width: 4),
-                          Text('발주예시PDF', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.success)),
+                          Text('발주예시PDF',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.success)),
                         ]),
                       ),
                     ),
@@ -2681,8 +2689,7 @@ class _AdminScreenState extends State<AdminScreen>
 
   // CSV 내보내기
   // ── 선택 주문 PDF 내보내기 ──
-  Future<void> _exportSelectedOrdersPdf(
-      List<OrderModel> selectedOrders) async {
+  Future<void> _exportSelectedOrdersPdf(List<OrderModel> selectedOrders) async {
     if (selectedOrders.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -2807,9 +2814,8 @@ class _AdminScreenState extends State<AdminScreen>
   // ── 예시(샘플) PDF 파일 다운로드 ──
   Future<void> _downloadSamplePdf({bool productionOnly = false}) async {
     const mimeType = 'application/pdf';
-    final fileName = productionOnly
-        ? '2FIT_단체주문_발주용_예시.pdf'
-        : '2FIT_단체주문_고객용_예시.pdf';
+    final fileName =
+        productionOnly ? '2FIT_단체주문_발주용_예시.pdf' : '2FIT_단체주문_고객용_예시.pdf';
     try {
       final bytes = await OrderExcelService.generateSamplePdf(
           productionOnly: productionOnly);
@@ -2822,7 +2828,9 @@ class _AdminScreenState extends State<AdminScreen>
               const Icon(Icons.file_download_done_rounded,
                   color: Colors.white, size: 16),
               const SizedBox(width: 8),
-              Expanded(child: Text('${productionOnly ? '발주용' : '고객용'} 단체주문 예시 PDF 다운로드 완료')),
+              Expanded(
+                  child: Text(
+                      '${productionOnly ? '발주용' : '고객용'} 단체주문 예시 PDF 다운로드 완료')),
             ]),
             backgroundColor: AppColors.warning,
             duration: const Duration(seconds: 4),
@@ -2846,7 +2854,8 @@ class _AdminScreenState extends State<AdminScreen>
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('${productionOnly ? '발주용' : '고객용'} 예시 PDF 생성 오류: $e'), backgroundColor: AppColors.error),
+            content: Text('${productionOnly ? '발주용' : '고객용'} 예시 PDF 생성 오류: $e'),
+            backgroundColor: AppColors.error),
       );
     }
   }
@@ -3335,8 +3344,8 @@ class _AdminScreenState extends State<AdminScreen>
         final bytes = await OrderExcelService.generateGroupOrderPdf(order);
         final fileName =
             '2FIT_단체주문_${typeTag}_${startStr}_${endStr}_${_groupOrderFileStem(order)}.pdf';
-        await _handleFileDownload(bytes, fileName, 1, finalRange.start,
-            finalRange.end);
+        await _handleFileDownload(
+            bytes, fileName, 1, finalRange.start, finalRange.end);
         if (kIsWeb && i < groupOnlyOrders.length - 1) {
           await Future<void>.delayed(const Duration(milliseconds: 350));
         }
@@ -4189,8 +4198,9 @@ class _AdminScreenState extends State<AdminScreen>
                       return;
                     }
 
-                    final bytes = await OrderExcelService.generateSelectedOrdersPdf(
-                        finalOrders, DateTime.now());
+                    final bytes =
+                        await OrderExcelService.generateSelectedOrdersPdf(
+                            finalOrders, DateTime.now());
                     final startStr =
                         '${fStart.year}${fStart.month.toString().padLeft(2, "0")}${fStart.day.toString().padLeft(2, "0")}';
                     final endStr =
@@ -4327,7 +4337,9 @@ class _AdminScreenState extends State<AdminScreen>
                       final failedIds = <String>[];
                       for (final orderId in selectedIds) {
                         var succeeded = false;
-                        for (var attempt = 1; attempt <= 3 && !succeeded; attempt++) {
+                        for (var attempt = 1;
+                            attempt <= 3 && !succeeded;
+                            attempt++) {
                           try {
                             await OrderService.updateOrderStatusStrict(
                                 orderId, targetStatus);
@@ -5945,12 +5957,14 @@ class _AdminScreenState extends State<AdminScreen>
                             _exportGroupOrderPdf(order, productionOnly: true);
                           },
                           icon: const Icon(Icons.factory_outlined, size: 15),
-                          label: const Text('발주용 PDF', style: TextStyle(fontSize: 12)),
+                          label: const Text('발주용 PDF',
+                              style: TextStyle(fontSize: 12)),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             foregroundColor: const Color(0xFF5E35B1),
                             side: const BorderSide(color: Color(0xFF5E35B1)),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
                           ),
                         ),
                       ),
@@ -6098,12 +6112,14 @@ class _AdminScreenState extends State<AdminScreen>
                 ? order.groupName
                 : order.userName.trim().isNotEmpty
                     ? order.userName
-                    : order.id) ?? order.id;
+                    : order.id) ??
+        order.id;
     final teamName = rawTeam
         .replaceAll(RegExp(r'[\\/:*?"<>|]'), '_')
         .replaceAll(RegExp(r'\s+'), '_');
     final date = order.createdAt;
-    final dateStr = '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
+    final dateStr =
+        '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
     return '${dateStr}_$teamName';
   }
 
@@ -6197,7 +6213,8 @@ class _AdminScreenState extends State<AdminScreen>
     final dialogWidth = screenSize.width > 980
         ? 980.0
         : (screenSize.width - 32).clamp(280.0, 980.0);
-    final dialogHeight = (screenSize.height - 32).clamp(420.0, screenSize.height * 0.92);
+    final dialogHeight =
+        (screenSize.height - 32).clamp(420.0, screenSize.height * 0.92);
 
     showDialog<void>(
       context: context,
@@ -6214,7 +6231,8 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   // ── 단체주문 상세 PDF 내보내기 ──
-  Future<void> _exportGroupOrderPdf(OrderModel order, {bool productionOnly = false}) async {
+  Future<void> _exportGroupOrderPdf(OrderModel order,
+      {bool productionOnly = false}) async {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('${productionOnly ? '발주용' : '고객용'} 단체주문 PDF 생성 중...'),
@@ -6223,7 +6241,8 @@ class _AdminScreenState extends State<AdminScreen>
       ));
     }
     try {
-      final bytes = await OrderExcelService.generateGroupOrderPdf(order, productionOnly: productionOnly);
+      final bytes = await OrderExcelService.generateGroupOrderPdf(order,
+          productionOnly: productionOnly);
       final fileName = productionOnly
           ? '단체주문_발주용_${_groupOrderFileStem(order)}.pdf'
           : '단체주문_고객용_${_groupOrderFileStem(order)}.pdf';
@@ -6252,7 +6271,8 @@ class _AdminScreenState extends State<AdminScreen>
       if (!mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('PDF 생성 오류: $e'), backgroundColor: AppColors.error,
+        content: Text('PDF 생성 오류: $e'),
+        backgroundColor: AppColors.error,
       ));
     }
   }
@@ -6278,9 +6298,13 @@ class _AdminScreenState extends State<AdminScreen>
     }
     try {
       final bytes = await OrderExcelService.generateGroupOrderPdf(order);
-      final teamName = (order.customOptions?['teamName'] as String?)?.trim().isNotEmpty == true
-          ? (order.customOptions?['teamName'] as String).trim()
-          : (order.groupName?.trim().isNotEmpty == true ? order.groupName! : order.id);
+      final teamName =
+          (order.customOptions?['teamName'] as String?)?.trim().isNotEmpty ==
+                  true
+              ? (order.customOptions?['teamName'] as String).trim()
+              : (order.groupName?.trim().isNotEmpty == true
+                  ? order.groupName!
+                  : order.id);
       final fileName = '단체주문_${_groupOrderFileStem(order)}.pdf';
       const mimeType = 'application/pdf';
 
@@ -6358,11 +6382,14 @@ class _AdminScreenState extends State<AdminScreen>
       );
     }
     try {
-      final bytes =
-          await OrderExcelService.generateGroupOrderPdf(order);
-      final teamName = (order.customOptions?['teamName'] as String?)?.trim().isNotEmpty == true
-          ? (order.customOptions?['teamName'] as String).trim()
-          : (order.groupName?.trim().isNotEmpty == true ? order.groupName! : order.id);
+      final bytes = await OrderExcelService.generateGroupOrderPdf(order);
+      final teamName =
+          (order.customOptions?['teamName'] as String?)?.trim().isNotEmpty ==
+                  true
+              ? (order.customOptions?['teamName'] as String).trim()
+              : (order.groupName?.trim().isNotEmpty == true
+                  ? order.groupName!
+                  : order.id);
       final fileName = '추가제작_${_groupOrderFileStem(order)}.pdf';
       const mimeType = 'application/pdf';
 
@@ -6703,15 +6730,21 @@ class _AdminScreenState extends State<AdminScreen>
               GestureDetector(
                 onTap: () => _setSelectedProductsActive(false),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: AppColors.surfaceGray,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(children: [
-                    Icon(Icons.visibility_off_outlined, color: AppColors.textSecondary, size: 14),
+                    Icon(Icons.visibility_off_outlined,
+                        color: AppColors.textSecondary, size: 14),
                     SizedBox(width: 4),
-                    Text('선택숨김', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w700)),
+                    Text('선택숨김',
+                        style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700)),
                   ]),
                 ),
               ),
@@ -6719,15 +6752,21 @@ class _AdminScreenState extends State<AdminScreen>
               GestureDetector(
                 onTap: () => _setSelectedProductsActive(true),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: const Color(0xFFE8F5E9),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(children: [
-                    Icon(Icons.visibility_outlined, color: AppColors.success, size: 14),
+                    Icon(Icons.visibility_outlined,
+                        color: AppColors.success, size: 14),
                     SizedBox(width: 4),
-                    Text('선택공개', style: TextStyle(color: AppColors.success, fontSize: 12, fontWeight: FontWeight.w700)),
+                    Text('선택공개',
+                        style: TextStyle(
+                            color: AppColors.success,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700)),
                   ]),
                 ),
               ),
@@ -6738,15 +6777,21 @@ class _AdminScreenState extends State<AdminScreen>
               GestureDetector(
                 onTap: _bulkChangeProductCategory,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: const Color(0xFFE8EEF9),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(children: [
-                    Icon(Icons.category_outlined, color: AppColors.info, size: 14),
+                    Icon(Icons.category_outlined,
+                        color: AppColors.info, size: 14),
                     SizedBox(width: 4),
-                    Text('카테고리 변경', style: TextStyle(color: AppColors.info, fontSize: 12, fontWeight: FontWeight.w700)),
+                    Text('카테고리 변경',
+                        style: TextStyle(
+                            color: AppColors.info,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700)),
                   ]),
                 ),
               ),
@@ -7347,26 +7392,36 @@ class _AdminScreenState extends State<AdminScreen>
                                       ),
                                     ),
                                     // 표시 순서 변경
-                                    _iconBtn(Icons.keyboard_arrow_up_rounded,
+                                    _iconBtn(
+                                        Icons.keyboard_arrow_up_rounded,
                                         i == 0
                                             ? null
                                             : () async {
-                                                final reordered = List<BannerModel>.from(banners);
-                                                final moved = reordered.removeAt(i);
+                                                final reordered =
+                                                    List<BannerModel>.from(
+                                                        banners);
+                                                final moved =
+                                                    reordered.removeAt(i);
                                                 reordered.insert(i - 1, moved);
-                                                await BannerService.reorderBanners(reordered);
+                                                await BannerService
+                                                    .reorderBanners(reordered);
                                               },
                                         color: i == 0
                                             ? AppColors.textHint
                                             : AppColors.textSecondary),
-                                    _iconBtn(Icons.keyboard_arrow_down_rounded,
+                                    _iconBtn(
+                                        Icons.keyboard_arrow_down_rounded,
                                         i == banners.length - 1
                                             ? null
                                             : () async {
-                                                final reordered = List<BannerModel>.from(banners);
-                                                final moved = reordered.removeAt(i);
+                                                final reordered =
+                                                    List<BannerModel>.from(
+                                                        banners);
+                                                final moved =
+                                                    reordered.removeAt(i);
                                                 reordered.insert(i + 1, moved);
-                                                await BannerService.reorderBanners(reordered);
+                                                await BannerService
+                                                    .reorderBanners(reordered);
                                               },
                                         color: i == banners.length - 1
                                             ? AppColors.textHint
@@ -8379,8 +8434,8 @@ class _AdminScreenState extends State<AdminScreen>
                     overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 2),
                 Text(order.userName,
-                    style:
-                        const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                        fontSize: 10, color: AppColors.textSecondary),
                     overflow: TextOverflow.ellipsis),
               ],
             ),
@@ -10441,7 +10496,8 @@ class _AdminScreenState extends State<AdminScreen>
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(children: [
             const Icon(Icons.stars_rounded, color: AppColors.accent, size: 22),
             const SizedBox(width: 8),
@@ -10478,43 +10534,49 @@ class _AdminScreenState extends State<AdminScreen>
           ),
           actions: [
             TextButton(
-              onPressed: saving ? null : () {
-                amountCtrl.dispose();
-                reasonCtrl.dispose();
-                Navigator.pop(ctx);
-              },
+              onPressed: saving
+                  ? null
+                  : () {
+                      amountCtrl.dispose();
+                      reasonCtrl.dispose();
+                      Navigator.pop(ctx);
+                    },
               child: const Text('취소'),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              onPressed: saving ? null : () async {
-                final amount = int.tryParse(amountCtrl.text.trim()) ?? 0;
-                final reason = reasonCtrl.text.trim();
-                if (amount <= 0 || reason.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('적립 포인트와 사유를 입력해 주세요')),
-                  );
-                  return;
-                }
-                setDialogState(() => saving = true);
-                final ok = await PointService.adminCreditPoints(
-                  userId: uid,
-                  amount: amount,
-                  reason: reason,
-                );
-                if (!ctx.mounted) return;
-                amountCtrl.dispose();
-                reasonCtrl.dispose();
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(ok
-                        ? '$name 회원에게 ${amount.toString()}P가 적립되었습니다'
-                        : '포인트 적립에 실패했습니다'),
-                    backgroundColor: ok ? AppColors.success : AppColors.error,
-                  ),
-                );
-              },
+              style:
+                  ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              onPressed: saving
+                  ? null
+                  : () async {
+                      final amount = int.tryParse(amountCtrl.text.trim()) ?? 0;
+                      final reason = reasonCtrl.text.trim();
+                      if (amount <= 0 || reason.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('적립 포인트와 사유를 입력해 주세요')),
+                        );
+                        return;
+                      }
+                      setDialogState(() => saving = true);
+                      final ok = await PointService.adminCreditPoints(
+                        userId: uid,
+                        amount: amount,
+                        reason: reason,
+                      );
+                      if (!ctx.mounted) return;
+                      amountCtrl.dispose();
+                      reasonCtrl.dispose();
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(ok
+                              ? '$name 회원에게 ${amount.toString()}P가 적립되었습니다'
+                              : '포인트 적립에 실패했습니다'),
+                          backgroundColor:
+                              ok ? AppColors.success : AppColors.error,
+                        ),
+                      );
+                    },
               child: Text('적립', style: const TextStyle(color: Colors.white)),
             ),
           ],
@@ -12326,9 +12388,10 @@ class _AdminScreenState extends State<AdminScreen>
                                 ),
                                 const SizedBox(width: 4),
                                 GestureDetector(
-                                  onTap: () => _reservedSectionKeys.contains(key)
-                                      ? _toggleSectionActive(i)
-                                      : _confirmDeleteSection(i),
+                                  onTap: () =>
+                                      _reservedSectionKeys.contains(key)
+                                          ? _toggleSectionActive(i)
+                                          : _confirmDeleteSection(i),
                                   child: Container(
                                     width: 24,
                                     height: 24,
@@ -12568,8 +12631,8 @@ class _AdminScreenState extends State<AdminScreen>
   void _showEditSectionDialog(int index) {
     final section = _customSections[index];
     final titleCtrl = TextEditingController(text: section['title'] as String);
-    final descCtrl = TextEditingController(
-        text: (section['description'] as String?) ?? '');
+    final descCtrl =
+        TextEditingController(text: (section['description'] as String?) ?? '');
     bool active = section['active'] != false;
 
     showDialog(
@@ -12594,8 +12657,7 @@ class _AdminScreenState extends State<AdminScreen>
                 ),
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('섹션 보관 상태',
-                      style: TextStyle(fontSize: 13)),
+                  title: const Text('섹션 보관 상태', style: TextStyle(fontSize: 13)),
                   subtitle: const Text('기본 키의 상품 이미지 참조를 보호하는 안전 상태입니다',
                       style: TextStyle(fontSize: 11)),
                   value: active,
@@ -12605,7 +12667,8 @@ class _AdminScreenState extends State<AdminScreen>
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1A1A2E),
@@ -12660,9 +12723,8 @@ class _AdminScreenState extends State<AdminScreen>
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(nextActive
-              ? '기본 섹션을 다시 표시합니다'
-              : '기본 섹션을 보관했습니다. 상품 이미지는 유지됩니다.'),
+          content: Text(
+              nextActive ? '기본 섹션을 다시 표시합니다' : '기본 섹션을 보관했습니다. 상품 이미지는 유지됩니다.'),
           backgroundColor: const Color(0xFF6A1B9A),
         ),
       );
@@ -12677,16 +12739,19 @@ class _AdminScreenState extends State<AdminScreen>
       builder: (ctx) => AlertDialog(
         title: const Text('섹션 삭제',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-        content: Text('"${sec['title']}" 섹션 정의를 삭제하시겠습니까?\n연결된 상품 이미지는 삭제되지 않지만, 이 키로 다시 표시하려면 새 섹션을 만들어야 합니다.'),
+        content: Text(
+            '"${sec['title']}" 섹션 정의를 삭제하시겠습니까?\n연결된 상품 이미지는 삭제되지 않지만, 이 키로 다시 표시하려면 새 섹션을 만들어야 합니다.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             onPressed: () async {
               final removed = Map<String, dynamic>.from(sec);
               setState(() => _customSections.removeAt(index));
               final saved = await _persistContentCatalogs();
               if (!saved) {
-                if (mounted) setState(() => _customSections.insert(index, removed));
+                if (mounted)
+                  setState(() => _customSections.insert(index, removed));
                 return;
               }
               if (ctx.mounted) Navigator.pop(ctx);
@@ -12777,8 +12842,8 @@ class _AdminScreenState extends State<AdminScreen>
                           onPressed: _showAddColorDialog,
                           icon: const Icon(Icons.add_rounded),
                           color: AppColors.primary,
-                          constraints: const BoxConstraints(
-                              minWidth: 44, minHeight: 44),
+                          constraints:
+                              const BoxConstraints(minWidth: 44, minHeight: 44),
                         )
                       else
                         ElevatedButton.icon(
@@ -12801,43 +12866,43 @@ class _AdminScreenState extends State<AdminScreen>
                   const SizedBox(height: 10),
                   // 카테고리 필터
                   SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: _colorCategories.map((cat) {
-                    final isSelected = _colorCategoryFilter == cat;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: GestureDetector(
-                        onTap: () => setState(() {
-                          _colorCategoryFilter = cat;
-                          _selectedColorIds.clear();
-                        }),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? AppColors.primary
-                                : AppColors.surfaceGray,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            cat,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isSelected
-                                  ? Colors.white
-                                  : AppColors.textSecondary,
-                              fontWeight: isSelected
-                                  ? FontWeight.w700
-                                  : FontWeight.w400,
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: _colorCategories.map((cat) {
+                        final isSelected = _colorCategoryFilter == cat;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: GestureDetector(
+                            onTap: () => setState(() {
+                              _colorCategoryFilter = cat;
+                              _selectedColorIds.clear();
+                            }),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : AppColors.surfaceGray,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                cat,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppColors.textSecondary,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w400,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ],
               );
@@ -13231,29 +13296,37 @@ class _AdminScreenState extends State<AdminScreen>
                                                               foregroundColor:
                                                                   Colors.white),
                                                       onPressed: () async {
-                                                        final removed =
-                                                            Map<String, dynamic>.from(c);
+                                                        final removed = Map<
+                                                            String,
+                                                            dynamic>.from(c);
                                                         setState(() => _colorItems
-                                                            .removeWhere((item) =>
-                                                                item['id'] == id));
+                                                            .removeWhere(
+                                                                (item) =>
+                                                                    item[
+                                                                        'id'] ==
+                                                                    id));
                                                         final saved =
                                                             await _persistContentCatalogs();
                                                         if (!saved) {
                                                           if (mounted) {
                                                             setState(() =>
-                                                                _colorItems.add(removed));
+                                                                _colorItems.add(
+                                                                    removed));
                                                           }
                                                           return;
                                                         }
                                                         if (context.mounted) {
-                                                          Navigator.pop(context);
-                                                          ScaffoldMessenger.of(context)
+                                                          Navigator.pop(
+                                                              context);
+                                                          ScaffoldMessenger.of(
+                                                                  context)
                                                               .showSnackBar(
                                                             SnackBar(
                                                                 content: Text(
                                                                     '"${c['name']}" 색상이 삭제되었습니다'),
                                                                 backgroundColor:
-                                                                    const Color(0xFFE53935)),
+                                                                    const Color(
+                                                                        0xFFE53935)),
                                                           );
                                                         }
                                                       },
@@ -13315,7 +13388,8 @@ class _AdminScreenState extends State<AdminScreen>
           '${ids.length}개의 색상을 목록에서 삭제하시겠습니까?\n이미 등록된 상품의 색상 텍스트와 이미지는 변경되지 않습니다.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFE53935),
@@ -13706,7 +13780,6 @@ class _AdminScreenState extends State<AdminScreen>
                         backgroundColor: Color(0xFF1A1A2E)),
                   );
                 }
-
               },
               child: Text('저장'),
             ),
@@ -14391,7 +14464,8 @@ class _AdminScreenState extends State<AdminScreen>
                                             _showAddAdminNoteDialog(req))),
                                 const SizedBox(width: 6),
                                 GestureDetector(
-                                  onTap: () => _confirmArchiveDesignRequest(req),
+                                  onTap: () =>
+                                      _confirmArchiveDesignRequest(req),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 10, vertical: 7),
@@ -14519,7 +14593,10 @@ class _AdminScreenState extends State<AdminScreen>
 
     final orderId = req['orderId'] as String? ?? req['id'] as String;
     try {
-      await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
+      await FirebaseFirestore.instance
+          .collection('orders')
+          .doc(orderId)
+          .update({
         'designRevisionRequest.status': fsStatus,
         'designRevisionRequest.handledAt': FieldValue.serverTimestamp(),
       });
@@ -14548,10 +14625,11 @@ class _AdminScreenState extends State<AdminScreen>
       builder: (ctx) => AlertDialog(
         title: const Text('디자인 요청 보관',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-        content: const Text(
-            '이 요청을 관리자 목록에서 보관하시겠습니까? 주문과 고객 요청 원본은 삭제되지 않습니다.'),
+        content:
+            const Text('이 요청을 관리자 목록에서 보관하시겠습니까? 주문과 고객 요청 원본은 삭제되지 않습니다.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFE53935),
@@ -14559,9 +14637,13 @@ class _AdminScreenState extends State<AdminScreen>
             onPressed: () async {
               final orderId = req['orderId'] as String? ?? req['id'] as String;
               try {
-                await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
+                await FirebaseFirestore.instance
+                    .collection('orders')
+                    .doc(orderId)
+                    .update({
                   'designRevisionRequest.archived': true,
-                  'designRevisionRequest.archivedAt': FieldValue.serverTimestamp(),
+                  'designRevisionRequest.archivedAt':
+                      FieldValue.serverTimestamp(),
                   'designRevisionRequest.archivedBy':
                       FirebaseAuth.instance.currentUser?.uid ?? '',
                 });
@@ -14628,7 +14710,10 @@ class _AdminScreenState extends State<AdminScreen>
                   });
               final orderId = req['orderId'] as String? ?? req['id'] as String;
               try {
-                await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
+                await FirebaseFirestore.instance
+                    .collection('orders')
+                    .doc(orderId)
+                    .update({
                   'designRevisionRequest.adminNote': note,
                   'designRevisionRequest.noteUpdatedAt':
                       FieldValue.serverTimestamp(),
@@ -15793,7 +15878,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
           : null,
       isSale: _isSale, isFreeShipping: _isFreeShip,
       // 단체주문 카테고리이면 isGroupOnly 강제 true, 그 외는 토글 값 그대로
-      isGroupOnly: _isGroupOnly || _selCat == '단체주문', isGroup: _isGroup, isReadyMade: _isReadyMade,
+      isGroupOnly: _isGroupOnly || _selCat == '단체주문', isGroup: _isGroup,
+      isReadyMade: _isReadyMade,
       sizeStocks: {
         for (final entry in _sizeStockCtrls.entries)
           entry.key: int.tryParse(entry.value.text) ?? 0,
@@ -16766,8 +16852,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
 
                     // ── 색상별 옵션 가격·재고
                     _buildColorPriceEditor(),
-                    if (_selectedColors.isNotEmpty)
-                      const SizedBox(height: 14),
+                    if (_selectedColors.isNotEmpty) const SizedBox(height: 14),
                     _buildColorStockEditor(),
                     const SizedBox(height: 14),
 
@@ -17405,8 +17490,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     }
   }
 
-  void _initOptionControllers(
-      Map<String, double> existingPrices,
+  void _initOptionControllers(Map<String, double> existingPrices,
       Map<String, Map<String, int>> existingStockData) {
     for (final c in _colorPriceCtrls.values) {
       c.dispose();
@@ -17441,9 +17525,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     }
     final validColors = _selectedColors.toSet();
     final validSizes = _selectedSizes.toSet();
-    final oldPrices = _colorPriceCtrls.keys
-        .where((c) => !validColors.contains(c))
-        .toList();
+    final oldPrices =
+        _colorPriceCtrls.keys.where((c) => !validColors.contains(c)).toList();
     for (final color in oldPrices) {
       _colorPriceCtrls[color]?.dispose();
       _colorPriceCtrls.remove(color);
@@ -17466,9 +17549,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       for (final size in _selectedSizes)
         size: {
           for (final color in _selectedColors)
-            color: int.tryParse(
-                    _stockDataCtrls['$size::$color']?.text ?? '0') ??
-                0,
+            color:
+                int.tryParse(_stockDataCtrls['$size::$color']?.text ?? '0') ??
+                    0,
         },
     };
   }
@@ -18305,10 +18388,13 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
     final imageCtrl = TextEditingController(text: existing?.imageUrl ?? '');
     bool isActive = existing?.isActive ?? true;
     bool showAsPopup = existing?.showAsPopup ?? true;
-    final popupPriorityCtrl = TextEditingController(
-        text: (existing?.popupPriority ?? 0).toString());
+    final popupPriorityCtrl =
+        TextEditingController(text: (existing?.popupPriority ?? 0).toString());
     String selectedTheme = existing != null ? (existing.theme) : 'auto';
-    bool autoImage = existing == null || existing.imageUrl.isEmpty;
+    // 새 팝업은 직접 이미지 등록을 기본으로 제공한다. 자동 이미지는
+    // 관리자 화면의 스위치로 선택할 수 있으며, 기존 이미지가 없는
+    // 공지만 자동 이미지 모드로 복원한다.
+    bool autoImage = existing != null && existing.imageUrl.isEmpty;
     // ── 기간 설정 ──
     DateTime? scheduleStart = existing?.startDate;
     DateTime? scheduleEnd = existing?.endDate;
@@ -18746,9 +18832,11 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                     value: showAsPopup,
                     activeColor: AppColors.primaryLight,
                     title: const Text('홈 팝업으로 노출',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                        style: TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w700)),
                     subtitle: const Text('끄면 공지사항 목록에만 표시됩니다.',
-                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                        style: TextStyle(
+                            fontSize: 11, color: AppColors.textSecondary)),
                     onChanged: (value) => setD(() => showAsPopup = value),
                   ),
                   if (showAsPopup) ...[
@@ -18804,12 +18892,14 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                 final finalTheme = selectedTheme == 'auto'
                     ? NoticeThemeHelper.detectTheme(title, content)
                     : selectedTheme;
-                // imageCtrl에 URL이 있으면 항상 우선 사용 (업로드 이미지 보호)
-                final finalImageUrl = imageCtrl.text.trim().isNotEmpty
-                    ? imageCtrl.text.trim()
-                    : autoImage
-                        ? NoticeThemeHelper.autoImageUrl(finalTheme)
-                        : '';
+                // 업로드 완료 URL을 가장 우선 사용해 직접 등록 이미지를 보호한다.
+                final finalImageUrl = (uploadedUrl?.trim().isNotEmpty ?? false)
+                    ? uploadedUrl!.trim()
+                    : imageCtrl.text.trim().isNotEmpty
+                        ? imageCtrl.text.trim()
+                        : autoImage
+                            ? NoticeThemeHelper.autoImageUrl(finalTheme)
+                            : '';
 
                 final titleChanged =
                     existing != null && existing.titleKo != title;
@@ -18833,9 +18923,10 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                   startDate: scheduleStart,
                   endDate: scheduleEnd,
                   showAsPopup: showAsPopup,
-                  popupPriority: (int.tryParse(popupPriorityCtrl.text.trim()) ?? 0)
-                      .clamp(0, 999)
-                      .toInt(),
+                  popupPriority:
+                      (int.tryParse(popupPriorityCtrl.text.trim()) ?? 0)
+                          .clamp(0, 999)
+                          .toInt(),
                 );
                 final noticeProvider = context.read<NoticeProvider>();
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -19042,7 +19133,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                      '활성 상태이면서 홈 팝업 노출이 켜진 공지만 표시됩니다. 중요도 숫자가 클수록 먼저 노출됩니다.',
+                    '활성 상태이면서 홈 팝업 노출이 켜진 공지만 표시됩니다. 중요도 숫자가 클수록 먼저 노출됩니다.',
                     style: TextStyle(
                         fontSize: 12, color: Color(0xFF3949AB), height: 1.5),
                   ),
@@ -19447,300 +19538,313 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
             direction: isMobile ? Axis.vertical : Axis.horizontal,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-          // ── 왼쪽: 메인 카테고리 목록
-          SizedBox(
-            width: isMobile ? double.infinity : 220,
-            height: isMobile ? 220 : null,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 헤더
-                Row(
+              // ── 왼쪽: 메인 카테고리 목록
+              SizedBox(
+                width: isMobile ? double.infinity : 220,
+                height: isMobile ? 220 : null,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.category_rounded,
-                        size: 16, color: AppColors.primary),
-                    const SizedBox(width: 6),
-                    Text('메인 카테고리',
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary)),
-                    const Spacer(),
-                    // 추가 버튼
-                    GestureDetector(
-                      onTap: _showAddMainCatDialog,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.add, size: 13, color: Colors.white),
-                            SizedBox(width: 3),
-                            Text('추가',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                // 목록
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.border),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ReorderableListView.builder(
-                      onReorder: (oldIdx, newIdx) async {
-                        final cats = List<String>.from(mainCats);
-                        if (newIdx > oldIdx) newIdx--;
-                        final item = cats.removeAt(oldIdx);
-                        cats.insert(newIdx, item);
-                        await CategoryService.reorderMainCategories(cats);
-                        if (mounted) setState(() {});
-                      },
-                      itemCount: mainCats.length,
-                      itemBuilder: (ctx, i) {
-                        final cat = mainCats[i];
-                        final isSelected = _selectedMain == cat;
-                        return GestureDetector(
-                          key: ValueKey(cat),
-                          onTap: () => setState(() => _selectedMain = cat),
+                    // 헤더
+                    Row(
+                      children: [
+                        const Icon(Icons.category_rounded,
+                            size: 16, color: AppColors.primary),
+                        const SizedBox(width: 6),
+                        Text('메인 카테고리',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary)),
+                        const Spacer(),
+                        // 추가 버튼
+                        GestureDetector(
+                          onTap: _showAddMainCatDialog,
                           child: Container(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 3),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 10),
+                                horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : Colors.transparent,
+                              color: AppColors.primary,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.drag_indicator,
-                                    size: 14, color: AppColors.border),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(cat,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: isSelected
-                                            ? Colors.white
-                                            : AppColors.textPrimary,
-                                      )),
-                                ),
-                                GestureDetector(
-                                  onTap: () => _deleteMainCat(cat),
-                                  child: Icon(Icons.close_rounded,
-                                      size: 14,
-                                      color: isSelected
-                                          ? Colors.white54
-                                          : AppColors.textHint),
-                                ),
+                                Icon(Icons.add, size: 13, color: Colors.white),
+                                SizedBox(width: 3),
+                                Text('추가',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700)),
                               ],
                             ),
                           ),
-                        );
-                      },
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-              width: isMobile ? 0 : 16,
-              height: isMobile ? 16 : 0),
-          // ── 오른쪽: 하위 카테고리 목록
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.subdirectory_arrow_right_rounded,
-                        size: 16, color: Color(0xFF3F51B5)),
-                    const SizedBox(width: 6),
+                    const SizedBox(height: 10),
+                    // 목록
                     Expanded(
-                      child: Text(
-                        _selectedMain != null
-                            ? '"$_selectedMain" 하위 카테고리'
-                            : '하위 카테고리',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF3F51B5)),
-                      ),
-                    ),
-                    const Spacer(),
-                    if (_selectedMain != null)
-                      GestureDetector(
-                        onTap: _showAddSubCatDialog,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF3F51B5),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.add, size: 13, color: Colors.white),
-                              SizedBox(width: 3),
-                              Text('추가',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700)),
-                            ],
-                          ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppColors.border),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ReorderableListView.builder(
+                          onReorder: (oldIdx, newIdx) async {
+                            final cats = List<String>.from(mainCats);
+                            if (newIdx > oldIdx) newIdx--;
+                            final item = cats.removeAt(oldIdx);
+                            cats.insert(newIdx, item);
+                            await CategoryService.reorderMainCategories(cats);
+                            if (mounted) setState(() {});
+                          },
+                          itemCount: mainCats.length,
+                          itemBuilder: (ctx, i) {
+                            final cat = mainCats[i];
+                            final isSelected = _selectedMain == cat;
+                            return GestureDetector(
+                              key: ValueKey(cat),
+                              onTap: () => setState(() => _selectedMain = cat),
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 3),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.drag_indicator,
+                                        size: 14, color: AppColors.border),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(cat,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: isSelected
+                                                ? Colors.white
+                                                : AppColors.textPrimary,
+                                          )),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () => _deleteMainCat(cat),
+                                      child: Icon(Icons.close_rounded,
+                                          size: 14,
+                                          color: isSelected
+                                              ? Colors.white54
+                                              : AppColors.textHint),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: _selectedMain == null
-                      ? Center(
-                          child: Text('왼쪽에서 메인 카테고리를 선택하세요',
-                              style: TextStyle(color: AppColors.textSecondary)))
-                      : Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.border),
-                            borderRadius: BorderRadius.circular(12),
+              ),
+              SizedBox(width: isMobile ? 0 : 16, height: isMobile ? 16 : 0),
+              // ── 오른쪽: 하위 카테고리 목록
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.subdirectory_arrow_right_rounded,
+                            size: 16, color: Color(0xFF3F51B5)),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            _selectedMain != null
+                                ? '"$_selectedMain" 하위 카테고리'
+                                : '하위 카테고리',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF3F51B5)),
                           ),
-                          child: subCats.isEmpty
-                              ? Center(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(Icons.inbox_rounded,
-                                          size: 40, color: AppColors.border),
-                                      const SizedBox(height: 8),
-                                      Text('하위 카테고리가 없습니다',
-                                          style: TextStyle(
-                                              color: AppColors.textHint)),
-                                      const SizedBox(height: 12),
-                                      ElevatedButton.icon(
-                                        onPressed: _showAddSubCatDialog,
-                                        icon: const Icon(Icons.add, size: 14),
-                                        label: Text('추가하기'),
-                                        style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                const Color(0xFF3F51B5),
-                                            foregroundColor: Colors.white),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : ReorderableListView.builder(
-                                  onReorder: (oldIdx, newIdx) async {
-                                    final list = List<String>.from(subCats);
-                                    if (newIdx > oldIdx) newIdx--;
-                                    final item = list.removeAt(oldIdx);
-                                    list.insert(newIdx, item);
-                                    await CategoryService.reorderSubCategories(
-                                        _selectedMain!, list);
-                                    if (mounted) setState(() {});
-                                  },
-                                  itemCount: subCats.length,
-                                  itemBuilder: (ctx, i) {
-                                    final sub = subCats[i];
-                                    return Container(
-                                      key: ValueKey(sub),
-                                      margin: const EdgeInsets.symmetric(
-                                          horizontal: 6, vertical: 3),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 10),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFF8F9FF),
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                            color: const Color(0xFFDDE3F5)),
-                                      ),
-                                      child: Row(
+                        ),
+                        const Spacer(),
+                        if (_selectedMain != null)
+                          GestureDetector(
+                            onTap: _showAddSubCatDialog,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF3F51B5),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.add,
+                                      size: 13, color: Colors.white),
+                                  SizedBox(width: 3),
+                                  Text('추가',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w700)),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: _selectedMain == null
+                          ? Center(
+                              child: Text('왼쪽에서 메인 카테고리를 선택하세요',
+                                  style: TextStyle(
+                                      color: AppColors.textSecondary)))
+                          : Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: AppColors.border),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: subCats.isEmpty
+                                  ? Center(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(Icons.drag_indicator,
-                                              size: 14,
+                                          const Icon(Icons.inbox_rounded,
+                                              size: 40,
                                               color: AppColors.border),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(sub,
-                                                style: const TextStyle(
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.w600,
-                                                    color:
-                                                        AppColors.textPrimary)),
-                                          ),
-                                          IconButton(
-                                            tooltip: '수정',
-                                            onPressed: () => _editSubCat(sub),
-                                            icon: const Icon(Icons.edit_rounded,
-                                                size: 15,
-                                                color: Color(0xFF3F51B5)),
-                                            padding: const EdgeInsets.all(4),
-                                            constraints: const BoxConstraints(),
-                                          ),
-                                          IconButton(
-                                            tooltip: '삭제',
-                                            onPressed: () => _deleteSubCat(sub),
-                                            icon: const Icon(Icons.close_rounded,
-                                                size: 15,
-                                                color: AppColors.textHint),
-                                            padding: const EdgeInsets.all(4),
-                                            constraints: const BoxConstraints(),
+                                          const SizedBox(height: 8),
+                                          Text('하위 카테고리가 없습니다',
+                                              style: TextStyle(
+                                                  color: AppColors.textHint)),
+                                          const SizedBox(height: 12),
+                                          ElevatedButton.icon(
+                                            onPressed: _showAddSubCatDialog,
+                                            icon:
+                                                const Icon(Icons.add, size: 14),
+                                            label: Text('추가하기'),
+                                            style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    const Color(0xFF3F51B5),
+                                                foregroundColor: Colors.white),
                                           ),
                                         ],
                                       ),
-                                    );
-                                  },
-                                ),
-                        ),
-                ),
-                // 안내 문구
-                const SizedBox(height: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF9C4),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFFFD54F)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline_rounded,
-                          size: 13, color: AppColors.warning),
-                      SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          '드래그하여 순서를 변경할 수 있습니다. 모든 카테고리를 추가/수정/삭제할 수 있습니다.',
-                          style:
-                              TextStyle(fontSize: 11, color: Color(0xFF7B5E00)),
-                        ),
+                                    )
+                                  : ReorderableListView.builder(
+                                      onReorder: (oldIdx, newIdx) async {
+                                        final list = List<String>.from(subCats);
+                                        if (newIdx > oldIdx) newIdx--;
+                                        final item = list.removeAt(oldIdx);
+                                        list.insert(newIdx, item);
+                                        await CategoryService
+                                            .reorderSubCategories(
+                                                _selectedMain!, list);
+                                        if (mounted) setState(() {});
+                                      },
+                                      itemCount: subCats.length,
+                                      itemBuilder: (ctx, i) {
+                                        final sub = subCats[i];
+                                        return Container(
+                                          key: ValueKey(sub),
+                                          margin: const EdgeInsets.symmetric(
+                                              horizontal: 6, vertical: 3),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 10),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFF8F9FF),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            border: Border.all(
+                                                color: const Color(0xFFDDE3F5)),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              const Icon(Icons.drag_indicator,
+                                                  size: 14,
+                                                  color: AppColors.border),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(sub,
+                                                    style: const TextStyle(
+                                                        fontSize: 13,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: AppColors
+                                                            .textPrimary)),
+                                              ),
+                                              IconButton(
+                                                tooltip: '수정',
+                                                onPressed: () =>
+                                                    _editSubCat(sub),
+                                                icon: const Icon(
+                                                    Icons.edit_rounded,
+                                                    size: 15,
+                                                    color: Color(0xFF3F51B5)),
+                                                padding:
+                                                    const EdgeInsets.all(4),
+                                                constraints:
+                                                    const BoxConstraints(),
+                                              ),
+                                              IconButton(
+                                                tooltip: '삭제',
+                                                onPressed: () =>
+                                                    _deleteSubCat(sub),
+                                                icon: const Icon(
+                                                    Icons.close_rounded,
+                                                    size: 15,
+                                                    color: AppColors.textHint),
+                                                padding:
+                                                    const EdgeInsets.all(4),
+                                                constraints:
+                                                    const BoxConstraints(),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                            ),
+                    ),
+                    // 안내 문구
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF9C4),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFFFD54F)),
                       ),
-                    ],
-                  ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline_rounded,
+                              size: 13, color: AppColors.warning),
+                          SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              '드래그하여 순서를 변경할 수 있습니다. 모든 카테고리를 추가/수정/삭제할 수 있습니다.',
+                              style: TextStyle(
+                                  fontSize: 11, color: Color(0xFF7B5E00)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
             ],
           );
         },
@@ -19990,7 +20094,8 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3F51B5)),
@@ -20003,14 +20108,17 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
         ],
       ),
     );
-    if (!mounted || result == null || result.trim().isEmpty || result == oldName) {
+    if (!mounted ||
+        result == null ||
+        result.trim().isEmpty ||
+        result == oldName) {
       return;
     }
     final newName = result.trim();
     final existing = CategoryService.subCatsFor(_selectedMain!);
     if (existing.contains(newName)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('이미 존재합니다: $newName')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('이미 존재합니다: $newName')));
       return;
     }
     try {
@@ -20024,8 +20132,8 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('저장 실패: $e'), backgroundColor: AppColors.error));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('저장 실패: $e'), backgroundColor: AppColors.error));
       }
     }
   }

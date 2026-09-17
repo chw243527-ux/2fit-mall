@@ -315,7 +315,9 @@ class _HomeScreenState extends State<HomeScreen>
     // groupOnlyProducts 우선, 없으면 products에서 필터링
     final groupProds = (pp.groupOnlyProducts.isNotEmpty
             ? pp.groupOnlyProducts
-            : pp.products.where((p) => (p.isGroupOnly || p.isGroup) && p.isActive).toList())
+            : pp.products
+                .where((p) => (p.isGroupOnly || p.isGroup) && p.isActive)
+                .toList())
         .where((p) => p.isActive && (p.isGroupOnly || p.isGroup))
         .toList()
       ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
@@ -2790,10 +2792,6 @@ class _HomeScreenState extends State<HomeScreen>
   // ─── 모바일 / 태블릿 레이아웃 (<900px) ──────────────────
   Widget _buildMobileLayout(AppLocalizations loc) {
     final pp = context.watch<ProductProvider>();
-    final screenW = MediaQuery.of(context).size.width;
-    final isMobile = screenW < 600; // <600: 모바일
-    final isTablet = screenW >= 600; // 600~899: 태블릿
-
     // 단체주문 목록도 ProductProvider가 Firestore에서 읽은 원본만 사용한다.
     final groupProds = pp.groupOnlyProducts
         .where((p) => p.isActive && (p.isGroupOnly || p.isGroup))
@@ -2811,11 +2809,9 @@ class _HomeScreenState extends State<HomeScreen>
         Column(
           children: [
             // ── 헤더 ──
-            // 모바일(<600): 기존 고정 헤더
-            if (isMobile)
-              SafeArea(bottom: false, child: _buildFixedHeader(loc)),
-            // 태블릿(600~899): PC NavBar 스타일 헤더
-            if (isTablet) _buildPcNavBar(loc),
+            // 900px 미만은 하나의 반응형 헤더만 표시한다. 태블릿에서
+            // 모바일 헤더와 레거시 PC NavBar가 동시에 렌더링되던 중복을 방지한다.
+            SafeArea(bottom: false, child: _buildFixedHeader(loc)),
 
             // ── 스크롤 영역 ──
             Expanded(
@@ -3115,7 +3111,8 @@ class _HomeScreenState extends State<HomeScreen>
                             color: AppColors.primary, size: 28),
                         SizedBox(height: r.h(8)),
                         Text(
-                          context.loc.t('전체보기 _개', '전체보기\\n${allGroupProds.length}개'),
+                          context.loc
+                              .t('전체보기 _개', '전체보기\\n${allGroupProds.length}개'),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: r.sp(12),
@@ -3143,6 +3140,7 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
+
   // ── 고정 헤더 (흰 배경) ──
   Widget _buildFixedHeader(AppLocalizations loc) {
     final r = Responsive.of(context);
@@ -6057,13 +6055,16 @@ class _HomeScreenState extends State<HomeScreen>
               Row(
                 children: [
                   InkWell(
-                    onTap: () => Navigator.pushNamed(context, '/terms-of-service'),
+                    onTap: () =>
+                        Navigator.pushNamed(context, '/terms-of-service'),
                     child: Text(loc.homeTermsOfUse,
-                        style: TextStyle(color: Colors.white38, fontSize: r.sp(11))),
+                        style: TextStyle(
+                            color: Colors.white38, fontSize: r.sp(11))),
                   ),
                   SizedBox(width: r.w(10)),
                   InkWell(
-                    onTap: () => Navigator.pushNamed(context, '/privacy-policy'),
+                    onTap: () =>
+                        Navigator.pushNamed(context, '/privacy-policy'),
                     child: Text(loc.homePrivacyPolicy,
                         style: TextStyle(
                             color: Colors.white38,
