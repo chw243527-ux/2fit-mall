@@ -1147,28 +1147,58 @@ class ProductService {
   static Future<bool> updateStockWithSizes(
       String productId, int newStock, Map<String, int> sizeStocks) async {
     try {
+      final idx = _products.indexWhere((p) => p.id == productId);
+      final current = idx >= 0 ? _products[idx] : null;
+      final sizes = current?.sizes.isNotEmpty == true
+          ? current!.sizes
+          : sizeStocks.keys.toList();
+      final colors = current?.colors.isNotEmpty == true
+          ? current!.colors
+          : <String>['기본'];
+
+      // 사이즈별 총량을 색상×사이즈 재고로 변환합니다.
+      // 기존 색상별 분배 비율은 유지하고, 기존 데이터가 없으면 색상별 균등 분배합니다.
+      final stockData = <String, Map<String, int>>{};
+      for (final size in sizes) {
+        final target = sizeStocks[size] ?? 0;
+        final previous = current?.stockData[size] ?? const <String, int>{};
+        final previousTotal = previous.values.fold<int>(0, (sum, qty) => sum + qty);
+        final perColor = <String, int>{};
+        if (colors.isEmpty) continue;
+        if (previousTotal > 0) {
+          var allocated = 0;
+          for (var i = 0; i < colors.length; i++) {
+            final color = colors[i];
+            final value = i == colors.length - 1
+                ? target - allocated
+                : ((target * (previous[color] ?? 0)) / previousTotal).floor();
+            perColor[color] = value < 0 ? 0 : value;
+            allocated += perColor[color]!;
+          }
+        } else {
+          final base = target ~/ colors.length;
+          final remainder = target % colors.length;
+          for (var i = 0; i < colors.length; i++) {
+            perColor[colors[i]] = base + (i < remainder ? 1 : 0);
+          }
+        }
+        stockData[size] = perColor;
+      }
+
       await _db.collection('products').doc(productId).update({
         'stockCount': newStock,
         'sizeStocks': sizeStocks,
+        'stockData': stockData,
+        'updatedAt': DateTime.now().toIso8601String(),
       });
-      // 로컬 캐시도 업데이트
-      final idx = _products.indexWhere((p) => p.id == productId);
+
+      // 로컬 캐시도 동일한 세 필드로 즉시 갱신합니다.
       if (idx >= 0) {
         final p = _products[idx];
-        _products[idx] = ProductModel(
-          id: p.id, name: p.name, category: p.category, subCategory: p.subCategory,
-          price: p.price, originalPrice: p.originalPrice,
-          description: p.description, images: p.images,
-          sizes: p.sizes, colors: p.colors, colorHexes: p.colorHexes, material: p.material,
-          isNew: p.isNew, newExpiresAt: p.newExpiresAt, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
-          isGroupOnly: p.isGroupOnly, isGroup: p.isGroup, isActive: p.isActive,
-          rating: p.rating, reviewCount: p.reviewCount,
-          stockCount: newStock, sizeStocks: sizeStocks,
-          soldOutSizes: p.soldOutSizes,
-          createdAt: p.createdAt, productCode: p.productCode, sectionImages: p.sectionImages,
-          nameTranslations: p.nameTranslations,
-          descriptionTranslations: p.descriptionTranslations,
-          bottomLength: p.bottomLength,
+        _products[idx] = p.copyWith(
+          stockCount: newStock,
+          sizeStocks: sizeStocks,
+          stockData: stockData,
         );
         _cache = List.from(_products);
         await _persist();
