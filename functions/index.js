@@ -471,6 +471,10 @@ exports.setStaffAdminClaim = onRequest({
     return;
   }
   if (!(await requireAdmin(req, res))) return;
+  if (req.adminEmail !== OWNER_ADMIN_EMAIL) {
+    res.status(403).json({ error: 'Owner administrator required' });
+    return;
+  }
   if (!(await enforceRateLimit(req, res, `staff-claim:${req.adminUid}`, { limit: 20, windowMs: 60 * 60 * 1000 }))) return;
   try {
     const targetUid = String(req.body?.targetUid || '').trim();
@@ -527,6 +531,7 @@ exports.ensureOwnerAdminClaim = onRequest(async (req, res) => {
       res.status(403).json({ error: 'Owner account required' });
       return;
     }
+    if (!(await enforceRateLimit(req, res, `owner-claim:${decoded.uid}`, { limit: 5, windowMs: 15 * 60 * 1000 }))) return;
     const email = String(decoded.email || '').trim().toLowerCase();
     const account = await getAuth().getUser(decoded.uid);
     await getAuth().setCustomUserClaims(decoded.uid, {
@@ -556,6 +561,7 @@ async function requireAdmin(req, res) {
       return false;
     }
     req.adminUid = decoded.uid;
+    req.adminEmail = String(decoded.email || '').trim().toLowerCase();
     return true;
   } catch (error) {
     console.error('HTTP admin authentication failed:', error);
