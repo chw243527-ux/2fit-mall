@@ -6593,10 +6593,10 @@ class _NoticePopupState extends State<_NoticePopup> {
       width: sheetW,
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.zero,
       ),
       child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.zero,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -7291,7 +7291,7 @@ class _BannerCouponPopupState extends State<_BannerCouponPopup> {
                 maxHeight: MediaQuery.of(context).size.height * 0.72),
             decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: BorderRadius.zero,
             ),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               Container(
@@ -7319,7 +7319,7 @@ class _BannerCouponPopupState extends State<_BannerCouponPopup> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.zero,
       ),
       child: Row(
         children: [
