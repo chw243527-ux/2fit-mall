@@ -390,10 +390,12 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) {
+          final dialogWidth =
+              (MediaQuery.sizeOf(context).width - 32).clamp(280.0, 560.0).toDouble();
           return AlertDialog(
             title: Text(order.groupName ?? options['teamName']?.toString() ?? '단체주문 상세'),
             content: SizedBox(
-              width: 560,
+              width: dialogWidth,
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,7 +414,10 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
                     const SizedBox(height: 8),
                     ...order.items.map((item) => Padding(
                           padding: const EdgeInsets.only(bottom: 6),
-                          child: Text('${item.productName} · ${item.color} · ${item.size} · ${item.quantity}개'),
+                          child: Text(
+                            '${item.productName} · ${item.color} · ${item.size} · ${item.quantity}개',
+                            softWrap: true,
+                          ),
                         )),
                     if (_isSingletOrder(order)) ...[
                       const SizedBox(height: 16),

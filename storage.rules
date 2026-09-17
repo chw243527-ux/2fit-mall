@@ -8,7 +8,7 @@ service firebase.storage {
 
     function isAdmin() {
       // 역할 권한은 서버에서만 관리하는 Auth custom claim을 사용합니다.
-      return isSignedIn() && request.auth.token.admin == true;
+      return isSignedIn() && request.auth.token.get('admin', false) == true;
     }
 
     function isReasonableUpload() {

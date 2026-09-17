@@ -1191,8 +1191,11 @@ exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAY
     if (intent.paymentKey && intent.paymentKey !== paymentKey) {
       res.status(409).json({ error: 'Payment key does not match the payment request' }); return;
     }
-    if (intent.expiresAt?.toDate?.().getTime() < Date.now() || intent.amount !== amount) {
-      res.status(400).json({ error: 'Payment amount does not match the secure order' }); return;
+    const intentExpiresAt = intent.expiresAt?.toDate?.().getTime();
+    if (!Number.isFinite(intentExpiresAt)
+        || intentExpiresAt < Date.now()
+        || intent.amount !== amount) {
+      res.status(400).json({ error: 'Payment request is expired or does not match the secure order' }); return;
     }
     await intentRef.update({
       status: 'approving',

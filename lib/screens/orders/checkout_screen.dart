@@ -1207,12 +1207,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final opts = _groupOrderOpts;
     if (opts == null) return const SizedBox.shrink();
 
+    // 단체주문서의 최신 인쇄 옵션 문구와 동일하게 표시합니다.
+    // 싱글렛·싱글렛 세트는 5개, 라운드티는 앞의 4개를 사용하고,
+    // 그 외 카테고리는 0번(색상변경)만 사용합니다.
     final printTypeLabels = [
-      context.loc.t('색상변경_단체명_없음', '색상변경 (단체명 없음)'),
-      context.loc.t('단체명_변경_전면', '단체명 변경 (전면)'),
-      context.loc.t('단체명_색상_변경', '단체명 + 색상 변경'),
-      context.loc.t('디자인_단체명_색상', '디자인 + 단체명 + 색상'),
-      context.loc.t('디자인_색상_단체명_이름_후면', '디자인 + 색상 + 단체명 + 이름(후면)')
+      context.loc.t('디자인_유지_색상_변경', '디자인 유지 + 색상 변경'),
+      context.loc.t('디자인_유지_단체명_색상_변경', '디자인 유지 + 단체명 + 색상 변경'),
+      context.loc.t('디자인_변경_단체명_색상_변경', '디자인 변경 + 단체명 + 색상 변경'),
+      context.loc.t('디자인_유지_색상_단체명_이름_후면', '디자인 유지 + 색상변경 + 단체명 + 이름(후면)'),
+      context.loc.t('디자인_변경_색상_단체명_이름_후면', '디자인 변경 + 색상변경 + 단체명 + 이름(후면)'),
     ];
     final printType = opts['printType'] as int? ?? 0;
     final printLabel = printType < printTypeLabels.length
@@ -1261,12 +1264,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         fontWeight: FontWeight.w500))),
             Expanded(
                 child: Text(value,
+                    softWrap: true,
                     style: TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: color ?? AppColors.primary),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2)),
+                    overflow: TextOverflow.visible)),
           ],
         ),
       );
