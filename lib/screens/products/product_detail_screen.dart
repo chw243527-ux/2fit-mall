@@ -1506,11 +1506,8 @@ $productUrl
                     isLight: isLight,
                     borderRadius: 18,
                     showRib: showRib,
-                    child: isSelected
-                        ? Icon(Icons.check_rounded,
-                            size: 16,
-                            color: isLight ? Colors.black87 : Colors.white)
-                        : null,
+                    // 선택 상태는 색상 원형과 테두리만으로 표시합니다.
+                    // 기성품 색상 스와치에는 체크 아이콘을 표시하지 않습니다.
                   ),
                 );
               }).toList(),
