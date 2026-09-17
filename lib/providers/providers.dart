@@ -173,6 +173,41 @@ class LanguageProvider extends ChangeNotifier implements LanguageProviderBridge 
 
 class CartProvider extends ChangeNotifier {
   final List<CartItem> _items = [];
+  StreamSubscription<List<ProductModel>>? _productsSubscription;
+
+  CartProvider() {
+    _productsSubscription = ProductService.productsStream().listen(
+      _syncProducts,
+      onError: (Object error, StackTrace stackTrace) {
+        if (kDebugMode) debugPrint('⚠️ 장바구니 상품 재고 동기화 실패: $error');
+      },
+    );
+  }
+
+  void _syncProducts(List<ProductModel> products) {
+    if (_items.isEmpty) return;
+    final byId = <String, ProductModel>{
+      for (final product in products) product.id: product,
+    };
+    var changed = false;
+    final removeIds = <String>{};
+    for (final item in _items) {
+      final latest = byId[item.product.id];
+      if (latest == null) continue;
+      item.product = latest;
+      final optionStock = latest.stockData[item.selectedSize]?[item.selectedColor];
+      if (optionStock != null && item.quantity > optionStock) {
+        item.quantity = optionStock;
+        changed = true;
+        if (optionStock <= 0) removeIds.add(item.id);
+      }
+      changed = true;
+    }
+    if (removeIds.isNotEmpty) {
+      _items.removeWhere((item) => removeIds.contains(item.id));
+    }
+    if (changed) notifyListeners();
+  }
 
   List<CartItem> get items => List.unmodifiable(_items);
   int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
@@ -230,8 +265,21 @@ class CartProvider extends ChangeNotifier {
       return;
     }
     final index = _items.indexWhere((item) => item.id == itemId);
-    if (index >= 0) {
-      _items[index].quantity = quantity;
+    if (index < 0) return;
+
+    final item = _items[index];
+    final optionStock = item.product.stockData[item.selectedSize]?[item.selectedColor];
+    // 상품 스트림으로 최신 상품이 반영된 경우에도 장바구니 수량이
+    // 현재 사이즈×색상 재고를 초과하지 않도록 제한합니다.
+    final cappedQuantity = optionStock == null
+        ? quantity
+        : quantity.clamp(0, optionStock).toInt();
+    if (cappedQuantity <= 0) {
+      removeItem(itemId);
+      return;
+    }
+    if (item.quantity != cappedQuantity) {
+      item.quantity = cappedQuantity;
       notifyListeners();
     }
   }
@@ -239,6 +287,12 @@ class CartProvider extends ChangeNotifier {
   void clearCart() {
     _items.clear();
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _productsSubscription?.cancel();
+    super.dispose();
   }
 }
 

@@ -415,10 +415,11 @@ class CartScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Row(
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
                     children: [
                       _optionChip(item.selectedSize),
-                      const SizedBox(width: 6),
                       _optionChip(item.selectedColor),
                     ],
                   ),
@@ -434,15 +435,15 @@ class CartScreen extends StatelessWidget {
                       _buildQtyControl(cart, item),
                     ],
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${loc.cartSubtotalAmount} ${_formatPrice(item.totalPrice)}${loc.wonUnit2}',
-                        style: const TextStyle(
-                            fontSize: 13, color: AppColors.textSecondary),
-                      ),
-                    ],
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      '${loc.cartSubtotalAmount} ${_formatPrice(item.totalPrice)}${loc.wonUnit2}',
+                      textAlign: TextAlign.right,
+                      softWrap: true,
+                      style: const TextStyle(
+                          fontSize: 13, color: AppColors.textSecondary),
+                    ),
                   ),
                 ],
               ),

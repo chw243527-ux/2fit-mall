@@ -498,7 +498,7 @@ class ProductModel {
 
 class CartItem {
   final String id;
-  final ProductModel product;
+  ProductModel product;
   String selectedSize;
   String selectedColor;
   int quantity;

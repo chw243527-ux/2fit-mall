@@ -264,6 +264,8 @@ class InventoryService {
   }) async {
     final prodDoc = _products.doc(productId);
     var wasOutOfStock = false;
+    var totalStockAfter = 0;
+    var productName = '';
     final logRef  = prodDoc.collection('stockLogs').doc();
 
     await _db.runTransaction((tx) async {
@@ -274,11 +276,59 @@ class InventoryService {
       final inv  = _toInventory(snap.id, data);
       final before = inv.stockForSizeColor(size, color);
       wasOutOfStock = inv.totalStock <= 0;
-      final after  = (before + delta).clamp(0, 999999);
+      productName = data['name']?.toString() ?? inv.productName;
+      final after  = (before + delta).clamp(0, 999999).toInt();
 
-      // stockData 업데이트 (dot-notation으로 해당 셀만 수정)
+      // 재고 조정은 stockData만 변경하면 sizeStocks를 읽는 상품 목록·상세 화면이
+      // 오래된 값을 계속 표시할 수 있습니다. 기존 모든 셀을 보존한 뒤 변경 셀,
+      // 사이즈별 합계, 전체 합계를 한 트랜잭션에서 함께 기록합니다.
+      final nextStockData = <String, dynamic>{};
+      final rawStock = data['stockData'];
+      if (rawStock is Map && rawStock.isNotEmpty) {
+        for (final entry in rawStock.entries) {
+          final sourceColors = entry.value;
+          final colorMap = <String, dynamic>{};
+          if (sourceColors is Map) {
+            for (final colorEntry in sourceColors.entries) {
+              final value = colorEntry.value;
+              colorMap[colorEntry.key.toString()] =
+                  value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+            }
+          }
+          nextStockData[entry.key.toString()] = colorMap;
+        }
+      } else {
+        for (final entry in inv.stock.entries) {
+          nextStockData[entry.key] = <String, dynamic>{
+            for (final colorEntry in entry.value.entries)
+              colorEntry.key: colorEntry.value,
+          };
+        }
+      }
+
+      final selectedSize = Map<String, dynamic>.from(
+        (nextStockData[size] as Map?) ?? <String, dynamic>{},
+      );
+      selectedSize[color] = after;
+      nextStockData[size] = selectedSize;
+
+      final nextSizeStocks = <String, int>{};
+      for (final entry in nextStockData.entries) {
+        final colors = entry.value;
+        var sizeTotal = 0;
+        if (colors is Map) {
+          for (final value in colors.values) {
+            sizeTotal += value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+          }
+        }
+        nextSizeStocks[entry.key] = sizeTotal;
+      }
+      totalStockAfter = nextSizeStocks.values.fold(0, (sum, value) => sum + value);
+
       tx.update(prodDoc, {
-        'stockData.$size.$color': after,
+        'stockData': nextStockData,
+        'sizeStocks': nextSizeStocks,
+        'stockCount': totalStockAfter,
         'updatedAt': DateTime.now().toIso8601String(),
       });
 
@@ -300,29 +350,10 @@ class InventoryService {
       ).toJson());
     });
 
-    // stockData만 바꾸면 상품 목록의 stockCount와 품절 상태가 늦게 갱신됩니다.
-    // 변경 직후 집계 필드도 함께 갱신해 상세·목록·재입고 알림이 같은 값을 사용하게 합니다.
-    final refreshed = await prodDoc.get();
-    final refreshedData = refreshed.data() ?? <String, dynamic>{};
-    final rawStock = refreshedData['stockData'];
-    var totalStock = 0;
-    if (rawStock is Map) {
-      for (final sizeMap in rawStock.values) {
-        if (sizeMap is Map) {
-          for (final qty in sizeMap.values) {
-            totalStock += qty is num ? qty.toInt() : int.tryParse('$qty') ?? 0;
-          }
-        }
-      }
-    }
-    await prodDoc.update({
-      'stockCount': totalStock,
-      'updatedAt': DateTime.now().toIso8601String(),
-    });
-    if (wasOutOfStock && totalStock > 0) {
+    if (wasOutOfStock && totalStockAfter > 0) {
       await FcmService.sendRestockNotification(
         productId: productId,
-        productName: refreshedData['name']?.toString() ?? '',
+        productName: productName,
       );
     }
 
@@ -341,20 +372,25 @@ class InventoryService {
     if (rawStock is! Map) return;
 
     final siblings = await _products.where('productCode', isEqualTo: code).get();
+    final sizeStocks = <String, int>{};
+    for (final entry in rawStock.entries) {
+      var sizeTotal = 0;
+      final sizeMap = entry.value;
+      if (sizeMap is Map) {
+        for (final qty in sizeMap.values) {
+          sizeTotal += qty is num ? qty.toInt() : int.tryParse('$qty') ?? 0;
+        }
+      }
+      sizeStocks[entry.key.toString()] = sizeTotal;
+    }
+    final siblingTotal = sizeStocks.values.fold(0, (sum, value) => sum + value);
     final batch = _db.batch();
     var count = 0;
     for (final doc in siblings.docs) {
       if (doc.id == productId) continue;
-      var siblingTotal = 0;
-      for (final sizeMap in rawStock.values) {
-        if (sizeMap is Map) {
-          for (final qty in sizeMap.values) {
-            siblingTotal += qty is num ? qty.toInt() : int.tryParse('$qty') ?? 0;
-          }
-        }
-      }
       batch.update(doc.reference, {
         'stockData': rawStock,
+        'sizeStocks': sizeStocks,
         'stockCount': siblingTotal,
         'updatedAt': DateTime.now().toIso8601String(),
       });

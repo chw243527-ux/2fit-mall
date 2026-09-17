@@ -3573,14 +3573,17 @@ class _MobileProfileHeader extends StatelessWidget {
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(user!.name,
+                                  softWrap: true,
                                   style: const TextStyle(
                                       color: AppColors.textPrimary,
                                       fontSize: 17,
                                       fontWeight: FontWeight.w500)),
-                              const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 2),
@@ -3596,6 +3599,8 @@ class _MobileProfileHeader extends StatelessWidget {
                             ],
                           ),
                           Text(user!.email,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                   color: AppColors.textSecondary, fontSize: 12)),
                         ],
@@ -3759,13 +3764,19 @@ class _MobileStatItem extends StatelessWidget {
         onTap: onTap,
         child: Column(
           children: [
-            Text(display,
-                style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary)),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(display,
+                  style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textPrimary)),
+            ),
             const SizedBox(height: 2),
             Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
           ],
         ),
@@ -4115,7 +4126,10 @@ class _MobileOrderCard extends StatelessWidget {
             },
             child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-              child: Row(
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                runSpacing: 4,
                 children: [
                   Text(context.loc.t('결제금액', '결제금액 '),
                       style: TextStyle(fontSize: 12, color: Colors.grey[600])),
@@ -4124,7 +4138,6 @@ class _MobileOrderCard extends StatelessWidget {
                           fontSize: 15,
                           fontWeight: FontWeight.w900,
                           color: AppColors.primary)),
-                  const Spacer(),
                   Text('${order.paymentMethod}',
                       style: TextStyle(fontSize: 11, color: Colors.grey[500])),
                 ],
