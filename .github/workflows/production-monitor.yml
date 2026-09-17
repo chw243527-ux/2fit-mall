@@ -2,22 +2,70 @@ name: Production Monitor
 
 on:
   schedule:
-    - cron: '17 2 * * *'
+    - cron: '17 */6 * * *'
   workflow_dispatch:
 
 permissions:
   contents: read
+  issues: write
+
+concurrency:
+  group: production-monitor
+  cancel-in-progress: true
+
+env:
+  PRODUCTION_WEB_URL: ${{ vars.PRODUCTION_WEB_URL || 'https://2fit-mall.co.kr' }}
 
 jobs:
-  smoke:
+  monitor:
+    name: Production health dashboard
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
-      - name: Check production web
-        env:
-          PRODUCTION_WEB_URL: ${{ vars.PRODUCTION_WEB_URL || 'https://2fit-mall.co.kr' }}
+      - name: Run production monitor
+        id: monitor
+        continue-on-error: true
         run: |
-          set -euo pipefail
-          test -n "${PRODUCTION_WEB_URL}"
-          scripts/production_smoke_check.sh
+          set -o pipefail
+          chmod +x scripts/production_monitor.sh
+          scripts/production_monitor.sh | tee monitoring-summary.md
+      - name: Publish monitoring dashboard summary
+        if: always()
+        run: |
+          {
+            echo '## Production Monitoring Dashboard'
+            echo
+            cat monitoring-summary.md
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload monitoring evidence
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: production-monitor-${{ github.run_id }}
+          path: monitoring-output/
+          retention-days: 30
+      - name: Create or update incident issue
+        if: steps.monitor.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title='Production monitoring alert'
+          body_file='monitoring-incident.md'
+          {
+            echo "Automated production monitoring detected a degraded check."
+            echo
+            echo "- Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo "- Checked URL: ${PRODUCTION_WEB_URL}"
+            echo
+            cat monitoring-summary.md
+          } > "${body_file}"
+          existing="$(gh issue list --state open --search \"${title} in:title\" --json number --jq '.[0].number // empty')"
+          if [[ -n "${existing}" ]]; then
+            gh issue comment "${existing}" --body-file "${body_file}"
+          else
+            gh issue create --title "${title}" --body-file "${body_file}" --label "production,monitoring" || gh issue create --title "${title}" --body-file "${body_file}"
+          fi
+      - name: Fail workflow when production is degraded
+        if: steps.monitor.outcome == 'failure'
+        run: exit 1
