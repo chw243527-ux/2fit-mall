@@ -7325,10 +7325,9 @@ $productUrl
     final configured = product.colorPrices[color];
     if (configured != null) return configured;
     // 기성품은 관리자에서 색상별 추가요금을 명시한 경우에만 부과합니다.
-    if (product.isReadyMade) return 0.0;
-    return AppConstants.freeColors.contains(color)
-        ? 0.0
-        : AppConstants.extraColorPrice.toDouble();
+    // 색상별 추가금은 관리자 설정이 있을 때만 적용한다. 설정이 없으면
+    // 상품 유형과 색상에 관계없이 기본값은 0원이다.
+    return 0.0;
   }
 
   // 실제 장바구니 추가 처리
@@ -10216,9 +10215,7 @@ class _QuickSizeColorSelectSheetState
     if (color == null) return 0.0;
     final configured = widget.product.colorPrices[color];
     if (configured != null) return configured;
-    return AppConstants.freeColors.contains(color)
-        ? 0.0
-        : AppConstants.extraColorPrice.toDouble();
+    return 0.0;
   }
 
   @override
@@ -10586,7 +10583,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
         'price': widget.colorPrices[name] ?? 0.0,
       };
     }).toList();
-    final freeColors = AppConstants.freeColors;
+    final isTights = widget.isTightsCategory;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -10597,21 +10594,24 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
             Text(loc.colorLabel2,
                 style:
                     TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
-            SizedBox(width: r.w(8)),
-            Container(
-              padding:
-                  EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF3E0),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: const Color(0xFFFFB74D), width: 0.8),
+            if (isTights) ...[
+              SizedBox(width: r.w(8)),
+              Container(
+                padding:
+                    EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF3E0),
+                  borderRadius: BorderRadius.circular(4),
+                  border:
+                      Border.all(color: const Color(0xFFFFB74D), width: 0.8),
+                ),
+                child: Text(loc.productColorExtraNote,
+                    style: TextStyle(
+                        fontSize: r.sp(10),
+                        color: AppColors.accent,
+                        fontWeight: FontWeight.w700)),
               ),
-              child: Text(loc.productColorExtraNote,
-                  style: TextStyle(
-                      fontSize: r.sp(10),
-                      color: AppColors.accent,
-                      fontWeight: FontWeight.w700)),
-            ),
+            ],
           ],
         ),
         SizedBox(height: r.h(10)),
@@ -10628,7 +10628,6 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
             );
             if (found.isEmpty) return const SizedBox.shrink();
             final configuredPrice = (found['price'] as num?)?.toDouble() ?? 0.0;
-            final isFree = configuredPrice <= 0 && freeColors.contains(col);
             final selHex = found['hex'] as int;
             final selColor = Color(selHex);
             return Padding(
@@ -10652,14 +10651,13 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                     style: TextStyle(
                         fontSize: r.sp(13), fontWeight: FontWeight.w700)),
                 SizedBox(width: r.w(6)),
-                if (!widget.hideExtraPrice)
+                if (!widget.hideExtraPrice && configuredPrice > 0)
                   Text(
-                    isFree ? context.loc.t('기본색상', '기본색상') : '+20,000원',
+                    '+${configuredPrice.toInt()}원',
                     style: TextStyle(
                       fontSize: r.sp(11),
                       fontWeight: FontWeight.w700,
-                      color:
-                          isFree ? AppColors.success : const Color(0xFFCC0000),
+                      color: const Color(0xFFCC0000),
                     ),
                   ),
               ]),
@@ -10679,7 +10677,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
             final code = c['code'] as String;
             final sel = widget.selectedColor == name;
             final configuredPrice = (c['price'] as num?)?.toDouble() ?? 0.0;
-            final isFree = configuredPrice <= 0 && freeColors.contains(name);
+            final isFree = configuredPrice <= 0;
             return GestureDetector(
               onTap: () => widget.onColorChanged(name),
               child: Column(
@@ -10716,7 +10714,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
           }).toList(),
         ),
         SizedBox(height: r.h(4)),
-        if (!widget.hideExtraPrice)
+        if (isTights && !widget.hideExtraPrice)
           Text(loc.productColorExtraFull,
               style: TextStyle(
                   fontSize: r.sp(10), color: AppColors.textSecondary)),
