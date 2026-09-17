@@ -227,20 +227,25 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ══ 파생값 ══
   bool get _isAdditional => widget.isAdditionalOrder;
   int get _totalCount => _persons.length;
-  bool get _keepFullPrintOptions {
+  String get _productTypeText {
     final p = widget.product;
-    if (p == null) return false;
-    final text = '${p.category} ${p.subCategory} ${p.name}';
-    return text.contains('싱글렛');
+    return p == null ? '' : '${p.category} ${p.subCategory} ${p.name}';
   }
+  bool get _isSingletPrintProduct => _productTypeText.contains('싱글렛');
+  bool get _isRoundTeePrintProduct =>
+      _productTypeText.contains('라운드티') || _productTypeText.contains('라운드 티');
+  bool get _keepFullPrintOptions =>
+      _isSingletPrintProduct || _isRoundTeePrintProduct;
+  int get _maxPrintOptionId => _isSingletPrintProduct ? 4 : 3;
 
-  // 싱글렛·싱글렛 세트: 0=디자인 유지+색상, 1=디자인 유지+단체명+색상,
-  // 2=디자인 변경+단체명+색상, 3/4=단체명+색상+개인 이름(후면)
+  // 싱글렛·싱글렛 세트: 0~4, 라운드티: 0~3
   bool get _hasColorChange => true;
   bool get _hasTeamName =>
-      _keepFullPrintOptions && (_printType >= 1 && _printType <= 4);
+      _keepFullPrintOptions && _printType >= 1 && _printType <= _maxPrintOptionId;
   bool get _nameEnabled =>
-      _keepFullPrintOptions && (_printType == 3 || _printType == 4) && _totalCount >= 10;
+      _keepFullPrintOptions &&
+      (_printType == 3 || (_isSingletPrintProduct && _printType == 4)) &&
+      _totalCount >= 10;
   OrderModel? get _originalOrder => widget.originalOrder;
 
   /// 허리밴드 옵션 레이블 (중복 선택 반영)
@@ -350,10 +355,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       // 언어 변경 시 번역 트리거
       context.read<LanguageProvider>().triggerTranslation();
     });
-    // 싱글렛·싱글렛 세트만 이미지 기준 5개 옵션을 유지하고,
+    // 싱글렛·싱글렛 세트는 5개, 라운드티는 4개 옵션을 유지하고,
     // 그 외 카테고리는 색상변경 단일 옵션으로 고정합니다.
     _printType = _keepFullPrintOptions
-        ? widget.initialPrintType.clamp(0, 4)
+        ? widget.initialPrintType.clamp(0, _maxPrintOptionId)
         : 0;
     // 추가제작은 1장부터 가능하며 신규 단체주문은 관리자 정책을 사용합니다.
     final minCount = widget.isAdditionalOrder ? 1 : _groupMinimumQuantity;
@@ -1598,7 +1603,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         'condLabel': context.loc.t('10명', '10명↑'),
       },
     ];
-    final options = _keepFullPrintOptions ? allOptions : [allOptions.first];
+    final options = _keepFullPrintOptions
+        ? allOptions.where((opt) => (opt['id'] as int) <= _maxPrintOptionId).toList()
+        : [allOptions.first];
 
     return _card(
       title: context.loc.t('인쇄_타입', '인쇄 타입'),
