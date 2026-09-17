@@ -38,10 +38,10 @@ jobs:
             "FIREBASE_PROJECT_ID=fit-mall-rules-test node security/rules_smoke_test.js"
       - name: Validate Storage Rules boundaries
         run: |
-          grep -q "match /products/{allPaths=**}" storage.rules
-          grep -q "match /orders/{orderId}/{allPaths=**}" storage.rules
-          grep -q "match /group_orders/{userId}/{orderId}/{allPaths=**}" storage.rules
-          grep -q "allow read, write: if false" storage.rules
+          grep -Fq "match /products/{allPaths=**}" storage.rules
+          grep -Fq "match /orders/{orderId}/{allPaths=**}" storage.rules
+          grep -Fq "match /group_orders/{userId}/{orderId}/{allPaths=**}" storage.rules
+          grep -Fq "allow read, write: if false" storage.rules
       - name: Validate Cloudflare security headers file
         run: |
           test -s web/_headers
