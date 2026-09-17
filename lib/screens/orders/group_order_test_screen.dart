@@ -342,8 +342,8 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
         id: orderId,
         userId: user.id, // ← 실제 로그인 유저 ID
         userName: manager.isNotEmpty ? manager : user.name,
-        userPhone: phone.isNotEmpty ? phone : (user.phone ?? ''),
-        userEmail: email.isNotEmpty ? email : (user.email ?? ''),
+        userPhone: phone.isNotEmpty ? phone : user.phone,
+        userEmail: email.isNotEmpty ? email : user.email,
         userAddress: '서울시 강남구 테스트로 123 테스트빌딩 4층',
         items: items,
         totalAmount: total,

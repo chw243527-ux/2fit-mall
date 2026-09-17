@@ -239,7 +239,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   int get _maxPrintOptionId => _isSingletPrintProduct ? 4 : 3;
 
   // 싱글렛·싱글렛 세트: 0~4, 라운드티: 0~3
-  bool get _hasColorChange => true;
   bool get _hasTeamName =>
       _keepFullPrintOptions && _printType >= 1 && _printType <= _maxPrintOptionId;
   bool get _nameEnabled =>
@@ -1014,7 +1013,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'mainColorHex':
           '#${(_mainColor ?? Colors.grey).toARGB32().toRadixString(16).substring(2).toUpperCase()}',
       'mainColorImageUrl': product.images.isNotEmpty ? product.images.first : '',
-      'productImageUrl': designImg,
       'productCategory': product.category,
       'productSubCategory': product.subCategory,
       'productName': product.name,
@@ -1062,7 +1060,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'designLogoBase64':
           _designLogoBytes != null ? base64Encode(_designLogoBytes!) : '',
       'productId': product.id,
-      'productName': product.name,
       'unitPrice': _unitPrice,
       'subtotal': _subTotal,
       'discountAmount': _discountAmount,
@@ -1123,8 +1120,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       memo: _memoCtrl.text.trim(),
       createdAt: DateTime.now(),
       customOptions: customOptions,
-      cashReceiptNum: user?.cashReceiptNum?.isNotEmpty == true
-          ? user!.cashReceiptNum
+      cashReceiptNum: user.cashReceiptNum?.isNotEmpty == true
+          ? user.cashReceiptNum
           : null,
     );
 

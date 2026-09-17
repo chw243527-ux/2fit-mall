@@ -1415,7 +1415,6 @@ class AuthService {
       if (user == null)
         return const AuthResult(success: false, error: '로그인 실패');
 
-      final emailKey = (user.email ?? '').toLowerCase();
       final isAdmin = await _hasAdminClaim();
 
       // Firestore에 사용자 문서 생성/업데이트 (assertion 에러 시 폴백)

@@ -7,8 +7,6 @@ import '../../services/inventory_service.dart';
 import '../../services/barcode_print_service.dart';
 import '../../services/product_service.dart';
 import '../../utils/app_localizations.dart';
-import 'package:provider/provider.dart';
-import '../../providers/providers.dart';
 
 import '../../utils/theme.dart';
 
@@ -326,7 +324,7 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
       if (!mounted) return;
 
       // products.stockData 필드에 직접 쓰기
-      final created = await InventoryService.syncAllProducts(products);
+      await InventoryService.syncAllProducts(products);
 
       // 동기화 후 즉시 화면 갱신
       final displayList = await InventoryService.fetchAll();

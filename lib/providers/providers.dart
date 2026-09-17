@@ -11,7 +11,6 @@ import '../services/email_service.dart';
 import '../services/wishlist_coupon_service.dart';
 import '../services/product_service.dart';
 import '../services/review_service.dart';
-import '../services/wishlist_coupon_service.dart';
 import '../services/translation_service.dart';
 import '../services/size_profile_service.dart';
 import '../services/banner_service.dart';
