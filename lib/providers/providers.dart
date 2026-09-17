@@ -179,7 +179,7 @@ class CartProvider extends ChangeNotifier {
     _productsSubscription = ProductService.productsStream().listen(
       _syncProducts,
       onError: (Object error, StackTrace stackTrace) {
-        if (kDebugMode) debugPrint('⚠️ 장바구니 상품 재고 동기화 실패: $error');
+        if (kDebugMode) debugPrint('client_operation_failed');
       },
     );
   }
@@ -361,7 +361,7 @@ class UserProvider extends ChangeNotifier {
       });
       if (kDebugMode) debugPrint('✅ 관리자 FCM 토큰 등록 완료');
     } catch (e) {
-      if (kDebugMode) debugPrint('관리자 FCM 토큰 등록 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -420,7 +420,7 @@ class UserProvider extends ChangeNotifier {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 프로필 업데이트 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -454,7 +454,7 @@ class UserProvider extends ChangeNotifier {
       'addresses': addresses.map((a) => a.toJson()).toList(),
       'updatedAt': FieldValue.serverTimestamp(),
     }).catchError(
-      (e) { if (kDebugMode) debugPrint('⚠️ 주소 저장 실패: $e'); },
+      (e) { if (kDebugMode) debugPrint('client_operation_failed'); },
     );
   }
 
@@ -468,7 +468,7 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
     // Firestore 동기화 (비동기, 실패해도 UI는 즉시 반영)
     WishlistService.toggleWishlist(_user!.id, productId).catchError(
-      (e) { if (kDebugMode) debugPrint('⚠️ 찜 동기화 실패: $e'); },
+      (e) { if (kDebugMode) debugPrint('client_operation_failed'); },
     );
   }
 
@@ -482,7 +482,7 @@ class UserProvider extends ChangeNotifier {
         ..addAll(wishlist);
       notifyListeners();
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 찜 목록 동기화 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -523,7 +523,7 @@ class OrderProvider extends ChangeNotifier {
           );
         }
       } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ 주문 저장 실패: $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
         // 저장 실패 시 로컬에서 제거하고 실패 이벤트 발행 → UI에서 처리
         _orders.removeWhere((o) => o.id == order.id);
         _orderSaveError = order.id;
@@ -536,7 +536,7 @@ class OrderProvider extends ChangeNotifier {
           }
           await EmailService.sendOrderConfirmEmail(order);
         } catch (e) {
-          if (kDebugMode) debugPrint('⚠️ 주문 이메일 발송 실패: $e');
+          if (kDebugMode) debugPrint('client_operation_failed');
         }
       }
     });
@@ -649,7 +649,7 @@ class CouponProvider extends ChangeNotifier {
         _coupons = [];
         _loading = false;
         notifyListeners();
-        if (kDebugMode) debugPrint('⚠️ 쿠폰 로드 실패: $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       },
     );
   }
@@ -795,7 +795,7 @@ class NotificationProvider extends ChangeNotifier {
         ..addAll(loaded);
       notifyListeners();
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 알림 로드 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -1166,7 +1166,7 @@ class NoticeProvider extends ChangeNotifier {
         ..addAll(loaded);
       if (loaded.isNotEmpty) _autoTranslateNotices(loaded);
     } catch (e) {
-      if (kDebugMode) debugPrint('공지사항 Firestore 로드 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
     _isLoading = false;
     notifyListeners();
@@ -1216,7 +1216,7 @@ class NoticeProvider extends ChangeNotifier {
           }
         }
       } catch (e) {
-        if (kDebugMode) debugPrint('공지 자동번역 실패 (${notice.id}): $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
     }
   }
@@ -1248,7 +1248,7 @@ class NoticeProvider extends ChangeNotifier {
       notifyListeners();
       _autoTranslateNotices([notice]);
     } catch (e) {
-      if (kDebugMode) debugPrint('공지 저장 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       rethrow;
     }
   }
@@ -1260,7 +1260,7 @@ class NoticeProvider extends ChangeNotifier {
       _notices.removeWhere((n) => n.id == id);
       notifyListeners();
     } catch (e) {
-      if (kDebugMode) debugPrint('공지 삭제 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       rethrow;
     }
   }
@@ -1296,7 +1296,7 @@ class NoticeProvider extends ChangeNotifier {
       // 실패 시 롤백
       _notices[idx] = old;
       notifyListeners();
-      if (kDebugMode) debugPrint('공지 토글 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -1322,7 +1322,7 @@ class NoticeProvider extends ChangeNotifier {
         _notices.addAll(loaded);
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('공지 전체 로드 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
     _isLoading = false;
     notifyListeners();
@@ -1403,7 +1403,7 @@ class ProductProvider extends ChangeNotifier {
         notifyListeners();
       },
       onError: (Object error, StackTrace stackTrace) {
-        if (kDebugMode) debugPrint('⚠️ 실시간 상품 스트림 오류: $error');
+        if (kDebugMode) debugPrint('client_operation_failed');
         _error = '상품 실시간 동기화에 실패했습니다. 잠시 후 다시 시도해 주세요.';
         _isLoading = false;
         notifyListeners();
@@ -1436,7 +1436,7 @@ class ProductProvider extends ChangeNotifier {
       _isGroupOnlyLoading = false;
       notifyListeners();
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 단체주문 전용 상품 로드 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       _isGroupOnlyLoading = false;
       // 폴백: 전체 상품에서 필터링
       _groupOnlyProducts = _products
@@ -1529,7 +1529,7 @@ class ProductProvider extends ChangeNotifier {
           }
         }
       } catch (e) {
-        if (kDebugMode) debugPrint('자동번역 실패 (${product.id}): $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
     }
   }
@@ -1601,7 +1601,7 @@ class ProductProvider extends ChangeNotifier {
       _isAdminLoading = false;
       _adminProducts = ProductService.getAllProductsSync();
       notifyListeners();
-      if (kDebugMode) debugPrint('관리자 상품 로드 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -1798,7 +1798,7 @@ class BannerProvider extends ChangeNotifier {
     try {
       await BannerService.seedDefaultBanners();
     } catch (e) {
-      if (kDebugMode) debugPrint('BannerProvider: seedDefaultBanners error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
 
     // 기존 구독 취소 후 재구독
@@ -1811,7 +1811,7 @@ class BannerProvider extends ChangeNotifier {
         notifyListeners();
       },
       onError: (e) {
-        if (kDebugMode) debugPrint('BannerProvider stream error: $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
         _error = e.toString();
         _loading = false;
         notifyListeners();
@@ -1834,7 +1834,7 @@ class BannerProvider extends ChangeNotifier {
         notifyListeners();
       },
       onError: (e) {
-        if (kDebugMode) debugPrint('BannerProvider retry error: $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
         _error = e.toString();
         _loading = false;
         notifyListeners();
@@ -1881,7 +1881,7 @@ class PointProvider extends ChangeNotifier {
       onError: (e) {
         _loading = false;
         notifyListeners();
-        if (kDebugMode) debugPrint('⚠️ 포인트 잔액 로드 실패: $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       },
     );
 
@@ -1893,7 +1893,7 @@ class PointProvider extends ChangeNotifier {
         notifyListeners();
       },
       onError: (e) {
-        if (kDebugMode) debugPrint('⚠️ 포인트 내역 로드 실패: $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       },
     );
   }

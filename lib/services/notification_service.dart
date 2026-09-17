@@ -120,7 +120,7 @@ class NotificationService {
       }
     } catch (e) {
       // 알림 실패가 주문·결제 흐름을 막지 않도록 처리합니다.
-      if (kDebugMode) debugPrint('서버 알림 호출 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -162,7 +162,7 @@ class NotificationService {
           }),
         ).timeout(const Duration(seconds: 10));
       } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ 관리자 이메일 발송 실패: $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
     } else {
       if (kDebugMode) {
@@ -269,7 +269,7 @@ class AdminWebNotifier {
       if (kDebugMode) debugPrint('🔔 알림 권한 결과: $permission');
       return _permissionGranted;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 알림 권한 요청 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -339,7 +339,7 @@ class AdminWebNotifier {
       // 브라우저 알림 생성 (title + body 함께 전달)
       web_notif.showBrowserNotification(title, body);
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 브라우저 알림 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 }

@@ -71,7 +71,7 @@ class CategoryService {
         _cachedSubCatMap = subs;
       }
     } catch (e) {
-      debugPrint('⚠️ CategoryService.load 실패: $e');
+      debugPrint('client_operation_failed');
       _cachedMainCats ??= List<String>.from(defaultMainCategories);
       _cachedSubCatMap ??= Map<String, List<String>>.from(defaultSubCatMap.map(
         (k, v) => MapEntry(k, List<String>.from(v)),
@@ -120,7 +120,7 @@ class CategoryService {
       // Firestore 저장 실패 → 캐시 롤백
       _cachedMainCats = prevCats;
       _cachedSubCatMap = prevSubs;
-      debugPrint('❌ CategoryService.addMainCategory 실패: $e');
+      debugPrint('client_operation_failed');
       rethrow;
     }
   }
@@ -138,7 +138,7 @@ class CategoryService {
     } catch (e) {
       _cachedMainCats = prevCats;
       _cachedSubCatMap = prevSubs;
-      debugPrint('❌ CategoryService.removeMainCategory 실패: $e');
+      debugPrint('client_operation_failed');
       rethrow;
     }
   }
@@ -156,7 +156,7 @@ class CategoryService {
       await _saveToFirestore(List<String>.from(mainCategories), subs);
     } catch (e) {
       _cachedSubCatMap = prevSubs;
-      debugPrint('❌ CategoryService.addSubCategory 실패: $e');
+      debugPrint('client_operation_failed');
       rethrow;
     }
   }
@@ -172,7 +172,7 @@ class CategoryService {
       await _saveToFirestore(List<String>.from(mainCategories), subs);
     } catch (e) {
       _cachedSubCatMap = prevSubs;
-      debugPrint('❌ CategoryService.removeSubCategory 실패: $e');
+      debugPrint('client_operation_failed');
       rethrow;
     }
   }
@@ -194,7 +194,7 @@ class CategoryService {
       await _saveToFirestore(List<String>.from(mainCategories), subs);
     } catch (e) {
       _cachedSubCatMap = prevSubs;
-      debugPrint('❌ CategoryService.renameSubCategory 실패: $e');
+      debugPrint('client_operation_failed');
       rethrow;
     }
   }
@@ -209,7 +209,7 @@ class CategoryService {
       await _saveToFirestore(List<String>.from(mainCategories), subs);
     } catch (e) {
       _cachedSubCatMap = prevSubs;
-      debugPrint('❌ CategoryService.reorderSubCategories 실패: $e');
+      debugPrint('client_operation_failed');
       rethrow;
     }
   }
@@ -222,7 +222,7 @@ class CategoryService {
       await _saveToFirestore(newOrder, Map<String, List<String>>.from(subCatMap));
     } catch (e) {
       _cachedMainCats = prevCats;
-      debugPrint('❌ CategoryService.reorderMainCategories 실패: $e');
+      debugPrint('client_operation_failed');
       rethrow;
     }
   }

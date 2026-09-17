@@ -180,8 +180,7 @@ if(document.readyState==='loading'){
             });
           }
         } catch (e) {
-          if (kDebugMode)
-            debugPrint(context.loc.t('주소 파싱 오류 _', '주소 파싱 오류: $e'));
+          if (kDebugMode) debugPrint('address_parse_failed');
         }
       })
       ..loadHtmlString(_pageHtml);

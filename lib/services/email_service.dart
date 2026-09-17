@@ -46,12 +46,12 @@ class EmailService {
         return true;
       } else {
         if (kDebugMode) {
-          debugPrint('❌ 이메일 발송 실패: ${response.statusCode} ${response.body}');
+          debugPrint('email_delivery_failed: status=${response.statusCode}');
         }
         return _queueEmail(templateId: templateId, params: templateParams);
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('EmailJS 오류: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return _queueEmail(templateId: templateId, params: templateParams);
     }
   }
@@ -74,7 +74,7 @@ class EmailService {
       if (kDebugMode) debugPrint('📧 이메일 큐 저장 완료');
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('이메일 큐 저장 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }

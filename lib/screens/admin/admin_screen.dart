@@ -683,7 +683,7 @@ class _AdminScreenState extends State<AdminScreen>
         _designRequests.addAll(requests);
       });
     } catch (e) {
-      if (kDebugMode) debugPrint('디자인 수정 요청 로드 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -740,7 +740,7 @@ class _AdminScreenState extends State<AdminScreen>
       final ok = response.statusCode >= 200 && response.statusCode < 300;
       String message = ok ? '테스트 푸시를 전송했습니다.' : '테스트 푸시 전송에 실패했습니다.';
       if (!ok && response.body.isNotEmpty) {
-        message = '테스트 푸시 실패 (${response.statusCode}): ${response.body}';
+        message = '테스트 푸시 전송에 실패했습니다. 잠시 후 다시 시도해 주세요.';
       }
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(message),
@@ -787,7 +787,7 @@ class _AdminScreenState extends State<AdminScreen>
         }
       });
     } catch (e) {
-      if (kDebugMode) debugPrint('관리 콘텐츠 목록 로드 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -883,7 +883,7 @@ class _AdminScreenState extends State<AdminScreen>
       }, SetOptions(merge: true));
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('관리 콘텐츠 목록 저장 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -4616,14 +4616,14 @@ class _AdminScreenState extends State<AdminScreen>
                                   newStatus: newStatus,
                                 ).catchError((e) {
                                   if (kDebugMode)
-                                    debugPrint('⚠️ FCM 알림 실패: $e');
+                                    debugPrint('client_operation_failed');
                                 });
                                 // ── 2. 카카오 알림톡 (배송완료 / 취소) ───────
                                 if (newStatus == OrderStatus.delivered) {
                                   NotificationService.sendDelivered(order)
                                       .catchError((e) {
                                     if (kDebugMode)
-                                      debugPrint('⚠️ 알림톡(배송완료) 실패: $e');
+                                      debugPrint('client_operation_failed');
                                   });
                                 } else if (newStatus == OrderStatus.cancelled) {
                                   NotificationService.sendCancelled(
@@ -4631,7 +4631,7 @@ class _AdminScreenState extends State<AdminScreen>
                                     reason: '관리자 처리',
                                   ).catchError((e) {
                                     if (kDebugMode)
-                                      debugPrint('⚠️ 알림톡(취소) 실패: $e');
+                                      debugPrint('client_operation_failed');
                                   });
                                 }
                                 if (mounted) {
@@ -10095,7 +10095,7 @@ class _AdminScreenState extends State<AdminScreen>
                     order: targetOrder,
                     newStatus: newStatus,
                   ).catchError((e) {
-                    if (kDebugMode) debugPrint('⚠️ FCM 알림 실패: $e');
+                    if (kDebugMode) debugPrint('client_operation_failed');
                   });
 
                   // ── 2. 카카오 알림톡 발송 (배송 시작) ────────────
@@ -10106,7 +10106,7 @@ class _AdminScreenState extends State<AdminScreen>
                       trackingNumber: trackingNum,
                       courierName: courierName,
                     ).catchError((e) {
-                      if (kDebugMode) debugPrint('⚠️ 알림톡 발송 실패: $e');
+                      if (kDebugMode) debugPrint('client_operation_failed');
                     });
                   }
                 }
@@ -14530,7 +14530,7 @@ class _AdminScreenState extends State<AdminScreen>
             backgroundColor: _getDesignStatusColor(newStatus)),
       );
     } catch (e) {
-      if (kDebugMode) debugPrint('디자인 수정 처리 업데이트 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       if (!mounted) return;
       setState(() => _designRequests[idx] = before);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -14576,7 +14576,7 @@ class _AdminScreenState extends State<AdminScreen>
                   ),
                 );
               } catch (e) {
-                if (kDebugMode) debugPrint('디자인 요청 보관 실패: $e');
+                if (kDebugMode) debugPrint('client_operation_failed');
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -14642,7 +14642,7 @@ class _AdminScreenState extends State<AdminScreen>
                   );
                 }
               } catch (e) {
-                if (kDebugMode) debugPrint('디자인 요청 메모 저장 실패: $e');
+                if (kDebugMode) debugPrint('client_operation_failed');
                 if (mounted) {
                   setState(() => _designRequests[idx] = before);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -15640,7 +15640,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                   });
             }
           }
-          if (kDebugMode) debugPrint('이미지 업로드 실패 ($i): $e');
+          if (kDebugMode) debugPrint('client_operation_failed');
         }
       }
       if (!mounted) return;

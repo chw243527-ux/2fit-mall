@@ -52,7 +52,7 @@ Future<bool> _initializeHiveInBackground() async {
     await Hive.initFlutter().timeout(const Duration(seconds: 5));
     return true;
   } catch (e) {
-    if (kDebugMode) debugPrint('⚠️ Hive 초기화 오류: $e');
+    if (kDebugMode) debugPrint('client_operation_failed');
     return false;
   }
 }
@@ -69,7 +69,7 @@ Future<bool> _initializeFirebaseInBackground() async {
     return true;
   } catch (e) {
     AuthService.completeFirebaseInitialization(false);
-    if (kDebugMode) debugPrint('⚠️ Firebase 초기화 오류: $e');
+    if (kDebugMode) debugPrint('client_operation_failed');
     return false;
   }
 }
@@ -142,7 +142,7 @@ Future<void> main() async {
       );
       if (kDebugMode) debugPrint('✅ KakaoSdk 초기화 성공');
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ KakaoSdk 초기화 오류: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
 
     _hiveReadyFuture = _initializeHiveInBackground();
@@ -166,7 +166,7 @@ Future<void> main() async {
       try {
         await FcmService.initialize().timeout(const Duration(seconds: 8));
       } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ FCM 백그라운드 초기화 건너뜀: $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
       try {
         await CategoryService.load().timeout(const Duration(seconds: 8));
@@ -174,7 +174,7 @@ Future<void> main() async {
           debugPrint('✅ CategoryService 로드: ${CategoryService.mainCategories}');
         }
       } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ CategoryService 백그라운드 로드 건너뜀: $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
       });
     });
@@ -575,7 +575,7 @@ class _AppInitState extends State<_AppInit> {
       try {
         initialNotification = await FirebaseMessaging.instance.getInitialMessage();
       } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ 초기 알림 확인 실패: $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
       // 3초 안에 안 되면 포기하고 로그인 화면에서 처리
       final result = await AuthService.restoreSession().timeout(
@@ -594,7 +594,7 @@ class _AppInitState extends State<_AppInit> {
         context.read<PointProvider>().loadPoints(user.id);
         FcmService.saveTokenToFirestore(user.id).catchError(
           (e) {
-            if (kDebugMode) debugPrint('⚠️ FCM 토큰 저장 실패: $e');
+            if (kDebugMode) debugPrint('client_operation_failed');
           },
         );
       }

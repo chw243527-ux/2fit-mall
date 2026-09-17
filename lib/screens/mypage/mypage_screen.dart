@@ -6663,7 +6663,7 @@ Future<void> _showUserOrderDetail(
           OrderService.parseOrderFromFirestore(doc.data()!, docId: doc.id);
     }
   } catch (e) {
-    if (kDebugMode) debugPrint('⚠️ 주문 상세 재조회 실패: $e');
+    if (kDebugMode) debugPrint('client_operation_failed');
   }
   if (!context.mounted) return;
 

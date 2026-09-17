@@ -49,7 +49,7 @@ class BannerService {
       return BannerModel.fromFirestore(
           doc.data() as Map<String, dynamic>, doc.id);
     } catch (e) {
-      if (kDebugMode) debugPrint('BannerService.getBanner error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return null;
     }
   }
@@ -60,7 +60,7 @@ class BannerService {
       final ref = await _col.add(banner.toFirestore());
       return ref.id;
     } catch (e) {
-      if (kDebugMode) debugPrint('BannerService.addBanner error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return null;
     }
   }
@@ -71,7 +71,7 @@ class BannerService {
       await _col.doc(id).update(fields);
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('BannerService.updateBanner error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -82,7 +82,7 @@ class BannerService {
       await _col.doc(banner.id).set(banner.toFirestore());
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('BannerService.setBanner error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -93,7 +93,7 @@ class BannerService {
       await _col.doc(id).delete();
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('BannerService.deleteBanner error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -163,7 +163,7 @@ class BannerService {
       await batch.commit();
       if (kDebugMode) debugPrint('BannerService: 기본 배너 3개 시드 완료');
     } catch (e) {
-      if (kDebugMode) debugPrint('BannerService.seedDefaultBanners error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 }

@@ -738,7 +738,7 @@ class ProductService {
       await _persistToLocal();
       return;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Firestore 상품 로드 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       // 웹과 앱이 서로 다른 로컬 상품을 노출하지 않도록 원격 실패 시
       // 상품 목록을 비우고 화면에서 오류/재시도 상태를 처리한다.
       _products.clear();
@@ -834,7 +834,7 @@ class ProductService {
       if (kDebugMode) debugPrint('✅ 관리자 전체 상품 ${all.length}개 로드 (활성: ${active.length})');
       await _persistToLocal();
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 관리자 상품 로드 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       if (!_loaded) await _loadFromLocal();
       _allProducts.clear();
       _allProducts.addAll(_products);
@@ -885,7 +885,7 @@ class ProductService {
       }
       return list;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 단체주문 전용 상품 조회 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       // 폴백: 캐시에서 필터링
       _ensureCache();
       return _cache.where((p) => (p.isGroupOnly || p.isGroup) && p.isActive).toList();
@@ -964,7 +964,7 @@ class ProductService {
         return fresh;
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ getProductByIdFresh 실패 ($id): $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
     return null;
   }
@@ -1052,7 +1052,7 @@ class ProductService {
       await _db.collection('products').doc(safeProduct.id).set(safeProduct.toJson());
       if (kDebugMode) debugPrint('✅ Firestore 상품 등록 완료: ${safeProduct.id} (isActive=true, stockCount=${safeProduct.stockCount})');
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Firestore 상품 저장 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -1092,7 +1092,7 @@ class ProductService {
       }
       await _db.collection('products').doc(safeUpdated.id).set(json, SetOptions(merge: true));
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Firestore 상품 업데이트 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
     return true;
   }
@@ -1109,7 +1109,7 @@ class ProductService {
       await _db.collection('products').doc(productId).delete();
       if (kDebugMode) debugPrint('✅ Firestore 상품 완전 삭제: $productId');
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Firestore 상품 삭제 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
     return true;
@@ -1133,7 +1133,7 @@ class ProductService {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Firestore 재고 업데이트 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
     if (previousStock <= 0 && newStock > 0) {
       await FcmService.sendRestockNotification(
@@ -1215,7 +1215,7 @@ class ProductService {
       }
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Firestore 사이즈별 재고 업데이트 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -1250,7 +1250,7 @@ class ProductService {
       await _db.collection('products').doc(productId).update({'sectionImages': newMap});
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Firestore 섹션이미지 업데이트 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -1278,7 +1278,7 @@ class ProductService {
     try {
       await _db.collection('products').doc(productId).update({'images': urls});
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Firestore 메인이미지 업데이트 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
     return true;
   }
@@ -1349,7 +1349,7 @@ class ProductService {
         _cache = List.from(_products);
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 번역 업데이트 실패 ($productId): $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 }

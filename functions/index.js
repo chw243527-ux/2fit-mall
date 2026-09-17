@@ -49,6 +49,14 @@ const NAVER_ALLOWED_REDIRECTS = new Set([
   'http://localhost:5000/naver_callback.html',
 ]);
 
+// 백그라운드 로그에는 원시 오류 객체·메시지를 남기지 않고 제한된 코드만 기록합니다.
+function _errorCode(error, fallback = 'unknown-error') {
+  const candidate = error?.code || error?.name;
+  return typeof candidate === 'string' && /^[A-Za-z0-9._-]{1,120}$/.test(candidate)
+    ? candidate
+    : fallback;
+}
+
 // ══════════════════════════════════════════════════════
 // 1) 새 주문 접수 알림 (기존)
 // ══════════════════════════════════════════════════════
@@ -92,7 +100,7 @@ exports.onNewOrder = onDocumentCreated(
         });
       }
     }
-  } catch (e) { console.error('onNewOrder error:', e);   }
+  } catch (e) { console.error('onNewOrder error', { code: _errorCode(e, 'new-order-handler-failed') }); }
 });
 
 // ══════════════════════════════════════════════════════
@@ -185,7 +193,7 @@ exports.onOrderStatusChanged = onDocumentUpdated(
         }
       }
     }
-  } catch (e) { console.error('onOrderStatusChanged error:', e); }
+  } catch (e) { console.error('onOrderStatusChanged error', { code: _errorCode(e, 'order-status-handler-failed') }); }
   },
 );
 
@@ -204,7 +212,7 @@ exports.processFcmQueue = onDocumentCreated('fcm_queue/{docId}', async (event) =
       data: { type: type || 'general' },
     });
     await event.data.ref.delete();
-  } catch (e) { console.error('processFcmQueue error:', e); }
+  } catch (e) { console.error('processFcmQueue error', { code: _errorCode(e, 'fcm-queue-processing-failed') }); }
 });
 
 // ══════════════════════════════════════════════════════
@@ -221,7 +229,10 @@ exports.sendPromoNotification = onRequest(async (req, res) => {
       createdAt: FieldValue.serverTimestamp(),
     });
     res.json({ success: true });
-  } catch (e) { res.status(500).json({ error: String(e) }); }
+  } catch (e) {
+    console.error('sendPromoNotification error:', e?.message || 'unknown');
+    res.status(500).json({ error: 'Notification could not be sent' });
+  }
 });
 
 // ══════════════════════════════════════════════════════
@@ -262,7 +273,10 @@ exports.sendTestNotification = onRequest(
       },
     });
     res.json({ success: true, sentAt, serverDurationMs: Date.now() - startedAt });
-    } catch (e) { res.status(500).json({ error: String(e) }); }
+    } catch (e) {
+      console.error('sendTestNotification error:', e?.message || 'unknown');
+      res.status(500).json({ error: 'Test notification could not be sent' });
+    }
   }
 );
 
@@ -298,7 +312,7 @@ exports.onNewChatMessage = onDocumentCreated(
           },
         });
       }
-    } catch (e) { console.error('onNewChatMessage FCM error:', e); }
+    } catch (e) { console.error('onNewChatMessage FCM error', { code: _errorCode(e, 'chat-fcm-delivery-failed') }); }
 
     // 채팅 문서가 저장된 뒤 서버에서 알림톡을 발송합니다.
     // 클라이언트의 FirebaseAuth 상태나 브라우저 캐시에 의존하지 않습니다.
@@ -314,7 +328,7 @@ exports.onNewChatMessage = onDocumentCreated(
         },
       });
       console.log(`채팅 알림톡 처리 결과: ${result.ok ? 'accepted' : 'rejected'} (${result.statusCode})`);
-    } catch (e) { console.error('onNewChatMessage Alimtalk error:', e); }
+    } catch (e) { console.error('onNewChatMessage Alimtalk error', { code: _errorCode(e, 'chat-alimtalk-delivery-failed') }); }
   }
 );
 
@@ -355,7 +369,7 @@ exports.onAdminChatReply = onDocumentCreated(
       });
       console.log(`고객 답변 알림톡 처리 결과: ${result.ok ? 'accepted' : 'rejected'} (${result.statusCode})`);
     } catch (e) {
-      console.error('onAdminChatReply Alimtalk error:', e);
+      console.error('onAdminChatReply Alimtalk error', { code: _errorCode(e, 'admin-chat-alimtalk-failed') });
     }
   }
 );
@@ -378,7 +392,7 @@ exports.registerAdminToken = onDocumentCreated(
       await db.doc(ADMIN_TOKENS_DOC).set({ tokens, updatedAt: new Date() });
       console.log(`✅ 관리자 토큰 저장 완료 (총 ${tokens.length}개)`);
       await event.data.ref.delete();
-    } catch (e) { console.error('registerAdminToken error:', e); }
+    } catch (e) { console.error('registerAdminToken error', { code: _errorCode(e, 'admin-token-registration-failed') }); }
   }
 );
 
@@ -509,7 +523,7 @@ exports.setStaffAdminClaim = onRequest({
     });
     res.json({ success: true, grant, targetUid });
   } catch (e) {
-    console.error('setStaffAdminClaim error:', e);
+    console.error('setStaffAdminClaim error', { code: _errorCode(e, 'staff-admin-claim-failed') });
     res.status(404).json({ error: 'Target user not found or claim update failed' });
   }
 });
@@ -540,7 +554,7 @@ exports.ensureOwnerAdminClaim = onRequest(async (req, res) => {
     });
     res.json({ success: true });
   } catch (e) {
-    console.error('ensureOwnerAdminClaim error:', e);
+    console.error('ensureOwnerAdminClaim error', { code: _errorCode(e, 'owner-admin-claim-failed') });
     res.status(401).json({ error: 'Unable to verify administrator account' });
   }
 });
@@ -1267,7 +1281,7 @@ exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAY
       await intentRef.update({
         status: 'recovery_required',
         recoveryReason: 'Toss approved but order finalization failed',
-        recoveryError: String(error?.message || 'unknown').slice(0, 500),
+        recoveryError: _errorCode(error, 'payment-finalization-failed'),
         recoveryAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       }).catch(() => {});
@@ -1437,7 +1451,7 @@ exports.tossVirtualAccountWebhook = onRequest(
       });
       res.status(200).send('OK');
     } catch (error) {
-      console.error('tossVirtualAccountWebhook failed:', error);
+      console.error('tossVirtualAccountWebhook failed', { code: _errorCode(error, 'virtual-account-webhook-failed') });
       res.status(500).send('Webhook processing failed');
     }
   },
@@ -1659,8 +1673,11 @@ exports.reconcilePaymentIntents = onSchedule({ schedule: 'every 10 minutes', sec
         await doc.ref.update({ tossStatus: toss.status || 'UNKNOWN', lastReconciledAt: FieldValue.serverTimestamp() });
       }
     } catch (error) {
-      await doc.ref.update({ lastReconcileError: String(error?.message || 'unknown').slice(0, 500), lastReconciledAt: FieldValue.serverTimestamp() }).catch(() => {});
-      console.error('reconcilePaymentIntents failed:', doc.id, error?.message || error);
+      await doc.ref.update({ lastReconcileError: _errorCode(error, 'payment-reconciliation-failed'), lastReconciledAt: FieldValue.serverTimestamp() }).catch(() => {});
+      console.error('reconcilePaymentIntents failed', {
+        intentId: doc.id,
+        code: _errorCode(error, 'payment-reconciliation-failed'),
+      });
     }
   }
 });
@@ -1775,7 +1792,10 @@ exports.sendExclusiveRenewalNoticesDaily = onSchedule({
         body: `${name}님의 단체주문 독점 기간이 ${expiryText}에 종료됩니다. 계속 이용을 원하시면 재신청해 주세요.`,
         type: 'exclusive_renewal', orderId: orderSnap.id, isRead: false,
         createdAt: FieldValue.serverTimestamp(),
-      }).catch((error) => console.error('exclusive in-app notification failed:', error));
+      }).catch((error) => console.error('exclusive in-app notification failed', {
+        orderId: orderSnap.id,
+        code: _errorCode(error, 'exclusive-in-app-notification-failed'),
+      }));
       results.inApp = 'sent';
     } else {
       results.inApp = 'skipped_no_user';
@@ -1796,7 +1816,7 @@ exports.sendExclusiveRenewalNoticesDaily = onSchedule({
         });
         results.alimtalk = result.ok ? 'sent' : `failed_${result.statusCode}`;
       } catch (error) {
-        console.error('exclusive renewal alimtalk error:', error);
+        console.error('exclusive renewal alimtalk error', { code: _errorCode(error, 'exclusive-alimtalk-delivery-failed') });
         results.alimtalk = 'failed';
       }
     } else {
@@ -1813,7 +1833,7 @@ exports.sendExclusiveRenewalNoticesDaily = onSchedule({
         });
         results.email = result.ok ? 'sent' : `failed_${result.statusCode}`;
       } catch (error) {
-        console.error('exclusive renewal email error:', error);
+        console.error('exclusive renewal email error', { code: _errorCode(error, 'exclusive-email-delivery-failed') });
         results.email = 'failed';
       }
     } else {
@@ -2513,7 +2533,7 @@ async function _sendGroupOrderReceiptNotifications({ orderId, data }) {
       });
       results.alimtalk = result.ok ? 'sent' : `failed_${result.statusCode}`;
     } catch (error) {
-      console.error('group order alimtalk error:', error);
+      console.error('group order alimtalk error', { code: _errorCode(error, 'group-order-alimtalk-failed') });
       results.alimtalk = 'failed';
     }
   } else {
@@ -2530,7 +2550,7 @@ async function _sendGroupOrderReceiptNotifications({ orderId, data }) {
       });
       results.email = result.ok ? 'sent' : `failed_${result.statusCode}`;
     } catch (error) {
-      console.error('group order email error:', error);
+      console.error('group order email error', { code: _errorCode(error, 'group-order-email-failed') });
       results.email = 'failed';
     }
   } else {
@@ -2570,9 +2590,12 @@ async function _sendResendEmail({ to, subject, text, html }) {
     },
     body: JSON.stringify({ from: RESEND_FROM_EMAIL.value(), to: [to], subject, text, html }),
   });
-  const responseText = await response.text();
+  await response.text();
   if (!response.ok) {
-    console.error('Resend email request rejected:', response.status, responseText.slice(0, 500));
+    console.error('Resend email request rejected', {
+      status: response.status,
+      code: 'resend-provider-rejected',
+    });
   }
   return { ok: response.ok, statusCode: response.status };
 }
@@ -2764,9 +2787,12 @@ async function _sendSolapiAlimtalk({ phone, templateId, variables }) {
       }],
     }),
   });
-  const responseText = await response.text();
+  await response.text();
   if (!response.ok) {
-    console.error('SOLAPI Alimtalk request rejected:', response.status, responseText.slice(0, 500));
+    console.error('SOLAPI Alimtalk request rejected', {
+      status: response.status,
+      code: 'solapi-alimtalk-provider-rejected',
+    });
   } else {
     console.log('SOLAPI Alimtalk request accepted:', response.status);
   }
@@ -2797,10 +2823,13 @@ async function _sendSolapiSms(phone, text) {
     }),
   });
 
-  const responseText = await response.text();
+  await response.text();
   if (!response.ok) {
     // API 자격증명·메시지 본문은 로그에 남기지 않고 상태와 응답 코드만 기록합니다.
-    console.error('SOLAPI request rejected:', response.status, responseText.slice(0, 500));
+    console.error('SOLAPI request rejected', {
+      status: response.status,
+      code: 'solapi-sms-provider-rejected',
+    });
   } else {
     console.log('SOLAPI request accepted:', response.status);
   }

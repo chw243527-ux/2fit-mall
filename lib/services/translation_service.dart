@@ -32,7 +32,7 @@ class TranslationService {
           results[entry.key] = translated;
         }
       } catch (e) {
-        if (kDebugMode) debugPrint('번역 실패(${entry.key}): $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
     });
 
@@ -147,7 +147,7 @@ class TranslationService {
         }
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('_translate 오류: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
     return null;
   }

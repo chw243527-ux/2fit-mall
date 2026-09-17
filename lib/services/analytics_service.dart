@@ -13,7 +13,7 @@ class AnalyticsService {
       // Web 플랫폼에서 JS gtag 호출
       _callGtag(eventName, params);
     } catch (e) {
-      if (kDebugMode) debugPrint('Analytics error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -176,9 +176,9 @@ void _gtagEventWeb(String eventName, Map<String, dynamic> params) {
     // ignore: avoid_dynamic_calls
     // JS 호출은 dart:html 또는 dart:js_interop를 통해 처리됨
     // 현재는 kIsWeb 체크 후 로깅만 처리 (빌드 환경에서 실제 gtag는 HTML에서 직접 로드됨)
-    if (kDebugMode) debugPrint('[GA4] Web event: $eventName, params: $paramsJson');
+    if (kDebugMode) debugPrint('client_operation_failed');
   } catch (e) {
-    if (kDebugMode) debugPrint('[GA4] Web call error: $e');
+    if (kDebugMode) debugPrint('client_operation_failed');
   }
 }
 

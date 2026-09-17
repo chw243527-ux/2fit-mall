@@ -33,7 +33,7 @@ class ReviewService {
       list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return list;
     } catch (e) {
-      if (kDebugMode) debugPrint('getProductReviews error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return [];
     }
   }
@@ -65,7 +65,7 @@ class ReviewService {
       list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return list;
     } catch (e) {
-      if (kDebugMode) debugPrint('getUserReviews error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return [];
     }
   }
@@ -98,7 +98,7 @@ class ReviewService {
           return list;
         })
         .handleError((e) {
-          if (kDebugMode) debugPrint('watchProductReviews error: $e');
+          if (kDebugMode) debugPrint('client_operation_failed');
           return <ReviewModel>[];
         });
   }
@@ -131,7 +131,7 @@ class ReviewService {
           return list;
         })
         .handleError((e) {
-          if (kDebugMode) debugPrint('watchUserReviews error: $e');
+          if (kDebugMode) debugPrint('client_operation_failed');
           return <ReviewModel>[];
         });
   }
@@ -155,7 +155,7 @@ class ReviewService {
       await _updateProductRating(review.productId);
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('addReview error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -171,7 +171,7 @@ class ReviewService {
       await _updateProductRating(review.productId);
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('updateReview error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -199,7 +199,7 @@ class ReviewService {
       await batch.commit();
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('setBestReview error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -218,7 +218,7 @@ class ReviewService {
       });
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('saveAdminReply error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -247,7 +247,7 @@ class ReviewService {
       await _updateProductRating(request.productId);
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('submitReview error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -258,7 +258,7 @@ class ReviewService {
       await _updateProductRating(productId);
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('deleteReview error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -305,7 +305,7 @@ class ReviewService {
       list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return list;
     } catch (e) {
-      if (kDebugMode) debugPrint('getAllReviews error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return [];
     }
   }

@@ -234,7 +234,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       }
       if (changed && mounted) setState(() {});
     } catch (e) {
-      debugPrint('⚠️ sectionImages Firestore 로드 실패: $e');
+      debugPrint('client_operation_failed');
       _sectionImagesLoaded = true;
       // 실패 시 widget.product의 sectionImages로 폴백
       if (mounted && widget.product.sectionImages.isNotEmpty) {

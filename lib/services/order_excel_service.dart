@@ -82,7 +82,7 @@ class OrderExcelService {
       orders.sort((a, b) => a.createdAt.compareTo(b.createdAt));
       return orders;
     } catch (e) {
-      if (kDebugMode) debugPrint('주문 조회 오류: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       try {
         final snapshot = await _db.collection('orders').get();
         final orders = snapshot.docs
@@ -94,7 +94,7 @@ class OrderExcelService {
         orders.sort((a, b) => a.createdAt.compareTo(b.createdAt));
         return orders;
       } catch (e2) {
-        if (kDebugMode) debugPrint('주문 조회 폴백 오류: $e2');
+        if (kDebugMode) debugPrint('client_operation_failed');
         return [];
       }
     }
@@ -291,7 +291,7 @@ class OrderExcelService {
         memo: data['memo'] as String?,
       );
     } catch (e) {
-      if (kDebugMode) debugPrint('주문 파싱 오류: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return null;
     }
   }
@@ -313,7 +313,7 @@ class OrderExcelService {
         }
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('이미지 로드 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
     return null;
   }
@@ -1265,7 +1265,7 @@ class OrderExcelService {
       if (encoded == null) return xlsxBytes;
       return Uint8List.fromList(encoded);
     } catch (e) {
-      if (kDebugMode) debugPrint('이미지 삽입 오류: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return xlsxBytes; // 실패 시 원본 반환
     }
   }

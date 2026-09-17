@@ -89,7 +89,7 @@ class AccountDeletionService {
         errorMessage: _messageFor(code, payload['error'] as String?),
       );
     } catch (error) {
-      if (kDebugMode) debugPrint('계정 삭제 서버 호출 실패: $error');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return const AccountDeletionResult.failure(
         errorCode: 'network-error',
         errorMessage: '네트워크 문제로 회원 탈퇴를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.',

@@ -24,7 +24,7 @@ class StorageService {
       );
       return await task.ref.getDownloadURL();
     } catch (e) {
-      if (kDebugMode) debugPrint('uploadProductImage error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return '';
     }
   }
@@ -45,7 +45,7 @@ class StorageService {
       );
       return await task.ref.getDownloadURL();
     } catch (e) {
-      if (kDebugMode) debugPrint('uploadReviewImage error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return null;
     }
   }
@@ -74,7 +74,7 @@ class StorageService {
       final ref = _storage.refFromURL(url);
       await ref.delete();
     } catch (e) {
-      if (kDebugMode) debugPrint('deleteFile error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -97,7 +97,7 @@ class StorageService {
       );
       return await task.ref.getDownloadURL();
     } catch (e) {
-      if (kDebugMode) debugPrint('uploadSectionImage error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return '';
     }
   }
@@ -119,7 +119,7 @@ class StorageService {
       );
       return await task.ref.getDownloadURL();
     } catch (e) {
-      if (kDebugMode) debugPrint('uploadBannerImage error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return null;
     }
   }
@@ -156,7 +156,7 @@ class StorageService {
       );
       return await task.ref.getDownloadURL();
     } catch (e) {
-      if (kDebugMode) debugPrint('uploadBannerVideo error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return null;
     }
   }
@@ -201,8 +201,8 @@ class StorageService {
         }
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('uploadBannerVideoWithProgress error: $e');
-      onError(e.toString());
+      if (kDebugMode) debugPrint('storage_upload_banner_video_failed');
+      onError('동영상 업로드 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }
 
@@ -237,8 +237,8 @@ class StorageService {
         }
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('uploadNoticeImageWithProgress error: $e');
-      onError(e.toString());
+      if (kDebugMode) debugPrint('storage_upload_notice_image_failed');
+      onError('공지 이미지 업로드 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }
 }

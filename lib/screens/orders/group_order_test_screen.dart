@@ -380,9 +380,9 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _results.insert(0, '❌ [$teamName] 실패: $e');
+        _results.insert(0, '❌ [$teamName] 처리에 실패했습니다.');
       });
-      _toast('오류: $e', error: true);
+      _toast('테스트 주문 처리에 실패했습니다.', error: true);
     }
   }
 
@@ -477,7 +477,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
       _toast('테스트 주문 ${total}건 삭제 완료');
     } catch (e) {
       setState(() => _isLoading = false);
-      _toast('삭제 오류: $e', error: true);
+      _toast('테스트 주문 삭제에 실패했습니다.', error: true);
     }
   }
 

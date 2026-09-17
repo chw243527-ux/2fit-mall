@@ -66,7 +66,7 @@ class InAppUpdateService {
     } catch (e) {
       // 업데이트 확인 실패는 로그인·주문·결제 흐름을 막지 않아야 합니다.
       if (kDebugMode) {
-        debugPrint('ℹ️ Google Play 인앱 업데이트 확인 건너뜀: $e');
+        debugPrint('client_operation_failed');
       }
     } finally {
       _updateInProgress = false;
@@ -90,7 +90,7 @@ class InAppUpdateService {
         }
       } catch (e) {
         if (kDebugMode) {
-          debugPrint('ℹ️ 메인 화면 업데이트 배너 확인 재시도: $e');
+          debugPrint('client_operation_failed');
         }
       }
     }
@@ -117,7 +117,7 @@ class InAppUpdateService {
       return opened ? ManualUpdateResult.storeOpened : ManualUpdateResult.failed;
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('ℹ️ Google Play 앱 페이지 열기 실패: $e');
+        debugPrint('client_operation_failed');
       }
       return ManualUpdateResult.failed;
     } finally {

@@ -96,7 +96,7 @@ class PointService {
       if (!doc.exists) return 0;
       return (doc.data()?['points'] as num?)?.toInt() ?? 0;
     } catch (e) {
-      if (kDebugMode) debugPrint('getBalance error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return 0;
     }
   }
@@ -114,7 +114,7 @@ class PointService {
             .map((d) => PointHistory.fromDoc(d.id, d.data()))
             .toList())
         .handleError((e) {
-      if (kDebugMode) debugPrint('watchHistory error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return <PointHistory>[];
     });
   }
@@ -153,10 +153,10 @@ class PointService {
       });
 
       if (kDebugMode) {
-        debugPrint('✅ 포인트 적립: $earned P (주문 $orderId, 유저 $userId)');
+        debugPrint('client_operation_failed');
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ earnFromOrder error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       // 포인트 적립 실패는 조용히 처리 (주문 자체에는 영향 없음)
     }
   }
@@ -192,7 +192,7 @@ class PointService {
       });
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ adminCreditPoints error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -232,7 +232,7 @@ class PointService {
       });
       return success;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ usePoints error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -264,7 +264,7 @@ class PointService {
       });
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ refundPoints error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -308,7 +308,7 @@ class PointService {
       }
       return expiredTotal;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ expirePoints error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return 0;
     }
   }
@@ -321,7 +321,7 @@ class PointService {
         .snapshots()
         .map((snap) => (snap.data()?['points'] as num?)?.toInt() ?? 0)
         .handleError((e) {
-      if (kDebugMode) debugPrint('watchBalance error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return 0;
     });
   }

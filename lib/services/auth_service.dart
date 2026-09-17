@@ -174,7 +174,7 @@ class AuthService {
         return saved;
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('기기 범위 secure storage 읽기 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
 
     final created = Uuid().v4();
@@ -184,7 +184,7 @@ class AuthService {
     } catch (e) {
       // 백업될 수 있는 Hive 값을 fallback으로 사용하지 않습니다. 이 경우에는
       // 현재 앱 실행 동안만 같은 범위를 사용하고, 재실행 시 새로 생성합니다.
-      if (kDebugMode) debugPrint('기기 범위 secure storage 저장 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
     return created;
   }
@@ -216,7 +216,7 @@ class AuthService {
     try {
       await _auth.setPersistence(Persistence.LOCAL);
     } catch (e) {
-      if (kDebugMode) debugPrint('웹 로그인 persistence 설정 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -501,7 +501,7 @@ class AuthService {
       if (kDebugMode) debugPrint('소셜 본인확인 온보딩 저장 실패: ${e.code}');
       return const AuthResult(success: false, error: '회원정보 저장에 실패했습니다. 다시 시도해주세요.');
     } catch (e) {
-      if (kDebugMode) debugPrint('소셜 본인확인 온보딩 오류: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return const AuthResult(success: false, error: '본인확인 가입 중 오류가 발생했습니다.');
     }
   }
@@ -521,7 +521,7 @@ class AuthService {
           .timeout(const Duration(seconds: 10));
       return query.docs.isEmpty;
     } catch (e) {
-      if (kDebugMode) debugPrint('이메일 중복확인 오류: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       // 오류 시 사용 가능으로 처리 (Firebase가 나중에 검증)
       return true;
     }
@@ -634,7 +634,7 @@ class AuthService {
           'createdAt': FieldValue.serverTimestamp(),
         });
       } catch (e) {
-        if (kDebugMode) debugPrint('Firestore 저장 오류 (무시): $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
         // Firestore 저장 실패해도 Firebase Auth 계정은 생성됨 → 계속 진행
       }
 
@@ -651,7 +651,7 @@ class AuthService {
 
       await _saveSession(uid);
       if (kDebugMode) {
-        debugPrint('✅ Firebase 회원 등록 완료: $emailKey (welcomePoints=${benefits.pointsGranted}, welcomeCoupon=${benefits.couponGranted})');
+        debugPrint('client_operation_failed');
       }
       return AuthResult(
         success: true,
@@ -662,7 +662,7 @@ class AuthService {
     } on FirebaseAuthException catch (e) {
       return AuthResult(success: false, error: _authError(e.code));
     } catch (e) {
-      if (kDebugMode) debugPrint('회원가입 오류 상세: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return const AuthResult(
         success: false,
         error: '회원가입 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
@@ -695,7 +695,7 @@ class AuthService {
         couponGranted: payload['couponGranted'] == true,
       );
     } catch (e) {
-      if (kDebugMode) debugPrint('가입 축하 혜택 지급 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return empty;
     }
   }
@@ -722,7 +722,7 @@ class AuthService {
     // ① 로컬 계정 먼저 확인 (Firebase 연결 없이도 동작)
     final localResult = _tryLocalLogin(emailKey, password);
     if (localResult != null) {
-      if (kDebugMode) debugPrint('✅ 로컬 계정 로그인: $emailKey');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return localResult;
     }
 
@@ -753,7 +753,7 @@ class AuthService {
       // Firebase 오류는 상세 메시지 반환
       return AuthResult(success: false, error: _authError(e.code));
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 로그인 예외: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return const AuthResult(
           success: false, error: '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
@@ -786,7 +786,7 @@ class AuthService {
         await firebaseUser.getIdToken(true);
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('관리자 권한 확인 생략: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -1163,11 +1163,11 @@ class AuthService {
       } catch (e) {
         // 인증은 성공했지만 사용자 문서 생성이 일시적으로 실패해도
         // 기본 사용자로 로그인 흐름을 계속 진행합니다.
-        if (kDebugMode) debugPrint('사용자 문서 생성 생략: $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
       return user;
     } catch (e) {
-      if (kDebugMode) debugPrint('_loadUser error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       // Firebase Auth 인증 자체가 성공한 경우 Firestore 조회 실패만으로
       // 로그인 화면으로 되돌리지 않도록 최소 프로필을 반환합니다.
       final current = _auth.currentUser;
@@ -1194,7 +1194,7 @@ class AuthService {
       final version = info.version;
       return version.isEmpty ? _fallbackAppVersion.split('+').first : version;
     } catch (e) {
-      if (kDebugMode) debugPrint('앱 버전 확인 실패, fallback 사용: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return _fallbackAppVersion;
     }
   }
@@ -1214,7 +1214,7 @@ class AuthService {
       try {
         await _auth.signOut();
       } catch (e) {
-        if (kDebugMode) debugPrint('업데이트 후 Firebase 세션 정리 실패: $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
       await signOutGoogle();
       await signOutKakao();
@@ -1237,7 +1237,7 @@ class AuthService {
       await sessionBox.put('currentEmail', email);
       await sessionBox.put(_sessionVersionKey, await _currentAppVersion());
     } catch (e) {
-      if (kDebugMode) debugPrint('세션 저장 오류 (무시): $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       // 세션 저장 실패해도 회원가입은 성공으로 처리
     }
   }
@@ -1297,7 +1297,7 @@ class AuthService {
         return data;
       }).toList();
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 회원 목록 조회 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       // orderBy 실패 시 단순 조회로 폴백
       try {
         final snapshot = await _db.collection('users').get();
@@ -1315,7 +1315,7 @@ class AuthService {
         });
         return list;
       } catch (e2) {
-        if (kDebugMode) debugPrint('⚠️ 회원 목록 폴백 실패: $e2');
+        if (kDebugMode) debugPrint('client_operation_failed');
         return [];
       }
     }
@@ -1346,7 +1346,7 @@ class AuthService {
       await _db.collection('users').doc(uid).update({'memberTier': grade});
       if (kDebugMode) debugPrint('✅ 회원 등급 변경: $uid → $grade');
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 등급 변경 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -1356,7 +1356,7 @@ class AuthService {
       await _db.collection('users').doc(uid).update({'isBlocked': blocked});
       if (kDebugMode) debugPrint('✅ 회원 차단 변경: $uid → $blocked');
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 차단 변경 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -1366,7 +1366,7 @@ class AuthService {
       await _db.collection('users').doc(uid).delete();
       if (kDebugMode) debugPrint('🗑️ 회원 문서 삭제: $uid');
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 회원 삭제 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -1375,7 +1375,7 @@ class AuthService {
     try {
       await _db.collection('users').doc(uid).update({'adminMemo': memo});
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 메모 저장 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -1463,7 +1463,7 @@ class AuthService {
           if (fresh.data() != null) firestoreData = fresh.data();
         } catch (_) {}
       } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ 구글 Firestore 오류 (무시하고 계속): $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
         firestoreData ??= {};
       }
 
@@ -1512,13 +1512,13 @@ class AuthService {
           'marketingNotificationsEnabled': userModel.marketingNotificationsEnabled,
         });
       } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ 구글 세션 저장 실패 (무시): $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
       await _saveSession(user.uid);
       return AuthResult(success: true, user: userModel);
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 구글 로그인 실패: $e');
-      return AuthResult(success: false, error: '구글 로그인 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
+      return const AuthResult(success: false, error: '구글 로그인에 실패했습니다. 다시 시도해 주세요.');
     }
   }
 
@@ -1526,7 +1526,7 @@ class AuthService {
     try {
       await _googleSignIn.signOut();
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 구글 로그아웃 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -1547,7 +1547,7 @@ class AuthService {
             : await kakao.UserApi.instance.loginWithKakaoAccount();
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 카카오 토큰 발급 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return AuthResult(success: false, error: '카카오 로그인에 실패했습니다. 다시 시도해주세요.');
     }
 
@@ -1567,7 +1567,7 @@ class AuthService {
       name = profile?.nickname ?? '카카오 사용자';
       photoUrl = profile?.profileImageUrl ?? '';
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 카카오 사용자 정보 조회 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return AuthResult(success: false, error: '카카오 사용자 정보를 가져올 수 없습니다.');
     }
 
@@ -1605,7 +1605,7 @@ class AuthService {
         );
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 카카오 서버 인증 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return const AuthResult(
           success: false, error: '카카오 인증 서버 연결에 실패했습니다. 다시 시도해주세요.');
     }
@@ -1676,7 +1676,7 @@ class AuthService {
       } catch (_) {}
     } catch (e) {
       // Firestore assertion / 네트워크 오류 → 로컬 데이터로 폴백
-      if (kDebugMode) debugPrint('⚠️ Firestore 쓰기 오류 (무시하고 계속): $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       firestoreData ??= {};
     }
 
@@ -1725,7 +1725,7 @@ class AuthService {
         'marketingNotificationsEnabled': userModel.marketingNotificationsEnabled,
       });
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 세션 저장 실패 (무시): $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
     await _saveSession(user.uid);
 
@@ -1737,7 +1737,7 @@ class AuthService {
     try {
       await kakao.UserApi.instance.logout();
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 카카오 로그아웃 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -1780,7 +1780,7 @@ class AuthService {
       final info = await codeFuture;
       return await _exchangeNaverCodeForFirebase(info);
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 네이버 로그인 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return const AuthResult(success: false, error: '네이버 로그인에 실패했습니다. 다시 시도해주세요.');
     }
   }
@@ -1965,7 +1965,7 @@ class AuthService {
       await _saveSession(firebaseUser.uid);
       return AuthResult(success: true, user: userModel);
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 네이버 웹 로그인 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return const AuthResult(
           success: false, error: '네이버 로그인에 실패했습니다. 다시 시도해주세요.');
     }
@@ -1975,7 +1975,7 @@ class AuthService {
     try {
       await _auth.signOut();
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 네이버 로그아웃 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 }

@@ -901,7 +901,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
         refImageUrl = await ref.getDownloadURL();
       } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ 참고이미지 업로드 실패 (무시): $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
     }
 
@@ -927,7 +927,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         );
         designLogoUrl = await ref.getDownloadURL();
       } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ 디자인 로고 업로드 실패 (무시): $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
     }
 
@@ -953,7 +953,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         );
         waistbandLogoUrl = await ref.getDownloadURL();
       } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ 허리밴드 로고 업로드 실패 (무시): $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
     }
 
@@ -968,7 +968,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
         waistbandRefImageUrls.add(await ref.getDownloadURL());
       } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ 허리밴드 참고이미지 업로드 실패 (무시): $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
     }
 
@@ -2556,7 +2556,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       if (!mounted) return;
       setState(() => _waistbandRefImages.add(b64));
     } catch (e) {
-      _showSnack(context.loc.t('이미지_선택_오류', '이미지 선택 오류: ') + e.toString());
+      _showSnack(context.loc.t('이미지_선택_오류', '이미지 선택 중 오류가 발생했습니다.'));
     }
   }
 
@@ -4059,7 +4059,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       setState(() => _refBase64 = b64);
       await _saveImage(base64: b64);
     } catch (e) {
-      _showSnack(context.loc.t('이미지_선택_오류', '이미지 선택 오류: ') + e.toString());
+      _showSnack(context.loc.t('이미지_선택_오류', '이미지 선택 중 오류가 발생했습니다.'));
     }
   }
 

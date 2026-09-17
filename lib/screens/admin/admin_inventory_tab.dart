@@ -978,7 +978,7 @@ class _StockFormTabState extends State<_StockFormTab> {
       }
     } catch (e) {
       if (mounted) setState(() => _saving = false);
-      _snack(context.loc.t('오류 _', '오류: $e'), error: true);
+      _snack(context.loc.t('오류 _', '재고 처리에 실패했습니다.'), error: true);
     }
   }
 
@@ -1735,7 +1735,7 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
         });
     } catch (e) {
       if (mounted) setState(() => _processing = false);
-      _snack(context.loc.t('오류 _', '오류: $e'), error: true);
+      _snack(context.loc.t('오류 _', '일괄 재고 처리에 실패했습니다.'), error: true);
     }
   }
 

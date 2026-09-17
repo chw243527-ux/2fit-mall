@@ -14,7 +14,7 @@ class WishlistService {
       final data = doc.data()!;
       return List<String>.from(data['wishlist'] ?? []);
     } catch (e) {
-      if (kDebugMode) debugPrint('getWishlist error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return [];
     }
   }
@@ -31,7 +31,7 @@ class WishlistService {
       }
       await _db.collection('users').doc(userId).update({'wishlist': wishlist});
     } catch (e) {
-      if (kDebugMode) debugPrint('toggleWishlist error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -39,7 +39,7 @@ class WishlistService {
     try {
       await _db.collection('users').doc(userId).update({'wishlist': wishlist});
     } catch (e) {
-      if (kDebugMode) debugPrint('syncWishlist error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 }
@@ -58,7 +58,7 @@ class CouponService {
         .snapshots()
         .map((snap) => snap.docs.map((d) => _parse(d.id, d.data())).toList())
         .handleError((e) {
-      if (kDebugMode) debugPrint('watchAdminCoupons error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return <CouponModel>[];
     });
   }
@@ -121,7 +121,7 @@ class CouponService {
       });
       return '';
     } catch (e) {
-      if (kDebugMode) debugPrint('createCoupon error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return '쿠폰 생성 중 오류가 발생했습니다.';
     }
   }
@@ -172,7 +172,7 @@ class CouponService {
       }, SetOptions(merge: true));
       return '';
     } catch (e) {
-      if (kDebugMode) debugPrint('updateCoupon error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return '쿠폰 수정 중 오류가 발생했습니다: $e';
     }
   }
@@ -184,7 +184,7 @@ class CouponService {
       await _db.collection('public_coupons').doc(couponId).delete();
       return '';
     } catch (e) {
-      if (kDebugMode) debugPrint('deleteCoupon error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return '쿠폰 삭제 중 오류가 발생했습니다.';
     }
   }
@@ -202,7 +202,7 @@ class CouponService {
       final coupon = _parse(snap.docs.first.id, snap.docs.first.data());
       return coupon.isValid ? coupon : null;
     } catch (e) {
-      if (kDebugMode) debugPrint('validateCode error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return null;
     }
   }
@@ -226,7 +226,7 @@ class CouponService {
             .where((c) => c.canDownload)
             .toList())
         .handleError((e) {
-      if (kDebugMode) debugPrint('watchDownloadableCoupons error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return <CouponModel>[];
     });
   }
@@ -241,7 +241,7 @@ class CouponService {
           .get();
       return snap.docs.map((d) => d.id).toSet();
     } catch (e) {
-      if (kDebugMode) debugPrint('getDownloadedCouponIds error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return {};
     }
   }
@@ -261,7 +261,7 @@ class CouponService {
       coupons.sort((a, b) => a.expiresAt.compareTo(b.expiresAt));
       return coupons;
     }).handleError((e) {
-      if (kDebugMode) debugPrint('watchUserCoupons error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return <CouponModel>[];
     });
   }
@@ -310,7 +310,7 @@ class CouponService {
       });
       return result;
     } catch (e) {
-      if (kDebugMode) debugPrint('markUserCouponUsed error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }

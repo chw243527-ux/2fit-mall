@@ -62,7 +62,7 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
       ctrl.play();
     } catch (e) {
       ctrl.dispose();
-      debugPrint('VideoBanner stub: 로컬 실패 → 폴백: $e');
+      debugPrint('client_operation_failed');
     }
   }
 

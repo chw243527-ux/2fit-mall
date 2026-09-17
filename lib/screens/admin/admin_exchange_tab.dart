@@ -448,7 +448,7 @@ class _ExchangeCard extends StatelessWidget {
         status: '$typeLabel $statusLabel',
         message: '[$typeLabel 요청] 처리 상태가 "$statusLabel"으로 변경되었습니다.',
       ).catchError((e) {
-        if (kDebugMode) debugPrint('FCM error: $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       });
     }
 
@@ -623,7 +623,7 @@ class _CompleteDialogState extends State<_CompleteDialog> {
         );
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('Complete error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
 
     if (!mounted) return;

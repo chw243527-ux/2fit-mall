@@ -121,7 +121,7 @@ class PrivacyService {
 
       if (kDebugMode) debugPrint('✅ 개인정보 정리: ${cleaned}건');
     } catch (e) {
-      if (kDebugMode) debugPrint('개인정보 정리 오류: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
     return cleaned;
   }
@@ -145,7 +145,7 @@ class PrivacyService {
         'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      if (kDebugMode) debugPrint('개인정보 요청 기록 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -198,7 +198,7 @@ class PrivacyService {
       if (kDebugMode) debugPrint('✅ 사용자 데이터 삭제: $userId');
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('사용자 데이터 삭제 오류: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -262,7 +262,7 @@ class PrivacyService {
         'timestamp': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      if (kDebugMode) debugPrint('동의 기록 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 }

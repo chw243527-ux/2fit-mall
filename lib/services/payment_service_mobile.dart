@@ -34,7 +34,7 @@ class PaymentService {
       }
       return PaymentResult(success: false, error: data['message'] ?? '결제 승인에 실패했습니다.');
     } catch (e) {
-      return PaymentResult(success: false, error: '네트워크 오류: $e');
+      return const PaymentResult(success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }
 
@@ -50,7 +50,7 @@ class PaymentService {
       if (response.statusCode == 200 && data['success'] == true) return CashReceiptResult(success: true, receiptKey: data['receiptKey'], orderId: data['orderId']);
       return CashReceiptResult(success: false, error: data['message'] ?? '현금영수증 발급에 실패했습니다.');
     } catch (e) {
-      return CashReceiptResult(success: false, error: '네트워크 오류: $e');
+      return const CashReceiptResult(success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }
 

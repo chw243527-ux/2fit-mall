@@ -132,7 +132,7 @@ class ChatService {
       }
       return userId; // roomId = userId
     } catch (e) {
-      if (kDebugMode) debugPrint('getOrCreateRoom error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       rethrow;
     }
   }
@@ -154,7 +154,7 @@ class ChatService {
           return msgs;
         })
         .handleError((e) {
-          if (kDebugMode) debugPrint('watchMessages error: $e');
+          if (kDebugMode) debugPrint('client_operation_failed');
           return <ChatServiceMessage>[];
         });
   }
@@ -210,7 +210,7 @@ class ChatService {
       batch.set(roomRef, roomUpdate, SetOptions(merge: true));
       await batch.commit();
     } catch (e) {
-      if (kDebugMode) debugPrint('sendMessage error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -263,7 +263,7 @@ class ChatService {
           return rooms;
         })
         .handleError((e) {
-          if (kDebugMode) debugPrint('watchAllRooms error: $e');
+          if (kDebugMode) debugPrint('client_operation_failed');
           return <ChatRoom>[];
         });
   }
@@ -286,7 +286,7 @@ class ChatService {
       batch.update(_db.collection('chat_rooms').doc(userId), {'unreadCount': 0});
       await batch.commit();
     } catch (e) {
-      if (kDebugMode) debugPrint('markAsRead error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -314,7 +314,7 @@ class ChatService {
         'isRead': true,
       });
     } catch (e) {
-      if (kDebugMode) debugPrint('completeRoom error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -335,7 +335,7 @@ class ChatService {
       }
       return total;
     } catch (e) {
-      if (kDebugMode) debugPrint('getTotalUnreadCount error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return 0;
     }
   }
@@ -363,7 +363,7 @@ class ChatService {
       batch.delete(_db.collection('chats').doc(roomId));
       await batch.commit();
     } catch (e) {
-      if (kDebugMode) debugPrint('deleteRoom error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       rethrow;
     }
   }
@@ -377,7 +377,7 @@ class ChatService {
         'blockedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      if (kDebugMode) debugPrint('blockUser error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       rethrow;
     }
   }
@@ -391,7 +391,7 @@ class ChatService {
         'blockedAt': FieldValue.delete(),
       });
     } catch (e) {
-      if (kDebugMode) debugPrint('unblockUser error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       rethrow;
     }
   }
@@ -406,7 +406,7 @@ class ChatService {
         'completedBy': FieldValue.delete(),
       });
     } catch (e) {
-      if (kDebugMode) debugPrint('reopenRoom error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       rethrow;
     }
   }

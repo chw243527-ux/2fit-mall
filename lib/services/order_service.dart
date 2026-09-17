@@ -29,7 +29,7 @@ class OrderService {
       final box = await _getBox();
       await box.put(order.id, orderMap);
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Hive 주문 저장 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
 
     // 2) Firestore 저장
@@ -41,7 +41,7 @@ class OrderService {
       if (kDebugMode) debugPrint('✅ Firestore 주문 저장 완료: ${order.id}');
       // ℹ️ 이메일 발송은 OrderProvider.addOrder()에서 처리 (중복 방지)
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Firestore 주문 저장 실패 (로컬만 저장됨): $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -64,7 +64,7 @@ class OrderService {
       orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return orders;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Firestore 주문 조회 실패, Hive 폴백: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return _getUserOrdersFromHive(userId);
     }
   }
@@ -74,7 +74,7 @@ class OrderService {
     try {
       return await getOrderByIdStrict(orderId);
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 주문 단건 조회 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return null;
     }
   }
@@ -109,7 +109,7 @@ class OrderService {
       orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return orders;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Firestore 전체 주문 조회 실패, Hive 폴백: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return _getAllOrdersFromHive();
     }
   }
@@ -153,7 +153,7 @@ class OrderService {
       await _db.collection('orders').doc(orderId).delete();
       if (kDebugMode) debugPrint('🗑️ 주문 삭제: $orderId');
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 주문 삭제 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
     // Hive에서도 삭제
     try {
@@ -213,17 +213,17 @@ class OrderService {
             trackingNumber: trackingNumber,
             courierName: shippingCompany,
           ).catchError((e) {
-            if (kDebugMode) debugPrint('이메일 발송 실패 (무시): $e');
+            if (kDebugMode) debugPrint('client_operation_failed');
             return false;
           });
         }
       } catch (e) {
-        if (kDebugMode) debugPrint('알림/이메일 발송 실패 (무시): $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
 
       if (kDebugMode) debugPrint('✅ 주문 상태+배송정보 업데이트: $orderId');
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 주문 업데이트 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -270,10 +270,10 @@ class OrderService {
               .catchError((e) => false);
         }
       } catch (e) {
-        if (kDebugMode) debugPrint('알림 발송 실패 (무시): $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Firestore 상태 업데이트 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -355,13 +355,13 @@ class OrderService {
           'createdAt': FieldValue.serverTimestamp(),
         });
       } catch (e) {
-        if (kDebugMode) debugPrint('관리자 알림 저장 실패: $e');
+        if (kDebugMode) debugPrint('client_operation_failed');
       }
 
       if (kDebugMode) debugPrint('✅ 색상/단체명 변경 요청 저장: $orderId → $newColorName');
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 색상 변경 요청 저장 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -491,11 +491,11 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
             if (kDebugMode) debugPrint('✅ 자동 배송완료: ${doc.id} ($trackingNumber)');
           }
         } catch (e) {
-          if (kDebugMode) debugPrint('⚠️ 배송조회 실패 (${doc.id}): $e');
+          if (kDebugMode) debugPrint('client_operation_failed');
         }
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ autoCheckDelivered 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
     return updated;
   }

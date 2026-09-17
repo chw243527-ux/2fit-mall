@@ -116,7 +116,7 @@ class FcmService {
                 'platform': kIsWeb ? 'web' : 'android',
               });
             } catch (e) {
-              if (kDebugMode) debugPrint('FCM 갱신 토큰 저장 실패: $e');
+              if (kDebugMode) debugPrint('client_operation_failed');
             }
           }
           if (kDebugMode) debugPrint('FCM 토큰 갱신됨');
@@ -174,7 +174,7 @@ class FcmService {
       }
       return fallback;
     } catch (e) {
-      if (kDebugMode) debugPrint('알림 설정 조회 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return fallback;
     }
   }
@@ -194,7 +194,7 @@ class FcmService {
       });
       if (kDebugMode) debugPrint('✅ FCM 토큰 저장: $userId');
     } catch (e) {
-      if (kDebugMode) debugPrint('FCM 토큰 저장 실패: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -239,7 +239,7 @@ class FcmService {
         debugPrint('✅ 주문 상태 알림 저장: $targetOrderId → $statusLabel');
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('sendOrderStatusNotification error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -261,7 +261,7 @@ class FcmService {
       });
       if (kDebugMode) debugPrint('✅ 새 주문 관리자 알림 저장: ${order.id}');
     } catch (e) {
-      if (kDebugMode) debugPrint('sendNewOrderNotification error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -311,7 +311,7 @@ class FcmService {
         debugPrint('✅ 재입고 알림 발송: $productName ($sentCount명)');
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('sendRestockNotification error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -360,7 +360,7 @@ class FcmService {
       if (kDebugMode) debugPrint('✅ 프로모션 알림 저장: $title');
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('sendPromoNotification error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
       return false;
     }
   }
@@ -401,7 +401,7 @@ class FcmService {
     try {
       await _db.collection('notifications').doc(notifId).update({'isRead': true});
     } catch (e) {
-      if (kDebugMode) debugPrint('markAsRead error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 
@@ -419,7 +419,7 @@ class FcmService {
       }
       await batch.commit();
     } catch (e) {
-      if (kDebugMode) debugPrint('markAllAsRead error: $e');
+      if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
 

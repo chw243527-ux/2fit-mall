@@ -182,7 +182,7 @@ class PaymentService {
         error: data['message'] ?? '결제 승인에 실패했습니다.',
       );
     } catch (e) {
-      return PaymentResult(success: false, error: '네트워크 오류: $e');
+      return const PaymentResult(success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }
 
@@ -240,7 +240,7 @@ class PaymentService {
           method: 'CARD',
         );
       }
-      return PaymentResult(success: false, error: '네트워크 오류: $e');
+      return const PaymentResult(success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }
 
@@ -317,7 +317,7 @@ class PaymentService {
         error: data['message'] as String? ?? '현금영수증 발급에 실패했습니다.',
       );
     } catch (e) {
-      return CashReceiptResult(success: false, error: '네트워크 오류: $e');
+      return const CashReceiptResult(success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }
 
@@ -371,7 +371,7 @@ class PaymentService {
           receiptKey: 'test_rcpt_${DateTime.now().millisecondsSinceEpoch}',
         );
       }
-      return CashReceiptResult(success: false, error: '네트워크 오류: $e');
+      return const CashReceiptResult(success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }
 
