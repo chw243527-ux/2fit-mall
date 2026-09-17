@@ -1120,26 +1120,26 @@ class ProductService {
     final idx = _products.indexWhere((p) => p.id == productId);
     if (idx < 0) return false;
     final p = _products[idx];
-    _products[idx] = ProductModel(
-      id: p.id, name: p.name, category: p.category, subCategory: p.subCategory,
-      price: p.price, originalPrice: p.originalPrice,
-      description: p.description, images: p.images,
-      sizes: p.sizes, colors: p.colors, colorHexes: p.colorHexes, material: p.material,
-      isNew: p.isNew, newExpiresAt: p.newExpiresAt, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
-      isGroupOnly: p.isGroupOnly, isGroup: p.isGroup, isActive: p.isActive,
-      rating: p.rating, reviewCount: p.reviewCount,
-      stockCount: newStock,
-      createdAt: p.createdAt, productCode: p.productCode, sectionImages: p.sectionImages,
-      nameTranslations: p.nameTranslations,
-      descriptionTranslations: p.descriptionTranslations,
-    );
+    final previousStock = p.stockCount;
+    // 전체 ProductModel을 다시 생성하지 않고 copyWith를 사용해 sizeStocks,
+    // stockData, 색상 옵션 등 기존 상품등록 데이터를 유실하지 않습니다.
+    _products[idx] = p.copyWith(stockCount: newStock);
     _cache = List.from(_products);
     await _persist();
     // Firestore 재고 업데이트
     try {
-      await _db.collection('products').doc(productId).update({'stockCount': newStock});
+      await _db.collection('products').doc(productId).set({
+        'stockCount': newStock,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ Firestore 재고 업데이트 실패: $e');
+    }
+    if (previousStock <= 0 && newStock > 0) {
+      await FcmService.sendRestockNotification(
+        productId: productId,
+        productName: p.name,
+      );
     }
     return true;
   }
