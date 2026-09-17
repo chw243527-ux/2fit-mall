@@ -2792,6 +2792,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ─── 모바일 / 태블릿 레이아웃 (<900px) ──────────────────
   Widget _buildMobileLayout(AppLocalizations loc) {
     final pp = context.watch<ProductProvider>();
+    final isMobile = MediaQuery.of(context).size.width < 600;
     // 단체주문 목록도 ProductProvider가 Firestore에서 읽은 원본만 사용한다.
     final groupProds = pp.groupOnlyProducts
         .where((p) => p.isActive && (p.isGroupOnly || p.isGroup))
