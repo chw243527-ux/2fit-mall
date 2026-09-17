@@ -1,0 +1,23 @@
+name: Production Monitor
+
+on:
+  schedule:
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check production web
+        env:
+          PRODUCTION_WEB_URL: ${{ vars.PRODUCTION_WEB_URL || 'https://2fit-mall.co.kr' }}
+        run: |
+          set -euo pipefail
+          test -n "${PRODUCTION_WEB_URL}"
+          scripts/production_smoke_check.sh

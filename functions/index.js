@@ -2626,7 +2626,10 @@ exports.sendSolapiSms = onRequest(
         statusCode: result.statusCode,
       });
     } catch (error) {
-      console.error('sendSolapiSms error:', error);
+      console.error('sendSolapiSms error:', {
+        code: _errorCode(error, 'sms-delivery-failed'),
+        statusCode: error?.statusCode || null,
+      });
       res.status(500).json({ error: 'SMS delivery failed' });
     }
   }

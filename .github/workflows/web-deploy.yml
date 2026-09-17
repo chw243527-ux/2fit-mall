@@ -118,6 +118,20 @@ jobs:
             echo "Removing empty Flutter service worker from pwa-strategy=none build."
             rm -f "${BUILD_DIR}/flutter_service_worker.js"
           fi
+      - name: Validate web security headers and bundle budget
+        run: |
+          set -euo pipefail
+          test -s web/_headers
+          cp web/_headers "${BUILD_DIR}/_headers"
+          total_bytes="$(du -sb "${BUILD_DIR}" | cut -f1)"
+          max_bytes=$((45 * 1024 * 1024))
+          if [ "${total_bytes}" -gt "${max_bytes}" ]; then
+            echo "Web bundle exceeds 45 MiB: ${total_bytes} bytes"
+            exit 1
+          fi
+          grep -q "Content-Security-Policy-Report-Only" "${BUILD_DIR}/_headers"
+          grep -q "Strict-Transport-Security" "${BUILD_DIR}/_headers"
+          echo "Web bundle size: ${total_bytes} bytes"
 
       - name: Prepare payment widget compatibility route
         run: |

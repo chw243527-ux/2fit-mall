@@ -1,0 +1,55 @@
+name: Release Security Verification
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rules-and-web-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install Firebase CLI and Rules test dependencies
+        run: |
+          npm install --no-save --no-package-lock firebase-tools@latest @firebase/rules-unit-testing firebase firestore firebase/storage
+      - name: Start Rules emulator and run smoke test
+        run: |
+          npx firebase emulators:exec --only firestore \
+            --project fit-mall-rules-test \
+            "FIREBASE_PROJECT_ID=fit-mall-rules-test node security/rules_smoke_test.js"
+      - name: Validate Storage Rules boundaries
+        run: |
+          grep -q "match /products/{allPaths=**}" storage.rules
+          grep -q "match /orders/{orderId}/{allPaths=**}" storage.rules
+          grep -q "match /group_orders/{userId}/{orderId}/{allPaths=**}" storage.rules
+          grep -q "allow read, write: if false" storage.rules
+      - name: Validate Cloudflare security headers file
+        run: |
+          test -s web/_headers
+          grep -q 'Strict-Transport-Security' web/_headers
+          grep -q 'Content-Security-Policy-Report-Only' web/_headers
+          grep -q 'X-Content-Type-Options' web/_headers
+      - name: Check production headers when URL is configured
+        env:
+          PRODUCTION_WEB_URL: ${{ vars.PRODUCTION_WEB_URL || 'https://2fit-mall.co.kr' }}
+        run: |
+          set -euo pipefail
+          headers="$(curl --fail-with-body -sSI --max-time 20 "${PRODUCTION_WEB_URL}")"
+          echo "${headers}"
+          echo "${headers}" | grep -qi '^strict-transport-security:'
+          echo "${headers}" | grep -qi '^x-content-type-options:'
+          echo "${headers}" | grep -qi '^referrer-policy:'
