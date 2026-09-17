@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
+import 'fcm_service.dart';
 
 class ProductService {
   // ─────────────────────────────────────────────────────────────
@@ -1149,6 +1150,7 @@ class ProductService {
     try {
       final idx = _products.indexWhere((p) => p.id == productId);
       final current = idx >= 0 ? _products[idx] : null;
+      final previousTotal = current?.stockCount ?? 0;
       final sizes = current?.sizes.isNotEmpty == true
           ? current!.sizes
           : sizeStocks.keys.toList();
@@ -1202,6 +1204,14 @@ class ProductService {
         );
         _cache = List.from(_products);
         await _persist();
+      }
+      // 상품등록/재고 수정 다이얼로그 경로에서도 품절 해제 시 동일한 재입고 알림을 보냅니다.
+      if (previousTotal <= 0 && newStock > 0) {
+        final productName = current?.name ?? productId;
+        await FcmService.sendRestockNotification(
+          productId: productId,
+          productName: productName,
+        );
       }
       return true;
     } catch (e) {

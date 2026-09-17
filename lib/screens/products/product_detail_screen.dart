@@ -7117,17 +7117,29 @@ $productUrl
 
       final db = FirebaseFirestore.instance;
       final docId = '${product.id}_${user.id}';
-      await db.collection('restock_alerts').doc(docId).set({
-        'productId': product.id,
-        'productName': product.name,
-        'userId': user.id,
-        'userName': user.name,
-        'userEmail': email,
-        'requestedAt': FieldValue.serverTimestamp(),
-        // 발송 서비스가 조회하는 필드명과 일치시킵니다.
-        'notified': false,
-        'isNotified': false,
-      });
+      final alertRef = db.collection('restock_alerts').doc(docId);
+      final existing = await alertRef.get();
+      final existingData = existing.data();
+      // 아직 발송되지 않은 신청을 다시 저장하면서 대기 상태를 초기화하지 않습니다.
+      // 사용자가 반복 클릭해도 신청 1건만 유지되어 중복 알림을 방지합니다.
+      final alreadyWaiting = existing.exists &&
+          existingData != null &&
+          existingData['notified'] != true &&
+          existingData['isNotified'] != true;
+      if (!alreadyWaiting) {
+        await alertRef.set({
+          'productId': product.id,
+          'productName': product.name,
+          'userId': user.id,
+          'userName': user.name,
+          'userEmail': email,
+          'requestedAt': FieldValue.serverTimestamp(),
+          'platform': kIsWeb ? 'web' : 'android',
+          // 발송 서비스가 조회하는 필드명과 일치시킵니다.
+          'notified': false,
+          'isNotified': false,
+        }, SetOptions(merge: true));
+      }
       if (!mounted) return;
       showDialog(
         context: context,
