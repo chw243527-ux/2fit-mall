@@ -25,7 +25,8 @@ jobs:
           node-version: 22
       - name: Install Firebase CLI and Rules test dependencies
         run: |
-          npm install --no-save --no-package-lock firebase-tools@latest @firebase/rules-unit-testing firebase firestore firebase/storage
+          npm install --no-save --no-package-lock --legacy-peer-deps \
+            firebase-tools@latest @firebase/rules-unit-testing firebase
       - name: Start Rules emulator and run smoke test
         run: |
           npx firebase emulators:exec --only firestore \
