@@ -1036,36 +1036,12 @@ class ProductService {
 
   static Future<void> addProduct(ProductModel product) async {
     if (!_loaded) await _loadFromFirestore();
-    // isActive=true, stockCount 기본값 보장
-    final safeProduct = product.stockCount > 0 && product.isActive
-        ? product
-        : ProductModel(
-            id: product.id,
-            name: product.name,
-            category: product.category,
-            subCategory: product.subCategory,
-            price: product.price,
-            originalPrice: product.originalPrice,
-            description: product.description,
-            images: product.images,
-            sizes: product.sizes,
-            colors: product.colors,
-            colorHexes: product.colorHexes,
-            material: product.material,
-            isNew: product.isNew, newExpiresAt: product.newExpiresAt,
-            isSale: product.isSale,
-            isFreeShipping: product.isFreeShipping,
-            isGroupOnly: product.isGroupOnly,
-            isActive: true,                          // 항상 활성화
-            rating: product.rating,
-            reviewCount: product.reviewCount,
-            stockCount: product.stockCount > 0 ? product.stockCount : 100,  // 최소 100
-            createdAt: product.createdAt,
-            productCode: product.productCode,
-            sectionImages: product.sectionImages,
-            nameTranslations: product.nameTranslations,
-            descriptionTranslations: product.descriptionTranslations,
-          );
+    // 상품등록에서 입력한 재고·색상·단체주문 옵션을 누락하지 않고 그대로 보존합니다.
+    // 활성 상품과 초기 재고 기본값만 안전하게 보정합니다.
+    final safeProduct = product.copyWith(
+      isActive: true,
+      stockCount: product.stockCount > 0 ? product.stockCount : 100,
+    );
     _products.add(safeProduct);
     _allProducts.add(safeProduct);               // 관리자 목록에도 즉시 반영
     _cache = List.from(_products);
