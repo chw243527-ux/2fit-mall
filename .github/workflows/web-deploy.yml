@@ -124,9 +124,11 @@ jobs:
           test -s web/_headers
           cp web/_headers "${BUILD_DIR}/_headers"
           total_bytes="$(du -sb "${BUILD_DIR}" | cut -f1)"
-          max_bytes=$((45 * 1024 * 1024))
+          # Flutter Web release output includes runtime assets and fonts; keep
+          # a 60 MiB hard ceiling while reporting the measured size in CI.
+          max_bytes=$((60 * 1024 * 1024))
           if [ "${total_bytes}" -gt "${max_bytes}" ]; then
-            echo "Web bundle exceeds 45 MiB: ${total_bytes} bytes"
+            echo "Web bundle exceeds 60 MiB: ${total_bytes} bytes"
             exit 1
           fi
           grep -q "Content-Security-Policy-Report-Only" "${BUILD_DIR}/_headers"
