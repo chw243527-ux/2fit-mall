@@ -880,6 +880,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   }
 
   Future<void> _submitOrder({required bool isBuyNow}) async {
+    if (!_orderConfirmed) {
+      _showSnack(context.loc.t('주문_내용을_확인해_주세요', '주문 내용을 확인하고 동의 체크를 해주세요.'));
+      return;
+    }
     if (!_isAdditional && _totalCount < _groupMinimumQuantity) {
       _showSnack('단체주문은 최소 ${_groupMinimumQuantity}명부터 가능합니다.');
       return;
@@ -1200,8 +1204,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       cart.addItem(product, '단체', _mainColorName ?? '기본',
           quantity: _totalCount, extraPrice: 0, customOptions: customOptions);
       if (!mounted) return;
-      // 장바구니 담기 후 사이즈 저장 제안
-      _offerSaveSizeAfterOrder();
+      // 기성품과 동일하게 담기 직후 장바구니 보기 액션을 노출한다.
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(children: [
@@ -6672,14 +6675,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           width: double.infinity,
           height: 52,
           child: OutlinedButton(
-            onPressed:
-                _orderConfirmed ? () => _submitOrder(isBuyNow: false) : null,
+            onPressed: () => _submitOrder(isBuyNow: false),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.primary,
-              side: BorderSide(
-                  color: _orderConfirmed
-                      ? AppColors.primary
-                      : Colors.grey.shade300),
+              side: const BorderSide(color: AppColors.primary),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
               elevation: 0,
