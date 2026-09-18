@@ -345,12 +345,18 @@ class CartScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 32),
-          SizedBox(
-            width: 200,
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: 160,
+              maxWidth: MediaQuery.sizeOf(context).width - 32,
+            ),
             child: ElevatedButton(
               onPressed: () => _handleBack(context),
               child: Consumer<LanguageProvider>(
-                builder: (_, lp, __) => Text(lp.loc.keepShopping),
+                builder: (_, lp, __) => FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(lp.loc.keepShopping),
+                ),
               ),
             ),
           ),

@@ -1209,13 +1209,18 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 color: Colors.white, size: 18),
             const SizedBox(width: 8),
             Expanded(
-                child: Text(context.loc.t('장바구니에_담았습니다', '장바구니에 담았습니다.') +
-                    ' ($_totalCount' +
-                    context.loc.t('명', '명') +
-                    ' / ${_fmt(_finalPrice)}원)')),
+                child: Text(
+              context.loc.t('장바구니에_담았습니다', '장바구니에 담았습니다.') +
+                  ' ($_totalCount' +
+                  context.loc.t('명', '명') +
+                  ' / ${_fmt(_finalPrice)}원)',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            )),
           ]),
           backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           action: SnackBarAction(
