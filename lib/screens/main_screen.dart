@@ -1082,12 +1082,14 @@ class _PcTopBarState extends State<_PcTopBar> {
     required VoidCallback onTap,
   }) {
     final r = Responsive.of(context);
+    final compact = MediaQuery.of(context).size.width < kPcBreakpoint;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(7)),
+          padding: EdgeInsets.symmetric(
+              horizontal: compact ? r.w(7) : r.w(10), vertical: r.h(7)),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
@@ -1098,11 +1100,12 @@ class _PcTopBarState extends State<_PcTopBar> {
             children: [
               Icon(icon, size: 22, color: AppColors.primary),
               SizedBox(height: r.h(2)),
-              Text(label,
-                  style: TextStyle(
-                      fontSize: r.sp(10),
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w400)),
+              if (!compact)
+                Text(label,
+                    style: TextStyle(
+                        fontSize: r.sp(10),
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w400)),
             ],
           ),
         ),
@@ -1118,12 +1121,14 @@ class _PcTopBarState extends State<_PcTopBar> {
     required VoidCallback onTap,
   }) {
     final r = Responsive.of(context);
+    final compact = MediaQuery.of(context).size.width < kPcBreakpoint;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(7)),
+          padding: EdgeInsets.symmetric(
+              horizontal: compact ? r.w(7) : r.w(10), vertical: r.h(7)),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
@@ -1160,11 +1165,12 @@ class _PcTopBarState extends State<_PcTopBar> {
                 ],
               ),
               SizedBox(height: r.h(2)),
-              Text(label,
-                  style: TextStyle(
-                      fontSize: r.sp(10),
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w400)),
+              if (!compact)
+                Text(label,
+                    style: TextStyle(
+                        fontSize: r.sp(10),
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w400)),
             ],
           ),
         ),
