@@ -1005,13 +1005,13 @@ class _PcTopBarState extends State<_PcTopBar> {
                           ),
                         ),
                       ),
-                      SizedBox(width: r.w(32)),
+                      SizedBox(width: isTablet ? r.w(12) : r.w(32)),
 
                       // ── 검색창 (중앙 확장) ──
                       Expanded(
                         child: _SearchBar(loc: loc),
                       ),
-                      SizedBox(width: r.w(20)),
+                      SizedBox(width: isTablet ? r.w(8) : r.w(20)),
 
                       // ── 마이페이지 아이콘 ──
                       _topIcon(
@@ -1030,7 +1030,7 @@ class _PcTopBarState extends State<_PcTopBar> {
                           onTap: () => widget.onTabChanged(2),
                         ),
                       ),
-                      SizedBox(width: r.w(16)),
+                      SizedBox(width: isTablet ? r.w(8) : r.w(16)),
 
                       // ── 구분선 ──
                       Container(
@@ -1038,7 +1038,7 @@ class _PcTopBarState extends State<_PcTopBar> {
                         height: 28,
                         color: AppColors.border,
                       ),
-                      SizedBox(width: r.w(16)),
+                      SizedBox(width: isTablet ? r.w(8) : r.w(16)),
 
                       // ── 언어 선택 버튼 ──
                       const _PcLanguageBtn(),
