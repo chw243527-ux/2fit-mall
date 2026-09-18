@@ -9000,6 +9000,11 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
         item['color'] as String,
         quantity: item['qty'] as int,
         extraPrice: (item['extra'] as num).toDouble(),
+        customOptions: {
+          'length': item['length'],
+          'gender': item['gender'],
+          'removePocket': item['removePocket'] == true,
+        },
       );
     }
     widget.onCartUpdated();

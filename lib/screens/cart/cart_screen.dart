@@ -347,7 +347,7 @@ class CartScreen extends StatelessWidget {
           SizedBox(
             width: 200,
             child: ElevatedButton(
-              onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
+              onPressed: () => _handleBack(context),
               child: Consumer<LanguageProvider>(
                 builder: (_, lp, __) => Text(lp.loc.keepShopping),
               ),
@@ -419,8 +419,7 @@ class CartScreen extends StatelessWidget {
                     spacing: 6,
                     runSpacing: 4,
                     children: [
-                      _optionChip(item.selectedSize),
-                      _optionChip(item.selectedColor),
+                      ..._cartOptionLabels(item).map(_optionChip),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -465,6 +464,37 @@ class CartScreen extends StatelessWidget {
       child: Text(label,
           style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
     );
+  }
+
+  List<String> _cartOptionLabels(CartItem item) {
+    final labels = <String>[
+      '사이즈: ${item.selectedSize}',
+      '색상: ${item.selectedColor}',
+    ];
+    final options = item.customOptions;
+    if (options == null) return labels;
+    const names = <String, String>{
+      'length': '기장',
+      'gender': '성별',
+      'removePocket': '주머니 제거',
+      'waistbandColor': '허리밴드 색상',
+      'printMethod': '인쇄 방법',
+      'teamName': '단체명',
+      'individualNames': '개인 이름',
+      'orderType': '주문 유형',
+    };
+    for (final entry in options.entries) {
+      final value = entry.value;
+      if (value == null || value.toString().trim().isEmpty) continue;
+      if (value is bool) {
+        labels.add('${names[entry.key] ?? entry.key}: ${value ? '선택' : '미선택'}');
+      } else if (value is List) {
+        labels.add('${names[entry.key] ?? entry.key}: ${value.join(', ')}');
+      } else {
+        labels.add('${names[entry.key] ?? entry.key}: $value');
+      }
+    }
+    return labels;
   }
 
   Widget _buildQtyControl(CartProvider cart, CartItem item) {
