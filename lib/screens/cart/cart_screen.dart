@@ -10,6 +10,7 @@ import '../../services/order_service.dart';
 import '../../services/secure_checkout_service.dart';
 import '../../widgets/pc_layout.dart';
 import '../main_screen.dart';
+import '../orders/group_order_form_screen.dart';
 
 class CartScreen extends StatelessWidget {
   /// IndexedStack 안에 있을 때는 onBack 콜백으로 홈탭 이동,
@@ -422,6 +423,24 @@ class CartScreen extends StatelessWidget {
                       ..._cartOptionLabels(item).map(_optionChip),
                     ],
                   ),
+                  if (_isGroupCartItem(item)) ...[
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _openGroupOrderOptions(context, item),
+                        icon: const Icon(Icons.tune_rounded, size: 16),
+                        label: const Text('옵션 확인'),
+                        style: OutlinedButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          foregroundColor: AppColors.primary,
+                          side: const BorderSide(color: AppColors.primary),
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -495,6 +514,29 @@ class CartScreen extends StatelessWidget {
       }
     }
     return labels;
+  }
+
+  bool _isGroupCartItem(CartItem item) {
+    final type = item.customOptions?['orderType']?.toString();
+    return type == 'group' || type == 'additional';
+  }
+
+  void _openGroupOrderOptions(BuildContext context, CartItem item) {
+    final options = item.customOptions ?? const <String, dynamic>{};
+    final rawPrintType = options['printType'];
+    final printType = rawPrintType is num ? rawPrintType.toInt() : 0;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GroupOrderFormScreen(
+          product: item.product,
+          isAdditionalOrder: options['orderType'] == 'additional',
+          initialPrintType: printType,
+          initialCount: item.quantity,
+          initialCartOptions: item.customOptions,
+        ),
+      ),
+    );
   }
 
   Widget _buildQtyControl(CartProvider cart, CartItem item) {

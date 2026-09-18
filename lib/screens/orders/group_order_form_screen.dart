@@ -59,6 +59,7 @@ class GroupOrderFormScreen extends StatefulWidget {
   final bool isAdditionalOrder;
   final int initialPrintType;
   final int initialCount;
+  final Map<String, dynamic>? initialCartOptions;
   final OrderModel? originalOrder; // 추가주문 시 기존 주문 참조
   final bool isBottomOrder; // 하의 카테고리 + 단체주문: 인쇄/재봉/디자인이미지/상의사이즈 숨김
 
@@ -68,6 +69,7 @@ class GroupOrderFormScreen extends StatefulWidget {
     this.isAdditionalOrder = false,
     this.initialPrintType = 0,
     this.initialCount = 0,
+    this.initialCartOptions,
     this.originalOrder,
     this.isBottomOrder = false,
   });
@@ -369,6 +371,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     for (int i = 0; i < _count; i++) {
       _persons.add(_PersonEntry(index: i));
     }
+    _prefillCartOptions();
     _prefillOriginalPersons();
     _loadSavedImages();
     _colorTabCtrl = TabController(length: 3, vsync: this);
@@ -388,6 +391,50 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       _count = _persons.length;
       _countFixed = true;
     });
+  }
+
+  void _prefillCartOptions() {
+    final options = widget.initialCartOptions;
+    if (options == null) return;
+    _teamNameCtrl.text = options['teamName']?.toString() ?? '';
+    _managerNameCtrl.text = options['manager']?.toString() ?? '';
+    _phoneCtrl.text = options['phone']?.toString() ?? '';
+    _emailCtrl.text = options['email']?.toString() ?? '';
+    _address = options['address']?.toString() ?? '';
+    _addressDetailCtrl.text = options['addressDetail']?.toString() ?? '';
+    _memoCtrl.text = options['memo']?.toString() ?? '';
+    _mainColorName = options['mainColor']?.toString();
+    _hasPocket = options['pocket'] == true;
+    _exclusiveDesign = options['exclusive'] == true;
+    _maleLengthSel = options['maleLength']?.toString();
+    _femaleLengthSel = options['femaleLength']?.toString();
+    final rawPersons = options['persons'];
+    if (rawPersons is! List) return;
+    while (_persons.length < rawPersons.length) {
+      _persons.add(_PersonEntry(index: _persons.length));
+    }
+    _count = _persons.length;
+    _countFixed = true;
+    for (var i = 0; i < rawPersons.length; i++) {
+      final raw = rawPersons[i];
+      if (raw is! Map) continue;
+      final person = _persons[i];
+      final gender = raw['gender']?.toString();
+      if (gender == 'male' || gender == 'female') person.gender = gender;
+      person.sizeType = raw['sizeType']?.toString() ?? person.sizeType;
+      final top = raw['topSize']?.toString() ?? '';
+      final bottom = raw['bottomSize']?.toString() ?? '';
+      person.topSize = top.isEmpty ? null : top;
+      person.bottomSize = bottom.isEmpty ? null : bottom;
+      person.topSizeCtrl.text = top;
+      person.bottomSizeCtrl.text = bottom;
+      person.nameCtrl.text = raw['name']?.toString() ?? '';
+      person.heightCtrl.text = raw['height']?.toString() ?? '';
+      person.weightCtrl.text = raw['weight']?.toString() ?? '';
+      person.waistCtrl.text = raw['waist']?.toString() ?? '';
+      person.thighCtrl.text = raw['thigh']?.toString() ?? '';
+      person.showDetail = raw['hasCustomMeasure'] == true;
+    }
   }
 
   void _prefillOriginalPersons() {
