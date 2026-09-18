@@ -938,11 +938,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       ProductModel addedProduct) async {
     final candidates = context
         .read<ProductProvider>()
-        .products
-        .where((p) =>
-            p.id != addedProduct.id &&
-            p.isActive &&
-            (p.isGroup || p.isGroupOnly))
+        .groupOnlyProducts
+        .where((p) => p.id != addedProduct.id && p.isActive)
         .take(8)
         .toList();
     final action = await showDialog<String>(
