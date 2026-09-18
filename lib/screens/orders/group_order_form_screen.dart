@@ -21,6 +21,7 @@ import '../../widgets/color_picker_widget.dart';
 import '../../widgets/address_search_widget.dart';
 import '../../utils/navigation_helper.dart';
 import '../../services/group_order_policy_service.dart';
+import 'group_order_landing_screen.dart';
 
 // ══════════════════════════════════════════════════════════════
 // 단체 주문 폼 v6 - 완전 재작성
@@ -879,6 +880,124 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     return true;
   }
 
+  Future<void> _showGroupCartRecommendationDialog(
+      ProductModel addedProduct) async {
+    final candidates = context
+        .read<ProductProvider>()
+        .products
+        .where((p) =>
+            p.id != addedProduct.id &&
+            p.isActive &&
+            (p.isGroup || p.isGroupOnly))
+        .take(8)
+        .toList();
+    final action = await showDialog<String>(
+      context: context,
+      useRootNavigator: true,
+      builder: (dialogContext) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 28),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 20, 18, 16),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Row(children: [
+                const Icon(Icons.check_circle_rounded,
+                    color: AppColors.success),
+                const SizedBox(width: 8),
+                const Expanded(
+                    child: Text('장바구니에 담았어요',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.w800))),
+                IconButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    icon: const Icon(Icons.close)),
+              ]),
+              const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('단체주문 가능 상품을 추천해 드려요.',
+                      style: TextStyle(color: AppColors.textSecondary))),
+              if (candidates.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                SizedBox(
+                    height: 178,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: candidates.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 10),
+                      itemBuilder: (_, index) {
+                        final item = candidates[index];
+                        return SizedBox(
+                            width: 118,
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.pop(dialogContext);
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => GroupOrderLandingScreen(
+                                            product: item)));
+                              },
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                        child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            child: SizedBox(
+                                                width: double.infinity,
+                                                child: item.images.isNotEmpty
+                                                    ? NetImage(
+                                                        item.images.first,
+                                                        fit: BoxFit.cover)
+                                                    : Container(
+                                                        color: AppColors
+                                                            .surface)))),
+                                    const SizedBox(height: 6),
+                                    Text(item.name,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600)),
+                                    Text('${item.price.toStringAsFixed(0)}원',
+                                        style: const TextStyle(
+                                            fontSize: 12,
+                                            color: AppColors.textSecondary)),
+                                  ]),
+                            ));
+                      },
+                    )),
+              ] else
+                const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 18),
+                    child: Text('추천 상품을 준비 중입니다.')),
+              const SizedBox(height: 16),
+              Row(children: [
+                Expanded(
+                    child: OutlinedButton(
+                        onPressed: () =>
+                            Navigator.pop(dialogContext, 'continue'),
+                        child: const Text('쇼핑 계속하기'))),
+                const SizedBox(width: 10),
+                Expanded(
+                    child: ElevatedButton(
+                        onPressed: () => Navigator.pop(dialogContext, 'cart'),
+                        child: const Text('장바구니 이동'))),
+              ]),
+            ]),
+          ),
+        ),
+      ),
+    );
+    if (action == 'cart' && mounted) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const CartScreen()));
+    }
+  }
+
   Future<void> _submitOrder({required bool isBuyNow}) async {
     if (!_orderConfirmed) {
       _showSnack(context.loc.t('주문_내용을_확인해_주세요', '주문 내용을 확인하고 동의 체크를 해주세요.'));
@@ -1199,45 +1318,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       Navigator.push(context,
           MaterialPageRoute(builder: (_) => CheckoutScreen(cart: cart)));
     } else {
-      // 장바구니에 담기 (기존 아이템 유지, 단체 상품 추가)
-      // product.price = _unitPrice (모든 추가비용 포함) → extraPrice: 0 으로 이중계산 방지
+      // 장바구니에 담기 후 중앙 추천 팝업을 표시한다.
       cart.addItem(product, '단체', _mainColorName ?? '기본',
           quantity: _totalCount, extraPrice: 0, customOptions: customOptions);
       if (!mounted) return;
-      // 기성품과 동일하게 담기 직후 장바구니 보기 액션을 노출한다.
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(children: [
-            const Icon(Icons.check_circle_rounded,
-                color: Colors.white, size: 18),
-            const SizedBox(width: 8),
-            Expanded(
-                child: Text(
-              context.loc.t('장바구니에_담았습니다', '장바구니에 담았습니다.') +
-                  ' ($_totalCount' +
-                  context.loc.t('명', '명') +
-                  ' / ${_fmt(_finalPrice)}원)',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            )),
-          ]),
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 5),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          action: SnackBarAction(
-            label: context.loc.t('장바구니_보기', '장바구니 보기'),
-            textColor: AppColors.accent,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CartScreen()),
-              );
-            },
-          ),
-        ),
-      );
+      _showGroupCartRecommendationDialog(product);
     }
   }
 

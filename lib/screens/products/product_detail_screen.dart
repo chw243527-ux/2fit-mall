@@ -8987,6 +8987,138 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   void _removeItem(int index) => setState(() => _items.removeAt(index));
 
+  Future<void> _showCartRecommendationDialog(
+      BuildContext host, ProductModel addedProduct) async {
+    final provider = host.read<ProductProvider>();
+    final source =
+        provider.products.where((p) => p.id != addedProduct.id && p.isActive);
+    final isGroup = addedProduct.isGroup || addedProduct.isGroupOnly;
+    final text =
+        '${addedProduct.category} ${addedProduct.subCategory} ${addedProduct.name}';
+    final isFunctional = text.contains('기능성') || text.contains('퍼포먼스');
+    final candidates = source
+        .where((p) {
+          if (isGroup) return p.isGroup || p.isGroupOnly;
+          if (isFunctional) {
+            final value = '${p.category} ${p.subCategory} ${p.name}';
+            return value.contains('기능성') || value.contains('퍼포먼스');
+          }
+          return p.category == addedProduct.category;
+        })
+        .take(8)
+        .toList();
+    final action = await showDialog<String>(
+      context: host,
+      useRootNavigator: true,
+      barrierDismissible: true,
+      builder: (dialogContext) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 28),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 20, 18, 16),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Row(children: [
+                const Icon(Icons.check_circle_rounded,
+                    color: AppColors.success),
+                const SizedBox(width: 8),
+                const Expanded(
+                    child: Text('장바구니에 담았어요',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.w800))),
+                IconButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    icon: const Icon(Icons.close)),
+              ]),
+              const SizedBox(height: 6),
+              Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    isGroup
+                        ? '단체주문 가능 상품을 추천해 드려요.'
+                        : isFunctional
+                            ? '기능성 상품을 추천해 드려요.'
+                            : '함께 보면 좋은 상품을 추천해 드려요.',
+                    style: const TextStyle(color: AppColors.textSecondary),
+                  )),
+              if (candidates.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                SizedBox(
+                  height: 178,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: candidates.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 10),
+                    itemBuilder: (_, index) {
+                      final item = candidates[index];
+                      return SizedBox(
+                          width: 118,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.pop(dialogContext);
+                              Navigator.push(
+                                  host,
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          ProductDetailScreen(product: item)));
+                            },
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                      child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: SizedBox(
+                                        width: double.infinity,
+                                        child: item.images.isNotEmpty
+                                            ? NetImage(item.images.first,
+                                                fit: BoxFit.cover)
+                                            : Container(
+                                                color: AppColors.surface)),
+                                  )),
+                                  const SizedBox(height: 6),
+                                  Text(item.name,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600)),
+                                  Text('${item.price.toStringAsFixed(0)}원',
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.textSecondary)),
+                                ]),
+                          ));
+                    },
+                  ),
+                ),
+              ] else
+                const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 18),
+                    child: Text('추천 상품을 준비 중입니다.')),
+              const SizedBox(height: 16),
+              Row(children: [
+                Expanded(
+                    child: OutlinedButton(
+                  onPressed: () => Navigator.pop(dialogContext, 'continue'),
+                  child: const Text('쇼핑 계속하기'),
+                )),
+                const SizedBox(width: 10),
+                Expanded(
+                    child: ElevatedButton(
+                  onPressed: () => Navigator.pop(dialogContext, 'cart'),
+                  child: const Text('장바구니 이동'),
+                )),
+              ]),
+            ]),
+          ),
+        ),
+      ),
+    );
+    if (action == 'cart' && host.mounted) Navigator.pushNamed(host, '/cart');
+  }
+
   void _proceedToCart() {
     final r = Responsive.of(context);
 
@@ -9009,31 +9141,11 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
     }
     widget.onCartUpdated();
     navigator.pop();
-    messenger?.hideCurrentSnackBar();
-    messenger?.showSnackBar(
-      SnackBar(
-        content: Row(children: [
-          const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
-          SizedBox(width: r.w(8)),
-          Expanded(
-            child: Text(
-              '${_items.length}가지 옵션 · 총 ${_totalQty()}개 장바구니에 담겼습니다',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ]),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 5),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        action: SnackBarAction(
-          label: context.loc.t('장바구니_보기', '장바구니 보기'),
-          textColor: AppColors.accent,
-          onPressed: () => Navigator.pushNamed(context, '/cart'),
-        ),
-      ),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (navigator.mounted) {
+        _showCartRecommendationDialog(navigator.context, widget.product);
+      }
+    });
   }
 
   void _proceedToBuyNow() {
