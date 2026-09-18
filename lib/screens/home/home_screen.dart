@@ -2,14 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../widgets/net_image.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 // ignore: unused_import
 import '../main_screen.dart' show kPcBreakpoint;
 import '../../widgets/video_banner_widget.dart';
-import '../../widgets/pc_layout.dart';
 import '../../utils/app_localizations.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
@@ -19,7 +17,6 @@ import '../../widgets/product_card.dart';
 import '../products/product_list_screen.dart';
 import '../products/product_detail_screen.dart';
 import '../products/category_detail_screen.dart';
-import '../orders/group_order_landing_screen.dart';
 import '../orders/group_order_only_screen.dart';
 import '../orders/order_guide_screen.dart';
 import '../admin/admin_screen.dart';
@@ -28,9 +25,7 @@ import '../chat/chat_screen.dart';
 import '../../widgets/app_drawer.dart';
 import '../notifications/notification_center_screen.dart';
 import '../../services/fcm_service.dart';
-import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
-import '../../utils/responsive.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
 
@@ -216,12 +211,8 @@ class _HomeScreenState extends State<HomeScreen>
   final GlobalKey<ScaffoldState> _pcScaffoldKey = GlobalKey<ScaffoldState>();
 
   Widget _buildPcLayout(AppLocalizations loc) {
-    final r = Responsive.of(context);
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
-
-    // PC TopBar 높이 (main_screen._PcTopBar 기준)
-    const double kPcTopBarHeight = 64.0;
 
     // 배너 위젯 (뷰포트 전체 높이 — TopBar 제외)
     final bannerWidget = activeBanners.isEmpty
@@ -280,11 +271,9 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // PC NavBar 높이 상수
-  static const double _kPcNavBarHeight = 64.0;
-
   // PC 섹션 공통 래퍼 (maxWidth 1280 + 좌우 패딩 + 배경색)
   // 단체주문처럼 자체 배경색이 없는 섹션에 사용
+  // ignore: unused_element
   Widget _buildPcHomeSectionWrapper(
       {required Widget child, Color color = Colors.white}) {
     final r = Responsive.of(context);
@@ -987,7 +976,7 @@ class _HomeScreenState extends State<HomeScreen>
             SizedBox(
                 width: r.w(20),
                 height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2)),
+                child: const CircularProgressIndicator(strokeWidth: 2)),
           ],
         ),
       );
@@ -1199,7 +1188,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 child: Container(
                                     width: 14,
                                     height: 14,
-                                    decoration: BoxDecoration(
+                                    decoration: const BoxDecoration(
                                         color: Color(0xFFFF0000),
                                         shape: BoxShape.circle),
                                     child: Center(
@@ -1275,7 +1264,8 @@ class _HomeScreenState extends State<HomeScreen>
                               TextButton(
                                 onPressed: () => Navigator.pop(context, true),
                                 child: Text(context.loc.t('로그아웃', '로그아웃'),
-                                    style: TextStyle(color: AppColors.error)),
+                                    style: const TextStyle(
+                                        color: AppColors.error)),
                               ),
                             ],
                           ),
@@ -1302,6 +1292,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ── PC 전용 배너 (Firestore BannerProvider에서 실시간 로드) ──
+  // ignore: unused_element
   Widget _buildPcBannerOnly(AppLocalizations loc) {
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
@@ -1363,7 +1354,7 @@ class _HomeScreenState extends State<HomeScreen>
                       context,
                       MaterialPageRoute(
                         builder: (_) =>
-                            ProductListScreen(initialCategory: '전체'),
+                            const ProductListScreen(initialCategory: '전체'),
                       ));
                   break;
                 case 2:
@@ -1382,7 +1373,7 @@ class _HomeScreenState extends State<HomeScreen>
                       context,
                       MaterialPageRoute(
                         builder: (_) =>
-                            ProductListScreen(initialCategory: '전체'),
+                            const ProductListScreen(initialCategory: '전체'),
                       ));
               }
             }
@@ -1466,8 +1457,8 @@ class _HomeScreenState extends State<HomeScreen>
                     onProductTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) =>
-                                ProductListScreen(initialCategory: '전체'))),
+                            builder: (_) => const ProductListScreen(
+                                initialCategory: '전체'))),
                   )
                 else if (b.imageUrl.isNotEmpty)
                   GestureDetector(
@@ -1549,7 +1540,7 @@ class _HomeScreenState extends State<HomeScreen>
     void goShop() => Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (_) => ProductListScreen(initialCategory: '전체')));
+            builder: (_) => const ProductListScreen(initialCategory: '전체')));
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -1870,7 +1861,6 @@ class _HomeScreenState extends State<HomeScreen>
               final r = Responsive.of(context);
 
               final b = e.value;
-              final btnAction = b['btnAction'] as int? ?? 0;
               void onShop() {
                 widget.onNavigate?.call(1);
               }
@@ -2231,7 +2221,8 @@ class _HomeScreenState extends State<HomeScreen>
                       SizedBox(
                           width: r.w(24),
                           height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2)),
+                          child:
+                              const CircularProgressIndicator(strokeWidth: 2)),
                     ],
                   ),
                 ),
@@ -2618,7 +2609,7 @@ class _HomeScreenState extends State<HomeScreen>
                     context,
                     MaterialPageRoute(
                         builder: (_) =>
-                            ProductListScreen(initialCategory: '단체주문'))),
+                            const ProductListScreen(initialCategory: '단체주문'))),
                 child: Container(
                   padding: EdgeInsets.symmetric(
                       horizontal: r.w(14), vertical: r.h(8)),
@@ -2769,7 +2760,7 @@ class _HomeScreenState extends State<HomeScreen>
                     context,
                     MaterialPageRoute(
                         builder: (_) =>
-                            ProductListScreen(initialCategory: '이벤트'))),
+                            const ProductListScreen(initialCategory: '이벤트'))),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.white,
                   side: const BorderSide(color: Colors.white38),
@@ -2800,10 +2791,6 @@ class _HomeScreenState extends State<HomeScreen>
 
     final sortedGroupProds = [...groupProds]
       ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
-    const previewCount = 5;
-    final previewProds = sortedGroupProds.take(previewCount).toList();
-    final hasMore = sortedGroupProds.length > previewCount;
-
     return Stack(
       children: [
         Column(
@@ -2871,6 +2858,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ── 단체주문 상품 가로 5개 진열 + 전체보기 버튼 ──
+  // ignore: unused_element
   Widget _buildGroupProductsRow(
     AppLocalizations loc,
     List<ProductModel> previewProds,
@@ -2986,7 +2974,7 @@ class _HomeScreenState extends State<HomeScreen>
                                     style: TextStyle(
                                         fontSize: r.sp(10),
                                         fontWeight: FontWeight.w600,
-                                        color: Color(0xFF222222),
+                                        color: const Color(0xFF222222),
                                         height: 1.3)),
                               ),
                               SizedBox(height: r.h(2)),
@@ -3246,6 +3234,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ── 카테고리 가로 탭바 ──
+  // ignore: unused_element
   Widget _buildCategoryTabBar(AppLocalizations loc) {
     final r = Responsive.of(context);
     final cats = ['전체', '상의', '하의', '세트', '아우터', '스킨슈트', '악세사리', '단체주문'];
@@ -3340,10 +3329,9 @@ class _HomeScreenState extends State<HomeScreen>
       void goShop() => Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (_) => ProductListScreen(initialCategory: '전체')));
+              builder: (_) => const ProductListScreen(initialCategory: '전체')));
       // 배너 높이 비례 텍스트 크기 (스크린샷 기준: bannerH≈580 → title≈62px)
       final titleSize = (bannerH * 0.107).clamp(28.0, 72.0);
-      final tagSize = (bannerH * 0.018).clamp(8.0, 14.0);
       final ctaSize = (bannerH * 0.026).clamp(11.0, 18.0);
       final hPad = screenW < 600 ? 16.0 : 36.0;
       final bottomPad = (bannerH * 0.045).clamp(14.0, 48.0);
@@ -3605,10 +3593,12 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ── 가격 포맷 헬퍼 ──
+  // ignore: unused_element
   String _fmtGroupPrice(double v) => v.toInt().toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
 
   // ── 단체주문 전용 상품 카드 (공통 카드 사용) ──
+  // ignore: unused_element
   Widget _buildGroupProductCard(ProductModel p) {
     return ProductCard(
       product: p,
@@ -3673,6 +3663,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ── 1행 오버레이 헤더 ──
+  // ignore: unused_element
   Widget _buildOverlayHeader(AppLocalizations loc) {
     final r = Responsive.of(context);
     // 배너 풀스크린 위에 올라오는 헤더 — 상단 그라데이션으로 가독성 확보
@@ -3878,7 +3869,7 @@ class _HomeScreenState extends State<HomeScreen>
                     context,
                     MaterialPageRoute(
                       builder: (_) =>
-                          ProductListScreen(initialCategory: '단체주문'),
+                          const ProductListScreen(initialCategory: '단체주문'),
                     ),
                   ),
                   child: Container(
@@ -4008,7 +3999,7 @@ class _HomeScreenState extends State<HomeScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.local_fire_department_rounded,
+          const Icon(Icons.local_fire_department_rounded,
               color: Colors.white, size: 14),
           SizedBox(width: r.w(6)),
           Text(
@@ -4021,7 +4012,7 @@ class _HomeScreenState extends State<HomeScreen>
                 letterSpacing: 0.3),
           ),
           SizedBox(width: r.w(6)),
-          Icon(Icons.local_fire_department_rounded,
+          const Icon(Icons.local_fire_department_rounded,
               color: Colors.white, size: 14),
         ],
       ),
@@ -4060,8 +4051,8 @@ class _HomeScreenState extends State<HomeScreen>
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) =>
-                                ProductListScreen(initialCategory: '이벤트')));
+                            builder: (_) => const ProductListScreen(
+                                initialCategory: '이벤트')));
                     break;
                   case 1:
                     widget.onNavigate?.call(1);
@@ -4167,9 +4158,6 @@ class _HomeScreenState extends State<HomeScreen>
                 final r = Responsive.of(context);
 
                 final p = saleProducts[i];
-                final discount = p.originalPrice != null
-                    ? ((1 - p.price / p.originalPrice!) * 100).round()
-                    : 0;
                 return GestureDetector(
                   onTap: () => Navigator.push(
                       context,
@@ -4220,7 +4208,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   style: TextStyle(
                                       fontSize: r.sp(11),
                                       fontWeight: FontWeight.w600,
-                                      color: Color(0xFF222222))),
+                                      color: const Color(0xFF222222))),
                               SizedBox(height: r.h(2)),
                               if (p.originalPrice != null)
                                 Text(
@@ -4293,7 +4281,8 @@ class _HomeScreenState extends State<HomeScreen>
                         SizedBox(height: r.h(6)),
                         Text(loc.homeLatestCollection,
                             style: TextStyle(
-                                color: Color(0xFF8899AA), fontSize: r.sp(13))),
+                                color: const Color(0xFF8899AA),
+                                fontSize: r.sp(13))),
                         SizedBox(height: r.h(14)),
                         Container(
                           padding: EdgeInsets.symmetric(
@@ -4323,7 +4312,8 @@ class _HomeScreenState extends State<HomeScreen>
             onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (_) => ProductListScreen(initialCategory: '이벤트'))),
+                    builder: (_) =>
+                        const ProductListScreen(initialCategory: '이벤트'))),
             child: Container(
               color: const Color(0xFF1A0A0A),
               padding: EdgeInsets.all(r.w(20)),
@@ -4356,7 +4346,8 @@ class _HomeScreenState extends State<HomeScreen>
                         SizedBox(height: r.h(6)),
                         Text(loc.homeSeasonDiscountSub,
                             style: TextStyle(
-                                color: Color(0xFF9988AA), fontSize: r.sp(13))),
+                                color: const Color(0xFF9988AA),
+                                fontSize: r.sp(13))),
                         SizedBox(height: r.h(14)),
                         Container(
                           padding: EdgeInsets.symmetric(
@@ -4804,6 +4795,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ────────────────────────────────────────────
   // 모바일 배너 섹션 (Firestore BannerProvider 실시간)
   // ────────────────────────────────────────────
+  // ignore: unused_element
   Widget _buildBannerSection(AppLocalizations loc) {
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
@@ -4822,7 +4814,7 @@ class _HomeScreenState extends State<HomeScreen>
       void goShop() => Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (_) => ProductListScreen(initialCategory: '전체')));
+              builder: (_) => const ProductListScreen(initialCategory: '전체')));
       return SizedBox(
         width: double.infinity,
         height: bannerHeight,
@@ -4985,7 +4977,7 @@ class _HomeScreenState extends State<HomeScreen>
           Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ProductListScreen(initialCategory: '전체'),
+                builder: (_) => const ProductListScreen(initialCategory: '전체'),
               ));
           break;
         case 2:
@@ -5003,7 +4995,7 @@ class _HomeScreenState extends State<HomeScreen>
           Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ProductListScreen(initialCategory: '전체'),
+                builder: (_) => const ProductListScreen(initialCategory: '전체'),
               ));
       }
     }
@@ -5036,7 +5028,8 @@ class _HomeScreenState extends State<HomeScreen>
             onProductTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (_) => ProductListScreen(initialCategory: '전체'))),
+                    builder: (_) =>
+                        const ProductListScreen(initialCategory: '전체'))),
           ),
           // ── 텍스트/CTA: 비디오 로딩과 무관하게 즉시 표시 ──
           overlayWidget,
@@ -5666,6 +5659,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   /// 섹션 로딩 중 스켈레톤 (shimmer 효과)
+  // ignore: unused_element
   Widget _buildSectionSkeleton(String title) {
     final r = Responsive.of(context);
     return Container(
@@ -6787,6 +6781,7 @@ class _NoticePopupState extends State<_NoticePopup> {
     );
   }
 
+  // ignore: unused_element
   double _textBoxHeight(String content) => content.isNotEmpty ? 124.0 : 84.0;
 
   // 테마 그라디언트 배너 (이미지 없을 때)
@@ -6848,7 +6843,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                   fontWeight: FontWeight.w800,
                   height: 1.35,
                   letterSpacing: -0.3,
-                  shadows: [Shadow(color: Colors.black26, blurRadius: 8)],
+                  shadows: const [Shadow(color: Colors.black26, blurRadius: 8)],
                 ),
               ),
             ],
@@ -7228,13 +7223,13 @@ class _BannerCouponPopupState extends State<_BannerCouponPopup> {
       if (c.maxDiscountAmount != null) {
         final max = c.maxDiscountAmount!.toInt().toString().replaceAllMapped(
             RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
-        return '$base (최대 ${max}원)';
+        return '$base (최대 $max원)';
       }
       return base;
     }
     final v = c.value.toInt().toString().replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
-    return '${v}원 할인';
+    return '$v원 할인';
   }
 
   String _fmtExpiry(DateTime d) =>
@@ -7456,7 +7451,7 @@ class _BannerCouponPopupState extends State<_BannerCouponPopup> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          isSoldOut ? '마감' : '잔여 ${remain}개',
+                          isSoldOut ? '마감' : '잔여 $remain개',
                           style: TextStyle(
                             fontSize: r.sp(10),
                             fontWeight: FontWeight.w700,

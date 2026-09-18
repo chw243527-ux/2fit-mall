@@ -281,7 +281,6 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final r = Responsive.of(context);
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final width = MediaQuery.of(context).size.width;
@@ -414,19 +413,19 @@ class _UpdateRequiredBanner extends StatelessWidget {
                 color: Color(0xFF8A5A00),
               ),
               const SizedBox(width: 10),
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       '업데이트가 필요합니다',
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF6B4700),
                       ),
                     ),
-                    const SizedBox(height: 3),
-                    const Text('새 버전을 설치하면 더 안정적인 서비스를 이용할 수 있습니다.'),
+                    SizedBox(height: 3),
+                    Text('새 버전을 설치하면 더 안정적인 서비스를 이용할 수 있습니다.'),
                     SizedBox(height: 3),
                     Text('업데이트 방법: 아래 버튼을 누른 뒤 Google Play에서 ‘업데이트’를 선택하세요.',
                         style: TextStyle(fontSize: 12)),
@@ -484,7 +483,6 @@ class _PcLayoutState extends State<_PcLayout> {
 
   @override
   Widget build(BuildContext context) {
-    final r = Responsive.of(context);
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final tabs = [loc.navHome, loc.navProducts, loc.navCart, loc.pcMyPage];
@@ -638,7 +636,7 @@ class _PcLayoutState extends State<_PcLayout> {
                   context,
                   MaterialPageRoute(
                       builder: (_) =>
-                          ProductListScreen(initialCategory: '전체')));
+                          const ProductListScreen(initialCategory: '전체')));
             },
           ),
           const Divider(height: 1, indent: 16, endIndent: 16),
@@ -1727,7 +1725,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
 
     return Container(
       width: sheetW,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: borderRadius,
       ),
@@ -1990,7 +1988,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                   fontWeight: FontWeight.w800,
                   height: 1.35,
                   letterSpacing: -0.3,
-                  shadows: [Shadow(color: Colors.black26, blurRadius: 8)],
+                  shadows: const [Shadow(color: Colors.black26, blurRadius: 8)],
                 ),
               ),
             ],
@@ -2187,13 +2185,13 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
       if (c.maxDiscountAmount != null) {
         final max = c.maxDiscountAmount!.toInt().toString().replaceAllMapped(
             RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
-        return '$base (최대 ${max}원)';
+        return '$base (최대 $max원)';
       }
       return base;
     } else {
       final v = c.value.toInt().toString().replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
-      return '${v}원 할인';
+      return '$v원 할인';
     }
   }
 
@@ -2367,7 +2365,7 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
     String? remainText;
     if (coupon.downloadLimit != null) {
       final remain = coupon.downloadLimit! - coupon.downloadCount;
-      remainText = remain > 0 ? '잔여 ${remain}개' : '마감';
+      remainText = remain > 0 ? '잔여 $remain개' : '마감';
     }
     final isSoldOut = remainText == '마감';
 
