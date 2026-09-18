@@ -231,6 +231,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     final p = widget.product;
     return p == null ? '' : '${p.category} ${p.subCategory} ${p.name}';
   }
+
   bool get _isSingletPrintProduct => _productTypeText.contains('싱글렛');
   bool get _isRoundTeePrintProduct =>
       _productTypeText.contains('라운드티') || _productTypeText.contains('라운드 티');
@@ -240,7 +241,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   // 싱글렛·싱글렛 세트: 0~4, 라운드티: 0~3
   bool get _hasTeamName =>
-      _keepFullPrintOptions && _printType >= 1 && _printType <= _maxPrintOptionId;
+      _keepFullPrintOptions &&
+      _printType >= 1 &&
+      _printType <= _maxPrintOptionId;
   bool get _nameEnabled =>
       _keepFullPrintOptions &&
       (_printType == 3 || (_isSingletPrintProduct && _printType == 4)) &&
@@ -551,112 +554,114 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Container(
-            width: 36,
-            height: 4,
-            margin: const EdgeInsets.only(bottom: 14),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          Text(context.loc.t('사이즈_프로필_선택', '사이즈 프로필 선택'),
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary)),
-          const SizedBox(height: 4),
-          Text(
-              context.loc
-                  .t('선택하면_해당_팀원_칸에_자_fe6e44', '선택하면 해당 팀원 칸에 자동 입력됩니다.'),
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-          const SizedBox(height: 14),
-          ...profiles.map((profile) {
-            final isMale = profile.gender == 'male';
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  p.gender = profile.gender;
-                  p.sizeType = profile.sizeType;
-                  p.topSize =
-                      profile.topSize.isNotEmpty ? profile.topSize : null;
-                  p.bottomSize =
-                      profile.bottomSize.isNotEmpty ? profile.bottomSize : null;
-                  p.topSizeCtrl.text = profile.topSize;
-                  p.bottomSizeCtrl.text = profile.bottomSize;
-                  p.heightCtrl.text = profile.height;
-                  p.weightCtrl.text = profile.weight;
-                  p.waistCtrl.text = profile.waist;
-                  p.thighCtrl.text = profile.thigh;
-                  if (profile.height.isNotEmpty || profile.waist.isNotEmpty) {
-                    p.showDetail = true;
-                  }
-                });
-                Navigator.pop(context);
-                _showSnack('"${profile.profileName}" ' +
-                    context.loc.t('사이즈가_적용되었습니다', '사이즈가 적용되었습니다.'));
-              },
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  color: isMale
-                      ? AppColors.info.withValues(alpha: 0.05)
-                      : Colors.pink.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isMale
-                        ? AppColors.info.withValues(alpha: 0.3)
-                        : Colors.pink.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: isMale ? AppColors.info : Colors.pink,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(profile.genderLabel,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700)),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(profile.profileName,
-                              style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.primary)),
-                          const SizedBox(height: 2),
-                          Text(
-                            context.loc.t('상의', '상의') +
-                                ' ${profile.topSize} · ' +
-                                context.loc.t('하의', '하의') +
-                                ' ${profile.bottomSize}${profile.height.isNotEmpty ? " · " + context.loc.t('키', '키') + " ${profile.height}cm" : ""}',
-                            style: TextStyle(
-                                fontSize: 11, color: Colors.grey.shade600),
-                          ),
-                        ]),
-                  ),
-                  Icon(Icons.arrow_forward_ios_rounded,
-                      size: 14, color: Colors.grey.shade400),
-                ]),
+            Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
               ),
-            );
-          }),
+            ),
+            Text(context.loc.t('사이즈_프로필_선택', '사이즈 프로필 선택'),
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primary)),
+            const SizedBox(height: 4),
+            Text(
+                context.loc
+                    .t('선택하면_해당_팀원_칸에_자_fe6e44', '선택하면 해당 팀원 칸에 자동 입력됩니다.'),
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+            const SizedBox(height: 14),
+            ...profiles.map((profile) {
+              final isMale = profile.gender == 'male';
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    p.gender = profile.gender;
+                    p.sizeType = profile.sizeType;
+                    p.topSize =
+                        profile.topSize.isNotEmpty ? profile.topSize : null;
+                    p.bottomSize = profile.bottomSize.isNotEmpty
+                        ? profile.bottomSize
+                        : null;
+                    p.topSizeCtrl.text = profile.topSize;
+                    p.bottomSizeCtrl.text = profile.bottomSize;
+                    p.heightCtrl.text = profile.height;
+                    p.weightCtrl.text = profile.weight;
+                    p.waistCtrl.text = profile.waist;
+                    p.thighCtrl.text = profile.thigh;
+                    if (profile.height.isNotEmpty || profile.waist.isNotEmpty) {
+                      p.showDetail = true;
+                    }
+                  });
+                  Navigator.pop(context);
+                  _showSnack('"${profile.profileName}" ' +
+                      context.loc.t('사이즈가_적용되었습니다', '사이즈가 적용되었습니다.'));
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isMale
+                        ? AppColors.info.withValues(alpha: 0.05)
+                        : Colors.pink.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isMale
+                          ? AppColors.info.withValues(alpha: 0.3)
+                          : Colors.pink.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: isMale ? AppColors.info : Colors.pink,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(profile.genderLabel,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(profile.profileName,
+                                style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.primary)),
+                            const SizedBox(height: 2),
+                            Text(
+                              context.loc.t('상의', '상의') +
+                                  ' ${profile.topSize} · ' +
+                                  context.loc.t('하의', '하의') +
+                                  ' ${profile.bottomSize}${profile.height.isNotEmpty ? " · " + context.loc.t('키', '키') + " ${profile.height}cm" : ""}',
+                              style: TextStyle(
+                                  fontSize: 11, color: Colors.grey.shade600),
+                            ),
+                          ]),
+                    ),
+                    Icon(Icons.arrow_forward_ios_rounded,
+                        size: 14, color: Colors.grey.shade400),
                   ]),
+                ),
+              );
+            }),
+          ]),
         ),
       ),
     );
   }
+
   // ── 주문 후 내 사이즈 저장 제안 ─────────────────────────────
   void _offerSaveSizeAfterOrder() {
     final user = context.read<UserProvider>().user;
@@ -917,8 +922,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           'pdf': 'application/pdf',
           'eps': 'application/postscript',
         };
-        final ref = FirebaseStorage.instance.ref(
-            'group_orders/${user!.id}/$orderId/design_logo.$ext');
+        final ref = FirebaseStorage.instance
+            .ref('group_orders/${user!.id}/$orderId/design_logo.$ext');
         await ref.putData(
           Uint8List.fromList(_designLogoBytes!),
           SettableMetadata(
@@ -943,8 +948,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           'pdf': 'application/pdf',
           'eps': 'application/postscript',
         };
-        final ref = FirebaseStorage.instance.ref(
-            'group_orders/${user!.id}/$orderId/waistband_logo.$ext');
+        final ref = FirebaseStorage.instance
+            .ref('group_orders/${user!.id}/$orderId/waistband_logo.$ext');
         await ref.putData(
           Uint8List.fromList(_waistbandLogoBytes!),
           SettableMetadata(
@@ -961,9 +966,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     for (var i = 0; i < _waistbandRefImages.length; i++) {
       try {
         final raw = _waistbandRefImages[i];
-        final bytes = base64Decode(raw.contains(',') ? raw.substring(raw.indexOf(',') + 1) : raw);
-        final ref = FirebaseStorage.instance.ref(
-            'group_orders/${user!.id}/$orderId/waistband_ref_$i.jpg');
+        final bytes = base64Decode(
+            raw.contains(',') ? raw.substring(raw.indexOf(',') + 1) : raw);
+        final ref = FirebaseStorage.instance
+            .ref('group_orders/${user!.id}/$orderId/waistband_ref_$i.jpg');
         await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
         waistbandRefImageUrls.add(await ref.getDownloadURL());
       } catch (e) {
@@ -1012,13 +1018,16 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'mainColorCode': selectedColorEntry?['code'] ?? '',
       'mainColorHex':
           '#${(_mainColor ?? Colors.grey).toARGB32().toRadixString(16).substring(2).toUpperCase()}',
-      'mainColorImageUrl': product.images.isNotEmpty ? product.images.first : '',
+      'mainColorImageUrl':
+          product.images.isNotEmpty ? product.images.first : '',
       'productCategory': product.category,
       'productSubCategory': product.subCategory,
       'productName': product.name,
       'hasBottom': !_isTopOnly,
       'bottomOnly': _isBottomOnly,
-      'bottomProduct': (!_isTopOnly && !_isBottomOnly) ? product.subCategory : (_isBottomOnly ? product.name : ''),
+      'bottomProduct': (!_isTopOnly && !_isBottomOnly)
+          ? product.subCategory
+          : (_isBottomOnly ? product.name : ''),
       'adjustedColorHex':
           '#${_adjustedColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
       'colorLightness': _colorLightness,
@@ -1027,15 +1036,18 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'weight': _fabricWeight,
       'pocket': _hasPocket,
       'pocketAllowed': !_isFemaleShortSquare,
-      'pocketRule': _isFemaleShortSquare ? '여성 숏쇼츠 선택 시 주머니 추가 불가' : '주머니 추가 가능',
+      'pocketRule':
+          _isFemaleShortSquare ? '여성 숏쇼츠 선택 시 주머니 추가 불가' : '주머니 추가 가능',
       'maleLength': _maleLengthSel,
       'maleLengthOptions': ['9부', '5부', '4부', '3부'],
       'femaleLength': _femaleLengthSel,
-      'femaleLengthOptions': AppConstants.bottomLengths.map((e) => e['label']).toList(),
+      'femaleLengthOptions':
+          AppConstants.bottomLengths.map((e) => e['label']).toList(),
       'waistbandOption': _waistbandOptionLabel,
       'waistbandOptions': _waistbandOptions.toList(),
       'waistbandExtra': _waistbandExtra.toInt(),
-      'waistbandColorName': _waistbandOptions.contains(2) ? '허리밴드 별도 색상' : '기본 허리밴드 색상',
+      'waistbandColorName':
+          _waistbandOptions.contains(2) ? '허리밴드 별도 색상' : '기본 허리밴드 색상',
       'waistbandColorHex':
           _waistbandOptions.contains(2) ? _waistbandColorHex : '',
       'waistbandRefImages': _waistbandRefImages,
@@ -1120,9 +1132,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       memo: _memoCtrl.text.trim(),
       createdAt: DateTime.now(),
       customOptions: customOptions,
-      cashReceiptNum: user.cashReceiptNum?.isNotEmpty == true
-          ? user.cashReceiptNum
-          : null,
+      cashReceiptNum:
+          user.cashReceiptNum?.isNotEmpty == true ? user.cashReceiptNum : null,
     );
 
     final cart = context.read<CartProvider>();
@@ -1459,7 +1470,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         ]),
         const SizedBox(height: 4),
         if (!_isAdditional)
-          Text(context.loc.t('최소_5명_이상_주문_가능합_5c1358', '최소 $_groupMinimumQuantity명 이상 주문 가능합니다.').replaceFirst('5명', '${_groupMinimumQuantity}명'),
+          Text(
+              context.loc
+                  .t('최소_5명_이상_주문_가능합_5c1358',
+                      '최소 $_groupMinimumQuantity명 이상 주문 가능합니다.')
+                  .replaceFirst('5명', '${_groupMinimumQuantity}명'),
               style: TextStyle(fontSize: 11, color: Colors.grey))
         else
           Text(context.loc.t('1장부터_추가제작_가능합니다', '1장부터 추가제작 가능합니다.'),
@@ -1557,12 +1572,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // 인쇄 타입 섹션
   // ══════════════════════════════════════════════
   Widget _buildPrintTypeSection() {
-        // id, title, desc, badgeColor, condMin (최소 인원), condLabel
+    // id, title, desc, badgeColor, condMin (최소 인원), condLabel
     final allOptions = [
       {
         'id': 0,
         'title': context.loc.t('디자인_유지_색상_변경', '디자인 유지 + 색상 변경'),
-        'desc': context.loc.t('2FIT_로고_적용_전면_색상_변경_단체명_인쇄_없음', '2FIT 로고 적용(전면) + 색상 변경 (단체명 인쇄 없음)'),
+        'desc': context.loc.t('2FIT_로고_적용_전면_색상_변경_단체명_인쇄_없음',
+            '2FIT 로고 적용(전면) + 색상 변경 (단체명 인쇄 없음)'),
         'badgeColor': AppColors.info,
         'condMin': 5,
         'condLabel': context.loc.t('5명', '5명↑'),
@@ -1570,7 +1586,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       {
         'id': 1,
         'title': context.loc.t('디자인_유지_단체명_색상_변경', '디자인 유지 + 단체명 + 색상 변경'),
-        'desc': context.loc.t('기존_디자인_유지_단체명_전면_색상_변경', '기존 디자인 유지 + 단체명(전면) + 색상 변경'),
+        'desc': context.loc
+            .t('기존_디자인_유지_단체명_전면_색상_변경', '기존 디자인 유지 + 단체명(전면) + 색상 변경'),
         'badgeColor': AppColors.primary,
         'condMin': 5,
         'condLabel': context.loc.t('5명', '5명↑'),
@@ -1578,30 +1595,37 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       {
         'id': 2,
         'title': context.loc.t('디자인_변경_단체명_색상_변경', '디자인 변경 + 단체명 + 색상 변경'),
-        'desc': context.loc.t('새_디자인_변경_단체명_전면_색상_변경', '새 디자인 변경 + 단체명(전면) + 색상 변경'),
+        'desc': context.loc
+            .t('새_디자인_변경_단체명_전면_색상_변경', '새 디자인 변경 + 단체명(전면) + 색상 변경'),
         'badgeColor': const Color(0xFF00838F),
         'condMin': 5,
         'condLabel': context.loc.t('5명', '5명↑'),
       },
       {
         'id': 3,
-        'title': context.loc.t('디자인_유지_색상변경_단체명_이름_후면', '디자인 유지 + 색상변경 + 단체명 + 이름(후면)'),
-        'desc': context.loc.t('기존_디자인_유지_색상_변경_단체명_전면_개인_이름_후면_등', '기존 디자인 유지 + 색상 변경 + 단체명(전면) + 개인 이름(후면·등)'),
+        'title': context.loc
+            .t('디자인_유지_색상변경_단체명_이름_후면', '디자인 유지 + 색상변경 + 단체명 + 이름(후면)'),
+        'desc': context.loc.t('기존_디자인_유지_색상_변경_단체명_전면_개인_이름_후면_등',
+            '기존 디자인 유지 + 색상 변경 + 단체명(전면) + 개인 이름(후면·등)'),
         'badgeColor': const Color(0xFFC62828),
         'condMin': 10,
         'condLabel': context.loc.t('10명', '10명↑'),
       },
       {
         'id': 4,
-        'title': context.loc.t('디자인_변경_색상변경_단체명_이름_후면', '디자인 변경 + 색상변경 + 단체명 + 이름(후면)'),
-        'desc': context.loc.t('새_디자인_변경_색상_변경_단체명_전면_개인_이름_후면_등', '새 디자인 변경 + 색상 변경 + 단체명(전면) + 개인 이름(후면·등)'),
+        'title': context.loc
+            .t('디자인_변경_색상변경_단체명_이름_후면', '디자인 변경 + 색상변경 + 단체명 + 이름(후면)'),
+        'desc': context.loc.t('새_디자인_변경_색상_변경_단체명_전면_개인_이름_후면_등',
+            '새 디자인 변경 + 색상 변경 + 단체명(전면) + 개인 이름(후면·등)'),
         'badgeColor': const Color(0xFF6A1B9A),
         'condMin': 10,
         'condLabel': context.loc.t('10명', '10명↑'),
       },
     ];
     final options = _keepFullPrintOptions
-        ? allOptions.where((opt) => (opt['id'] as int) <= _maxPrintOptionId).toList()
+        ? allOptions
+            .where((opt) => (opt['id'] as int) <= _maxPrintOptionId)
+            .toList()
         : [allOptions.first];
 
     return _card(
@@ -6532,7 +6556,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             '${_fmt(_subTotal)}' + context.loc.t('원', '원')),
         if (_discountAmount > 0)
           _sumRow('단체주문 할인 (${_groupDiscountRate.toStringAsFixed(1)}%)',
-              '-${_fmt(_discountAmount)}원', valueColor: AppColors.success),
+              '-${_fmt(_discountAmount)}원',
+              valueColor: AppColors.success),
         _sumRow(
           context.loc.t('배송비', '배송비'),
           _totalCount >= AppConstants.groupMinFreeShipping
@@ -6589,6 +6614,31 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         ),
 
         const SizedBox(height: 14),
+
+        // ── 장바구니 담기: 작성한 단체주문 옵션을 보존하고 나중에 결제 ──
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: OutlinedButton(
+            onPressed:
+                _orderConfirmed ? () => _submitOrder(isBuyNow: false) : null,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              side: BorderSide(
+                  color: _orderConfirmed
+                      ? AppColors.primary
+                      : Colors.grey.shade300),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: Text(
+              context.loc.t('장바구니_담기', '장바구니 담기'),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
 
         // ── 주문하기 버튼 ──
         SizedBox(
@@ -6768,7 +6818,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
         boxShadow: const [
-          BoxShadow(color: Color(0x081A1A2E), blurRadius: 14, offset: Offset(0, 5)),
+          BoxShadow(
+              color: Color(0x081A1A2E), blurRadius: 14, offset: Offset(0, 5)),
         ],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -6778,7 +6829,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           decoration: BoxDecoration(
             color: AppColors.surfaceGray,
             borderRadius: BorderRadius.circular(8),
-            border: const Border(left: BorderSide(color: AppColors.accent, width: 3)),
+            border: const Border(
+                left: BorderSide(color: AppColors.accent, width: 3)),
           ),
           child: Row(children: [
             Icon(icon, color: AppColors.primary, size: 16),
