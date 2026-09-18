@@ -60,7 +60,7 @@ jobs:
             echo
             cat monitoring-summary.md
           } > "${body_file}"
-          existing="$(gh issue list --state open --search \"${title} in:title\" --json number --jq '.[0].number // empty')"
+          existing="$(gh issue list --state open --search "${title} in:title" --json number --jq '.[0].number // empty')"
           if [[ -n "${existing}" ]]; then
             gh issue comment "${existing}" --body-file "${body_file}"
           else
