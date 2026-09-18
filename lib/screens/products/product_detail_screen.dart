@@ -8991,6 +8991,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
     final r = Responsive.of(context);
 
     final cart = context.read<CartProvider>();
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final navigator = Navigator.of(context);
     for (final item in _items) {
       cart.addItem(
         widget.product,
@@ -9001,16 +9003,24 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
       );
     }
     widget.onCartUpdated();
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
+    navigator.pop();
+    messenger?.hideCurrentSnackBar();
+    messenger?.showSnackBar(
       SnackBar(
         content: Row(children: [
           const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
           SizedBox(width: r.w(8)),
-          Text('${_items.length}가지 옵션 · 총 ${_totalQty()}개 장바구니에 담겼습니다'),
+          Expanded(
+            child: Text(
+              '${_items.length}가지 옵션 · 총 ${_totalQty()}개 장바구니에 담겼습니다',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ]),
         backgroundColor: AppColors.primary,
         behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 5),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         action: SnackBarAction(
           label: context.loc.t('장바구니_보기', '장바구니 보기'),
