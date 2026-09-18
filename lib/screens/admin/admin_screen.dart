@@ -5878,6 +5878,14 @@ class _AdminScreenState extends State<AdminScreen>
                                                 color: Colors.white,
                                                 fontSize: 11,
                                                 fontWeight: FontWeight.w700))),
+                                    const SizedBox(width: 4),
+                                    SizedBox(
+                                        width: 52,
+                                        child: Text('연령',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700))),
                                     Expanded(
                                         child: Text('상의',
                                             style: TextStyle(
@@ -5897,6 +5905,27 @@ class _AdminScreenState extends State<AdminScreen>
                                 final i = entry.key;
                                 final p = entry.value;
                                 final isEven = i % 2 == 0;
+                                final gender = p['gender']?.toString() ?? '';
+                                final genderLabel = gender == '남자' ||
+                                        gender == 'male' ||
+                                        gender == 'M'
+                                    ? '남'
+                                    : gender == '여자' ||
+                                            gender == 'female' ||
+                                            gender == 'F'
+                                        ? '여'
+                                        : (gender.isEmpty ? '-' : gender);
+                                final sizeType =
+                                    p['sizeType']?.toString() ?? '';
+                                final ageLabel = sizeType == '주니어' ||
+                                        sizeType.toLowerCase() == 'junior'
+                                    ? '주니어'
+                                    : sizeType == '성인' ||
+                                            sizeType.toLowerCase() == 'adult'
+                                        ? '성인'
+                                        : (sizeType.isEmpty ? '-' : sizeType);
+                                final isMale = genderLabel == '남';
+                                final isJunior = ageLabel == '주니어';
                                 return Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 10, vertical: 7),
@@ -5929,21 +5958,47 @@ class _AdminScreenState extends State<AdminScreen>
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 5, vertical: 2),
                                           decoration: BoxDecoration(
-                                            color: p['gender'] == '남'
+                                            color: isMale
                                                 ? const Color(0xFFE3F2FD)
                                                 : const Color(0xFFFCE4EC),
                                             borderRadius:
                                                 BorderRadius.circular(4),
                                           ),
-                                          child: Text(
-                                              p['gender']?.toString() ?? '-',
+                                          child: Text(genderLabel,
                                               style: TextStyle(
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.w700,
-                                                  color: p['gender'] == '남'
+                                                  color: isMale
                                                       ? AppColors.info
                                                       : const Color(
                                                           0xFFC62828))),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      SizedBox(
+                                        width: 52,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 5, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: isJunior
+                                                ? const Color(0xFFE8EAF6)
+                                                : const Color(0xFFE8F5E9),
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            ageLabel,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w700,
+                                              color: isJunior
+                                                  ? const Color(0xFF3949AB)
+                                                  : const Color(0xFF2E7D32),
+                                            ),
+                                          ),
                                         ),
                                       ),
                                       Expanded(
