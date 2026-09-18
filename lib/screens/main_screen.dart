@@ -160,7 +160,8 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
     if (!mounted) return;
     final userProv = context.read<UserProvider>();
-    final isPc = MediaQuery.of(context).size.width >= kPcBreakpoint;
+    // 태블릿부터 PC와 동일한 중앙 팝업 구조를 사용한다.
+    final isPc = MediaQuery.of(context).size.width >= 600;
 
     // 쿠폰 팝업은 별도 StatefulWidget이 스트림으로 쿠폰 목록을 직접 관리
     if (isPc) {
@@ -237,7 +238,8 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     final notices = noticeProv.popupNotices;
     if (notices.isEmpty) return;
     final langProv = context.read<LanguageProvider>();
-    final isPc = MediaQuery.of(context).size.width >= kPcBreakpoint;
+    // 태블릿부터 PC와 동일한 중앙 팝업 구조를 사용한다.
+    final isPc = MediaQuery.of(context).size.width >= 600;
 
     final popupWidget = _NoticePopupDialog(
       notices: notices,
@@ -283,7 +285,8 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final width = MediaQuery.of(context).size.width;
-    final isPc = width >= kPcBreakpoint;
+    // 모바일만 별도 헤더를 사용하고, 태블릿부터 PC와 동일한 GNB를 사용한다.
+    final isPc = width >= 600;
     final userProvider = context.watch<UserProvider>();
     final uid = userProvider.user?.id;
 
@@ -893,6 +896,7 @@ class _PcTopBarState extends State<_PcTopBar> {
     final r = Responsive.of(context);
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
+    final isTablet = MediaQuery.of(context).size.width < kPcBreakpoint;
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -904,54 +908,56 @@ class _PcTopBarState extends State<_PcTopBar> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ══════════════════════════════════════════
-          // 줄 1: 최상단 유틸바 (화이트 미니멀)
-          // ══════════════════════════════════════════
-          Container(
-            height: 36,
-            decoration: const BoxDecoration(
-              border: Border(
-                  bottom: BorderSide(color: AppColors.border, width: 0.8)),
-            ),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1280),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: r.w(24)),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.local_shipping_outlined,
-                          color: AppColors.textSecondary, size: 13),
-                      SizedBox(width: r.w(6)),
-                      Text(loc.pcFreeShipping,
-                          style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: r.sp(12))),
-                      const Spacer(),
-                      _utilBtn(loc.pcCustomerCenter, Icons.headset_mic_outlined,
-                          onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const ChatScreen()))),
-                      SizedBox(width: r.w(24)),
-                      _utilBtn(loc.pcOrderLookup, Icons.receipt_long_outlined,
-                          onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const OrderGuideScreen()))),
-                      SizedBox(width: r.w(24)),
-                      _utilBtn(
-                          loc.pcKakaoChannel, Icons.chat_bubble_outline_rounded,
-                          onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const ChatScreen()))),
-                    ],
+          if (!isTablet)
+            // ══════════════════════════════════════════
+            // 줄 1: 최상단 유틸바 (화이트 미니멀)
+            // ══════════════════════════════════════════
+            Container(
+              height: 36,
+              decoration: const BoxDecoration(
+                border: Border(
+                    bottom: BorderSide(color: AppColors.border, width: 0.8)),
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1280),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: r.w(24)),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.local_shipping_outlined,
+                            color: AppColors.textSecondary, size: 13),
+                        SizedBox(width: r.w(6)),
+                        Text(loc.pcFreeShipping,
+                            style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: r.sp(12))),
+                        const Spacer(),
+                        _utilBtn(
+                            loc.pcCustomerCenter, Icons.headset_mic_outlined,
+                            onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const ChatScreen()))),
+                        SizedBox(width: r.w(24)),
+                        _utilBtn(loc.pcOrderLookup, Icons.receipt_long_outlined,
+                            onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const OrderGuideScreen()))),
+                        SizedBox(width: r.w(24)),
+                        _utilBtn(loc.pcKakaoChannel,
+                            Icons.chat_bubble_outline_rounded,
+                            onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const ChatScreen()))),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
 
           // ══════════════════════════════════════════
           // 줄 2: 햄버거 + 로고 + 검색창 + 마이페이지/장바구니

@@ -205,10 +205,9 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
     final w = MediaQuery.of(context).size.width;
-    // PC(≥900px): PC NavBar + 풀스크린 배너 레이아웃
-    if (w >= kPcBreakpoint) return _buildPcLayout(loc);
-    // 모바일(<600) + 태블릿(600~899): 모바일 기반 레이아웃
-    // 태블릿은 _buildMobileLayout 내부 isMobileW 분기가 헤더 자동 처리
+    // 태블릿(≥600px)부터 PC와 동일한 콘텐츠·배너 레이아웃을 사용한다.
+    if (w >= 600) return _buildPcLayout(loc);
+    // 모바일(<600px)만 모바일 기반 레이아웃과 전용 헤더를 사용한다.
     return _buildMobileLayout(loc);
   }
 
