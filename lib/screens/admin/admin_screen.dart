@@ -5917,6 +5917,8 @@ class _AdminScreenState extends State<AdminScreen>
                                         flex: 2,
                                         child: Text(
                                             p['name']?.toString() ?? '-',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w600)),
@@ -5947,12 +5949,16 @@ class _AdminScreenState extends State<AdminScreen>
                                       Expanded(
                                         child: Text(
                                             p['topSize']?.toString() ?? '-',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                             style:
                                                 const TextStyle(fontSize: 12)),
                                       ),
                                       Expanded(
                                         child: Text(
                                             p['bottomSize']?.toString() ?? '-',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                             style:
                                                 const TextStyle(fontSize: 12)),
                                       ),
