@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>관리자 단체주문 팀원 테이블 모바일 시뮬레이션</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f5f7;font-family:Arial,"Noto Sans KR",sans-serif;color:#202124}.device{width:390px;margin:20px auto;background:#fff;border-radius:18px;box-shadow:0 8px 30px #0002;overflow:hidden}.dialog-head{padding:18px 16px;background:linear-gradient(135deg,#20243c,#414875);color:#fff}.dialog-head h1{font-size:16px;margin:0 0 10px;font-weight:800}.tags{display:flex;gap:6px;flex-wrap:wrap}.tag{font-size:11px;padding:5px 8px;border:1px solid #ffffff66;border-radius:12px;background:#ffffff18}.summary{padding:12px 16px;background:#f5f6f8;display:flex;gap:8px;flex-wrap:wrap}.info{font-size:11px;color:#59606d;background:#fff;border-radius:6px;padding:5px 7px}.content{padding:14px 12px 22px}.content h2{font-size:14px;margin:0 0 10px}.options{border:1px solid #e3e5ea;border-radius:8px;padding:9px;margin-bottom:14px}.options-title{font-size:11px;font-weight:800;margin-bottom:6px}.chips{display:flex;gap:4px;flex-wrap:wrap}.chip{font-size:10px;color:#59606d;border:1px solid #dfe2e7;border-radius:4px;padding:4px 6px;background:#fff}.table{border:1px solid #e2e4e9;border-radius:8px;overflow:hidden}.row{display:grid;grid-template-columns:26px minmax(0,2fr) 35px 52px minmax(0,1fr) minmax(0,1fr);align-items:center;column-gap:4px;min-height:39px;padding:6px 8px;font-size:11px}.row.head{background:#20243c;color:#fff;font-weight:700;min-height:34px}.row.data:nth-child(odd){background:#f7f8fa}.name,.size{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.badge{display:inline-flex;justify-content:center;align-items:center;min-width:30px;padding:4px 3px;border-radius:4px;font-size:10px;font-weight:700}.male{color:#1976d2;background:#e3f2fd}.female{color:#c62828;background:#fce4ec}.adult{color:#2e7d32;background:#e8f5e9}.junior{color:#3949ab;background:#e8eaf6}.note{font-size:10px;color:#737b88;line-height:1.5;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="device">
+  <header class="dialog-head"><h1>단체주문 상세: 서울 러닝팀</h1><div class="tags"><span class="tag">12명</span><span class="tag">단체명 + 색상 변경</span><span class="tag">블랙</span><span class="tag">기능성 원단</span></div></header>
+  <div class="summary"><span class="info">담당자: 김담당</span><span class="info">남 6명</span><span class="info">여 6명</span><span class="info">허리밴드: 블랙</span></div>
+  <main class="content">
+    <section class="options"><div class="options-title">선택 옵션 상세</div><div class="chips"><span class="chip">인쇄 옵션: 단체명 적용 + 색상변경</span><span class="chip">메인 색상: 블랙</span><span class="chip">색상 코드: #111111</span><span class="chip">주머니: 선택</span><span class="chip">독점 디자인: 미선택</span></div></section>
+    <h2>팀원 명단 (12명)</h2>
+    <section class="table">
+      <div class="row head"><span>No</span><span>이름</span><span>성별</span><span>연령</span><span>상의</span><span>하의</span></div>
+      <div class="row data"><span>1</span><span class="name">김민준</span><span class="badge male">남</span><span class="badge adult">성인</span><span class="size">M</span><span class="size">3부</span></div>
+      <div class="row data"><span>2</span><span class="name">이서윤</span><span class="badge female">여</span><span class="badge adult">성인</span><span class="size">S</span><span class="size">-</span></div>
+      <div class="row data"><span>3</span><span class="name">박도윤</span><span class="badge male">남</span><span class="badge junior">주니어</span><span class="size">주니어 150</span><span class="size">-</span></div>
+      <div class="row data"><span>4</span><span class="name">최하은</span><span class="badge female">여</span><span class="badge junior">주니어</span><span class="size">주니어 160</span><span class="size">-</span></div>
+      <div class="row data"><span>5</span><span class="name">정현우</span><span class="badge male">남</span><span class="badge adult">성인</span><span class="size">XL</span><span class="size">5부</span></div>
+      <div class="row data"><span>6</span><span class="name">한지민</span><span class="badge female">여</span><span class="badge adult">성인</span><span class="size">M</span><span class="size">-</span></div>
+      <div class="row data"><span>7</span><span class="name">강○○체육회장님</span><span class="badge male">남</span><span class="badge adult">성인</span><span class="size">2XL</span><span class="size">3부</span></div>
+      <div class="row data"><span>8</span><span class="name">윤○○국가대표선수</span><span class="badge female">여</span><span class="badge adult">성인</span><span class="size">L</span><span class="size">-</span></div>
+      <div class="row data"><span>9</span><span class="name">오지후</span><span class="badge male">남</span><span class="badge junior">주니어</span><span class="size">주니어 140</span><span class="size">-</span></div>
+      <div class="row data"><span>10</span><span class="name">배수빈</span><span class="badge female">여</span><span class="badge junior">주니어</span><span class="size">주니어 150</span><span class="size">-</span></div>
+      <div class="row data"><span>11</span><span class="name">문서준</span><span class="badge male">남</span><span class="badge adult">성인</span><span class="size">L</span><span class="size">5부</span></div>
+      <div class="row data"><span>12</span><span class="name">장○○아마추어러닝클럽</span><span class="badge female">여</span><span class="badge adult">성인</span><span class="size">M</span><span class="size">-</span></div>
+    </section>
+    <div class="note">시뮬레이션 기준: 모바일 폭 390px · 팀원 12명 · 긴 이름과 주니어/성인 혼합 · 모든 셀은 한 줄 말줄임 처리</div>
+  </main>
+</div>
+</body>
+</html>

@@ -53,7 +53,7 @@ jobs:
           PRODUCTION_WEB_URL: ${{ vars.PRODUCTION_WEB_URL || 'https://2fit-mall.co.kr' }}
         run: |
           set -euo pipefail
-          headers="$(curl --fail-with-body -sSI --max-time 20 "${PRODUCTION_WEB_URL}")"
+          headers="$(curl --retry 4 --retry-delay 3 --retry-all-errors --fail-with-body -sSI --max-time 20 "${PRODUCTION_WEB_URL}")"
           echo "${headers}"
           echo "${headers}" | grep -qi '^strict-transport-security:'
           echo "${headers}" | grep -qi '^x-content-type-options:'

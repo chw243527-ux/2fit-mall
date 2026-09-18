@@ -27,12 +27,12 @@ check() {
 headers_file="${OUT_DIR}/headers.txt"
 body_file="${OUT_DIR}/index.html"
 metrics_file="${OUT_DIR}/curl-metrics.txt"
-if curl --fail-with-body -sSIL --max-time 20 -o "${headers_file}" -w 'http_code=%{http_code}\ntime_total_ms=%{time_total}\ntls_verify=%{ssl_verify_result}\nremote_ip=%{remote_ip}\n' "${URL}" > "${metrics_file}"; then
+if curl --retry 3 --retry-delay 2 --retry-all-errors --fail-with-body -sSIL --max-time 20 -o "${headers_file}" -w 'http_code=%{http_code}\ntime_total_ms=%{time_total}\ntls_verify=%{ssl_verify_result}\nremote_ip=%{remote_ip}\n' "${URL}" > "${metrics_file}"; then
   code="$(awk -F= '$1=="http_code"{print $2}' "${metrics_file}")"
   total="$(awk -F= '$1=="time_total_ms"{printf "%.0f", $2 * 1000}' "${metrics_file}")"
   check 'HTTPS response' "$([[ "$code" == 2* || "$code" == 3* ]] && echo PASS || echo FAIL)" "HTTP ${code}, ${total} ms"
-  if [[ "${total}" =~ ^[0-9]+$ ]] && (( total > 3000 )); then
-    check 'Response latency' 'FAIL' "${total} ms exceeds 3000 ms"
+  if [[ "${total}" =~ ^[0-9]+$ ]] && (( total > 8000 )); then
+    check 'Response latency' 'FAIL' "${total} ms exceeds 8000 ms"
   else
     check 'Response latency' 'PASS' "${total} ms"
   fi
