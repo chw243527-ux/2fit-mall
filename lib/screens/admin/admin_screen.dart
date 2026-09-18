@@ -4744,6 +4744,91 @@ class _AdminScreenState extends State<AdminScreen>
     }
   }
 
+  List<String> _orderOptionLabels(Map<String, dynamic>? options) {
+    if (options == null || options.isEmpty) return const [];
+    const names = <String, String>{
+      'length': '기장',
+      'gender': '성별',
+      'removePocket': '주머니 제거',
+      'pocket': '주머니',
+      'printType': '인쇄 옵션',
+      'printTypeLabel': '인쇄 옵션',
+      'printMethod': '인쇄 방법',
+      'teamName': '단체명',
+      'mainColor': '메인 색상',
+      'mainColorName': '메인 색상',
+      'mainColorCode': '색상 코드',
+      'mainColorHex': '색상값',
+      'fabricType': '원단',
+      'fabric': '원단',
+      'weight': '원단 중량',
+      'maleLength': '남성 하의 기장',
+      'femaleLength': '여성 하의 기장',
+      'waistbandOption': '허리밴드 옵션',
+      'waistband': '허리밴드',
+      'waistbandColorName': '허리밴드 색상',
+      'exclusive': '독점 디자인',
+      'orderType': '주문 유형',
+      'totalCount': '총 수량',
+    };
+    const hidden = <String>{
+      'productId',
+      'productImageUrl',
+      'designFileUrl',
+      'designImageUrl',
+      'refImageUrl',
+      'refImageBase64',
+      'designLogoBase64',
+      'waistbandLogoBase64',
+      'waistbandRefImages',
+      'waistbandRefImageUrls',
+      'persons',
+      'attachments',
+    };
+    final labels = <String>[];
+    for (final entry in options.entries) {
+      if (hidden.contains(entry.key)) continue;
+      final value = entry.value;
+      if (value == null || value.toString().trim().isEmpty) continue;
+      final label = names[entry.key] ?? entry.key;
+      if (value is bool) {
+        labels.add('$label: ${value ? '선택' : '미선택'}');
+      } else if (value is List) {
+        if (value.isNotEmpty) labels.add('$label: ${value.join(', ')}');
+      } else if (value is Map) {
+        if (value.isNotEmpty) labels.add('$label: ${value.length}건');
+      } else {
+        labels.add('$label: $value');
+      }
+    }
+    return labels;
+  }
+
+  Widget _adminOptionChips(List<String> labels) {
+    if (labels.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Wrap(
+        spacing: 4,
+        runSpacing: 4,
+        children: labels
+            .map((label) => Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: AppColors.border),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(label,
+                      style: const TextStyle(
+                          fontSize: 10, color: AppColors.textSecondary)),
+                ))
+            .toList(),
+      ),
+    );
+  }
+
   // ── 개인 주문 상세 보기 ──
   void _showPersonalOrderDetail(OrderModel order) {
     OrderModel currentOrder = order;
@@ -4917,6 +5002,8 @@ class _AdminScreenState extends State<AdminScreen>
                                               color: AppColors.textSecondary)),
                                     ],
                                   ),
+                                  _adminOptionChips(
+                                      _orderOptionLabels(item.customOptions)),
                                 ],
                               ),
                             );
@@ -5708,6 +5795,36 @@ class _AdminScreenState extends State<AdminScreen>
                     ],
                   ),
                 ),
+                // 주문 전체 및 상품별 커스텀 옵션
+                if (_orderOptionLabels(opts).isNotEmpty ||
+                    order.items.any((item) =>
+                        _orderOptionLabels(item.customOptions).isNotEmpty))
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('선택 옵션 상세',
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w800)),
+                        _adminOptionChips(_orderOptionLabels(opts)),
+                        ...order.items.map((item) => Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(item.productName,
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700)),
+                                  _adminOptionChips(
+                                      _orderOptionLabels(item.customOptions)),
+                                ],
+                              ),
+                            )),
+                      ],
+                    ),
+                  ),
                 // 팀원 명단 테이블
                 Expanded(
                   child: SingleChildScrollView(
