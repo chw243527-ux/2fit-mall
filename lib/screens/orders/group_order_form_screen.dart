@@ -397,6 +397,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   void _prefillCartOptions() {
     final options = widget.initialCartOptions;
     if (options == null) return;
+    final savedPrintType = options['printType'];
+    if (savedPrintType is num) {
+      _printType = savedPrintType.toInt().clamp(0, _maxPrintOptionId);
+    }
     _teamNameCtrl.text = options['teamName']?.toString() ?? '';
     _managerNameCtrl.text = options['manager']?.toString() ?? '';
     _phoneCtrl.text = options['phone']?.toString() ?? '';
@@ -405,10 +409,60 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     _addressDetailCtrl.text = options['addressDetail']?.toString() ?? '';
     _memoCtrl.text = options['memo']?.toString() ?? '';
     _mainColorName = options['mainColor']?.toString();
+    final savedHex = options['mainColorHex']?.toString() ?? '';
+    if (savedHex.isNotEmpty) {
+      final normalized = savedHex.replaceFirst('#', '').trim();
+      final parsed = int.tryParse(
+          normalized.length == 6 ? 'FF$normalized' : normalized,
+          radix: 16);
+      if (parsed != null) _mainColor = Color(parsed);
+    }
+    final savedLightness = options['colorLightness'];
+    if (savedLightness is num) {
+      _colorLightness = savedLightness.toDouble().clamp(0.05, 0.95);
+    }
+    _fabricType = options['fabric']?.toString() ?? _fabricType;
+    _fabricWeight = options['weight']?.toString() ?? _fabricWeight;
     _hasPocket = options['pocket'] == true;
     _exclusiveDesign = options['exclusive'] == true;
     _maleLengthSel = options['maleLength']?.toString();
     _femaleLengthSel = options['femaleLength']?.toString();
+    final savedWaistbandOptions = options['waistbandOptions'];
+    if (savedWaistbandOptions is List) {
+      _waistbandOptions
+        ..clear()
+        ..addAll(savedWaistbandOptions.whereType<num>().map((e) => e.toInt()));
+    }
+    _waistbandColorHex = options['waistbandColorHex']?.toString() ?? '';
+    _waistbandColorCtrl.text = _waistbandColorHex;
+    final savedRefImages = options['waistbandRefImages'];
+    if (savedRefImages is List) {
+      _waistbandRefImages
+        ..clear()
+        ..addAll(savedRefImages.whereType<String>());
+    }
+    _refBase64 = options['refImageBase64']?.toString().isNotEmpty == true
+        ? options['refImageBase64']?.toString()
+        : null;
+    _designLogoFileName = options['designLogoFileName']?.toString();
+    final designLogoBase64 = options['designLogoBase64']?.toString() ?? '';
+    if (designLogoBase64.isNotEmpty) {
+      try {
+        _designLogoBytes = base64Decode(designLogoBase64);
+      } catch (_) {
+        _designLogoBytes = null;
+      }
+    }
+    _waistbandLogoFileName = options['waistbandLogoFileName']?.toString();
+    final waistbandLogoBase64 =
+        options['waistbandLogoBase64']?.toString() ?? '';
+    if (waistbandLogoBase64.isNotEmpty) {
+      try {
+        _waistbandLogoBytes = base64Decode(waistbandLogoBase64);
+      } catch (_) {
+        _waistbandLogoBytes = null;
+      }
+    }
     final rawPersons = options['persons'];
     if (rawPersons is! List) return;
     while (_persons.length < rawPersons.length) {
