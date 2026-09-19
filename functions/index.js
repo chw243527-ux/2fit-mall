@@ -49,6 +49,18 @@ const NAVER_ALLOWED_REDIRECTS = new Set([
   'http://localhost:5000/naver_callback.html',
 ]);
 
+// Firebase에 남아 있는 기존 HTTPS 엔드포인트와의 배포 호환성을 유지합니다.
+// 실제 디자인 알림 처리는 아래 onDesignRevisionChangedNotification 트리거가 담당합니다.
+exports.onDesignRevisionChanged = onRequest(
+  { region: 'asia-northeast3' },
+  async (_req, res) => {
+    res.status(410).json({
+      error: 'This endpoint is deprecated',
+      code: 'design-revision-endpoint-deprecated',
+    });
+  },
+);
+
 // 백그라운드 로그에는 원시 오류 객체·메시지를 남기지 않고 제한된 코드만 기록합니다.
 function _errorCode(error, fallback = 'unknown-error') {
   const candidate = error?.code || error?.name;
