@@ -29,8 +29,10 @@ class PaymentCheckoutScreen extends StatefulWidget {
 }
 
 class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
+  static int _viewSequence = 0;
   PaymentCheckoutArgs? _args;
   bool _registered = false;
+  late final String _viewType = 'toss-payment-iframe-${_viewSequence++}';
 
   @override
   void didChangeDependencies() {
@@ -76,7 +78,7 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
 
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
-      'toss-payment-iframe',
+      _viewType,
       (int viewId) {
         final iframe = html.IFrameElement()
           ..src = uri.toString()
@@ -227,6 +229,6 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return const HtmlElementView(viewType: 'toss-payment-iframe');
+    return HtmlElementView(viewType: _viewType);
   }
 }

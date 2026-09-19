@@ -37,9 +37,8 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
       // 모바일 브라우저·웹뷰는 콜백을 /#/payment/success?... 형태로
       // 전달할 수 있으므로 일반 query와 fragment query를 모두 확인합니다.
       final fragmentUri = uri.fragment.isNotEmpty
-          ? Uri.parse(uri.fragment.startsWith('/')
-              ? uri.fragment
-              : '/${uri.fragment}')
+          ? Uri.parse(
+              uri.fragment.startsWith('/') ? uri.fragment : '/${uri.fragment}')
           : null;
       final query = <String, String>{
         ...uri.queryParameters,
@@ -163,6 +162,18 @@ class PaymentFailScreen extends StatefulWidget {
 }
 
 class _PaymentFailScreenState extends State<PaymentFailScreen> {
+  Map<String, String> _callbackParams() {
+    final uri = Uri.parse(Uri.base.toString());
+    final fragment = uri.fragment.trim();
+    final fragmentUri = fragment.isEmpty
+        ? null
+        : Uri.tryParse(fragment.startsWith('/') ? fragment : '/$fragment');
+    return <String, String>{
+      ...uri.queryParameters,
+      if (fragmentUri != null) ...fragmentUri.queryParameters,
+    };
+  }
+
   @override
   void initState() {
     super.initState();
@@ -170,8 +181,7 @@ class _PaymentFailScreenState extends State<PaymentFailScreen> {
   }
 
   Future<void> _refundReservedPoints() async {
-    final uri = Uri.parse(Uri.base.toString());
-    final orderId = uri.queryParameters['orderId'] ?? '';
+    final orderId = _callbackParams()['orderId'] ?? '';
     if (orderId.isEmpty) return;
     // 결제 실패 시 서버 트랜잭션이 예약된 쿠폰·포인트를 한 번만 해제합니다.
     await SecureCheckoutService.cancelPaymentIntent(orderId);
@@ -179,9 +189,9 @@ class _PaymentFailScreenState extends State<PaymentFailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final uri = Uri.parse(Uri.base.toString());
-    final message = uri.queryParameters['message'] ?? '결제에 실패했습니다.';
-    final code = uri.queryParameters['code'] ?? '';
+    final params = _callbackParams();
+    final message = params['message'] ?? '결제가 취소되었습니다.';
+    final code = params['code'] ?? '';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -227,7 +237,7 @@ class _PaymentFailScreenState extends State<PaymentFailScreen> {
                   style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary),
                   onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                      context, '/cart', (r) => false),
+                      context, '/checkout', (r) => false),
                   child: const Text('다시 결제하기',
                       style: TextStyle(color: Colors.white)),
                 ),

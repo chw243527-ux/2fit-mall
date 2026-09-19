@@ -123,6 +123,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         _zonecode = defaultAddr.zipCode;
         _addressController.text = defaultAddr.address1;
         _detailAddressController.text = defaultAddr.address2;
+        if (defaultAddr.recipient.trim().isNotEmpty) {
+          _ordererNameController.text = defaultAddr.recipient;
+        }
+        if (defaultAddr.phone.trim().isNotEmpty) {
+          _ordererPhoneController.text = defaultAddr.phone;
+        }
       } else if (user.address.isNotEmpty) {
         _addressController.text = user.address;
       }
@@ -907,6 +913,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             _zonecode = addr.zipCode;
             _addressController.text = addr.address1;
             _detailAddressController.text = addr.address2;
+            if (addr.recipient.trim().isNotEmpty) {
+              _ordererNameController.text = addr.recipient;
+            }
+            if (addr.phone.trim().isNotEmpty) {
+              _ordererPhoneController.text = addr.phone;
+            }
           });
           Navigator.pop(context);
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -967,11 +979,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
+    final recipient = _ordererNameController.text.trim().isNotEmpty
+        ? _ordererNameController.text.trim()
+        : user.name;
+    final phone = _ordererPhoneController.text.trim().isNotEmpty
+        ? _ordererPhoneController.text.trim()
+        : user.phone;
     final newAddr = AddressModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       label: context.loc.t('배송지', '배송지'),
-      recipient: user.name,
-      phone: user.phone,
+      recipient: recipient,
+      phone: phone,
       zipCode: _zonecode,
       address1: addr1,
       address2: _detailAddressController.text.trim(),
@@ -2229,7 +2247,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   padding: EdgeInsets.only(bottom: 8),
                   child: Text(
                     '현재 쿠폰은 단독 사용만 가능합니다. 다른 쿠폰을 추가하려면 먼저 해제해 주세요.',
-                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    style:
+                        TextStyle(fontSize: 11, color: AppColors.textSecondary),
                   ),
                 ),
             ],
@@ -2254,7 +2273,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   '${coupon.name}  (-${_formatPrice(coupon.calculateDiscount(orderTotal))}원)',
                   style: TextStyle(
                     fontSize: 13,
-                    color: canSelect ? AppColors.textPrimary : AppColors.textHint,
+                    color:
+                        canSelect ? AppColors.textPrimary : AppColors.textHint,
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -2273,7 +2293,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             if (unusableCoupons.isNotEmpty) ...[
               const SizedBox(height: 6),
               const Text('최소 주문금액 미달',
-                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  style:
+                      TextStyle(fontSize: 11, color: AppColors.textSecondary)),
               ...unusableCoupons.map((coupon) => ListTile(
                     dense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 4),
@@ -2295,7 +2316,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Text('코드 직접 입력',
-                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                    style:
+                        TextStyle(fontSize: 11, color: Colors.grey.shade500)),
               ),
               const Expanded(child: Divider()),
             ],
@@ -2618,17 +2640,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    final customerName = _isReadyMadeOrder
-        ? _ordererNameController.text.trim()
-        : user.name;
-    final customerPhone = _isReadyMadeOrder
-        ? _ordererPhoneController.text.trim()
-        : user.phone;
+    final customerName =
+        _isReadyMadeOrder ? _ordererNameController.text.trim() : user.name;
+    final customerPhone =
+        _isReadyMadeOrder ? _ordererPhoneController.text.trim() : user.phone;
     if (_isReadyMadeOrder && (customerName.isEmpty || customerPhone.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(context.loc.t(
-              '주문자_이름과_전화번호를_입력해_주세요', '주문자 이름과 전화번호를 입력해 주세요.')),
+          content: Text(
+              context.loc.t('주문자_이름과_전화번호를_입력해_주세요', '주문자 이름과 전화번호를 입력해 주세요.')),
           backgroundColor: AppColors.error,
         ),
       );
@@ -2677,7 +2697,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     // 카드·간편결제는 서버가 발급한 주문 ID·금액으로만 토스 결제 화면을 엽니다.
-    Navigator.pushNamed(
+    await Navigator.pushNamed(
       context,
       '/payment/checkout',
       arguments: PaymentCheckoutArgs(
@@ -2694,6 +2714,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         pointDiscount: _pointDiscount,
       ),
     );
+    // 결제 취소·뒤로가기 후 Checkout으로 돌아오면 재결제할 수 있어야 합니다.
+    if (mounted) setState(() => _isProcessing = false);
   }
 
   // ─── 주문완료 전체화면 ────────────────────────────────────────
