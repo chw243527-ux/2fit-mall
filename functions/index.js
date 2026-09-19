@@ -200,7 +200,9 @@ exports.onOrderStatusChanged = onDocumentUpdated(
 // ══════════════════════════════════════════════════════
 // 2-1) 디자인 수정 요청·디자인 확인 알림
 // ══════════════════════════════════════════════════════
-exports.onDesignRevisionChanged = onDocumentUpdated(
+// 기존 운영 HTTPS 함수 onDesignRevisionChanged와 이름이 겹치지 않도록
+// Firestore 백그라운드 알림 트리거는 별도 이름으로 배포합니다.
+exports.onDesignRevisionChangedNotification = onDocumentUpdated(
   { document: 'orders/{orderId}' },
   async (event) => {
     const before = event.data?.before?.data();
