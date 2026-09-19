@@ -270,7 +270,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   int get _fabricExtra => AppConstants.fabricTypePrices[_fabricType] ?? 0;
   double get _basePrice => widget.product?.price ?? 0.0;
   // 타이즈 9부 선택 여부
-  bool get _isTights9 => _maleLengthSel == '9부' || _femaleLengthSel == '9부';
+  bool get _isTights9 =>
+      _supportsBottomCustomizations &&
+      (_maleLengthSel == '9부' || _femaleLengthSel == '9부');
 
   /// 타이즈 또는 하의 단체주문: 하의 사이즈만 입력 (상의 사이즈 불필요)
   /// 하의 카테고리 단체주문: 인쇄/재봉/디자인이미지/상의사이즈 숨김
@@ -296,6 +298,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         text.contains('싱글렛 A타입세트') ||
         text.contains('싱글렛 A타입 세트');
   }
+
+  // 하의 길이·주머니·허리밴드 세부 선택은 싱글렛 세트와 타이즈만 허용합니다.
+  bool get _supportsBottomCustomizations => _showWaistbandSections;
 
   /// 모든 단체주문 상품에서 인쇄 옵션을 표시합니다.
   /// 싱글렛·싱글렛 세트만 이미지 기준의 5개 옵션을 유지합니다.
@@ -333,7 +338,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       +
       (_isTights9 ? _tights9Price : 0) // 9부:    인원당 +20,000
       +
-      (_hasPocket ? _pocketPrice : 0); // 주머니: 인원당 +10,000
+      (_supportsBottomCustomizations && _hasPocket
+          ? _pocketPrice
+          : 0); // 주머니: 인원당 +10,000
   double get _subTotal => _unitPrice * _totalCount;
   double get _discountAmount => _subTotal * (_groupDiscountRate / 100);
   double get _discountedSubtotal => _subTotal - _discountAmount;
@@ -898,11 +905,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       _showSnack(context.loc.t('상세주소를_입력해_주세요', '상세주소를 입력해 주세요.'));
       return false;
     }
-    if (!_isTopOnly && _maleLengthSel == null) {
+    if (_supportsBottomCustomizations && _maleLengthSel == null) {
       _showSnack(context.loc.t('남성_하의_길이를_선택해_주세요', '남성 하의 길이를 선택해 주세요.'));
       return false;
     }
-    if (!_isTopOnly && _femaleLengthSel == null) {
+    if (_supportsBottomCustomizations && _femaleLengthSel == null) {
       _showSnack(context.loc.t('여성_하의_길이를_선택해_주세요', '여성 하의 길이를 선택해 주세요.'));
       return false;
     }
@@ -1206,6 +1213,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       }
     }
 
+    final allowBottomCustomizations = _supportsBottomCustomizations;
     final customOptions = <String, dynamic>{
       'orderType': _isAdditional ? 'additional' : 'group',
       'groupMinimumQuantity': _groupMinimumQuantity,
@@ -1255,27 +1263,40 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'colorTone': _lightnessLabel,
       'fabric': _fabricType,
       'weight': _fabricWeight,
-      'pocket': _hasPocket,
-      'pocketAllowed': !_isFemaleShortSquare,
-      'pocketRule':
-          _isFemaleShortSquare ? '여성 숏쇼츠 선택 시 주머니 추가 불가' : '주머니 추가 가능',
-      'maleLength': _maleLengthSel,
+      'pocket': allowBottomCustomizations && _hasPocket,
+      'pocketAllowed': allowBottomCustomizations && !_isFemaleShortSquare,
+      'pocketRule': !allowBottomCustomizations
+          ? '해당 상품은 주머니 옵션 없음'
+          : (_isFemaleShortSquare ? '여성 숏쇼츠 선택 시 주머니 추가 불가' : '주머니 추가 가능'),
+      'maleLength': allowBottomCustomizations ? _maleLengthSel : null,
       'maleLengthOptions': ['9부', '5부', '4부', '3부'],
-      'femaleLength': _femaleLengthSel,
+      'femaleLength': allowBottomCustomizations ? _femaleLengthSel : null,
       'femaleLengthOptions':
           AppConstants.bottomLengths.map((e) => e['label']).toList(),
-      'waistbandOption': _waistbandOptionLabel,
-      'waistbandOptions': _waistbandOptions.toList(),
+      'waistbandOption':
+          allowBottomCustomizations ? _waistbandOptionLabel : '해당 없음',
+      'waistbandOptions': allowBottomCustomizations
+          ? _waistbandOptions.toList()
+          : const <int>[],
       'waistbandExtra': _waistbandExtra.toInt(),
       'waistbandColorName':
-          _waistbandOptions.contains(2) ? '허리밴드 별도 색상' : '기본 허리밴드 색상',
+          allowBottomCustomizations && _waistbandOptions.contains(2)
+              ? '허리밴드 별도 색상'
+              : '기본 허리밴드 색상',
       'waistbandColorHex':
-          _waistbandOptions.contains(2) ? _waistbandColorHex : '',
-      'waistbandRefImages': _waistbandRefImages,
-      'waistbandRefImageUrls': waistbandRefImageUrls,
-      'waistbandLogoFileName': _waistbandLogoFileName ?? '',
+          allowBottomCustomizations && _waistbandOptions.contains(2)
+              ? _waistbandColorHex
+              : '',
+      'waistbandRefImages':
+          allowBottomCustomizations ? _waistbandRefImages : const <String>[],
+      'waistbandRefImageUrls':
+          allowBottomCustomizations ? waistbandRefImageUrls : const <String>[],
+      'waistbandLogoFileName':
+          allowBottomCustomizations ? (_waistbandLogoFileName ?? '') : '',
       'waistbandLogoBase64':
-          _waistbandLogoBytes != null ? base64Encode(_waistbandLogoBytes!) : '',
+          allowBottomCustomizations && _waistbandLogoBytes != null
+              ? base64Encode(_waistbandLogoBytes!)
+              : '',
       'exclusive': _exclusiveDesign,
       'teamName': _teamNameCtrl.text.trim(),
       'manager': _managerNameCtrl.text.trim(),
@@ -1308,9 +1329,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 'sizeType': p.sizeType,
                 'topSize': p.effectiveTopSize,
                 'bottomSize': p.effectiveBottomSize,
-                'length': (p.gender == 'female')
-                    ? _femaleLengthSel
-                    : _maleLengthSel, // 성별에 따라 자동 적용
+                'length': allowBottomCustomizations
+                    ? ((p.gender == 'female')
+                        ? _femaleLengthSel
+                        : _maleLengthSel)
+                    : null, // 성별에 따라 자동 적용
                 'height': p.heightCtrl.text.trim(),
                 'weight': p.weightCtrl.text.trim(),
                 'waist': p.waistCtrl.text.trim(),

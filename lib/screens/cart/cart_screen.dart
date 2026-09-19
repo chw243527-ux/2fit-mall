@@ -388,8 +388,9 @@ class CartScreen extends StatelessWidget {
                 width: 80,
                 height: 80,
                 child: item.product.images.isNotEmpty
-                    ? NetImage(
+                    ? NetImage.square(
                         item.product.images.first,
+                        size: 80,
                         fit: BoxFit.cover,
                       )
                     : Container(color: AppColors.background),
@@ -422,13 +423,16 @@ class CartScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: [
-                      ..._cartOptionLabels(item).map(_optionChip),
-                    ],
-                  ),
+                  // 단체주문은 상세 옵션을 장바구니에 반복 노출하지 않고
+                  // '옵션 확인'에서 원본 주문서로 확인하도록 합니다.
+                  if (!_isGroupCartItem(item))
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        ..._cartOptionLabels(item).map(_optionChip),
+                      ],
+                    ),
                   if (_isGroupCartItem(item)) ...[
                     const SizedBox(height: 8),
                     Align(
@@ -449,13 +453,17 @@ class CartScreen extends StatelessWidget {
                   ],
                   const SizedBox(height: 8),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '${_formatPrice(item.unitPrice)}${loc.wonUnit2}', // extraPrice 포함한 단가
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w800),
+                      Expanded(
+                        child: Text(
+                          '${_formatPrice(item.unitPrice)}${loc.wonUnit2}', // extraPrice 포함한 단가
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w800),
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       _buildQtyControl(cart, item),
                     ],
                   ),

@@ -4,7 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>결제</title>
-  <script src="https://js.tosspayments.com/v2/standard"></script>
+  <!-- 결제 위젯 초기화 전에 SDK 연결·DNS·TLS 협상을 시작한다. -->
+  <link rel="preconnect" href="https://js.tosspayments.com" crossorigin />
+  <link rel="dns-prefetch" href="//js.tosspayments.com" />
+  <script src="https://js.tosspayments.com/v2/standard" fetchpriority="high"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 

@@ -9,6 +9,7 @@
 # ── HTML / SW / manifest: 항상 최신 버전 확인 (캐시 금지) ──
 /index.html
   Cache-Control: no-cache, no-store, must-revalidate
+  Link: <https://js.tosspayments.com>; rel=preconnect; crossorigin, <https://js.tosspayments.com>; rel=dns-prefetch, <https://api.tosspayments.com>; rel=preconnect; crossorigin, <https://api.tosspayments.com>; rel=dns-prefetch
 
 /flutter_service_worker.js
   Cache-Control: no-cache, no-store, must-revalidate
@@ -26,6 +27,20 @@
 
 /flutter.js
   Cache-Control: no-cache, no-store, must-revalidate
+
+# ── Toss 결제 위젯 HTML: 브라우저는 짧게, CDN은 재사용 ──
+# 결제 금액·주문번호는 URL 파라미터로 전달되며 HTML 응답 본문에는 포함되지 않는다.
+# _redirect=1 리다이렉트 응답은 query 조건부 매칭이 불가능하므로
+# payment-widget.html 내부에서 top.location으로 즉시 이동하며 결제 정보는 캐시하지 않는다.
+/payment-widget.html
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+  Vary: Accept-Encoding
+  Link: <https://js.tosspayments.com>; rel=preconnect; crossorigin, <https://js.tosspayments.com>; rel=dns-prefetch, <https://api.tosspayments.com>; rel=preconnect; crossorigin, <https://api.tosspayments.com>; rel=dns-prefetch
+
+/payment-widget/
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+  Vary: Accept-Encoding
+  Link: <https://js.tosspayments.com>; rel=preconnect; crossorigin, <https://js.tosspayments.com>; rel=dns-prefetch, <https://api.tosspayments.com>; rel=preconnect; crossorigin, <https://api.tosspayments.com>; rel=dns-prefetch
 
 # ── 정적 에셋: 파일명에 해시/버전 포함 → 장기 캐시 OK ──
 /assets/*

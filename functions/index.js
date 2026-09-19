@@ -198,6 +198,66 @@ exports.onOrderStatusChanged = onDocumentUpdated(
 );
 
 // ══════════════════════════════════════════════════════
+// 2-1) 디자인 수정 요청·디자인 확인 알림
+// ══════════════════════════════════════════════════════
+exports.onDesignRevisionChanged = onDocumentUpdated(
+  { document: 'orders/{orderId}' },
+  async (event) => {
+    const before = event.data?.before?.data();
+    const after = event.data?.after?.data();
+    if (!before || !after) return;
+    const beforeRequest = before.designRevisionRequest || {};
+    const afterRequest = after.designRevisionRequest || {};
+    const beforeKey = `${beforeRequest.requestedAt || ''}:${beforeRequest.status || ''}`;
+    const afterKey = `${afterRequest.requestedAt || ''}:${afterRequest.status || ''}`;
+    if (beforeKey === afterKey || !afterRequest.status) return;
+
+    const userId = String(after.userId || '').trim();
+    if (!userId) return;
+    const status = String(afterRequest.status).toLowerCase();
+    const isRequest = status === 'pending';
+    const isConfirmation = ['responded', 'approved', 'confirmed', 'completed'].includes(status);
+    if (!isRequest && !isConfirmation) return;
+
+    const title = isRequest ? '디자인 수정 요청이 접수되었습니다' : '디자인 확인이 필요합니다';
+    const body = isRequest
+      ? '관리자가 디자인 수정 요청을 확인하고 있습니다.'
+      : '관리자가 디자인 시안을 반영했습니다. 주문 상세에서 확인해 주세요.';
+    const notificationRef = db.collection('notifications').doc();
+    try {
+      await notificationRef.set({
+        id: notificationRef.id,
+        userId,
+        title,
+        body,
+        type: isRequest ? 'design_revision_request' : 'design_confirmation',
+        orderId: event.params.orderId,
+        revisionStatus: status,
+        isRead: false,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+      const userSnap = await db.collection('users').doc(userId).get();
+      const token = String(userSnap.data()?.fcmToken || '').trim();
+      if (token) {
+        await getMessaging().send({
+          token,
+          notification: { title: `2FIT MALL ${title}`, body },
+          data: {
+            type: isRequest ? 'design_revision_request' : 'design_confirmation',
+            orderId: String(event.params.orderId),
+            notificationId: notificationRef.id,
+          },
+        });
+      }
+    } catch (error) {
+      console.error('design notification failed', {
+        code: _errorCode(error, isRequest ? 'design-revision-notification-failed' : 'design-confirmation-notification-failed'),
+      });
+    }
+  },
+);
+
+// ══════════════════════════════════════════════════════
 // 3) FCM 큐 처리 (기존)
 // ══════════════════════════════════════════════════════
 exports.processFcmQueue = onDocumentCreated('fcm_queue/{docId}', async (event) => {

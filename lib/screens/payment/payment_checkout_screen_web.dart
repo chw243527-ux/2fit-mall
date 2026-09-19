@@ -80,10 +80,12 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
       (int viewId) {
         final iframe = html.IFrameElement()
           ..src = uri.toString()
+          ..referrerPolicy = 'strict-origin-when-cross-origin'
           ..style.border = 'none'
           ..style.width = '100%'
           ..style.height = '100%'
           ..allow = 'payment';
+        iframe.setAttribute('loading', 'eager');
         return iframe;
       },
     );
@@ -155,7 +157,9 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
         title: const Text(
           '결제',
           style: TextStyle(
-              color: AppColors.textPrimary, fontWeight: FontWeight.w500, fontSize: 18),
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
+              fontSize: 18),
         ),
       ),
       body: args == null
@@ -177,7 +181,8 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
                   size: 56, color: AppColors.primary),
               const SizedBox(height: 16),
               const Text('무통장입금',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w500)),
               const SizedBox(height: 8),
               const Text(
                 '주문 완료 후 입금 계좌 안내 문자를 발송합니다.\n입금 확인 후 주문이 처리됩니다.',
