@@ -6500,20 +6500,18 @@ $productUrl
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
+                        AspectRatio(
+                          aspectRatio: 4 / 5,
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: sibling.images.isNotEmpty
-                                  ? NetImage(sibling.images.first,
-                                      fit: BoxFit.cover,
-                                      alignment: Alignment.topCenter)
-                                  : Container(
-                                      color: AppColors.surface,
-                                      child: const Icon(Icons.image_outlined,
-                                          color: AppColors.textHint)),
-                            ),
+                            child: sibling.images.isNotEmpty
+                                ? NetImage(sibling.images.first,
+                                    fit: BoxFit.cover,
+                                    alignment: Alignment.topCenter)
+                                : Container(
+                                    color: AppColors.surface,
+                                    child: const Icon(Icons.image_outlined,
+                                        color: AppColors.textHint)),
                           ),
                         ),
                         SizedBox(height: r.h(7)),
@@ -9045,7 +9043,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
               if (candidates.isNotEmpty) ...[
                 const SizedBox(height: 14),
                 SizedBox(
-                  height: 178,
+                  height: 210,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: candidates.length,
@@ -9066,17 +9064,16 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
+                                  AspectRatio(
+                                      aspectRatio: 4 / 5,
                                       child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: SizedBox(
-                                        width: double.infinity,
+                                        borderRadius: BorderRadius.circular(8),
                                         child: item.images.isNotEmpty
                                             ? NetImage(item.images.first,
                                                 fit: BoxFit.cover)
                                             : Container(
-                                                color: AppColors.surface)),
-                                  )),
+                                                color: AppColors.surface),
+                                      )),
                                   const SizedBox(height: 6),
                                   Text(item.name,
                                       maxLines: 2,

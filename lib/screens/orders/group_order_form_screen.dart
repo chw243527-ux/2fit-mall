@@ -979,7 +979,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               if (candidates.isNotEmpty) ...[
                 const SizedBox(height: 14),
                 SizedBox(
-                    height: 178,
+                    height: 210,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: candidates.length,
@@ -1000,19 +1000,16 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                               child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(
+                                    AspectRatio(
+                                        aspectRatio: 4 / 5,
                                         child: ClipRRect(
                                             borderRadius:
                                                 BorderRadius.circular(8),
-                                            child: SizedBox(
-                                                width: double.infinity,
-                                                child: item.images.isNotEmpty
-                                                    ? NetImage(
-                                                        item.images.first,
-                                                        fit: BoxFit.cover)
-                                                    : Container(
-                                                        color: AppColors
-                                                            .surface)))),
+                                            child: item.images.isNotEmpty
+                                                ? NetImage(item.images.first,
+                                                    fit: BoxFit.cover)
+                                                : Container(
+                                                    color: AppColors.surface))),
                                     const SizedBox(height: 6),
                                     Text(item.name,
                                         maxLines: 2,
