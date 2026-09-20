@@ -1078,7 +1078,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         child: p.images.isNotEmpty
                             ? NetImage(
                                 p.images.first,
-                                fit: BoxFit.contain,
+                                fit: BoxFit.cover,
                               )
                             : Container(
                                 color: AppColors.surfaceGray,
@@ -1155,14 +1155,19 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                   letterSpacing: 0.2)),
                         ),
                       ],
-                      Text(p.localizedName(_lang),
+                      SizedBox(
+                        height: 11 * 1.3 * 2,
+                        child: Text(
+                          p.localizedName(_lang),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                              fontSize: 15,
+                              fontSize: 11,
                               fontWeight: FontWeight.w800,
                               color: AppColors.primary,
-                              height: 1.35)),
+                              height: 1.3),
+                        ),
+                      ),
                       if (!p.isGroupOnly) ...[
                         Container(
                           margin: const EdgeInsets.only(bottom: 5),

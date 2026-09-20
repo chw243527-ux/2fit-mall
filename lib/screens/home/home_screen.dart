@@ -2433,10 +2433,10 @@ class _HomeScreenState extends State<HomeScreen>
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        fontSize: r.sp(12),
+                        fontSize: r.sp(11),
                         fontWeight: FontWeight.w600,
                         color: AppColors.primary,
-                        height: 1.3),
+                        height: 1.25),
                   ),
                   if (product.colors.isNotEmpty) ...[
                     SizedBox(height: r.h(4)),
