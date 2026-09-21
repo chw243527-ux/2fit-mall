@@ -199,7 +199,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   // ── 참조 이미지 (단일) ──
   String? _refBase64;
-  static const _kRefKey = 'group_order_ref_base64';
+  String get _refKey => 'group_order_ref_base64_${widget.product?.id ?? 'new'}';
 
   // ── 디자인 로고 파일 ──
   String? _designLogoFileName;
@@ -301,6 +301,16 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   // 하의 길이·주머니·허리밴드 세부 선택은 싱글렛 세트와 타이즈만 허용합니다.
   bool get _supportsBottomCustomizations => _showWaistbandSections;
+
+  bool get _showFabricOption {
+    final p = widget.product;
+    if (p == null) return false;
+    final text = '${p.category} ${p.subCategory} ${p.name}';
+    return text.contains('싱글렛') ||
+        text.contains('싱글렛세트') ||
+        text.contains('타이즈') ||
+        text.contains('숏쇼츠');
+  }
 
   /// 모든 단체주문 상품에서 인쇄 옵션을 표시합니다.
   /// 싱글렛·싱글렛 세트만 이미지 기준의 5개 옵션을 유지합니다.
@@ -557,16 +567,16 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
     setState(() {
-      _refBase64 = prefs.getString(_kRefKey);
+      _refBase64 = prefs.getString(_refKey);
     });
   }
 
   Future<void> _saveImage({required String? base64}) async {
     final prefs = await SharedPreferences.getInstance();
     if (base64 == null) {
-      await prefs.remove(_kRefKey);
+      await prefs.remove(_refKey);
     } else {
-      await prefs.setString(_kRefKey, base64);
+      await prefs.setString(_refKey, base64);
     }
   }
 
@@ -5077,8 +5087,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           }),
         ],
 
-        // ── 재봉방법 선택사항 표시 배너 (신규 주문만)
-        if (!_isAdditional)
+        // ── 재봉방법 선택사항 표시 배너 (허용 카테고리의 신규 주문만)
+        if (!_isAdditional && _showFabricOption)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             margin: const EdgeInsets.only(bottom: 8),

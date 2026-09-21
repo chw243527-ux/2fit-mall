@@ -961,8 +961,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final addr1 = _addressController.text.trim();
     if (addr1.isEmpty) return;
 
-    // 이미 동일 주소가 저장되어 있으면 건너뜀
-    final alreadyExists = user.addresses.any((a) => a.address1 == addr1);
+    final recipient = _ordererNameController.text.trim().isNotEmpty
+        ? _ordererNameController.text.trim()
+        : user.name;
+    final phone = _ordererPhoneController.text.trim().isNotEmpty
+        ? _ordererPhoneController.text.trim()
+        : user.phone;
+
+    // 같은 주소라도 주문자명·전화번호 조합이 다르면 별도 배송지로 저장합니다.
+    final alreadyExists = user.addresses.any((a) =>
+        a.address1 == addr1 &&
+        a.address2 == _detailAddressController.text.trim() &&
+        a.recipient == recipient &&
+        a.phone == phone);
     if (alreadyExists) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -977,12 +988,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    final recipient = _ordererNameController.text.trim().isNotEmpty
-        ? _ordererNameController.text.trim()
-        : user.name;
-    final phone = _ordererPhoneController.text.trim().isNotEmpty
-        ? _ordererPhoneController.text.trim()
-        : user.phone;
+    if (user.addresses.length >= 10) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.loc
+                .t('배송지는_최대_10개까지_저장할_수_있습니다', '배송지는 최대 10개까지 저장할 수 있습니다.')),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
     final newAddr = AddressModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       label: context.loc.t('배송지', '배송지'),
@@ -2652,6 +2670,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ),
       );
       setState(() => _isProcessing = false);
+      return;
+    }
+
+    // 새로고침 직후에는 로컬 장바구니 복원이 끝난 뒤 결제를 준비합니다.
+    await widget.cart.ensureRestored();
+    if (!mounted || widget.cart.items.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(context.loc
+                  .t('장바구니가_비어_있습니다', '장바구니가 비어 있습니다. 상품을 다시 담아 주세요.'))),
+        );
+        setState(() => _isProcessing = false);
+      }
       return;
     }
 

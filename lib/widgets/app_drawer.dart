@@ -141,8 +141,7 @@ class _AppDrawerState extends State<AppDrawer> {
         'Google Play 앱 페이지를 열었습니다. 업데이트 버튼을 확인해 주세요.',
       ManualUpdateResult.unavailable =>
         'Google Play에서 설치한 Android 앱에서만 업데이트할 수 있습니다.',
-      ManualUpdateResult.failed =>
-        '업데이트 확인에 실패했습니다. Play Store에서 직접 확인해 주세요.',
+      ManualUpdateResult.failed => '업데이트 확인에 실패했습니다. Play Store에서 직접 확인해 주세요.',
     };
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -689,16 +688,20 @@ class _AppDrawerState extends State<AppDrawer> {
           ),
           child: Row(
             children: [
-              const Text(
-                AppConstants.copyright,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.border,
-                  letterSpacing: 1.2,
+              const Expanded(
+                child: Text(
+                  AppConstants.copyright,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.border,
+                    letterSpacing: 1.2,
+                  ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 12),
               if (userProvider.isLoggedIn)
                 GestureDetector(
                   onTap: () {
@@ -707,6 +710,8 @@ class _AppDrawerState extends State<AppDrawer> {
                   },
                   child: const Text(
                     'LOG OUT',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,

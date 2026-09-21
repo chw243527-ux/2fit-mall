@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -173,14 +174,54 @@ class LanguageProvider extends ChangeNotifier implements LanguageProviderBridge 
 class CartProvider extends ChangeNotifier {
   final List<CartItem> _items = [];
   StreamSubscription<List<ProductModel>>? _productsSubscription;
+  late final Future<void> _restoration;
 
   CartProvider() {
+    _restoration = _restoreCart();
     _productsSubscription = ProductService.productsStream().listen(
       _syncProducts,
       onError: (Object error, StackTrace stackTrace) {
         if (kDebugMode) debugPrint('client_operation_failed');
       },
     );
+  }
+
+  Future<void> _restoreCart() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getStringList('twofit_cart_v1') ?? const <String>[];
+      for (final encoded in raw) {
+        final data = Map<String, dynamic>.from(jsonDecode(encoded) as Map);
+        final productData = Map<String, dynamic>.from(data['product'] as Map);
+        _items.add(CartItem(
+          id: data['id']?.toString() ?? '${productData['id']}_${DateTime.now().microsecondsSinceEpoch}',
+          product: ProductModel.fromJson(productData),
+          selectedSize: data['size']?.toString() ?? '',
+          selectedColor: data['color']?.toString() ?? '',
+          quantity: (data['quantity'] as num?)?.toInt() ?? 1,
+          extraPrice: (data['extraPrice'] as num?)?.toDouble() ?? 0,
+          customOptions: data['customOptions'] is Map
+              ? Map<String, dynamic>.from(data['customOptions'] as Map)
+              : null,
+        ));
+      }
+      if (_items.isNotEmpty) notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<void> ensureRestored() => _restoration;
+
+  Future<void> _persistCart() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('twofit_cart_v1', _items.map((item) => jsonEncode({
+      'id': item.id,
+      'product': item.product.toJson(),
+      'size': item.selectedSize,
+      'color': item.selectedColor,
+      'quantity': item.quantity,
+      'extraPrice': item.extraPrice,
+      'customOptions': item.customOptions,
+    })).toList());
   }
 
   void _syncProducts(List<ProductModel> products) {
@@ -237,6 +278,7 @@ class CartProvider extends ChangeNotifier {
       );
       if (existingIndex >= 0) {
         _items[existingIndex].quantity += quantity;
+        _persistCart();
         notifyListeners();
         return;
       }
@@ -250,11 +292,13 @@ class CartProvider extends ChangeNotifier {
       extraPrice: extraPrice,
       customOptions: customOptions,
     ));
+    _persistCart();
     notifyListeners();
   }
 
   void removeItem(String itemId) {
     _items.removeWhere((item) => item.id == itemId);
+    _persistCart();
     notifyListeners();
   }
 
@@ -279,12 +323,14 @@ class CartProvider extends ChangeNotifier {
     }
     if (item.quantity != cappedQuantity) {
       item.quantity = cappedQuantity;
+      _persistCart();
       notifyListeners();
     }
   }
 
   void clearCart() {
     _items.clear();
+    _persistCart();
     notifyListeners();
   }
 
