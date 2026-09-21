@@ -133,7 +133,12 @@ class _HomeScreenState extends State<HomeScreen>
     _bannerTimer = Timer.periodic(_bannerAutoInterval, (_) {
       if (!mounted) return;
       // Firestore에서 로드된 활성 배너 수 기반으로 동적 계산
-      final total = context.read<BannerProvider>().activeBanners.length;
+      final loadedBanners = context.read<BannerProvider>().activeBanners;
+      // 실제 화면에는 안내용 엘리트 배너가 추가될 수 있으므로
+      // PageView와 동일한 목록 길이를 사용한다.
+      final total = loadedBanners.isEmpty
+          ? 0
+          : _withEliteOrderBanner(loadedBanners).length;
       if (total < 2) return; // 배너가 1개 이하면 슬라이드 불필요
       final nextIndex = (_bannerIndex + 1) % total;
       // PC/모바일 둘 다 같은 인덱스로 이동
