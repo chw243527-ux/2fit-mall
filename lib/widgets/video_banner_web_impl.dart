@@ -123,6 +123,7 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
       final video = html.VideoElement()
         ..src = src
         ..autoplay = true
+        ..controls = false
         ..muted = true
         ..loop = true
         ..setAttribute('playsinline', 'true')
