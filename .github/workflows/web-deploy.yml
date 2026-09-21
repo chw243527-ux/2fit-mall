@@ -86,11 +86,23 @@ jobs:
           printf 'KAKAO_GROUP_ORDER_TEMPLATE_ID=%s\nKAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID=__UNCONFIGURED__\nRESEND_FROM_EMAIL=%s\n' \
             "${KAKAO_GROUP_ORDER_TEMPLATE_ID}" "${RESEND_FROM_EMAIL}" > functions/.env
           trap 'rm -f functions/.env' EXIT
+          deploy_log="${RUNNER_TEMP}/firebase-deploy.log"
+          set +e
           npx --yes firebase-tools@${FIREBASE_CLI_VERSION} deploy \
             --only firestore:rules,storage,functions \
             --project "${FIREBASE_PROJECT}" \
             --non-interactive \
-            --force
+            --force 2>&1 | tee "${deploy_log}"
+          deploy_status=${PIPESTATUS[0]}
+          set -e
+          if [ "${deploy_status}" -ne 0 ]; then
+            if grep -q "Functions successfully deployed but could not set up cleanup policy" "${deploy_log}"; then
+              echo "Firebase deployment completed; cleanup-policy configuration will be retried separately."
+            else
+              echo "Firebase deployment failed for a reason other than cleanup-policy configuration."
+              exit "${deploy_status}"
+            fi
+          fi
 
       - name: Build Flutter Web
         run: |
