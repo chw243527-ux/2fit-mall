@@ -597,6 +597,7 @@ class OrderExcelService {
     final groupOrders = orders.where(_isGroupOrder).toList();
 
     // ── 공통 스타일 ──
+// ignore: unused_local_variable
     final titleStyle = CellStyle(
       bold: true,
       fontSize: 13,
@@ -605,6 +606,7 @@ class OrderExcelService {
       horizontalAlign: HorizontalAlign.Center,
       verticalAlign: VerticalAlign.Center,
     );
+// ignore: unused_local_variable
     final headerStyle = CellStyle(
       bold: true,
       fontSize: 10,
@@ -613,6 +615,7 @@ class OrderExcelService {
       horizontalAlign: HorizontalAlign.Center,
       verticalAlign: VerticalAlign.Center,
     );
+// ignore: unused_local_variable
     final labelStyle = CellStyle(
       bold: true,
       fontSize: 10,
@@ -620,6 +623,7 @@ class OrderExcelService {
       fontColorHex: ExcelColor.fromHexString('#4A148C'),
       verticalAlign: VerticalAlign.Center,
     );
+// ignore: unused_local_variable
     final sectionHeaderStyle = CellStyle(
       bold: true,
       fontSize: 10,
@@ -628,6 +632,7 @@ class OrderExcelService {
       horizontalAlign: HorizontalAlign.Center,
       verticalAlign: VerticalAlign.Center,
     );
+// ignore: unused_local_variable
     final maleHeaderStyle = CellStyle(
       bold: true,
       fontSize: 10,
@@ -636,6 +641,7 @@ class OrderExcelService {
       horizontalAlign: HorizontalAlign.Center,
       verticalAlign: VerticalAlign.Center,
     );
+// ignore: unused_local_variable
     final femaleHeaderStyle = CellStyle(
       bold: true,
       fontSize: 10,
@@ -644,33 +650,40 @@ class OrderExcelService {
       horizontalAlign: HorizontalAlign.Center,
       verticalAlign: VerticalAlign.Center,
     );
+// ignore: unused_local_variable
     final maleStyle = CellStyle(
       backgroundColorHex: ExcelColor.fromHexString('#E3F2FD'),
       fontColorHex: ExcelColor.fromHexString('#1565C0'),
       bold: true,
     );
+// ignore: unused_local_variable
     final femaleStyle = CellStyle(
       backgroundColorHex: ExcelColor.fromHexString('#FCE4EC'),
       fontColorHex: ExcelColor.fromHexString('#C62828'),
       bold: true,
     );
+// ignore: unused_local_variable
     final evenRowStyle = CellStyle(
       backgroundColorHex: ExcelColor.fromHexString('#FAFAFA'),
     );
+// ignore: unused_local_variable
     final totalStyle = CellStyle(
       bold: true,
       fontSize: 10,
       backgroundColorHex: ExcelColor.fromHexString('#E8F5E9'),
       fontColorHex: ExcelColor.fromHexString('#1B5E20'),
     );
+// ignore: unused_local_variable
     final detailStyle = CellStyle(
       backgroundColorHex: ExcelColor.fromHexString('#E8EAF6'),
       fontColorHex: ExcelColor.fromHexString('#283593'),
     );
+// ignore: unused_local_variable
     final noOptionStyle = CellStyle(
       fontColorHex: ExcelColor.fromHexString('#9E9E9E'),
       italic: true,
     );
+// ignore: unused_local_variable
     final imgPlaceholderStyle = CellStyle(
       backgroundColorHex: ExcelColor.fromHexString('#F5F5F5'),
       fontColorHex: ExcelColor.fromHexString('#BDBDBD'),
@@ -2710,6 +2723,7 @@ class OrderExcelService {
     return labels[value] ?? value;
   }
 
+// ignore: unused_element
   static String _buildCustomSummary(Map<String, dynamic> opts) {
     final parts = <String>[];
     final printType = opts['printType']?.toString() ??
@@ -3423,6 +3437,7 @@ class OrderExcelService {
       backgroundColorHex: ExcelColor.fromHexString('#F5F5F5'),
       fontSize: 10,
     );
+// ignore: unused_local_variable
     final memoStyle = CellStyle(
       backgroundColorHex: ExcelColor.fromHexString('#FFFDE7'),
       fontColorHex: ExcelColor.fromHexString('#795548'),
@@ -3548,6 +3563,7 @@ class OrderExcelService {
       teamMap.putIfAbsent(teamName, () => []).add(req);
     }
 
+// ignore: unused_local_variable
     int sheetOrder = 0;
     for (final entry in teamMap.entries) {
       sheetOrder++;
@@ -3887,7 +3903,7 @@ class OrderExcelService {
     final opts = order.customOptions ?? {};
     final rawPersons = (opts['persons'] as List<dynamic>?) ?? [];
     final persons = rawPersons.map((p) {
-      if (p is Map) return Map<String, dynamic>.from(p as Map);
+      if (p is Map) return Map<String, dynamic>.from(p);
       return p as Map<String, dynamic>;
     }).toList();
 
@@ -4825,6 +4841,7 @@ class OrderExcelService {
     ].toSet().toList();
     final fabric = document.text(['fabricType', 'fabricName', 'fabric'], '-');
     final fabricWeight = document.text(['fabricWeight', 'weight'], '-');
+// ignore: unused_element
     double numberValue(dynamic value, [double fallback = 0]) {
       if (value is num) return value.toDouble();
       return double.tryParse(value?.toString().replaceAll(',', '') ?? '') ??

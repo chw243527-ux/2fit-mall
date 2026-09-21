@@ -43,6 +43,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     '기타': {'icon': Icons.category_rounded, 'color': Color(0xFF546E7A)},
   };
 
+// ignore: unused_element
   String _fmt(double v) => v.toInt().toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
 
@@ -734,7 +735,9 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     );
   }
 
+// ignore: unused_element
   Widget _buildGridCard(ProductModel p) {
+// ignore: unused_local_variable
     final accentColor =
         _catMeta[p.subCategory]?['color'] as Color? ?? AppColors.info;
 
@@ -875,7 +878,9 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     );
   }
 
+// ignore: unused_element
   Widget _buildListCard(ProductModel p) {
+// ignore: unused_local_variable
     final accentColor =
         _catMeta[p.subCategory]?['color'] as Color? ?? AppColors.info;
 
@@ -973,6 +978,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     );
   }
 
+// ignore: unused_element
   Widget _badge(String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
@@ -7,8 +6,6 @@ import '../../utils/constants.dart';
 import '../../utils/app_localizations.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
-import '../../services/fcm_service.dart';
-import '../../services/notification_service.dart';
 import '../../services/wishlist_coupon_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/payment_service.dart';
@@ -114,6 +111,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
     if (groupAddress != null && groupAddress.isNotEmpty) {
       _addressController.text = groupAddress;
+// ignore: unnecessary_null_comparison
     } else if (user != null) {
       // 기본 저장 배송지가 있으면 자동 채우기
       final defaultAddr =
@@ -1559,6 +1557,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+// ignore: unused_element
   Widget _buildPaymentMethod() {
     return _buildSection(
       loc.paymentMethod,
@@ -2719,6 +2718,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   // ─── 주문완료 전체화면 ────────────────────────────────────────
+// ignore: unused_element
   void _showOrderCompleteScreen(OrderModel order) {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
@@ -3376,6 +3376,7 @@ class _OrderCompleteScreen extends StatelessWidget {
               if (order.orderType == 'personal')
                 Builder(builder: (ctx) {
                   final earnedPt = (order.totalAmount * 0.01).floor();
+// ignore: unused_local_variable
                   final loc2 = ctx.watch<LanguageProvider>().loc;
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -3600,6 +3601,7 @@ class _OrderCompleteScreen extends StatelessWidget {
 // ══════════════════════════════════════════════════════════════
 // 무통장입금 전용 다이얼로그
 // ══════════════════════════════════════════════════════════════
+// ignore: unused_element
 class _BankTransferDialog extends StatelessWidget {
   final String orderId;
   final String orderName;

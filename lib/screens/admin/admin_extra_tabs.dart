@@ -1,6 +1,7 @@
 import '../../utils/theme.dart';
 // admin_extra_tabs.dart — 매출통계, 재고관리, 직원계정 탭 위젯
 import 'package:flutter/material.dart';
+// ignore: unused_shown_name
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -15,10 +16,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import '../../models/models.dart';
-import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/order_service.dart';
-import 'admin_inventory_tab.dart';
 
 // ══════════════════════════════════════════════
 // 매출 통계 탭 위젯
@@ -81,7 +80,7 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
     final sorted = rows.values.toList()
       ..sort((a, b) => (b['revenue'] as double).compareTo(a['revenue'] as double));
     final totalQty = sorted.fold<int>(0, (sum, row) => sum + row['quantity'] as int);
-    final totalRevenue = sorted.fold<double>(0, (sum, row) => sum + row['revenue'] as double);
+    final totalRevenue = sorted.fold<double>(0, (sum, row) => sum + row['revenue']);
 
     return Container(
       margin: const EdgeInsets.only(top: 16),
@@ -1372,5 +1371,6 @@ Future<void> exportDesignRequestsToExcel(
   }
 
   // fmtPrice 사용 억제
+// ignore: dead_code
   if (false) fmtPrice(0);
 }

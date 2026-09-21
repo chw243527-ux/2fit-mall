@@ -4607,6 +4607,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ══════════════════════════════════════════════
   // 허리밴드 로고 파일 업로드 섹션 (개별 — 내부에서만 사용)
   // ══════════════════════════════════════════════
+// ignore: unused_element
   Widget _buildWaistbandLogoSection() {
     final hasFile = _waistbandLogoFileName != null;
     final isImage = hasFile &&
@@ -4770,6 +4771,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ══════════════════════════════════════════════
   // 허리밴드 디자인 참고이미지 섹션 (참고이미지 아래)
   // ══════════════════════════════════════════════
+// ignore: unused_element
   Widget _buildWaistbandRefImageSection() {
     return _card(
       title: context.loc.t('허리밴드_디자인_참고_이미지', '허리밴드 디자인 참고 이미지'),

@@ -10,7 +10,6 @@ import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import '../../models/models.dart';
 import '../../services/order_service.dart';
-import '../../utils/theme.dart';
 import '../../utils/web_utils.dart'
     if (dart.library.html) '../../utils/web_utils_html.dart';
 
@@ -25,7 +24,9 @@ class AdminSettlementTab extends StatefulWidget {
 class _AdminSettlementTabState extends State<AdminSettlementTab> {
   DateTime _from = DateTime(DateTime.now().year, DateTime.now().month, 1);
   DateTime _to = DateTime.now();
+// ignore: unused_field
   double _hqRate = .70;
+// ignore: unused_field
   bool _showPurchases = false;
   bool _performanceEnabled = false;
   double _performanceTargetSales = 0;

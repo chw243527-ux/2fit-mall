@@ -13,10 +13,11 @@ class BannerService {
         .where('active', isEqualTo: true)
         .snapshots()
         .map((snap) {
+// ignore: unused_local_variable
           final now = DateTime.now();
           final list = snap.docs
               .map((d) => BannerModel.fromFirestore(
-                  d.data() as Map<String, dynamic>, d.id))
+                  d.data(), d.id))
               .where((b) => b.isInSchedule)   // 기간 필터
               .toList();
           list.sort((a, b) => a.order.compareTo(b.order));
@@ -33,7 +34,7 @@ class BannerService {
         .map((snap) {
           final list = snap.docs
               .map((d) => BannerModel.fromFirestore(
-                  d.data() as Map<String, dynamic>, d.id))
+                  d.data(), d.id))
               .toList();
           // 클라이언트 측 order 정렬
           list.sort((a, b) => a.order.compareTo(b.order));

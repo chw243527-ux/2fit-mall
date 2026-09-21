@@ -100,6 +100,7 @@ class _SectionTitle extends StatelessWidget {
 class _ProductPicker extends StatefulWidget {
   final void Function(InventoryModel?) onPicked;
   final String? initialProductId;
+// ignore: unused_element_parameter
   const _ProductPicker({required this.onPicked, this.initialProductId});
   @override
   State<_ProductPicker> createState() => _ProductPickerState();
@@ -2031,6 +2032,7 @@ external void _jsStop();
 external void _jsShowPreview(num x, num y, num w, num h);
 
 @JS('hideCameraPreview')
+// ignore: unused_element
 external void _jsHidePreview();
 
 class _BarcodeScannerDialog extends StatefulWidget {

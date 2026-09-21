@@ -1293,11 +1293,13 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
 
   // ── 사업자번호 여부 판별 ──────────────────────────────────────
   // 숫자만 추출 후 10자리 → 지출증빙(사업자), 그 외 → 소득공제(개인)
+// ignore: unused_element
   bool _isBusiness(String num) {
     final digits = num.replaceAll(RegExp(r'\D'), '');
     return digits.length == 10;
   }
 
+// ignore: unused_element
   Future<void> _saveAndComplete({
     required String orderId,
     required OrderProvider orderProv,

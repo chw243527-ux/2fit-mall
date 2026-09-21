@@ -172,6 +172,7 @@ void _gtagEventWeb(String eventName, Map<String, dynamic> params) {
   try {
     // Flutter Web에서 JavaScript 인터페이스 호출
     // window.gtag가 로드된 경우 이벤트 전송
+// ignore: unused_local_variable
     final paramsJson = _encodeParams(params);
     // ignore: avoid_dynamic_calls
     // JS 호출은 dart:html 또는 dart:js_interop를 통해 처리됨

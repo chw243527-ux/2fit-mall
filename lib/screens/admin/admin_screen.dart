@@ -217,6 +217,7 @@ class _AdminScreenState extends State<AdminScreen>
   ];
 
   // 배너 관리용 상태 변수
+// ignore: unused_field
   final List<Map<String, dynamic>> _bannerItems = [
     {'title': 'NEW SEASON', 'tag': 'NEW', 'active': true, 'order': 1},
     {'title': 'BEST SELLER', 'tag': 'BEST', 'active': true, 'order': 2},
@@ -380,6 +381,7 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   // 브라우저 알림 권한 요청 — 관리자 로그인 직후 1회
+// ignore: unused_element
   Future<void> _requestBrowserNotificationPermission() async {
     if (!mounted) return;
     final status = AdminWebNotifier.permissionStatus;
@@ -543,6 +545,7 @@ class _AdminScreenState extends State<AdminScreen>
     */
   }
 
+// ignore: unused_element
   Widget _notifStep(String num, String text) => Padding(
         padding: const EdgeInsets.only(bottom: 3),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -5225,6 +5228,7 @@ class _AdminScreenState extends State<AdminScreen>
     // 확정 이미지 업로드
     Uint8List? confirmedImageBytes;
     String? confirmedImageFileName;
+// ignore: unused_local_variable
     String? confirmedImageUrl; // 업로드 완료 후 URL
 
     final printTypeLabels = [
@@ -6456,6 +6460,7 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   // ── 단체주문 개별 PDF 내보내기 ──
+// ignore: unused_element
   Future<void> _exportGroupOrderPdfDownload(OrderModel order) async {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -6541,6 +6546,7 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   // ── 추가제작 전용 PDF 내보내기 ──
+// ignore: unused_element
   Future<void> _exportAdditionalOrderPdf(OrderModel order) async {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -6561,6 +6567,7 @@ class _AdminScreenState extends State<AdminScreen>
     }
     try {
       final bytes = await OrderExcelService.generateGroupOrderPdf(order);
+// ignore: unused_local_variable
       final teamName =
           (order.customOptions?['teamName'] as String?)?.trim().isNotEmpty ==
                   true
@@ -15668,6 +15675,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   bool _isSaving = false;
   // ── 자동저장 타이머 (수정 모드 전용)
   Timer? _autoSaveTimer;
+// ignore: unused_field
   bool _autoSaved = false; // 마지막 자동저장 성공 표시
   // ── 신규 등록 시 사용할 고정 임시 ID (업로드와 저장 간 ID 일치 보장)
   late final String _tempProductId;

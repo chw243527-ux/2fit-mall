@@ -402,6 +402,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
   // ════════════════════════════════════════════════════════════
   // 탭2: 주문서 바로가기
   // ════════════════════════════════════════════════════════════
+// ignore: unused_element
   Widget _buildOrderFormTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),

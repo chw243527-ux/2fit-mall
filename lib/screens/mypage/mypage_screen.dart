@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:share_plus/share_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import '../../utils/constants.dart';
 import '../../utils/app_localizations.dart';
@@ -19,13 +18,10 @@ import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/account_deletion_service.dart';
 import '../../services/email_service.dart';
-import '../../services/wishlist_coupon_service.dart';
 import '../../services/point_service.dart';
 import '../../utils/theme.dart';
 import '../../widgets/design_revision_countdown.dart';
 // order_excel_service: 마이페이지 엑셀 기능 제거 — 관리자 대시보드에서만 관리
-import '../../utils/web_utils.dart'
-    if (dart.library.html) '../../utils/web_utils_html.dart';
 import '../products/product_detail_screen.dart';
 import '../admin/admin_screen.dart';
 import '../auth/login_screen.dart';
@@ -997,6 +993,7 @@ class _PcProfileCard extends StatelessWidget {
     }
   }
 
+// ignore: unused_element
   String _fmt(int n) {
     return n.toString().replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '\${m[1]},');
@@ -1734,6 +1731,7 @@ class _PcOrderCard extends StatelessWidget {
                 }
               }
 
+// ignore: unused_element
               void showContactSheet(String subject) {
                 showModalBottomSheet(
                   context: btnCtx,
@@ -2033,6 +2031,7 @@ class _PcOrderCard extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _PcBtn extends StatelessWidget {
   final String label;
   final IconData icon;
@@ -2044,6 +2043,7 @@ class _PcBtn extends StatelessWidget {
       {required this.label,
       required this.icon,
       required this.color,
+// ignore: unused_element_parameter
       this.badge,
       required this.onTap});
 
@@ -2090,6 +2090,7 @@ class _PcBtn extends StatelessWidget {
 // ═══════════════════════════════════════════════════════
 // PC 결제 내역 탭
 // ═══════════════════════════════════════════════════════
+// ignore: unused_element
 class _PcPaymentHistoryTab extends StatelessWidget {
   final UserProvider userProvider;
   final AppLocalizations loc;
@@ -3657,7 +3658,7 @@ class _MobileProfileHeader extends StatelessWidget {
                   child: _InfoChip(
                       icon: Icons.logout_rounded,
                       label: loc.mypageLogout,
-                      color: AppColors.error.withValues(alpha: 0.30)!),
+                      color: AppColors.error.withValues(alpha: 0.30)),
                 )),
               ],
             ),
@@ -4279,6 +4280,7 @@ class _MobileOrderCard extends StatelessWidget {
                 }
               }
 
+// ignore: unused_element
               void showContactSheet(String subject) {
                 showModalBottomSheet(
                   context: btnCtx,
@@ -4620,6 +4622,7 @@ class _MobileOrderCard extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _MobileBtn extends StatelessWidget {
   final String label;
   final Color color;
@@ -4629,6 +4632,7 @@ class _MobileBtn extends StatelessWidget {
   const _MobileBtn(
       {required this.label,
       required this.color,
+// ignore: unused_element_parameter
       this.badge,
       required this.onTap});
 
@@ -4752,6 +4756,7 @@ class _ActionBtn extends StatelessWidget {
 // ═══════════════════════════════════════════════════════
 // 모바일 결제 내역 탭
 // ═══════════════════════════════════════════════════════
+// ignore: unused_element
 class _MobilePaymentHistoryTab extends StatelessWidget {
   final UserProvider userProvider;
   final AppLocalizations loc;
@@ -5139,9 +5144,13 @@ class _MobileSettingsTab extends StatelessWidget {
       await FirebaseFirestore.instance.collection('orders').doc(orderId).set({
         'id': orderId,
         'userId': user.id,
+// ignore: dead_null_aware_expression
         'userName': user.name ?? '',
+// ignore: dead_null_aware_expression
         'userEmail': user.email ?? '',
+// ignore: dead_null_aware_expression
         'userPhone': user.phone ?? '',
+// ignore: dead_null_aware_expression
         'userAddress': user.address ?? '',
         'status': 'shipped',
         'totalAmount': 72000.0,
@@ -7493,6 +7502,7 @@ Future<void> _showUserOrderDetail(
 }
 
 // ── 네이버 스타일 섹션 컨테이너
+// ignore: unused_element
 Widget _npSection(
     {required String title, required IconData icon, required Widget child}) {
   return Container(
@@ -7520,6 +7530,7 @@ Widget _npSection(
 }
 
 // ── 정보 행 (단체주문 정보 등)
+// ignore: unused_element
 Widget _npInfoRow(String label, String value) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 6),
@@ -7537,6 +7548,7 @@ Widget _npInfoRow(String label, String value) {
 }
 
 // ── 금액 행
+// ignore: unused_element
 Widget _npAmtRow(String label, String value,
     {Color? valueColor, Color? labelColor}) {
   return Padding(
@@ -7555,6 +7567,7 @@ Widget _npAmtRow(String label, String value,
 }
 
 // ── 액션 버튼 (배송조회, 취소 등)
+// ignore: unused_element
 Widget _npActionButton(
     {required String label,
     required VoidCallback onTap,
@@ -9822,6 +9835,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
         ),
       );
 
+// ignore: unused_element
   Widget _chip(String label, Color color) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
@@ -10121,6 +10135,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
 
   // ── 사진 첨부 ──
   final List<XFile> _images = [];
+// ignore: unused_field
   final List<String> _uploadedUrls = []; // Storage 업로드 후 URL
   bool _isUploading = false;
 
@@ -11301,6 +11316,7 @@ class _TrackingDialogState extends State<_TrackingDialog> {
   bool _loading = true;
   String? _error;
   List<Map<String, dynamic>> _events = [];
+// ignore: unused_field
   Map<String, dynamic>? _lastEvent;
 
   @override

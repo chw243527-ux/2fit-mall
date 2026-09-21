@@ -333,6 +333,7 @@ class UserProvider extends ChangeNotifier {
   }
 
   // 관리자 FCM 토큰 등록 (Cloud Functions 트리거용)
+// ignore: unused_element
   Future<void> _registerAdminFcmToken() async {
     try {
       final messaging = FirebaseMessaging.instance;

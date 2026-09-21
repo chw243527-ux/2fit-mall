@@ -433,6 +433,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
+// ignore: unused_element
   void _goToLogin() {
     if (!mounted || _navigated) return;
     _navigated = true;
@@ -608,6 +609,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
+// ignore: unused_element
   Widget _fallbackLogo() {
     return const Column(
       mainAxisSize: MainAxisSize.min,

@@ -8,7 +8,6 @@ import '../../services/category_service.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
 import 'product_detail_screen.dart';
-import '../../utils/navigation_helper.dart';
 import '../orders/group_order_only_screen.dart';
 
 import '../../utils/theme.dart';

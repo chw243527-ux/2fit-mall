@@ -3,7 +3,6 @@ import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import '../../utils/app_localizations.dart';
 import '../../utils/theme.dart';
-import '../../utils/constants.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../../widgets/product_card.dart';
@@ -1300,6 +1299,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     );
   }
 
+// ignore: unused_element
   Widget _buildListItem(BuildContext context, ProductModel product,
       {bool pc = false}) {
     final imgSize = pc ? 130.0 : 100.0;

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../../services/auth_service.dart';
 import '../../utils/theme.dart';

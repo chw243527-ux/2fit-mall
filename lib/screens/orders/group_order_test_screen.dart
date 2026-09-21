@@ -42,8 +42,11 @@ class _TestPreset {
     this.printType = 0,
     required this.mainColor,
     required this.paymentMethod,
+// ignore: unused_element_parameter
     this.fabric = '일반 봉제',
+// ignore: unused_element_parameter
     this.maleLength,
+// ignore: unused_element_parameter
     this.femaleLength,
     this.unitPrice = 85000,
   });

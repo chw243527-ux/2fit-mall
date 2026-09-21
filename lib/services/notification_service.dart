@@ -175,6 +175,7 @@ class NotificationService {
   // ══════════════════════════════════════════════════════════════
   // 유틸 함수
   // ══════════════════════════════════════════════════════════════
+// ignore: unused_element
   static String _buildItemSummary(OrderModel order) {
     if (order.items.isEmpty) return '상품 없음';
     final first = order.items.first;
@@ -239,6 +240,7 @@ class NotificationService {
 // ══════════════════════════════════════════════════════════════
 class AdminWebNotifier {
   static bool _permissionGranted = false;
+// ignore: unused_field
   static bool _permissionRequested = false;
 
   // ── 알림 권한 요청 ──────────────────────────────────────────

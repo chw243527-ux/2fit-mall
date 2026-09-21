@@ -911,6 +911,7 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+// ignore: unused_element
   Widget _hintRow(String email, String pw) => GestureDetector(
         onTap: () {
           // 탭하면 이메일/비밀번호 자동입력 + 바로 로그인
@@ -1081,6 +1082,7 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+// ignore: unused_element
   Future<void> _loginWithNaver() async {
     final userProv = context.read<UserProvider>();
     userProv.setLoading(true);

@@ -1426,7 +1426,9 @@ class _BulkEntry {
   _BulkEntry(
       {required this.orderId,
       required this.userName,
+// ignore: unused_element_parameter
       this.company = '한진택배',
+// ignore: unused_element_parameter
       this.trackingNumber = ''});
 }
 

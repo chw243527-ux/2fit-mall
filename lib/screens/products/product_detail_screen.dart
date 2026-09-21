@@ -12,10 +12,8 @@ import '../../utils/theme.dart';
 import '../../utils/constants.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
-import '../../widgets/pc_layout.dart';
 import '../orders/group_order_form_screen.dart';
 import '../orders/group_order_landing_screen.dart';
-import '../orders/group_order_only_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../widgets/image_lightbox.dart';
 import '../../utils/app_localizations.dart';
@@ -266,6 +264,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   // ═══════════════════════════════════════
   @override
   Widget build(BuildContext context) {
+// ignore: unused_local_variable
     final r = Responsive.of(context);
     final isAdmin = context.watch<UserProvider>().isAdmin;
     final productProvider = context.watch<ProductProvider>();
@@ -967,6 +966,7 @@ $productUrl
   }
 
   Future<void> _shareViaKakao(ProductModel product, String url) async {
+// ignore: unused_local_variable
     final r = Responsive.of(context);
     // 카카오톡 앱 링크로 공유 (웹 폴백 포함)
     final kakaoShareUrl = Uri.parse(
@@ -1031,6 +1031,7 @@ $productUrl
 
   // ══ 모바일: 메인이미지 아래 디자인 이미지 배너 ══
   Widget _buildMobileDesignImageBanner(ProductModel product) {
+// ignore: unused_local_variable
     final r = Responsive.of(context);
     // 디자인 이미지는 풀사이즈 배너로 표시하지 않음
     // → 상품정보 탭의 '디자인 이미지' 섹션(_buildDesignImageSection)에서만 표시
@@ -1052,6 +1053,7 @@ $productUrl
         itemCount: imgs.length,
         separatorBuilder: (_, __) => SizedBox(width: r.w(6)),
         itemBuilder: (_, i) {
+// ignore: unused_local_variable
           final r = Responsive.of(context);
           final selected = _mainImageIndex == i;
           return GestureDetector(
@@ -1091,6 +1093,7 @@ $productUrl
   // ═══════════════════════════════════════
   // 섬유 혼용율 인라인 (상품명 아래)
   // ═══════════════════════════════════════
+// ignore: unused_element
   Widget _buildFiberRatioInline(ProductModel product) {
     final r = Responsive.of(context);
     final table = loc.fiberTableData;
@@ -1816,6 +1819,7 @@ $productUrl
         sub.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         name.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         name.contains(context.loc.t('싱글렛 세트', '싱글렛 세트'));
+// ignore: unused_local_variable
     final isSingletTop = !isSingletSet &&
         (cat == context.loc.t('상의', '상의') ||
             sub.contains(context.loc.t('싱글렛', '싱글렛')) ||
@@ -2424,6 +2428,7 @@ $productUrl
   }
 
   // 탑텐 스타일: 섹션 내 소타이틀 (기존 _infoBlockTitle 대체)
+// ignore: unused_element
   Widget _infoBlockTitle(String title) {
     final r = Responsive.of(context);
     return Row(
@@ -2444,6 +2449,7 @@ $productUrl
   }
 
   // 탑텐 스타일: 키-값 한 줄 (기존 _infoLabelRow 대체)
+// ignore: unused_element
   Widget _infoLabelRow(String label, String value) {
     final r = Responsive.of(context);
     return Padding(
@@ -2482,6 +2488,7 @@ $productUrl
   }
 
   // ── 탑텐 스타일: 태그 위젯 ──
+// ignore: unused_element
   Widget _toptenTag(IconData icon, String label, Color color) {
     final r = Responsive.of(context);
     return Container(
@@ -2507,6 +2514,7 @@ $productUrl
   }
 
   // ── 탑텐 스타일: 배송/혜택 정보 심플 라인형 ──
+// ignore: unused_element
   Widget _buildToptenShippingInfo(ProductModel product) {
     final r = Responsive.of(context);
     final items = [
@@ -2590,6 +2598,7 @@ $productUrl
     );
   }
 
+// ignore: unused_element
   Widget _infoRow(IconData icon, String label, String value) {
     final r = Responsive.of(context);
     return Row(
@@ -2668,6 +2677,7 @@ $productUrl
   }
 
   /// 상품명 아래 기성품 색상 안내 뱃지 (싱글렛세트 / 상의 구분)
+// ignore: unused_element
   Widget _buildColorInfoBadge(ProductModel product) {
     final r = Responsive.of(context);
     // 타이즈와 싱글렛세트 모두 "하의 색상 선택" 표시
@@ -2742,6 +2752,7 @@ $productUrl
     );
   }
 
+// ignore: unused_element
   Widget _tag(String text, Color color) {
     final r = Responsive.of(context);
     return Container(
@@ -3135,6 +3146,7 @@ $productUrl
   // ═══════════════════════════════════════
   // 구매 방식 선택 (인라인 섹션)
   // ═══════════════════════════════════════
+// ignore: unused_element
   Widget _buildPurchaseTypeSection(ProductModel product) {
     final r = Responsive.of(context);
 
@@ -3757,6 +3769,7 @@ $productUrl
   // ── 기본 하의길이 참조 이미지 (이미지 미등록 시 fallback) ──
   static const String _defaultMaleLengthImg =
       'https://firebasestorage.googleapis.com/v0/b/fit-mall.firebasestorage.app/o/section_images%2Flength_male_default.jpg?alt=media';
+// ignore: unused_field
   static const String _defaultFemaleLengthImg =
       'https://firebasestorage.googleapis.com/v0/b/fit-mall.firebasestorage.app/o/section_images%2Flength_female_default.jpg?alt=media';
 
@@ -4007,6 +4020,7 @@ $productUrl
     );
   }
 
+// ignore: unused_element
   Widget _buildGenderImageHeader({
     required IconData icon,
     required String label,
@@ -4104,6 +4118,7 @@ $productUrl
                     widget.product.id, sectionKey, newList);
               },
               children: imgs.asMap().entries.map((e) {
+// ignore: unused_local_variable
                 final r = Responsive.of(context);
                 final i = e.key;
                 final url = e.value;
@@ -4437,6 +4452,7 @@ $productUrl
   }
 
   // ── 선택된 이미지 미리보기 + 최종 저장 다이얼로그 (레거시 - 더 이상 사용 안함) ──
+// ignore: unused_element
   void _showPickedImagesPreview(
     String sectionKey,
     String sectionLabel,
@@ -4748,6 +4764,7 @@ $productUrl
   // 섹션 1: PERFORMANCE — 탑텐 스타일 모노크롬 특징 리스트
   // ═══════════════════════════════════════════════════════════
   // ── 골지 타이즈 소재 행 반환 (나일론 75% / 라이크라 25%) ──
+// ignore: unused_element
   List<String>? _getGoljiTaizFiberRow() {
     switch (loc.language) {
       case AppLanguage.english:
@@ -4764,6 +4781,7 @@ $productUrl
   }
 
   // ── 싱글렛 상의 소재 행 반환 (폴리에스터 92% / 라이크라 8%) ──
+// ignore: unused_element
   List<String>? _getSingletTopFiberRow() {
     // 언어별로 싱글렛 상의 소재 행 반환
     switch (loc.language) {
@@ -4786,6 +4804,7 @@ $productUrl
     required String engSub,
     required String korSub,
     Color bgColor = AppColors.primary,
+// ignore: unused_element_parameter
     Color textColor = Colors.white,
     Widget? trailingIcon,
   }) {
@@ -5733,8 +5752,10 @@ $productUrl
     );
   }
 
+// ignore: unused_element
   Widget _buildSection1Banner(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
+// ignore: unused_local_variable
     final features = [
       {'tag': 'ULTRA LIGHT', 'title': loc.feat1Title, 'desc': loc.feat1Desc},
       {'tag': 'SEAMLESS', 'title': loc.feat2Title, 'desc': loc.feat2Desc},
@@ -5776,6 +5797,7 @@ $productUrl
   // ═══════════════════════════════════════════════════════════
   // 섹션 2: MATERIAL — 탑텐 스타일 소재/기술
   // ═══════════════════════════════════════════════════════════
+// ignore: unused_element
   Widget _buildSection2Material(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
     final techRows = [
@@ -6040,6 +6062,7 @@ $productUrl
   // 포켓시스템 표시 여부: 하의 카테고리 중 타이즈·5부·2.5부만 표시
   // (숏츠·단체주문 상의·세트 등 나머지는 숨김)
   // ═══════════════════════════════════════════════════════════
+// ignore: unused_element
   bool _showPocketSection(ProductModel product) {
     final cat = product.category;
     final sub = product.subCategory;
@@ -6062,6 +6085,7 @@ $productUrl
   // ═══════════════════════════════════════════════════════════
   // 섹션 3: POCKET SYSTEM — 탑텐 스타일 기능 리스트
   // ═══════════════════════════════════════════════════════════
+// ignore: unused_element
   Widget _buildSection3Pocket(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
     final pockets = [
@@ -6187,6 +6211,7 @@ $productUrl
 
   // ─── 제거됨: 섹션4 COLOR LINE (색상 선택 영역에 통합) ───
   // ─── 제거됨: 섹션5 (미사용 번호) ───
+// ignore: unused_element
   Widget _buildSection5GoljiColors(ProductModel product, bool isAdmin) {
     return const SizedBox.shrink();
   }
@@ -6432,6 +6457,7 @@ $productUrl
 
   // 예시 리뷰 제거됨 - 실제 회원 리뷰만 표시
 
+// ignore: unused_element
   Widget _reviewChip(String text) {
     final r = Responsive.of(context);
     return Container(
@@ -7378,6 +7404,7 @@ $productUrl
   // ─── 공통 섹션 헤더 ───
   // ── 탑텐 스타일 섹션 헤더: 얇은 상단 라인 + 영문 대제목 + 한글 서브 ──
   // _sectionHeader: 검정 포인트 라인만 표시 (텍스트 제거)
+// ignore: unused_element
   Widget _sectionHeader(String num, String title, String sub) =>
       Container(width: 28, height: 2, color: AppColors.primary);
 
@@ -8472,6 +8499,7 @@ class _QuickSizeSelectSheet extends StatefulWidget {
     required this.product,
     required this.onConfirm,
     // ignore: unused_element
+// ignore: unused_element_parameter
     this.isBuyNow = false,
   });
 
@@ -9117,9 +9145,11 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   }
 
   void _proceedToCart() {
+// ignore: unused_local_variable
     final r = Responsive.of(context);
 
     final cart = context.read<CartProvider>();
+// ignore: unused_local_variable
     final messenger = ScaffoldMessenger.maybeOf(context);
     final navigator = Navigator.of(context);
     for (final item in _items) {
@@ -11772,6 +11802,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
 // ═══════════════════════════════════════════════════════════
 
 /// 골지 패턴을 CustomPainter로 그리는 위젯
+// ignore: unused_element
 class _RibPatternPainter extends CustomPainter {
   final Color lineColor;
   final double spacing;
@@ -11779,6 +11810,7 @@ class _RibPatternPainter extends CustomPainter {
 
   const _RibPatternPainter({
     required this.lineColor,
+// ignore: unused_element_parameter
     this.spacing = 6.0,
     // ignore: unused_element_parameter
     this.lineWidth = 0.6,
@@ -11922,6 +11954,7 @@ class _GoljiSwatch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+// ignore: unused_local_variable
     final r = Responsive.of(context);
     return RibColorSwatch(
       color: color,
@@ -12441,21 +12474,26 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                                     builder: (_) => GroupOrderFormScreen(
                                           product: widget.product,
                                           initialCount: 5,
-                                          isBottomOrder: widget.product?.category ==
+                                          isBottomOrder: widget.product.category ==
                                                   context.loc.t('하의', '하의') ||
-                                              (widget.product?.subCategory
+                                              (widget.product.subCategory
                                                       .contains(context.loc
                                                           .t('타이즈', '타이즈')) ??
+// ignore: dead_null_aware_expression
                                                   false) ||
-                                              (widget.product?.subCategory
+                                              (widget.product.subCategory
                                                       .contains(context.loc.t(
                                                           '남성 5부', '남성 5부')) ??
+// ignore: dead_null_aware_expression
                                                   false) ||
-                                              (widget.product?.subCategory.contains(
+                                              (widget.product.subCategory.contains(
                                                       context.loc.t('여성 25부', '여성 2.5부')) ??
+// ignore: dead_null_aware_expression
                                                   false) ||
-                                              (widget.product?.name.contains(context.loc.t('타이즈', '타이즈')) ?? false) ||
-                                              (widget.product?.name.contains(context.loc.t('하의', '하의')) ?? false),
+// ignore: dead_null_aware_expression
+                                              (widget.product.name.contains(context.loc.t('타이즈', '타이즈')) ?? false) ||
+// ignore: dead_null_aware_expression
+                                              (widget.product.name.contains(context.loc.t('하의', '하의')) ?? false),
                                         )),
                               );
                             }
@@ -12963,6 +13001,7 @@ class _Section2FabricTabsWidgetState extends State<_Section2FabricTabsWidget> {
 
   @override
   Widget build(BuildContext context) {
+// ignore: unused_local_variable
     final r = Responsive.of(context);
     final hasGeneral = widget.generalImgs.isNotEmpty;
     final hasSeamless = widget.seamlessImgs.isNotEmpty;

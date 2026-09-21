@@ -603,5 +603,6 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
 }
 
 extension on OrderModel {
+// ignore: unused_element
   int? get groupCountOrNull => groupCount;
 }
