@@ -59,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen>
   final PageController _pcBannerCtrl = PageController();
   final PageController _mobileBannerCtrl = PageController();
   Timer? _bannerTimer;
-  static const Duration _bannerAutoInterval = Duration(seconds: 5);
+  static const Duration _bannerAutoInterval = Duration(seconds: 10);
 
   // 카테고리 정의 (key 기반, 다국어 텍스트는 loc에서)
   List<Map<String, dynamic>> _getCategoryItems(AppLocalizations loc) => [
