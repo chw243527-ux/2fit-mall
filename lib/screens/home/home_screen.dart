@@ -59,7 +59,8 @@ class _HomeScreenState extends State<HomeScreen>
   final PageController _pcBannerCtrl = PageController();
   final PageController _mobileBannerCtrl = PageController();
   Timer? _bannerTimer;
-  static const Duration _bannerAutoInterval = Duration(seconds: 10);
+  static const Duration _videoBannerInterval = Duration(seconds: 10);
+  static const Duration _imageBannerInterval = Duration(seconds: 5);
 
   // 카테고리 정의 (key 기반, 다국어 텍스트는 loc에서)
   List<Map<String, dynamic>> _getCategoryItems(AppLocalizations loc) => [
@@ -130,33 +131,62 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _startBannerTimer() {
     _bannerTimer?.cancel();
-    _bannerTimer = Timer.periodic(_bannerAutoInterval, (_) {
-      if (!mounted) return;
-      // Firestore에서 로드된 활성 배너 수 기반으로 동적 계산
-      final loadedBanners = context.read<BannerProvider>().activeBanners;
-      // 실제 화면에는 안내용 엘리트 배너가 추가될 수 있으므로
-      // PageView와 동일한 목록 길이를 사용한다.
-      final total = loadedBanners.isEmpty
-          ? 0
-          : _withEliteOrderBanner(loadedBanners).length;
-      if (total < 2) return; // 배너가 1개 이하면 슬라이드 불필요
-      final nextIndex = (_bannerIndex + 1) % total;
-      // PC/모바일 둘 다 같은 인덱스로 이동
-      if (_pcBannerCtrl.hasClients) {
-        _pcBannerCtrl.animateToPage(
-          nextIndex,
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOut,
-        );
-      }
-      if (_mobileBannerCtrl.hasClients) {
-        _mobileBannerCtrl.animateToPage(
-          nextIndex,
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOut,
-        );
-      }
-    });
+    _scheduleBannerAdvance();
+  }
+
+  List<BannerModel> _displayedBanners() {
+    final loadedBanners = context.read<BannerProvider>().activeBanners;
+    return loadedBanners.isEmpty ? const [] : _withEliteOrderBanner(loadedBanners);
+  }
+
+  void _scheduleBannerAdvance() {
+    if (!mounted) return;
+    final banners = _displayedBanners();
+    if (banners.length < 2) {
+      // Firestore 배너가 아직 로드되지 않았을 수 있으므로 짧게 재확인한다.
+      _bannerTimer = Timer(const Duration(seconds: 1), _scheduleBannerAdvance);
+      return;
+    }
+
+    final currentIndex = _bannerIndex.clamp(0, banners.length - 1).toInt();
+    final isVideo = banners[currentIndex].videoUrl?.isNotEmpty == true;
+    _bannerTimer = Timer(
+      isVideo ? _videoBannerInterval : _imageBannerInterval,
+      () {
+        if (!mounted) return;
+        final currentBanners = _displayedBanners();
+        if (currentBanners.length < 2) {
+          _scheduleBannerAdvance();
+          return;
+        }
+        final nextIndex = (_bannerIndex + 1) % currentBanners.length;
+        var moved = false;
+        if (_pcBannerCtrl.hasClients) {
+          moved = true;
+          _pcBannerCtrl.animateToPage(
+            nextIndex,
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeInOut,
+          );
+        }
+        if (_mobileBannerCtrl.hasClients) {
+          moved = true;
+          _mobileBannerCtrl.animateToPage(
+            nextIndex,
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeInOut,
+          );
+        }
+        if (!moved) _scheduleBannerAdvance();
+      },
+    );
+  }
+
+  void _handleBannerPageChanged(int index) {
+    if (!mounted) return;
+    setState(() => _bannerIndex = index);
+    // 수동 이동 후에는 새 배너 유형의 전체 간격을 다시 적용한다.
+    _startBannerTimer();
   }
 
   @override
@@ -1335,7 +1365,7 @@ class _HomeScreenState extends State<HomeScreen>
       children: [
         PageView.builder(
           controller: _pcBannerCtrl,
-          onPageChanged: (i) => setState(() => _bannerIndex = i),
+          onPageChanged: _handleBannerPageChanged,
           itemCount: banners.length,
           itemBuilder: (_, idx) {
             final r = Responsive.of(context);
@@ -3447,7 +3477,7 @@ class _HomeScreenState extends State<HomeScreen>
           Positioned.fill(
             child: PageView.builder(
               controller: _mobileBannerCtrl,
-              onPageChanged: (i) => setState(() => _bannerIndex = i),
+              onPageChanged: _handleBannerPageChanged,
               itemCount: activeBanners.length,
               itemBuilder: (_, i) =>
                   _buildFullBannerItem(activeBanners[i], i, loc),
@@ -4925,7 +4955,7 @@ class _HomeScreenState extends State<HomeScreen>
           // ── 슬라이드 ──
           PageView.builder(
             controller: _mobileBannerCtrl,
-            onPageChanged: (i) => setState(() => _bannerIndex = i),
+            onPageChanged: _handleBannerPageChanged,
             itemCount: activeBanners.length,
             itemBuilder: (_, i) =>
                 _buildFullBannerItem(activeBanners[i], i, loc),
