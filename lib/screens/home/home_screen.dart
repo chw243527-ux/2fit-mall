@@ -212,7 +212,9 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildPcLayout(AppLocalizations loc) {
     final bannerProv = context.watch<BannerProvider>();
-    final activeBanners = bannerProv.activeBanners;
+    final activeBanners = bannerProv.activeBanners.isEmpty
+        ? <BannerModel>[]
+        : _withEliteOrderBanner(bannerProv.activeBanners);
 
     // 배너 위젯 (뷰포트 전체 높이 — TopBar 제외)
     final bannerWidget = activeBanners.isEmpty
@@ -3315,7 +3317,9 @@ class _HomeScreenState extends State<HomeScreen>
   // ── 모바일 풀스크린 배너 (헤더 오버레이 포함) ──
   Widget _buildCompactBanner(AppLocalizations loc) {
     final bannerProv = context.watch<BannerProvider>();
-    final activeBanners = bannerProv.activeBanners;
+    final activeBanners = bannerProv.activeBanners.isEmpty
+        ? <BannerModel>[]
+        : _withEliteOrderBanner(bannerProv.activeBanners);
     final mq = MediaQuery.of(context);
     final screenW = mq.size.width;
     // ── 배너 높이: 항상 화면 너비 기준 16:9 정비율 ──
@@ -4798,7 +4802,9 @@ class _HomeScreenState extends State<HomeScreen>
   // ignore: unused_element
   Widget _buildBannerSection(AppLocalizations loc) {
     final bannerProv = context.watch<BannerProvider>();
-    final activeBanners = bannerProv.activeBanners;
+    final activeBanners = bannerProv.activeBanners.isEmpty
+        ? <BannerModel>[]
+        : _withEliteOrderBanner(bannerProv.activeBanners);
 
     // 배너: 모바일 → 화면 전체 높이, 태블릿/PC → 16:9 비율
     final mq = MediaQuery.of(context);
@@ -4952,6 +4958,27 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  List<BannerModel> _withEliteOrderBanner(List<BannerModel> banners) {
+    if (banners.any((banner) => banner.id == 'elite_order_guide')) {
+      return banners;
+    }
+    return [
+      ...banners,
+      const BannerModel(
+        id: 'elite_order_guide',
+        order: 999,
+        title: '엘리트 단체주문 안내',
+        tag: 'ELITE GROUP ORDER',
+        titleKo: '엘리트 단체주문\n이렇게 진행하세요',
+        titleEn: 'ELITE GROUP ORDER\nHOW IT WORKS',
+        ctaKo: '주문 방법 보기',
+        ctaEn: 'VIEW ORDER GUIDE',
+        accentColor: 0xFF111827,
+        btnAction: 4,
+      ),
+    ];
+  }
+
   // ── 모바일 배너 개별 슬라이드 아이템 (BannerModel 기반) ──
   Widget _buildFullBannerItem(
       BannerModel banner, int index, AppLocalizations loc) {
@@ -4968,6 +4995,7 @@ class _HomeScreenState extends State<HomeScreen>
     final ctaIcon = switch (banner.btnAction) {
       1 => Icons.local_fire_department_rounded,
       2 => Icons.groups_rounded,
+      4 => Icons.menu_book_rounded,
       _ => Icons.arrow_forward_rounded,
     };
 
@@ -4990,6 +5018,9 @@ class _HomeScreenState extends State<HomeScreen>
         case 3:
           // 쿠폰 다운로드 팝업
           _showBannerCouponPopup(banner.couponId);
+          break;
+        case 4:
+          _showEliteOrderGuideDialog();
           break;
         default:
           Navigator.push(
@@ -5062,7 +5093,81 @@ class _HomeScreenState extends State<HomeScreen>
     if (videoUrl != null) return buildVideoWithOverlay();
     if (imageUrl.isNotEmpty) return buildImageBanner();
     return GestureDetector(
-        onTap: onTap, child: Container(color: AppColors.primary));
+      onTap: onTap,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ColoredBox(color: accent),
+          overlayWidget,
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showEliteOrderGuideDialog() async {
+    final r = Responsive.of(context);
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.emoji_events_rounded, color: AppColors.accent),
+            SizedBox(width: 8),
+            Expanded(child: Text('엘리트 단체주문 방법')),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('전문 선수·엘리트 팀을 위한 단체 유니폼 주문 안내입니다.',
+                  style: TextStyle(fontSize: r.sp(13), height: 1.45)),
+              const SizedBox(height: 14),
+              const Text('1. 상담 신청',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+              const Text('팀명, 종목, 인원, 희망 납기와 연락처를 알려주세요.'),
+              const SizedBox(height: 10),
+              const Text('2. 디자인·옵션 상담',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+              const Text('상품, 색상, 인쇄 방식, 사이즈와 참고 이미지를 상담합니다.'),
+              const SizedBox(height: 10),
+              const Text('3. 시안 확인',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+              const Text('제작 전 디자인 시안을 확인하고 수정 사항을 반영합니다.'),
+              const SizedBox(height: 10),
+              const Text('4. 결제·제작·배송',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+              const Text('최종 확정 후 결제, 제작 일정을 안내하고 배송합니다.'),
+              const SizedBox(height: 14),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                color: const Color(0xFFF3F4F6),
+                child: const Text('엘리트 단체문의  010-4386-3331',
+                    style: TextStyle(fontWeight: FontWeight.w800)),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('닫기'),
+          ),
+          FilledButton.icon(
+            onPressed: () async {
+              final uri = Uri.parse('tel:01043863331');
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri);
+              }
+            },
+            icon: const Icon(Icons.phone_outlined),
+            label: const Text('전화 문의'),
+          ),
+        ],
+      ),
+    );
   }
 
   // ── 배너 하단 텍스트/CTA 오버레이 (공통) ──
