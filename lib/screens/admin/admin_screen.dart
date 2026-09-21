@@ -7397,7 +7397,7 @@ class _AdminScreenState extends State<AdminScreen>
                       itemBuilder: (_, i) {
                         final b = banners[i];
                         final accent = Color(b.accentColor);
-                        final isFirst = b.order == 0;
+                        final isVideoBanner = b.videoUrl?.isNotEmpty == true;
 
                         return Container(
                           decoration: _cardDeco(),
@@ -7465,7 +7465,7 @@ class _AdminScreenState extends State<AdminScreen>
                                         ),
                                       ),
                                       // 동영상 뱃지
-                                      if (isFirst)
+                                      if (isVideoBanner)
                                         Positioned(
                                           top: 8,
                                           right: 8,
@@ -7515,7 +7515,7 @@ class _AdminScreenState extends State<AdminScreen>
                                       width: 28,
                                       height: 28,
                                       decoration: BoxDecoration(
-                                        color: isFirst
+                                        color: isVideoBanner
                                             ? AppColors.error
                                                 .withValues(alpha: 0.05)
                                             : AppColors.surfaceGray,
@@ -7526,7 +7526,7 @@ class _AdminScreenState extends State<AdminScreen>
                                             style: TextStyle(
                                               fontSize: 13,
                                               fontWeight: FontWeight.w800,
-                                              color: isFirst
+                                              color: isVideoBanner
                                                   ? AppColors.error
                                                       .withValues(alpha: 0.82)
                                                   : AppColors.textSecondary,
@@ -7546,12 +7546,12 @@ class _AdminScreenState extends State<AdminScreen>
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis),
                                           Text(
-                                            isFirst
-                                                ? '동영상 슬라이드 (1번 고정)'
+                                            isVideoBanner
+                                                ? '동영상 슬라이드'
                                                 : '이미지 슬라이드',
                                             style: TextStyle(
                                               fontSize: 11,
-                                              color: isFirst
+                                              color: isVideoBanner
                                                   ? AppColors.error
                                                       .withValues(alpha: 0.70)
                                                   : AppColors.textSecondary,
@@ -8859,7 +8859,7 @@ class _AdminScreenState extends State<AdminScreen>
     bool useLocalVideo = false;
     bool isUploading = false;
     double uploadProgress = 0.0;
-    final isFirstSlide = banner.order == 0;
+    final hasVideo = banner.videoUrl?.isNotEmpty == true;
     // ── 기간 설정 ──
     DateTime? scheduleStart = banner.startDate;
     DateTime? scheduleEnd = banner.endDate;
@@ -8934,7 +8934,7 @@ class _AdminScreenState extends State<AdminScreen>
               children: [
                 Text('배너 편집', style: TextStyle(fontWeight: FontWeight.w800)),
                 const Spacer(),
-                if (isFirstSlide)
+                if (hasVideo)
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -9027,8 +9027,8 @@ class _AdminScreenState extends State<AdminScreen>
                     ),
                   ),
 
-                  // ── 동영상 (첫 번째 슬라이드만) ──
-                  if (isFirstSlide) ...[
+                  // ── 동영상 설정 (모든 배너에서 선택 가능) ──
+                  ...[
                     const SizedBox(height: 14),
                     const Divider(),
                     const SizedBox(height: 6),
@@ -9309,12 +9309,11 @@ class _AdminScreenState extends State<AdminScreen>
                         }
 
                         // 로컬 편집 영상 선택 → Firestore에 로컬 식별자 저장
-                        if (isFirstSlide && useLocalVideo) {
+                        if (useLocalVideo) {
                           videoUrl = 'assets/images/banner_video.mp4';
                         }
                         // 갤러리 업로드 동영상 → Firebase Storage
-                        else if (isFirstSlide &&
-                            pickedVideoBytes != null &&
+                        else if (pickedVideoBytes != null &&
                             pickedVideoName != null) {
                           String? uploadedVideoUrl;
                           await for (final progress

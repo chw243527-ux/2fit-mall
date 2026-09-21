@@ -1276,9 +1276,9 @@ class BannerModel {
   final String ctaKo;       // CTA 버튼 텍스트 (한국어)
   final String ctaEn;       // CTA 버튼 텍스트 (영어)
   final String imageUrl;    // 배경 이미지 URL (Firebase Storage)
-  final String? videoUrl;   // 동영상 URL (1번 슬라이드 전용, null이면 이미지)
+  final String? videoUrl;   // 동영상 URL (설정된 배너에서 사용, null이면 이미지)
   final int accentColor;    // accent 색상 (ARGB int)
-  final int btnAction;      // 0=신상, 1=베스트, 2=단체주문, 3=쿠폰다운로드
+  final int btnAction;      // 0=신상, 1=베스트, 2=단체주문, 3=쿠폰다운로드, 4=엘리트 안내
   final DateTime? startDate; // 노출 시작일 (null=제한없음)
   final DateTime? endDate;   // 노출 종료일 (null=제한없음)
   final String? couponId;   // btnAction==3 일 때 연결할 쿠폰 ID

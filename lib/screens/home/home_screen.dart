@@ -1337,7 +1337,7 @@ class _HomeScreenState extends State<HomeScreen>
 
             final b = banners[idx];
             final accent = Color(b.accentColor);
-            // order==0 인 슬라이드는 videoUrl 우선 (없으면 이미지)
+            // videoUrl이 설정된 배너는 순서와 관계없이 동영상 우선
             final videoUrl = b.videoUrl?.isNotEmpty == true ? b.videoUrl : null;
             final title = isKo ? b.titleKo : b.titleEn;
             final cta = isKo ? b.ctaKo : b.ctaEn;
@@ -4986,7 +4986,7 @@ class _HomeScreenState extends State<HomeScreen>
     final accent = Color(banner.accentColor);
     final title = isKo ? banner.titleKo : banner.titleEn;
     final cta = isKo ? banner.ctaKo : banner.ctaEn;
-    // order==0 인 슬라이드는 videoUrl 우선
+    // videoUrl이 설정된 배너는 순서와 관계없이 동영상 우선
     final videoUrl =
         banner.videoUrl?.isNotEmpty == true ? banner.videoUrl : null;
     final imageUrl = banner.imageUrl;
