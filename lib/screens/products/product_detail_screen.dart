@@ -9013,6 +9013,18 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   void _removeItem(int index) => setState(() => _items.removeAt(index));
 
+  void _addCurrentAndProceed({required bool buyNow}) {
+    if (_items.isEmpty) {
+      if (!_canAddItem) return;
+      _addCurrentOption();
+    }
+    if (buyNow) {
+      _proceedToBuyNow();
+    } else {
+      _proceedToCart();
+    }
+  }
+
   Future<void> _showCartRecommendationDialog(
       BuildContext host, ProductModel addedProduct) async {
     final provider = host.read<ProductProvider>();
@@ -9159,11 +9171,6 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
         item['color'] as String,
         quantity: item['qty'] as int,
         extraPrice: (item['extra'] as num).toDouble(),
-        customOptions: {
-          'length': item['length'],
-          'gender': item['gender'],
-          'removePocket': item['removePocket'] == true,
-        },
       );
     }
     widget.onCartUpdated();
@@ -10084,7 +10091,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
-                        onPressed: null,
+                        onPressed: _canAddItem
+                            ? () =>
+                                _addCurrentAndProceed(buyNow: widget.isBuyNow)
+                            : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.border,
                           shape: RoundedRectangleBorder(
@@ -10092,8 +10102,12 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           elevation: 0,
                         ),
                         child: Text(
-                          context.loc
-                              .t('위에서_옵션을_선택하고_추가해주세요', '위에서 옵션을 선택하고 추가해주세요'),
+                          _canAddItem
+                              ? (widget.isBuyNow
+                                  ? context.loc.t('바로구매', '바로구매')
+                                  : context.loc.t('장바구니_담기', '장바구니 담기'))
+                              : context.loc
+                                  .t('사이즈와_색상을_선택해주세요', '사이즈와 색상을 선택해주세요'),
                           style: TextStyle(
                               color: Colors.white, fontWeight: FontWeight.w700),
                         ),
@@ -12486,12 +12500,15 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                                                           '남성 5부', '남성 5부')) ??
 // ignore: dead_null_aware_expression
                                                   false) ||
-                                              (widget.product.subCategory.contains(
-                                                      context.loc.t('여성 25부', '여성 2.5부')) ??
+                                              (widget.product.subCategory
+                                                      .contains(context.loc.t(
+                                                          '여성 25부', '여성 2.5부')) ??
 // ignore: dead_null_aware_expression
                                                   false) ||
 // ignore: dead_null_aware_expression
-                                              (widget.product.name.contains(context.loc.t('타이즈', '타이즈')) ?? false) ||
+                                              (widget.product.name.contains(
+                                                      context.loc.t('타이즈', '타이즈')) ??
+                                                  false) ||
 // ignore: dead_null_aware_expression
                                               (widget.product.name.contains(context.loc.t('하의', '하의')) ?? false),
                                         )),
