@@ -121,14 +121,18 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
     // ignore: avoid_web_libraries_in_flutter
     ui_web.platformViewRegistry.registerViewFactory(_viewType, (int viewId) {
       final video = html.VideoElement()
-        ..src = src
         ..autoplay = true
         ..controls = false
         ..muted = true
         ..loop = true
+        // iOS Safari가 동적 video 요소에서도 자동재생 조건을 즉시
+        // 인식하도록 DOM 속성과 프로퍼티를 함께 지정한다.
+        ..setAttribute('autoplay', 'true')
+        ..setAttribute('muted', 'true')
         ..setAttribute('playsinline', 'true')
         ..setAttribute('preload', 'auto')
         ..setAttribute('webkit-playsinline', 'true')
+        ..src = src
         ..style.width = '100%'
         ..style.height = '100%'
         ..style.objectFit = 'cover'
