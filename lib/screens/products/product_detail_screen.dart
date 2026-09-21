@@ -8857,6 +8857,12 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
       widget.product.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
       widget.product.name.contains(context.loc.t('타이즈', '타이즈'));
 
+  bool get _isTightsShorts =>
+      _isTaiz &&
+      ((_length ?? '').contains(context.loc.t('숏쇼츠', '숏쇼츠')) ||
+          '${widget.product.subCategory} ${widget.product.name}'
+              .contains(context.loc.t('숏쇼츠', '숏쇼츠')));
+
   /// 세트 상품 여부 (상의/하의 사이즈 각각 선택)
   bool get _isSetProduct =>
       widget.product.category == context.loc.t('세트', '세트') ||
@@ -8984,7 +8990,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
     final colorValue = needsColor ? (_color ?? '-') : '-';
     final colorExtra = needsColor ? widget.calcExtraForColor(colorValue) : 0.0;
     // 기성품 하의: 주머니 제거 선택 시 -10,000원
-    final pocketDiscount = _isReadyMadeBottom && _removePocket ? -10000.0 : 0.0;
+    final pocketDiscount =
+        _isReadyMadeBottom && !_isTightsShorts && _removePocket
+            ? -10000.0
+            : 0.0;
     setState(() {
       final sizeLabel = _isSetProduct
           ? context.loc.t('상의 _  하의 _', '상의 $_topSize / 하의 $_bottomSize')
@@ -9440,7 +9449,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
                         final isSel = _length == len;
                         return GestureDetector(
-                          onTap: () => setState(() => _length = len),
+                          onTap: () => setState(() {
+                            _length = len;
+                            if (_isTightsShorts) _removePocket = false;
+                          }),
                           child: Container(
                             padding: EdgeInsets.symmetric(
                                 horizontal: r.w(16), vertical: r.h(10)),
@@ -9648,7 +9660,39 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // ══════════════════════════════
                   // [3-A] 기성품 하의 전용: 주머니 옵션
                   // ══════════════════════════════
-                  if (_isReadyMadeBottom) ...[
+                  if (_isTightsShorts) ...[
+                    _sectionTitle(context.loc.t('주머니_옵션', '주머니 옵션'),
+                        required: false),
+                    SizedBox(height: r.h(8)),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(r.w(12)),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceGray,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.lock_outline_rounded,
+                              size: 16, color: AppColors.textSecondary),
+                          SizedBox(width: r.w(8)),
+                          Expanded(
+                            child: Text(
+                              context.loc.t('타이즈_숏쇼츠는_주머니를_선택할_수_없습니다',
+                                  '타이즈 숏쇼츠는 주머니를 선택할 수 없습니다.'),
+                              style: TextStyle(
+                                  fontSize: r.sp(12),
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: r.h(16)),
+                  ],
+                  if (_isReadyMadeBottom && !_isTightsShorts) ...[
                     _sectionTitle(context.loc.t('주머니_옵션', '주머니 옵션'),
                         required: false),
                     SizedBox(height: r.h(8)),
