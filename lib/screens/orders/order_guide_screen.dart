@@ -235,7 +235,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                         Icon(Icons.phone_rounded,
                             size: 13, color: AppColors.textSecondary),
                         SizedBox(width: 5),
-                        Text('010-2567-9015',
+                        Text('010-7440-9990',
                             style: TextStyle(
                                 fontSize: 12, color: AppColors.textSecondary)),
                       ],

@@ -18,7 +18,7 @@ const ADMIN_TOKENS_DOC = 'admin_config/fcm_tokens';
 // Secret Manager values are available only to server-side Functions.
 const SOLAPI_API_KEY = defineSecret('SOLAPI_API_KEY');
 const SOLAPI_API_SECRET = defineSecret('SOLAPI_API_SECRET');
-const SOLAPI_SENDER_PHONE = '01072276914';
+const SOLAPI_SENDER_PHONE = '01074409990';
 // 단체주문 접수 알림톡 템플릿은 카카오 검수 승인 후 Secret/환경설정으로 등록합니다.
 const KAKAO_GROUP_ORDER_TEMPLATE_ID = defineString('KAKAO_GROUP_ORDER_TEMPLATE_ID', { default: '' });
 // 1년 독점 만료 7일 전 알림톡 템플릿은 카카오 검수 승인 후 등록합니다.

@@ -14,8 +14,8 @@ class AppConstants {
   static const String companyPostalCode = '55705';
   
   // Contact
-  static const String customerServicePhone = '010-7227-6914';
-  static const String eliteAthletePhone = '010-4386-3331';
+  static const String customerServicePhone = '010-7440-9990';
+  static const String eliteAthletePhone = '010-7440-9990';
   static const String customerServiceEmail = 'chw243527@gmail.com';
   static const String kakaoTalkId = '@2fit-mall';
   static const String kakaoChannelUrl = 'https://pf.kakao.com/_MQxjXX/chat';

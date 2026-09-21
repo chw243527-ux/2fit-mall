@@ -1804,7 +1804,7 @@ class _PcOrderCard extends StatelessWidget {
                           GestureDetector(
                             onTap: () {
                               Navigator.pop(sheetCtx);
-                              launchUrl(Uri.parse('tel:01072276914'));
+                              launchUrl(Uri.parse('tel:01074409990'));
                             },
                             child: Container(
                               width: double.infinity,
@@ -4349,7 +4349,7 @@ class _MobileOrderCard extends StatelessWidget {
                           GestureDetector(
                             onTap: () {
                               Navigator.pop(sheetCtx);
-                              launchUrl(Uri.parse('tel:01072276914'));
+                              launchUrl(Uri.parse('tel:01074409990'));
                             },
                             child: Container(
                               width: double.infinity,
