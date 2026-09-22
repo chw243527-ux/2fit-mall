@@ -84,11 +84,23 @@ jobs:
       - name: Deploy Functions and Rules
         run: |
           set -euo pipefail
+          deploy_log="${RUNNER_TEMP}/firebase-backend-deploy.log"
+          set +e
           firebase deploy \
             --project "$FIREBASE_PROJECT_ID" \
             --only functions,firestore:rules,storage \
             --force \
-            --non-interactive
+            --non-interactive 2>&1 | tee "$deploy_log"
+          deploy_status=${PIPESTATUS[0]}
+          set -e
+          if [ "$deploy_status" -ne 0 ]; then
+            if grep -q "Functions successfully deployed but could not set up cleanup policy" "$deploy_log"; then
+              echo "Firebase deployment completed; cleanup-policy configuration will be retried separately."
+            else
+              echo "Firebase deployment failed for a reason other than cleanup-policy configuration."
+              exit "$deploy_status"
+            fi
+          fi
 
       - name: Deployment summary
         if: success()
