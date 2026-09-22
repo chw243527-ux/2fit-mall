@@ -136,7 +136,9 @@ class _HomeScreenState extends State<HomeScreen>
 
   List<BannerModel> _displayedBanners() {
     final loadedBanners = context.read<BannerProvider>().activeBanners;
-    return loadedBanners.isEmpty ? const [] : _withEliteOrderBanner(loadedBanners);
+    return loadedBanners.isEmpty
+        ? const []
+        : _withEliteOrderBanner(loadedBanners);
   }
 
   void _scheduleBannerAdvance() {
@@ -235,9 +237,9 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
     final w = MediaQuery.of(context).size.width;
-    // 태블릿(≥600px)부터 PC와 동일한 콘텐츠·배너 레이아웃을 사용한다.
-    if (w >= 600) return _buildPcLayout(loc);
-    // 모바일(<600px)만 모바일 기반 레이아웃과 전용 헤더를 사용한다.
+    // 모바일·태블릿은 동일한 상품 구성·순서를 사용하고,
+    // 화면 폭에 따라 카드와 여백만 반응형으로 조정한다.
+    if (w >= kPcBreakpoint) return _buildPcLayout(loc);
     return _buildMobileLayout(loc);
   }
 
@@ -336,16 +338,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // PC 단체주문 섹션 (홈용 5컬럼 그리드)
   Widget _buildPcGroupOrderSectionV2(AppLocalizations loc) {
-    final pp = context.watch<ProductProvider>();
-    // groupOnlyProducts 우선, 없으면 products에서 필터링
-    final groupProds = (pp.groupOnlyProducts.isNotEmpty
-            ? pp.groupOnlyProducts
-            : pp.products
-                .where((p) => (p.isGroupOnly || p.isGroup) && p.isActive)
-                .toList())
-        .where((p) => p.isActive && (p.isGroupOnly || p.isGroup))
-        .toList()
-      ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
+    final groupProds = _orderedGroupProducts();
 
     // _buildProductSection 재사용 — 단체주문 전용 accent 색상
     return _buildProductSection(
@@ -357,6 +350,20 @@ class _HomeScreenState extends State<HomeScreen>
       viewAllLabel: loc.viewAll,
       isHorizontal: true,
     );
+  }
+
+  /// 화면 크기와 관계없이 동일한 단체주문 상품 원본·정렬 순서를 사용합니다.
+  List<ProductModel> _orderedGroupProducts() {
+    final pp = context.read<ProductProvider>();
+    final source = pp.groupOnlyProducts.isNotEmpty
+        ? pp.groupOnlyProducts
+        : pp.products
+            .where((p) => (p.isGroupOnly || p.isGroup) && p.isActive)
+            .toList();
+    return source
+        .where((p) => p.isActive && (p.isGroupOnly || p.isGroup))
+        .toList()
+      ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
   }
 
   // ── PC 카테고리 드로어 (햄버거 버튼으로 열림) ──
@@ -2818,16 +2825,10 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ─── 모바일 / 태블릿 레이아웃 (<900px) ──────────────────
   Widget _buildMobileLayout(AppLocalizations loc) {
-    final pp = context.watch<ProductProvider>();
-    final isMobile = MediaQuery.of(context).size.width < 600;
-    // 단체주문 목록도 ProductProvider가 Firestore에서 읽은 원본만 사용한다.
-    final groupProds = pp.groupOnlyProducts
-        .where((p) => p.isActive && (p.isGroupOnly || p.isGroup))
-        .toList()
-      ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
-
-    final sortedGroupProds = [...groupProds]
-      ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
+    final isMobile = MediaQuery.of(context).size.width < kMobileBreakpoint;
+    // 모바일·태블릿은 동일한 상품 원본과 정렬 순서를 사용한다.
+    final groupProds = _orderedGroupProducts();
+    final sortedGroupProds = List<ProductModel>.from(groupProds);
     return Stack(
       children: [
         Column(
