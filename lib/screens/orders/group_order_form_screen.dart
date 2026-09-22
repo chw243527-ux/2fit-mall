@@ -236,11 +236,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   }
 
   bool get _isSingletPrintProduct => _productTypeText.contains('싱글렛');
-  bool get _isRoundTeePrintProduct =>
-      _productTypeText.contains('라운드티') || _productTypeText.contains('라운드 티');
-  bool get _keepFullPrintOptions =>
-      _isSingletPrintProduct || _isRoundTeePrintProduct;
-  int get _maxPrintOptionId => _isSingletPrintProduct ? 4 : 3;
+  bool get _isTightsPrintProduct => _productTypeText.contains('타이즈');
+  bool get _keepFullPrintOptions => widget.product != null;
+  int get _maxPrintOptionId => 4;
 
   // 싱글렛·싱글렛 세트: 0~4, 라운드티: 0~3
   bool get _hasTeamName =>
@@ -249,8 +247,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       _printType <= _maxPrintOptionId;
   bool get _nameEnabled =>
       _keepFullPrintOptions &&
-      (_printType == 3 || (_isSingletPrintProduct && _printType == 4)) &&
+      (_printType == 3 || _printType == 4) &&
       _totalCount >= 10;
+
+  // 인쇄타입별 첨부 섹션 표시 규칙
+  // 1번: 둘 다 숨김, 2·4번: 로고만, 3·5번: 디자인+로고
+  bool get _showDesignAttachment => _printType == 2 || _printType == 4;
+  bool get _showLogoAttachment => _printType >= 1;
   OrderModel? get _originalOrder => widget.originalOrder;
 
   /// 허리밴드 옵션 레이블 (중복 선택 반영)
@@ -303,13 +306,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   bool get _supportsBottomCustomizations => _showWaistbandSections;
 
   bool get _showFabricOption {
-    final p = widget.product;
-    if (p == null) return false;
-    final text = '${p.category} ${p.subCategory} ${p.name}';
-    return text.contains('싱글렛') ||
-        text.contains('싱글렛세트') ||
-        text.contains('타이즈') ||
-        text.contains('숏쇼츠');
+    // 싱글렛·싱글렛세트·타이즈 외 단체주문은 재봉방법을 제공하지 않습니다.
+    return _isSingletPrintProduct || _isTightsPrintProduct;
   }
 
   /// 모든 단체주문 상품에서 인쇄 옵션을 표시합니다.
@@ -1449,13 +1447,16 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   if (_showPrintTypeSection) _buildPrintTypeSection(),
                   if (!_isBottomOnly) _build2FitLogoBanner(),
                   if (widget.product != null) _buildProductCard(),
-                  if (!_isBottomOnly) _buildFabricSection(),
+                  if (!_isBottomOnly && _showFabricOption)
+                    _buildFabricSection(),
                   if (!_isTopOnly) _buildLengthSection(),
                   if (!_isTopOnly) _buildPocketSection(),
                   // 하의 사이즈 선택이 없는 상의 전용 상품에서는 숨깁니다.
                   if (_showWaistbandSections) _buildWaistbandSection(),
                   _buildColorSection(),
-                  if (!_isBottomOnly) _buildRefImageSection(),
+                  if (!_isBottomOnly &&
+                      (_showDesignAttachment || _showLogoAttachment))
+                    _buildRefImageSection(),
                   if (_showWaistbandSections) _buildWaistbandDesignSection(),
                   _buildMemoSection(),
                   _buildPersonListSection(),
@@ -1843,11 +1844,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         'condLabel': context.loc.t('10명', '10명↑'),
       },
     ];
-    final options = _keepFullPrintOptions
-        ? allOptions
-            .where((opt) => (opt['id'] as int) <= _maxPrintOptionId)
-            .toList()
-        : [allOptions.first];
+    final options = allOptions
+        .where((opt) => (opt['id'] as int) <= _maxPrintOptionId)
+        .toList();
 
     return _card(
       title: context.loc.t('인쇄_타입', '인쇄 타입'),
@@ -3974,59 +3973,61 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       title: context.loc.t('디자인_참고_이미지', '디자인 참고 이미지'),
       icon: Icons.design_services_outlined,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // ── 안내 박스
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(8),
-            border:
-                Border.all(color: AppColors.primary.withValues(alpha: 0.10)),
-          ),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Icon(Icons.info_outline_rounded,
-                  size: 14, color: AppColors.primary.withValues(alpha: 0.45)),
-              const SizedBox(width: 6),
-              Text(
-                  context.loc
-                      .t('원하시는_디자인_파일을_첨부_1521ab', '원하시는 디자인 파일을 첨부해 주세요'),
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary.withValues(alpha: 0.82))),
-            ]),
-            const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.only(left: 4),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _dotRow(
-                        context.loc.t('앞면뒷면_디자인을_모두_첨부',
-                            '앞면·뒷면 디자인을 모두 첨부하시면 더욱 정확하게 제작됩니다.'),
-                        AppColors.primary.withValues(alpha: 0.70)),
-                    const SizedBox(height: 3),
-                    _dotRow(
-                        context.loc.t('지원_형식_PNG_JPG_PDF_AI_PSD_SVG_등',
-                            '지원 형식: PNG · JPG · PDF · AI · PSD · SVG 등'),
-                        AppColors.primary.withValues(alpha: 0.70)),
-                    const SizedBox(height: 3),
-                    _dotRow(
-                        context.loc.t('파일이_여러_개일_경우_ZIP으로_압축_후_업로드해_주세요',
-                            '파일이 여러 개일 경우 ZIP으로 압축 후 업로드해 주세요.'),
-                        AppColors.primary.withValues(alpha: 0.70)),
-                  ]),
+        if (_showDesignAttachment) ...[
+          // ── 안내 박스
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(8),
+              border:
+                  Border.all(color: AppColors.primary.withValues(alpha: 0.10)),
             ),
-          ]),
-        ),
-        _refImageCard(),
-        const SizedBox(height: 16),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Icon(Icons.info_outline_rounded,
+                    size: 14, color: AppColors.primary.withValues(alpha: 0.45)),
+                const SizedBox(width: 6),
+                Text(
+                    context.loc
+                        .t('원하시는_디자인_파일을_첨부_1521ab', '원하시는 디자인 파일을 첨부해 주세요'),
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary.withValues(alpha: 0.82))),
+              ]),
+              const SizedBox(height: 6),
+              Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _dotRow(
+                          context.loc.t('앞면뒷면_디자인을_모두_첨부',
+                              '앞면·뒷면 디자인을 모두 첨부하시면 더욱 정확하게 제작됩니다.'),
+                          AppColors.primary.withValues(alpha: 0.70)),
+                      const SizedBox(height: 3),
+                      _dotRow(
+                          context.loc.t('지원_형식_PNG_JPG_PDF_AI_PSD_SVG_등',
+                              '지원 형식: PNG · JPG · PDF · AI · PSD · SVG 등'),
+                          AppColors.primary.withValues(alpha: 0.70)),
+                      const SizedBox(height: 3),
+                      _dotRow(
+                          context.loc.t('파일이_여러_개일_경우_ZIP으로_압축_후_업로드해_주세요',
+                              '파일이 여러 개일 경우 ZIP으로 압축 후 업로드해 주세요.'),
+                          AppColors.primary.withValues(alpha: 0.70)),
+                    ]),
+              ),
+            ]),
+          ),
+          _refImageCard(),
+          const SizedBox(height: 16),
+        ],
 
         // ── 로고 파일 업로드
-        _buildDesignLogoUpload(),
+        if (_showLogoAttachment) _buildDesignLogoUpload(),
       ]),
     );
   }
