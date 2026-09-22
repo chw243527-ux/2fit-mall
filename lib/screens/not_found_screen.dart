@@ -55,7 +55,7 @@ class NotFoundScreen extends StatelessWidget {
                 // 메인 메시지
                 Text(
                   context.loc.t('페이지를 찾을 수 없어요', '페이지를 찾을 수 없어요'),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: AppColors.primary,
@@ -91,7 +91,7 @@ class NotFoundScreen extends StatelessWidget {
                     icon: const Icon(Icons.home_rounded, size: 20),
                     label: Text(
                       context.loc.t('홈으로 돌아가기', '홈으로 돌아가기'),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),
@@ -126,7 +126,7 @@ class NotFoundScreen extends StatelessWidget {
                     icon: const Icon(Icons.arrow_back_rounded, size: 20),
                     label: Text(
                       context.loc.t('이전 페이지', '이전 페이지'),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),

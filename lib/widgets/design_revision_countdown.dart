@@ -75,7 +75,7 @@ class _DesignRevisionCountdownState extends State<DesignRevisionCountdown> {
     final minutes = (totalSeconds % 3600) ~/ 60;
     final seconds = totalSeconds % 60;
     if (days > 0) {
-      return '${days}일 ${hours.toString().padLeft(2, '0')}시간 ${minutes.toString().padLeft(2, '0')}분';
+      return '$days일 ${hours.toString().padLeft(2, '0')}시간 ${minutes.toString().padLeft(2, '0')}분';
     }
     return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }

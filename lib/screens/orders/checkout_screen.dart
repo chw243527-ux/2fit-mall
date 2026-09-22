@@ -538,13 +538,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             child: Row(
               children: [
                 _addrTab(
-                    '🇰🇷  ' + context.loc.t('국내_배송', '국내 배송'),
+                    '🇰🇷  ${context.loc.t('국내_배송', '국내 배송')}',
                     !_isOverseas,
                     () => setState(() {
                           _isOverseas = false;
                         })),
                 _addrTab(
-                    '🌏  ' + context.loc.t('해외_배송', '해외 배송'),
+                    '🌏  ${context.loc.t('해외_배송', '해외 배송')}',
                     _isOverseas,
                     () => setState(() {
                           _isOverseas = true;
@@ -749,9 +749,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      context.loc.t('저장된_배송지', '저장된 배송지') +
-                          ' ${savedList.length}' +
-                          context.loc.t('개', '개'),
+                      '${context.loc.t('저장된_배송지', '저장된 배송지')} ${savedList.length}${context.loc.t('개', '개')}',
                       style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -981,7 +979,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             content: Text(context.loc.t('이미 저장된 주소입니다', '이미 저장된 주소입니다')),
             backgroundColor: AppColors.textSecondary,
             behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -1021,14 +1019,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         SnackBar(
           content: Row(
             children: [
-              Icon(Icons.bookmark_added_rounded, color: Colors.white, size: 18),
-              SizedBox(width: 8),
+              const Icon(Icons.bookmark_added_rounded,
+                  color: Colors.white, size: 18),
+              const SizedBox(width: 8),
               Text(context.loc.t('배송지가 저장되었습니다', '배송지가 저장되었습니다')),
             ],
           ),
           backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -1210,7 +1209,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 if (teamName.isNotEmpty)
                   Text(
-                    '팀명: $teamName${persons != null ? ') · ${persons}명' : ''}',
+                    '팀명: $teamName${persons != null ? ') · $persons명' : ''}',
                     style: const TextStyle(color: Colors.white70, fontSize: 12),
                   ),
               ],
@@ -1415,9 +1414,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         size: 14, color: AppColors.primary),
                     const SizedBox(width: 8),
                     Text(
-                        context.loc.t('팀원_명단', '팀원 명단') +
-                            ' (${persons.length}명)',
-                        style: TextStyle(
+                        '${context.loc.t('팀원_명단', '팀원 명단')} (${persons.length}명)',
+                        style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
                             color: AppColors.primary)),
@@ -1487,89 +1485,86 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         children: [
           _buildGroupOrderBanner(),
           _buildGroupOrderInfoCard(),
-          ...widget.cart.items
-              .map((item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // SizedBox로 감싸서 tight constraint 전달 → NetImage(_WebImage Stack) 올바른 렌더링
-                        SizedBox(
-                          width: 60,
-                          height: 60,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: item.product.images.isNotEmpty
-                                ? NetImage(
-                                    item.product.images.first,
-                                    width: 60,
-                                    height: 60,
-                                    fit: BoxFit.cover,
-                                  )
-                                : Container(
-                                    color: AppColors.border,
-                                    child: const Icon(
-                                        Icons.image_not_supported_outlined,
-                                        color: Colors.grey,
-                                        size: 24),
-                                  ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.product.localizedName(_lang),
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+          ...widget.cart.items.map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // SizedBox로 감싸서 tight constraint 전달 → NetImage(_WebImage Stack) 올바른 렌더링
+                    SizedBox(
+                      width: 60,
+                      height: 60,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: item.product.images.isNotEmpty
+                            ? NetImage(
+                                item.product.images.first,
+                                width: 60,
+                                height: 60,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                color: AppColors.border,
+                                child: const Icon(
+                                    Icons.image_not_supported_outlined,
+                                    color: Colors.grey,
+                                    size: 24),
                               ),
-                              Text(
-                                '${item.selectedColor} / ${item.selectedSize} × ${item.quantity}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                              if (item.extraPrice > 0)
-                                Text(
-                                  loc.extraPriceLabel(
-                                      _formatPrice(item.extraPrice)),
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.error,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              '${_formatPrice(item.totalPrice)}원',
-                              style: const TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.product.localizedName(_lang),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
                             ),
-                            if (item.extraPrice > 0)
-                              Text(
-                                '(단가 ${_formatPrice(item.unitPrice)}원)',
-                                style: const TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.textSecondary),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            '${item.selectedColor} / ${item.selectedSize} × ${item.quantity}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          if (item.extraPrice > 0)
+                            Text(
+                              loc.extraPriceLabel(
+                                  _formatPrice(item.extraPrice)),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.error,
+                                fontWeight: FontWeight.w600,
                               ),
-                          ],
+                            ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '${_formatPrice(item.totalPrice)}원',
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w700),
                         ),
+                        if (item.extraPrice > 0)
+                          Text(
+                            '(단가 ${_formatPrice(item.unitPrice)}원)',
+                            style: const TextStyle(
+                                fontSize: 11, color: AppColors.textSecondary),
+                          ),
                       ],
                     ),
-                  ))
-              .toList(),
+                  ],
+                ),
+              )),
         ],
       ),
     );
@@ -1624,7 +1619,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ),
             );
-          }).toList(),
+          }),
           // ── 무통장입금 선택 시 즉시 안내문구 ──
           if (_selectedPayment == context.loc.t('무통장입금', '무통장입금') ||
               _selectedPayment.contains(context.loc.t('무통장', '무통장')))
@@ -1649,7 +1644,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         Text(
                           context.loc.t('무통장입금_시_반드시_담당자_이름으로_입금해_주세요',
                               '무통장입금 시 반드시 담당자 이름으로 입금해 주세요'),
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
                               color: AppColors.warning),
@@ -1758,9 +1753,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ? context.loc.t('해외_배송비_안내_뱃지', '🌏 해외 배송비는 국가별 상이')
                             : isFreeShipping
                                 ? context.loc.t('무료배송_조건_달성', '🎉 무료배송 조건 달성!')
-                                : '${_formatPrice(remaining)}' +
-                                    context.loc
-                                        .t('원_더_담으면_무료배송', '원 더 담으면 무료배송!'),
+                                : '${_formatPrice(remaining)}${context.loc.t('원_더_담으면_무료배송', '원 더 담으면 무료배송!')}',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -1898,8 +1891,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       Text(
                         isFreeShipping
                             ? loc.freeLabel
-                            : '${_formatPrice(shippingFee)}' +
-                                context.loc.t('원', '원'),
+                            : '${_formatPrice(shippingFee)}${context.loc.t('원', '원')}',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -1948,7 +1940,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // ── 포인트 사용 섹션 ──────────────────────────────────────
   Widget _buildPointSection() {
     final pointBalance = context.watch<PointProvider>().balance;
-    final minUse = PointService.minUsePoints; // 10,000
+    const minUse = PointService.minUsePoints; // 10,000
     // 최대 사용 가능: 쿠폰 적용 후 상품금액의 99% & 보유잔액 중 작은 값
     final maxUsable = ((widget.cart.total - _couponDiscount) * 0.99)
         .floor()
@@ -2050,8 +2042,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     onChanged: (v) {
                       // 직접 입력 시 전액사용 체크 해제
                       if (_useAllPoints) setState(() => _useAllPoints = false);
-                      if (_pointInputError)
+                      if (_pointInputError) {
                         setState(() => _pointInputError = false);
+                      }
                     },
                     decoration: InputDecoration(
                       hintText: '사용할 포인트 직접 입력',
@@ -3691,7 +3684,7 @@ class _BankTransferDialog extends StatelessWidget {
                   Expanded(
                     child: Text(
                       context.loc.t('무통장입금_안내', '무통장입금 안내'),
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
                           fontSize: 15),
@@ -3746,7 +3739,7 @@ class _BankTransferDialog extends StatelessWidget {
                   // ── 입금 계좌 정보 ──
                   Text(
                     context.loc.t('입금_계좌', '입금 계좌'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary),
@@ -3797,7 +3790,7 @@ class _BankTransferDialog extends StatelessWidget {
                             children: [
                               Text(
                                 context.loc.t('입금_시_주의사항', '입금 시 주의사항'),
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.warning),
@@ -3833,7 +3826,7 @@ class _BankTransferDialog extends StatelessWidget {
                       ),
                       child: Text(
                         context.loc.t('입금_정보_확인_완료_주문하기', '입금 정보 확인 완료 → 주문하기'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             color: Colors.white,
                             fontSize: 15,
                             fontWeight: FontWeight.w800),
@@ -3845,7 +3838,7 @@ class _BankTransferDialog extends StatelessWidget {
                     child: TextButton(
                       onPressed: () => Navigator.pop(context, false),
                       child: Text(context.loc.t('취소', '취소'),
-                          style: TextStyle(
+                          style: const TextStyle(
                               color: AppColors.textSecondary, fontSize: 13)),
                     ),
                   ),
@@ -3945,8 +3938,8 @@ class _SavedAddressSheetState extends State<_SavedAddressSheet> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(context.loc.t('저장된_배송지', '저장된 배송지'),
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w800)),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close_rounded, size: 22),
@@ -4034,19 +4027,19 @@ class _SavedAddressSheetState extends State<_SavedAddressSheet> {
                   PopupMenuItem(
                       value: 'default',
                       child: Row(children: [
-                        Icon(Icons.star_rounded,
+                        const Icon(Icons.star_rounded,
                             size: 16, color: AppColors.primary),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(context.loc.t('기본 배송지로 설정', '기본 배송지로 설정')),
                       ])),
                 PopupMenuItem(
                     value: 'delete',
                     child: Row(children: [
-                      Icon(Icons.delete_outline_rounded,
+                      const Icon(Icons.delete_outline_rounded,
                           size: 16, color: AppColors.error),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(context.loc.t('삭제', '삭제'),
-                          style: TextStyle(color: AppColors.error)),
+                          style: const TextStyle(color: AppColors.error)),
                     ])),
               ],
               onSelected: (val) {

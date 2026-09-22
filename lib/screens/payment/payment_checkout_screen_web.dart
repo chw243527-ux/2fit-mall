@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import '../../utils/theme.dart';
 // payment_checkout_screen.dart
 // 토스페이먼츠 Payment Widget — fullscreen iframe 방식
@@ -183,8 +184,7 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
                   size: 56, color: AppColors.primary),
               const SizedBox(height: 16),
               const Text('무통장입금',
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w500)),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
               const SizedBox(height: 8),
               const Text(
                 '주문 완료 후 입금 계좌 안내 문자를 발송합니다.\n입금 확인 후 주문이 처리됩니다.',

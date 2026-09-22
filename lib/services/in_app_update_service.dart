@@ -1,4 +1,6 @@
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, kDebugMode, kIsWeb, TargetPlatform;
+// ignore_for_file: use_build_context_synchronously
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, kDebugMode, kIsWeb, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_update/in_app_update.dart';
@@ -80,7 +82,11 @@ class InAppUpdateService {
       return false;
     }
     // 앱 시작 직후 Play Store 연결이 아직 준비되지 않을 수 있어 짧게 재시도합니다.
-    const retryDelays = [Duration.zero, Duration(seconds: 2), Duration(seconds: 5)];
+    const retryDelays = [
+      Duration.zero,
+      Duration(seconds: 2),
+      Duration(seconds: 5)
+    ];
     for (final delay in retryDelays) {
       if (delay > Duration.zero) await Future<void>.delayed(delay);
       try {
@@ -114,7 +120,9 @@ class InAppUpdateService {
       // Google Play 상세 페이지로 이동합니다. Play Store가 실제로 제공하는
       // 버전과 업데이트 버튼을 사용자가 직접 확인할 수 있습니다.
       final opened = await openPlayStore();
-      return opened ? ManualUpdateResult.storeOpened : ManualUpdateResult.failed;
+      return opened
+          ? ManualUpdateResult.storeOpened
+          : ManualUpdateResult.failed;
     } catch (e) {
       if (kDebugMode) {
         debugPrint('client_operation_failed');
@@ -267,4 +275,3 @@ class AppUpdateCopy {
   static const forceTitle = '업데이트가 필요합니다';
   static const forceMessage = '계속 이용하려면 최신 버전으로 업데이트해 주세요.';
 }
-

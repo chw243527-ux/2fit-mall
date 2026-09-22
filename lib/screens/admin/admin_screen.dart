@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+// ignore_for_file: use_build_context_synchronously
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -44,7 +46,6 @@ import 'admin_review_tab.dart';
 import 'admin_coupon_tab.dart';
 import 'admin_settlement_tab.dart';
 import '../orders/group_order_test_screen.dart';
-import 'dart:typed_data';
 import '../../services/order_excel_service.dart';
 import '../../utils/web_utils.dart'
     if (dart.library.html) '../../utils/web_utils_html.dart';
@@ -404,7 +405,7 @@ class _AdminScreenState extends State<AdminScreen>
       SnackBar(
         backgroundColor: AppColors.primary,
         duration: const Duration(seconds: 8),
-        content: Row(
+        content: const Row(
           children: [
             Icon(Icons.notifications_active_rounded,
                 color: Color(0xFFCE93D8), size: 18),
@@ -646,10 +647,12 @@ class _AdminScreenState extends State<AdminScreen>
         final descParts = <String>[];
         if (colorName.isNotEmpty) descParts.add('색상: $colorName');
         if (teamName.isNotEmpty) descParts.add('단체명: $teamName');
-        if (personList.isNotEmpty)
+        if (personList.isNotEmpty) {
           descParts.add('사이즈 변경 ${personList.length}명');
-        if (descParts.isEmpty && memo.isNotEmpty)
+        }
+        if (descParts.isEmpty && memo.isNotEmpty) {
           descParts.add(memo.split('\n').first);
+        }
 
         requests.add({
           'id': doc.id,
@@ -986,7 +989,7 @@ class _AdminScreenState extends State<AdminScreen>
                                 size: 18),
                           ),
                           const SizedBox(width: 10),
-                          Column(
+                          const Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('2FIT MALL',
@@ -1027,7 +1030,7 @@ class _AdminScreenState extends State<AdminScreen>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(user?.name ?? '관리자',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700),
@@ -1241,19 +1244,19 @@ class _AdminScreenState extends State<AdminScreen>
                               final confirmed = await showDialog<bool>(
                                 context: context,
                                 builder: (_) => AlertDialog(
-                                  title: Text('로그아웃'),
-                                  content: Text('관리자 계정에서 로그아웃하시겠습니까?'),
+                                  title: const Text('로그아웃'),
+                                  content: const Text('관리자 계정에서 로그아웃하시겠습니까?'),
                                   actions: [
                                     TextButton(
                                         onPressed: () =>
                                             Navigator.pop(context, false),
-                                        child: Text('취소')),
+                                        child: const Text('취소')),
                                     ElevatedButton(
                                       style: ElevatedButton.styleFrom(
                                           backgroundColor: AppColors.error),
                                       onPressed: () =>
                                           Navigator.pop(context, true),
-                                      child: Text('로그아웃',
+                                      child: const Text('로그아웃',
                                           style:
                                               TextStyle(color: Colors.white)),
                                     ),
@@ -1471,18 +1474,18 @@ class _AdminScreenState extends State<AdminScreen>
               final confirmed = await showDialog<bool>(
                 context: context,
                 builder: (_) => AlertDialog(
-                  title: Text('로그아웃'),
-                  content: Text('관리자 계정에서 로그아웃하시겠습니까?'),
+                  title: const Text('로그아웃'),
+                  content: const Text('관리자 계정에서 로그아웃하시겠습니까?'),
                   actions: [
                     TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: Text('취소')),
+                        child: const Text('취소')),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.error),
                       onPressed: () => Navigator.pop(context, true),
-                      child:
-                          Text('로그아웃', style: TextStyle(color: Colors.white)),
+                      child: const Text('로그아웃',
+                          style: TextStyle(color: Colors.white)),
                     ),
                   ],
                 ),
@@ -1526,7 +1529,7 @@ class _AdminScreenState extends State<AdminScreen>
                               color: Colors.white, size: 17),
                         ),
                         const SizedBox(width: 10),
-                        Column(
+                        const Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('2FIT MALL',
@@ -1566,7 +1569,7 @@ class _AdminScreenState extends State<AdminScreen>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(user?.name ?? '관리자',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 11,
                                         fontWeight: FontWeight.w700),
@@ -1694,7 +1697,7 @@ class _AdminScreenState extends State<AdminScreen>
                         ),
                         icon: const Icon(Icons.arrow_back_ios_new_rounded,
                             size: 13, color: Colors.white70),
-                        label: Text('홈으로 돌아가기',
+                        label: const Text('홈으로 돌아가기',
                             style:
                                 TextStyle(fontSize: 11, color: Colors.white70)),
                         onPressed: () {
@@ -1893,7 +1896,7 @@ class _AdminScreenState extends State<AdminScreen>
                       _orderTypeRow('단체/추가제작', groupOrders, AppColors.primary),
                       const SizedBox(height: 10),
                       _orderTypeRow(
-                          '총 주문', allOrders.length, Color(0xFF00838F)),
+                          '총 주문', allOrders.length, const Color(0xFF00838F)),
                     ],
                   ),
                 ),
@@ -1907,7 +1910,7 @@ class _AdminScreenState extends State<AdminScreen>
                   Container(
                     decoration: _cardDeco(),
                     padding: const EdgeInsets.all(20),
-                    child: Center(
+                    child: const Center(
                       child: Text('아직 주문이 없습니다',
                           style: TextStyle(
                               color: AppColors.textSecondary, fontSize: 13)),
@@ -2067,7 +2070,7 @@ class _AdminScreenState extends State<AdminScreen>
                   color: AppColors.surfaceGray,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
                 ),
-                child: Row(children: [
+                child: const Row(children: [
                   Flexible(
                       flex: 2,
                       child: Text('기간',
@@ -2075,7 +2078,7 @@ class _AdminScreenState extends State<AdminScreen>
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               color: AppColors.textSecondary))),
-                  const Spacer(),
+                  Spacer(),
                   Flexible(
                       flex: 3,
                       child: Text('매출액',
@@ -2085,8 +2088,8 @@ class _AdminScreenState extends State<AdminScreen>
                               fontWeight: FontWeight.w700,
                               color: AppColors.textSecondary),
                           overflow: TextOverflow.ellipsis)),
-                  const SizedBox(width: 8),
-                  Container(
+                  SizedBox(width: 8),
+                  SizedBox(
                       width: 44,
                       child: Text('건수',
                           textAlign: TextAlign.center,
@@ -2133,7 +2136,7 @@ class _AdminScreenState extends State<AdminScreen>
           Flexible(
             flex: 3,
             child: Text(
-              '${amount}원',
+              '$amount원',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
@@ -2154,7 +2157,7 @@ class _AdminScreenState extends State<AdminScreen>
                   : AppColors.surfaceGray,
               borderRadius: BorderRadius.circular(6),
             ),
-            child: Text('${count}건',
+            child: Text('$count건',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 11,
@@ -2191,7 +2194,8 @@ class _AdminScreenState extends State<AdminScreen>
                         fontSize: 13, color: AppColors.textSecondary)),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                    onPressed: () => setState(() {}), child: Text('다시 시도')),
+                    onPressed: () => setState(() {}),
+                    child: const Text('다시 시도')),
               ],
             ),
           );
@@ -2270,7 +2274,7 @@ class _AdminScreenState extends State<AdminScreen>
                           border: Border.all(
                               color: AppColors.warning.withValues(alpha: 0.4)),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.file_download_outlined,
@@ -2301,16 +2305,18 @@ class _AdminScreenState extends State<AdminScreen>
                           border: Border.all(
                               color: AppColors.success.withValues(alpha: 0.4)),
                         ),
-                        child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(Icons.factory_outlined,
-                              size: 15, color: AppColors.success),
-                          const SizedBox(width: 4),
-                          Text('발주예시PDF',
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.success)),
-                        ]),
+                        child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.factory_outlined,
+                                  size: 15, color: AppColors.success),
+                              SizedBox(width: 4),
+                              Text('발주예시PDF',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.success)),
+                            ]),
                       ),
                     ),
                   ),
@@ -2331,7 +2337,7 @@ class _AdminScreenState extends State<AdminScreen>
                               color: const Color(0xFF00897B)
                                   .withValues(alpha: 0.3)),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.picture_as_pdf_rounded,
@@ -2376,7 +2382,7 @@ class _AdminScreenState extends State<AdminScreen>
                       builder: (_) => Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Padding(
+                          const Padding(
                             padding: EdgeInsets.all(16),
                             child: Text('주문 정렬',
                                 style: TextStyle(
@@ -2395,7 +2401,7 @@ class _AdminScreenState extends State<AdminScreen>
                                 },
                               )),
                           ListTile(
-                            title: Text('전체 보기'),
+                            title: const Text('전체 보기'),
                             onTap: () {
                               setState(() => _orderFilterIdx = 0);
                               Navigator.pop(context);
@@ -2483,7 +2489,7 @@ class _AdminScreenState extends State<AdminScreen>
                                 : _selectedOrderIds.isEmpty
                                     ? 'none'
                                     : 'partial'),
-                            color: allSelected || !_selectedOrderIds.isEmpty
+                            color: allSelected || _selectedOrderIds.isNotEmpty
                                 ? const Color(0xFF3949AB)
                                 : AppColors.textSecondary,
                             size: 20,
@@ -2549,7 +2555,7 @@ class _AdminScreenState extends State<AdminScreen>
                           color: AppColors.success,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Row(children: [
+                        child: const Row(children: [
                           Icon(Icons.picture_as_pdf_rounded,
                               color: Colors.white, size: 13),
                           SizedBox(width: 4),
@@ -2572,7 +2578,7 @@ class _AdminScreenState extends State<AdminScreen>
                           color: const Color(0xFF3949AB),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Row(children: [
+                        child: const Row(children: [
                           Icon(Icons.sync_rounded,
                               color: Colors.white, size: 13),
                           SizedBox(width: 4),
@@ -2592,7 +2598,7 @@ class _AdminScreenState extends State<AdminScreen>
                           builder: (_) => AlertDialog(
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16)),
-                            title: Row(children: [
+                            title: const Row(children: [
                               Icon(Icons.delete_sweep_rounded,
                                   color: AppColors.error, size: 22),
                               SizedBox(width: 8),
@@ -2606,13 +2612,13 @@ class _AdminScreenState extends State<AdminScreen>
                               TextButton(
                                   onPressed: () =>
                                       Navigator.pop(context, false),
-                                  child: Text('취소')),
+                                  child: const Text('취소')),
                               ElevatedButton(
                                 onPressed: () => Navigator.pop(context, true),
                                 style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.error,
                                     foregroundColor: Colors.white),
-                                child: Text('삭제'),
+                                child: const Text('삭제'),
                               ),
                             ],
                           ),
@@ -2625,7 +2631,7 @@ class _AdminScreenState extends State<AdminScreen>
                           setState(() => _selectedOrderIds.clear());
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
+                              const SnackBar(
                                   content: Text('선택한 주문이 삭제되었습니다'),
                                   backgroundColor: AppColors.primary),
                             );
@@ -2639,7 +2645,7 @@ class _AdminScreenState extends State<AdminScreen>
                           color: AppColors.error,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Row(children: [
+                        child: const Row(children: [
                           Icon(Icons.delete_sweep_rounded,
                               color: Colors.white, size: 13),
                           SizedBox(width: 4),
@@ -2654,7 +2660,7 @@ class _AdminScreenState extends State<AdminScreen>
                   ],
                   // 선택 없을 때 힌트
                   if (!anySelected)
-                    Text(
+                    const Text(
                       '카드를 눌러 상세보기  ·  □ 체크로 선택',
                       style: TextStyle(fontSize: 10, color: AppColors.textHint),
                     ),
@@ -2663,7 +2669,7 @@ class _AdminScreenState extends State<AdminScreen>
             ),
             Expanded(
               child: filtered.isEmpty
-                  ? Center(
+                  ? const Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -2695,7 +2701,7 @@ class _AdminScreenState extends State<AdminScreen>
   Future<void> _exportSelectedOrdersPdf(List<OrderModel> selectedOrders) async {
     if (selectedOrders.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
             content: Text('선택된 주문이 없습니다.'),
             backgroundColor: AppColors.textSecondary),
       );
@@ -2705,7 +2711,7 @@ class _AdminScreenState extends State<AdminScreen>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => Center(
+      builder: (_) => const Center(
         child: Card(
           child: Padding(
             padding: EdgeInsets.all(24),
@@ -2747,7 +2753,7 @@ class _AdminScreenState extends State<AdminScreen>
   void _exportOrdersCSV(List<OrderModel> orders) {
     if (orders.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
             content: Text('내보낼 주문이 없습니다.'), backgroundColor: AppColors.primary),
       );
       return;
@@ -2760,7 +2766,7 @@ class _AdminScreenState extends State<AdminScreen>
   Future<void> exportDesignRequestsToExcel(
       BuildContext ctx, List<Map<String, dynamic>> requests) async {
     if (requests.isEmpty) {
-      ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
           content: Text('내보낼 디자인 수정 요청이 없습니다.'),
           backgroundColor: AppColors.primary));
       return;
@@ -2790,7 +2796,7 @@ class _AdminScreenState extends State<AdminScreen>
                 Text('${requests.length}건 엑셀 다운로드 완료!',
                     style: const TextStyle(
                         fontWeight: FontWeight.w700, fontSize: 13)),
-                Text('팀별 시트로 구성되어 있습니다',
+                const Text('팀별 시트로 구성되어 있습니다',
                     style: TextStyle(fontSize: 11, color: Colors.white70)),
               ],
             )),
@@ -2800,7 +2806,7 @@ class _AdminScreenState extends State<AdminScreen>
         ));
       } else {
         if (!ctx.mounted) return;
-        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
             content: Text('웹 환경에서만 다운로드가 지원됩니다.'),
             backgroundColor: AppColors.textSecondary));
       }
@@ -2940,7 +2946,7 @@ class _AdminScreenState extends State<AdminScreen>
         return AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(children: [
+          title: const Row(children: [
             Icon(Icons.groups_rounded, color: Color(0xFF00897B), size: 22),
             SizedBox(width: 8),
             Expanded(
@@ -2955,7 +2961,7 @@ class _AdminScreenState extends State<AdminScreen>
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('조회 기간 선택',
+                    const Text('조회 기간 선택',
                         style: TextStyle(
                             fontSize: 12, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 8),
@@ -2968,7 +2974,7 @@ class _AdminScreenState extends State<AdminScreen>
                     ]),
                     const SizedBox(height: 6),
                     Row(children: [
-                      optBtn('월별', '월별', '1개월', Color(0xFF00695C)),
+                      optBtn('월별', '월별', '1개월', const Color(0xFF00695C)),
                       const SizedBox(width: 6),
                       optBtn('기간선택', '기간선택', '직접 지정', AppColors.accent),
                       const SizedBox(width: 6),
@@ -2978,7 +2984,7 @@ class _AdminScreenState extends State<AdminScreen>
 
                     // 일별 피커
                     if (exportType == '일별') ...[
-                      Text('날짜 선택',
+                      const Text('날짜 선택',
                           style: TextStyle(
                               fontSize: 11, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 6),
@@ -3023,7 +3029,7 @@ class _AdminScreenState extends State<AdminScreen>
 
                     // 주별
                     if (exportType == '주별') ...[
-                      Text('주 선택',
+                      const Text('주 선택',
                           style: TextStyle(
                               fontSize: 11, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 6),
@@ -3066,7 +3072,7 @@ class _AdminScreenState extends State<AdminScreen>
 
                     // 월별
                     if (exportType == '월별') ...[
-                      Text('월 선택',
+                      const Text('월 선택',
                           style: TextStyle(
                               fontSize: 11, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 6),
@@ -3109,7 +3115,7 @@ class _AdminScreenState extends State<AdminScreen>
 
                     // 기간선택
                     if (exportType == '기간선택') ...[
-                      Text('기간 직접 선택',
+                      const Text('기간 직접 선택',
                           style: TextStyle(
                               fontSize: 11, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 6),
@@ -3139,7 +3145,7 @@ class _AdminScreenState extends State<AdminScreen>
                             child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('시작일',
+                                  const Text('시작일',
                                       style: TextStyle(
                                           fontSize: 10,
                                           color: AppColors.accent,
@@ -3182,7 +3188,7 @@ class _AdminScreenState extends State<AdminScreen>
                             child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('종료일',
+                                  const Text('종료일',
                                       style: TextStyle(
                                           fontSize: 10,
                                           color: AppColors.accent,
@@ -3220,7 +3226,7 @@ class _AdminScreenState extends State<AdminScreen>
                                       fontWeight: FontWeight.w700,
                                       color: Color(0xFF00695C))),
                               const SizedBox(height: 2),
-                              Text('단체주문만 포함 (개인주문 제외)',
+                              const Text('단체주문만 포함 (개인주문 제외)',
                                   style: TextStyle(
                                       fontSize: 10,
                                       color: AppColors.textSecondary)),
@@ -3231,7 +3237,8 @@ class _AdminScreenState extends State<AdminScreen>
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00897B),
@@ -3241,7 +3248,7 @@ class _AdminScreenState extends State<AdminScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 10)),
               icon: const Icon(Icons.picture_as_pdf_rounded, size: 16),
-              label: Text('단체주문별 PDF 다운로드',
+              label: const Text('단체주문별 PDF 다운로드',
                   style: TextStyle(fontWeight: FontWeight.w700)),
               onPressed: () async {
                 Navigator.pop(ctx);
@@ -3272,7 +3279,7 @@ class _AdminScreenState extends State<AdminScreen>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => Center(
+      builder: (_) => const Center(
         child: Card(
             child: Padding(
                 padding: EdgeInsets.all(24),
@@ -3319,7 +3326,7 @@ class _AdminScreenState extends State<AdminScreen>
       }).toList();
 
       if (groupOnlyOrders.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('해당 기간에 단체주문이 없습니다.'),
           backgroundColor: AppColors.textSecondary,
         ));
@@ -3483,7 +3490,7 @@ class _AdminScreenState extends State<AdminScreen>
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.autorenew_rounded, color: AppColors.info),
             SizedBox(width: 8),
@@ -3503,7 +3510,7 @@ class _AdminScreenState extends State<AdminScreen>
                     const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
               ),
               const SizedBox(height: 4),
-              Text(
+              const Text(
                 '경과 기간 기준으로 다음 단계로 자동 진행됩니다.',
                 style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
@@ -3536,7 +3543,7 @@ class _AdminScreenState extends State<AdminScreen>
                     color: AppColors.success.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Row(
+                  child: const Row(
                     children: [
                       Icon(Icons.check_circle_rounded,
                           color: AppColors.success),
@@ -3553,7 +3560,8 @@ class _AdminScreenState extends State<AdminScreen>
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           if (totalCount > 0)
             ElevatedButton.icon(
               onPressed: () async {
@@ -3662,8 +3670,8 @@ class _AdminScreenState extends State<AdminScreen>
         context.read<ProductProvider>().refreshSalesCounts();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ $updated건 자동 업데이트 완료' +
-                (failed > 0 ? ' ($failed건 실패)' : '')),
+            content: Text(
+                '✅ $updated건 자동 업데이트 완료${failed > 0 ? ' ($failed건 실패)' : ''}'),
             backgroundColor: AppColors.info,
             duration: const Duration(seconds: 3),
           ),
@@ -3793,7 +3801,7 @@ class _AdminScreenState extends State<AdminScreen>
           return AlertDialog(
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: Row(
+            title: const Row(
               children: [
                 Icon(Icons.picture_as_pdf_rounded,
                     color: AppColors.primary, size: 22),
@@ -3810,7 +3818,7 @@ class _AdminScreenState extends State<AdminScreen>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('조회 기간 선택',
+                  const Text('조회 기간 선택',
                       style:
                           TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 8),
@@ -3825,7 +3833,7 @@ class _AdminScreenState extends State<AdminScreen>
                   const SizedBox(height: 6),
                   // ── 2행: 월별 / 기간선택 / 전체 ──
                   Row(children: [
-                    optBtn('월별', '월별', '1개월', Color(0xFF00695C)),
+                    optBtn('월별', '월별', '1개월', const Color(0xFF00695C)),
                     const SizedBox(width: 6),
                     optBtn('기간선택', '기간선택', '직접 지정', AppColors.accent),
                     const SizedBox(width: 6),
@@ -3836,7 +3844,7 @@ class _AdminScreenState extends State<AdminScreen>
 
                   // ── 일별: 날짜 피커 ──
                   if (exportType == '일별') ...[
-                    Text('날짜 선택',
+                    const Text('날짜 선택',
                         style: TextStyle(
                             fontSize: 11, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 6),
@@ -3884,7 +3892,7 @@ class _AdminScreenState extends State<AdminScreen>
 
                   // ── 주별: 이전/다음 주 버튼 ──
                   if (exportType == '주별') ...[
-                    Text('주 선택',
+                    const Text('주 선택',
                         style: TextStyle(
                             fontSize: 11, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 6),
@@ -3930,7 +3938,7 @@ class _AdminScreenState extends State<AdminScreen>
 
                   // ── 월별: 이전/다음 달 버튼 ──
                   if (exportType == '월별') ...[
-                    Text('월 선택',
+                    const Text('월 선택',
                         style: TextStyle(
                             fontSize: 11, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 6),
@@ -3976,7 +3984,7 @@ class _AdminScreenState extends State<AdminScreen>
 
                   // ── 기간선택: 시작~종료 날짜 ──
                   if (exportType == '기간선택') ...[
-                    Text('기간 직접 선택',
+                    const Text('기간 직접 선택',
                         style: TextStyle(
                             fontSize: 11, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 6),
@@ -4008,7 +4016,7 @@ class _AdminScreenState extends State<AdminScreen>
                           child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('시작일',
+                                const Text('시작일',
                                     style: TextStyle(
                                         fontSize: 10,
                                         color: AppColors.accent,
@@ -4053,7 +4061,7 @@ class _AdminScreenState extends State<AdminScreen>
                           child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('종료일',
+                                const Text('종료일',
                                     style: TextStyle(
                                         fontSize: 10,
                                         color: AppColors.accent,
@@ -4124,7 +4132,7 @@ class _AdminScreenState extends State<AdminScreen>
             ),
             actions: [
               TextButton(
-                  onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+                  onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -4135,14 +4143,14 @@ class _AdminScreenState extends State<AdminScreen>
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 ),
                 icon: const Icon(Icons.picture_as_pdf_rounded, size: 16),
-                label: Text('PDF 다운로드',
+                label: const Text('PDF 다운로드',
                     style: TextStyle(fontWeight: FontWeight.w700)),
                 onPressed: () async {
                   Navigator.pop(ctx);
                   showDialog(
                     context: context,
                     barrierDismissible: false,
-                    builder: (_) => Center(
+                    builder: (_) => const Center(
                       child: Card(
                         child: Padding(
                           padding: EdgeInsets.all(24),
@@ -4194,7 +4202,7 @@ class _AdminScreenState extends State<AdminScreen>
 
                     if (finalOrders.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                        const SnackBar(
                             content: Text('해당 기간에 주문이 없습니다.'),
                             backgroundColor: AppColors.textSecondary),
                       );
@@ -4218,7 +4226,7 @@ class _AdminScreenState extends State<AdminScreen>
                         }[exportType] ??
                         'export';
                     final fileName =
-                        '2FIT_주문_${typeTag}_${startStr}_${endStr}.pdf';
+                        '2FIT_주문_${typeTag}_${startStr}_$endStr.pdf';
                     await _handleFileDownload(
                         bytes, fileName, finalOrders.length, fStart, fEnd);
                   } catch (e) {
@@ -4249,7 +4257,7 @@ class _AdminScreenState extends State<AdminScreen>
       final items = o.items
           .map((i) => '${i.productName}(${i.size}/${i.color})')
           .join(' | ');
-      final qty = o.items.fold<int>(0, (sum, i) => sum + i.quantity);
+      final qty = o.items.fold<int>(0, (total, i) => total + i.quantity);
       final date =
           '${o.createdAt.year}-${o.createdAt.month.toString().padLeft(2, '0')}-${o.createdAt.day.toString().padLeft(2, '0')} ${o.createdAt.hour.toString().padLeft(2, '0')}:${o.createdAt.minute.toString().padLeft(2, '0')}';
       sb.writeln([
@@ -4301,7 +4309,7 @@ class _AdminScreenState extends State<AdminScreen>
         builder: (ctx, setD) => AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(children: [
+          title: const Row(children: [
             Icon(Icons.sync_rounded, color: Color(0xFF3949AB), size: 22),
             SizedBox(width: 8),
             Text('일괄 상태 변경', style: TextStyle(fontWeight: FontWeight.w800)),
@@ -4325,7 +4333,8 @@ class _AdminScreenState extends State<AdminScreen>
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
             ElevatedButton(
               onPressed: selectedStatus == null || isSaving
                   ? null
@@ -4380,7 +4389,7 @@ class _AdminScreenState extends State<AdminScreen>
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white),
-              child: Text('변경'),
+              child: const Text('변경'),
             ),
           ],
         ),
@@ -4630,23 +4639,26 @@ class _AdminScreenState extends State<AdminScreen>
                                   order: order,
                                   newStatus: newStatus,
                                 ).catchError((e) {
-                                  if (kDebugMode)
+                                  if (kDebugMode) {
                                     debugPrint('client_operation_failed');
+                                  }
                                 });
                                 // ── 2. 카카오 알림톡 (배송완료 / 취소) ───────
                                 if (newStatus == OrderStatus.delivered) {
                                   NotificationService.sendDelivered(order)
                                       .catchError((e) {
-                                    if (kDebugMode)
+                                    if (kDebugMode) {
                                       debugPrint('client_operation_failed');
+                                    }
                                   });
                                 } else if (newStatus == OrderStatus.cancelled) {
                                   NotificationService.sendCancelled(
                                     order: order,
                                     reason: '관리자 처리',
                                   ).catchError((e) {
-                                    if (kDebugMode)
+                                    if (kDebugMode) {
                                       debugPrint('client_operation_failed');
+                                    }
                                   });
                                 }
                                 if (mounted) {
@@ -4686,7 +4698,7 @@ class _AdminScreenState extends State<AdminScreen>
                                   color:
                                       AppColors.primary.withValues(alpha: 0.3)),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(Icons.groups_rounded,
@@ -4851,14 +4863,14 @@ class _AdminScreenState extends State<AdminScreen>
                   // 헤더
                   Container(
                     padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [AppColors.primary, const Color(0xFF2D2D5E)],
+                        colors: [AppColors.primary, Color(0xFF2D2D5E)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(20)),
+                          BorderRadius.vertical(top: Radius.circular(20)),
                     ),
                     child: Row(
                       children: [
@@ -4937,7 +4949,7 @@ class _AdminScreenState extends State<AdminScreen>
                           ]),
                           const SizedBox(height: 12),
                           // 주문 상품
-                          Text('주문 상품',
+                          const Text('주문 상품',
                               style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w800,
@@ -5039,7 +5051,7 @@ class _AdminScreenState extends State<AdminScreen>
                               _exportPersonalOrderPdf(order);
                             },
                             icon: const Icon(Icons.download_rounded, size: 16),
-                            label: Text('PDF 내보내기',
+                            label: const Text('PDF 내보내기',
                                 style: TextStyle(
                                     fontSize: 13, fontWeight: FontWeight.w600)),
                             style: OutlinedButton.styleFrom(
@@ -5063,7 +5075,7 @@ class _AdminScreenState extends State<AdminScreen>
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10)),
                             ),
-                            child: Text('닫기',
+                            child: const Text('닫기',
                                 style: TextStyle(
                                     fontSize: 13, fontWeight: FontWeight.w700)),
                           ),
@@ -5083,7 +5095,7 @@ class _AdminScreenState extends State<AdminScreen>
                             final confirmed = await showDialog<bool>(
                               context: context,
                               builder: (c) => AlertDialog(
-                                title: Text('결제 확인',
+                                title: const Text('결제 확인',
                                     style:
                                         TextStyle(fontWeight: FontWeight.w800)),
                                 content: Text(
@@ -5094,12 +5106,12 @@ class _AdminScreenState extends State<AdminScreen>
                                 actions: [
                                   TextButton(
                                       onPressed: () => Navigator.pop(c, false),
-                                      child: Text('취소')),
+                                      child: const Text('취소')),
                                   ElevatedButton(
                                     onPressed: () => Navigator.pop(c, true),
                                     style: ElevatedButton.styleFrom(
                                         backgroundColor: AppColors.success),
-                                    child: Text('결제완료 확인',
+                                    child: const Text('결제완료 확인',
                                         style: TextStyle(color: Colors.white)),
                                   ),
                                 ],
@@ -5122,7 +5134,7 @@ class _AdminScreenState extends State<AdminScreen>
                               });
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
+                                  const SnackBar(
                                     content: Text('결제완료로 변경되었습니다.'),
                                     backgroundColor: AppColors.success,
                                   ),
@@ -5132,7 +5144,7 @@ class _AdminScreenState extends State<AdminScreen>
                           },
                           icon:
                               const Icon(Icons.check_circle_outline, size: 18),
-                          label: Text('입금 확인 → 결제완료로 변경',
+                          label: const Text('입금 확인 → 결제완료로 변경',
                               style: TextStyle(
                                   fontSize: 13, fontWeight: FontWeight.w700)),
                           style: ElevatedButton.styleFrom(
@@ -5289,7 +5301,7 @@ class _AdminScreenState extends State<AdminScreen>
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                          Text('디자인 수정 처리',
+                          const Text('디자인 수정 처리',
                               style: TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.w800)),
                           Text('주문번호: ${order.id} | 인쇄타입: $printLabel',
@@ -5320,7 +5332,7 @@ class _AdminScreenState extends State<AdminScreen>
                             child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('사용자 요청 내용',
+                                  const Text('사용자 요청 내용',
                                       style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w700,
@@ -5354,7 +5366,7 @@ class _AdminScreenState extends State<AdminScreen>
                         ]),
                         const SizedBox(height: 16),
                         // 수정 내용 입력 (선택 사항)
-                        Text('관리자 처리 내용 (선택)',
+                        const Text('관리자 처리 내용 (선택)',
                             style: TextStyle(
                                 fontSize: 13, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 8),
@@ -5386,7 +5398,7 @@ class _AdminScreenState extends State<AdminScreen>
                         ),
                         if (canChangeColor) ...[
                           const SizedBox(height: 16),
-                          Text('색상 선택',
+                          const Text('색상 선택',
                               style: TextStyle(
                                   fontSize: 13, fontWeight: FontWeight.w700)),
                           const SizedBox(height: 8),
@@ -5437,11 +5449,11 @@ class _AdminScreenState extends State<AdminScreen>
 
                         // ── 디자인 확정 이미지 업로드 ──
                         const SizedBox(height: 20),
-                        Text('디자인 확정 이미지 (필수)',
+                        const Text('디자인 확정 이미지 (필수)',
                             style: TextStyle(
                                 fontSize: 13, fontWeight: FontWeight.w800)),
                         const SizedBox(height: 4),
-                        Text(
+                        const Text(
                             '수정 완료 후 확정된 최종 디자인 이미지를 첨부해 주세요.\n고객의 추가제작 주문서에 자동으로 표시됩니다.',
                             style: TextStyle(
                                 fontSize: 11,
@@ -5523,9 +5535,9 @@ class _AdminScreenState extends State<AdminScreen>
                                       ),
                                     ],
                                   )
-                                : Column(
+                                : const Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    children: const [
+                                    children: [
                                       SizedBox(height: 28),
                                       Icon(Icons.add_photo_alternate_outlined,
                                           size: 36, color: AppColors.textHint),
@@ -5555,7 +5567,7 @@ class _AdminScreenState extends State<AdminScreen>
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12))),
-                        child: Text('취소'),
+                        child: const Text('취소'),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -5567,7 +5579,7 @@ class _AdminScreenState extends State<AdminScreen>
                             : () async {
                                 if (confirmedImageBytes == null) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
+                                      const SnackBar(
                                           content:
                                               Text('디자인 확정 이미지를 첨부해주세요.')));
                                   return;
@@ -5581,8 +5593,9 @@ class _AdminScreenState extends State<AdminScreen>
                                         'design_confirmed/${order.id}_${DateTime.now().millisecondsSinceEpoch}',
                                     imageBytes: confirmedImageBytes!,
                                   );
-                                  if (uploadUrl == null)
+                                  if (uploadUrl == null) {
                                     throw Exception('이미지 업로드 실패');
+                                  }
                                   setSheet(() => confirmedImageUrl = uploadUrl);
 
                                   // 2) Firestore 저장 — 최상위 designRevisionRequest 경로로 통일
@@ -5621,7 +5634,7 @@ class _AdminScreenState extends State<AdminScreen>
                                   Navigator.pop(ctx);
                                   if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
+                                    const SnackBar(
                                         content: Text('디자인 수정 처리가 완료되었습니다.'),
                                         backgroundColor: AppColors.success),
                                   );
@@ -5645,7 +5658,7 @@ class _AdminScreenState extends State<AdminScreen>
                                 height: 18,
                                 child: CircularProgressIndicator(
                                     color: Colors.white, strokeWidth: 2))
-                            : Text('수정 처리 완료',
+                            : const Text('수정 처리 완료',
                                 style: TextStyle(fontWeight: FontWeight.w700)),
                       ),
                     ),
@@ -5834,7 +5847,7 @@ class _AdminScreenState extends State<AdminScreen>
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
                     child: persons.isEmpty
-                        ? Center(
+                        ? const Center(
                             child: Padding(
                               padding: EdgeInsets.all(24),
                               child: Text('팀원 명단 정보가 없습니다.',
@@ -5859,7 +5872,7 @@ class _AdminScreenState extends State<AdminScreen>
                                   borderRadius: BorderRadius.vertical(
                                       top: Radius.circular(8)),
                                 ),
-                                child: Row(
+                                child: const Row(
                                   children: [
                                     SizedBox(
                                         width: 30,
@@ -5882,7 +5895,7 @@ class _AdminScreenState extends State<AdminScreen>
                                                 color: Colors.white,
                                                 fontSize: 11,
                                                 fontWeight: FontWeight.w700))),
-                                    const SizedBox(width: 4),
+                                    SizedBox(width: 4),
                                     SizedBox(
                                         width: 52,
                                         child: Text('연령',
@@ -6046,7 +6059,7 @@ class _AdminScreenState extends State<AdminScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(children: [
+                        const Row(children: [
                           Icon(Icons.edit_note_rounded,
                               size: 16, color: AppColors.accent),
                           SizedBox(width: 6),
@@ -6083,7 +6096,7 @@ class _AdminScreenState extends State<AdminScreen>
                             },
                             icon: const Icon(Icons.design_services_rounded,
                                 size: 15),
-                            label: Text('수정 처리하기',
+                            label: const Text('수정 처리하기',
                                 style: TextStyle(
                                     fontSize: 12, fontWeight: FontWeight.w700)),
                             style: ElevatedButton.styleFrom(
@@ -6162,7 +6175,7 @@ class _AdminScreenState extends State<AdminScreen>
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10)),
                           ),
-                          child: Text('닫기',
+                          child: const Text('닫기',
                               style: TextStyle(
                                   fontSize: 13, fontWeight: FontWeight.w700)),
                         ),
@@ -6182,7 +6195,7 @@ class _AdminScreenState extends State<AdminScreen>
                           final confirmed = await showDialog<bool>(
                             context: context,
                             builder: (c) => AlertDialog(
-                              title: Text('결제 확인',
+                              title: const Text('결제 확인',
                                   style:
                                       TextStyle(fontWeight: FontWeight.w800)),
                               content: Text(
@@ -6193,12 +6206,12 @@ class _AdminScreenState extends State<AdminScreen>
                               actions: [
                                 TextButton(
                                     onPressed: () => Navigator.pop(c, false),
-                                    child: Text('취소')),
+                                    child: const Text('취소')),
                                 ElevatedButton(
                                   onPressed: () => Navigator.pop(c, true),
                                   style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.success),
-                                  child: Text('결제완료 확인',
+                                  child: const Text('결제완료 확인',
                                       style: TextStyle(color: Colors.white)),
                                 ),
                               ],
@@ -6221,7 +6234,7 @@ class _AdminScreenState extends State<AdminScreen>
                             });
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
+                                const SnackBar(
                                   content: Text('결제완료로 변경되었습니다.'),
                                   backgroundColor: AppColors.success,
                                 ),
@@ -6230,7 +6243,7 @@ class _AdminScreenState extends State<AdminScreen>
                           }
                         },
                         icon: const Icon(Icons.check_circle_outline, size: 18),
-                        label: Text('입금 확인 → 결제완료로 변경',
+                        label: const Text('입금 확인 → 결제완료로 변경',
                             style: TextStyle(
                                 fontSize: 13, fontWeight: FontWeight.w700)),
                         style: ElevatedButton.styleFrom(
@@ -6309,7 +6322,7 @@ class _AdminScreenState extends State<AdminScreen>
   Future<void> _exportPersonalOrderPdf(OrderModel order) async {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Row(children: [
             SizedBox(
                 width: 16,
@@ -6464,7 +6477,7 @@ class _AdminScreenState extends State<AdminScreen>
   Future<void> _exportGroupOrderPdfDownload(OrderModel order) async {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Row(children: [
             SizedBox(
                 width: 16,
@@ -6550,7 +6563,7 @@ class _AdminScreenState extends State<AdminScreen>
   Future<void> _exportAdditionalOrderPdf(OrderModel order) async {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Row(children: [
             SizedBox(
                 width: 16,
@@ -6596,7 +6609,7 @@ class _AdminScreenState extends State<AdminScreen>
                       Text(fileName,
                           style: const TextStyle(
                               fontWeight: FontWeight.w700, fontSize: 12)),
-                      Text('시트1(수정·추가이력+인원명단) + 주문정보 시트',
+                      const Text('시트1(수정·추가이력+인원명단) + 주문정보 시트',
                           style:
                               TextStyle(fontSize: 11, color: Colors.white70)),
                     ],
@@ -6611,7 +6624,7 @@ class _AdminScreenState extends State<AdminScreen>
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
               content: Text('웹 환경에서만 다운로드가 지원됩니다.'),
               backgroundColor: AppColors.textSecondary));
         }
@@ -6701,7 +6714,7 @@ class _AdminScreenState extends State<AdminScreen>
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text('상품 $label 처리'),
-        content: Text('선택한 ${ids.length}개 상품을 ${label} 처리하시겠습니까?'),
+        content: Text('선택한 ${ids.length}개 상품을 $label 처리하시겠습니까?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -6729,7 +6742,7 @@ class _AdminScreenState extends State<AdminScreen>
 
     // 검색 + 카테고리 필터 적용
     final bottomSubCats = ['타이즈', '남성 5부', '여성 2.5부', '트레이닝바지', '숏츠'];
-    bool _matchesCategory(p, String filter) {
+    bool matchesCategory(p, String filter) {
       if (filter == '전체') return true;
       if (p.category == filter) return true;
       // 하의 탭: category가 '단체주문'으로 저장됐어도 하의 서브카테고리면 포함
@@ -6743,7 +6756,7 @@ class _AdminScreenState extends State<AdminScreen>
     var filtered = _productCategoryFilter == '전체'
         ? List<ProductModel>.from(allProducts)
         : allProducts
-            .where((p) => _matchesCategory(p, _productCategoryFilter))
+            .where((p) => matchesCategory(p, _productCategoryFilter))
             .toList();
     if (_productSearchQuery.isNotEmpty) {
       final q = _productSearchQuery.toLowerCase();
@@ -6897,7 +6910,7 @@ class _AdminScreenState extends State<AdminScreen>
                     size: 18,
                   ),
                   const SizedBox(width: 5),
-                  Text('전체선택',
+                  const Text('전체선택',
                       style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -6991,7 +7004,7 @@ class _AdminScreenState extends State<AdminScreen>
                     builder: (_) => AlertDialog(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16)),
-                      title: Row(children: [
+                      title: const Row(children: [
                         Icon(Icons.delete_sweep_rounded,
                             color: AppColors.error, size: 22),
                         SizedBox(width: 8),
@@ -7003,13 +7016,13 @@ class _AdminScreenState extends State<AdminScreen>
                       actions: [
                         TextButton(
                             onPressed: () => Navigator.pop(context, false),
-                            child: Text('취소')),
+                            child: const Text('취소')),
                         ElevatedButton(
                           onPressed: () => Navigator.pop(context, true),
                           style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.error,
                               foregroundColor: Colors.white),
-                          child: Text('삭제'),
+                          child: const Text('삭제'),
                         ),
                       ],
                     ),
@@ -7038,7 +7051,7 @@ class _AdminScreenState extends State<AdminScreen>
                     color: const Color(0xFFFFEBEE),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Row(children: [
+                  child: const Row(children: [
                     Icon(Icons.delete_sweep_rounded,
                         color: AppColors.error, size: 14),
                     SizedBox(width: 4),
@@ -7076,7 +7089,7 @@ class _AdminScreenState extends State<AdminScreen>
                               .read<ProductProvider>()
                               .loadAdminProducts(),
                           icon: const Icon(Icons.refresh_rounded, size: 16),
-                          label: Text('다시 불러오기'),
+                          label: const Text('다시 불러오기'),
                         ),
                       ],
                     ],
@@ -7237,14 +7250,14 @@ class _AdminScreenState extends State<AdminScreen>
                 icon: const Icon(Icons.more_vert,
                     size: 18, color: AppColors.textSecondary),
                 itemBuilder: (_) => [
-                  PopupMenuItem(
+                  const PopupMenuItem(
                       value: 'edit',
                       child: Row(children: [
                         Icon(Icons.edit_outlined, size: 16),
                         SizedBox(width: 8),
                         Text('수정')
                       ])),
-                  PopupMenuItem(
+                  const PopupMenuItem(
                       value: 'copy',
                       child: Row(children: [
                         Icon(Icons.copy_all_rounded,
@@ -7252,14 +7265,14 @@ class _AdminScreenState extends State<AdminScreen>
                         SizedBox(width: 8),
                         Text('복사', style: TextStyle(color: AppColors.info))
                       ])),
-                  PopupMenuItem(
+                  const PopupMenuItem(
                       value: 'stock',
                       child: Row(children: [
                         Icon(Icons.inventory_outlined, size: 16),
                         SizedBox(width: 8),
                         Text('재고 수정')
                       ])),
-                  PopupMenuItem(
+                  const PopupMenuItem(
                       value: 'delete',
                       child: Row(children: [
                         Icon(Icons.delete_outline,
@@ -7376,11 +7389,11 @@ class _AdminScreenState extends State<AdminScreen>
             Container(
               color: const Color(0xFFFFF8E1),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              child: Row(
+              child: const Row(
                 children: [
-                  const Icon(Icons.info_outline_rounded,
+                  Icon(Icons.info_outline_rounded,
                       size: 14, color: Color(0xFFFF8F00)),
-                  const SizedBox(width: 6),
+                  SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       '순서 0번 배너는 항상 동영상으로 표시됩니다. 동영상 없으면 이미지로 대체됩니다.',
@@ -7393,7 +7406,7 @@ class _AdminScreenState extends State<AdminScreen>
             // ── 배너 목록 ──
             Expanded(
               child: banners.isEmpty
-                  ? Center(
+                  ? const Center(
                       child: Text('배너가 없습니다. 배너 추가 버튼을 눌러 추가하세요.',
                           style: TextStyle(
                               color: AppColors.textSecondary, fontSize: 13)))
@@ -7413,8 +7426,8 @@ class _AdminScreenState extends State<AdminScreen>
                               // ── 배너 미리보기 ──
                               Container(
                                 height: 110,
-                                decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.vertical(
+                                decoration: const BoxDecoration(
+                                  borderRadius: BorderRadius.vertical(
                                       top: Radius.circular(14)),
                                   color: AppColors.primary,
                                 ),
@@ -7632,14 +7645,14 @@ class _AdminScreenState extends State<AdminScreen>
                                       showDialog(
                                         context: context,
                                         builder: (_) => AlertDialog(
-                                          title: Text('배너 삭제'),
+                                          title: const Text('배너 삭제'),
                                           content: Text(
                                               '\'${b.title}\' 배너를 삭제하시겠습니까?'),
                                           actions: [
                                             TextButton(
                                               onPressed: () =>
                                                   Navigator.pop(context),
-                                              child: Text('취소'),
+                                              child: const Text('취소'),
                                             ),
                                             TextButton(
                                               onPressed: () async {
@@ -7649,7 +7662,7 @@ class _AdminScreenState extends State<AdminScreen>
                                                 if (mounted) {
                                                   ScaffoldMessenger.of(context)
                                                       .showSnackBar(
-                                                    SnackBar(
+                                                    const SnackBar(
                                                         content: Text(
                                                             '배너가 삭제되었습니다.'),
                                                         backgroundColor:
@@ -7657,7 +7670,7 @@ class _AdminScreenState extends State<AdminScreen>
                                                   );
                                                 }
                                               },
-                                              child: Text('삭제',
+                                              child: const Text('삭제',
                                                   style: TextStyle(
                                                       color: AppColors.error)),
                                             ),
@@ -7702,7 +7715,8 @@ class _AdminScreenState extends State<AdminScreen>
                         fontSize: 13, color: AppColors.textSecondary)),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                    onPressed: () => setState(() {}), child: Text('다시 시도')),
+                    onPressed: () => setState(() {}),
+                    child: const Text('다시 시도')),
               ],
             ),
           );
@@ -7790,7 +7804,7 @@ class _AdminScreenState extends State<AdminScreen>
                           size: 18,
                         ),
                         const SizedBox(width: 5),
-                        Text('전체선택',
+                        const Text('전체선택',
                             style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -7817,7 +7831,7 @@ class _AdminScreenState extends State<AdminScreen>
                           color: const Color(0xFFFFF8E1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Row(children: [
+                        child: const Row(children: [
                           Icon(Icons.star_rounded,
                               color: AppColors.accent, size: 14),
                           SizedBox(width: 4),
@@ -7838,7 +7852,7 @@ class _AdminScreenState extends State<AdminScreen>
                           builder: (_) => AlertDialog(
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16)),
-                            title: Row(children: [
+                            title: const Row(children: [
                               Icon(Icons.delete_sweep_rounded,
                                   color: AppColors.error, size: 22),
                               SizedBox(width: 8),
@@ -7852,13 +7866,13 @@ class _AdminScreenState extends State<AdminScreen>
                               TextButton(
                                   onPressed: () =>
                                       Navigator.pop(context, false),
-                                  child: Text('취소')),
+                                  child: const Text('취소')),
                               ElevatedButton(
                                 onPressed: () => Navigator.pop(context, true),
                                 style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.error,
                                     foregroundColor: Colors.white),
-                                child: Text('삭제'),
+                                child: const Text('삭제'),
                               ),
                             ],
                           ),
@@ -7871,7 +7885,7 @@ class _AdminScreenState extends State<AdminScreen>
                           setState(() => _selectedMemberIds.clear());
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
+                              const SnackBar(
                                   content: Text('선택한 회원이 삭제되었습니다'),
                                   backgroundColor: AppColors.primary),
                             );
@@ -7885,7 +7899,7 @@ class _AdminScreenState extends State<AdminScreen>
                           color: const Color(0xFFFFEBEE),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Row(children: [
+                        child: const Row(children: [
                           Icon(Icons.delete_sweep_rounded,
                               color: AppColors.error, size: 14),
                           SizedBox(width: 4),
@@ -7902,7 +7916,7 @@ class _AdminScreenState extends State<AdminScreen>
             ),
             Expanded(
               child: members.isEmpty
-                  ? Center(
+                  ? const Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -8051,7 +8065,7 @@ class _AdminScreenState extends State<AdminScreen>
                                                 borderRadius:
                                                     BorderRadius.circular(4),
                                               ),
-                                              child: Text('관리자',
+                                              child: const Text('관리자',
                                                   style: TextStyle(
                                                       fontSize: 9,
                                                       fontWeight:
@@ -8073,7 +8087,7 @@ class _AdminScreenState extends State<AdminScreen>
                                                 borderRadius:
                                                     BorderRadius.circular(4),
                                               ),
-                                              child: Text('차단',
+                                              child: const Text('차단',
                                                   style: TextStyle(
                                                       fontSize: 9,
                                                       fontWeight:
@@ -8101,13 +8115,13 @@ class _AdminScreenState extends State<AdminScreen>
                                   icon: const Icon(Icons.more_vert,
                                       size: 18, color: AppColors.textSecondary),
                                   itemBuilder: (_) => [
-                                    PopupMenuItem(
+                                    const PopupMenuItem(
                                         value: 'view', child: Text('주문 내역')),
-                                    PopupMenuItem(
+                                    const PopupMenuItem(
                                         value: 'grade', child: Text('등급 변경')),
-                                    PopupMenuItem(
+                                    const PopupMenuItem(
                                         value: 'memo', child: Text('메모')),
-                                    PopupMenuItem(
+                                    const PopupMenuItem(
                                         value: 'points', child: Text('포인트 적립')),
                                     PopupMenuItem(
                                         value: 'block',
@@ -8172,7 +8186,7 @@ class _AdminScreenState extends State<AdminScreen>
                     color: Color(0xFFFF6F00), size: 18),
               ),
               const SizedBox(width: 8),
-              Text('푸시 알림 발송',
+              const Text('푸시 알림 발송',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
@@ -8182,7 +8196,7 @@ class _AdminScreenState extends State<AdminScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 대상 선택
-                Text('발송 대상',
+                const Text('발송 대상',
                     style:
                         TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                 const SizedBox(height: 6),
@@ -8208,7 +8222,7 @@ class _AdminScreenState extends State<AdminScreen>
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text('알림 제목',
+                const Text('알림 제목',
                     style:
                         TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                 const SizedBox(height: 6),
@@ -8222,7 +8236,7 @@ class _AdminScreenState extends State<AdminScreen>
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text('알림 내용',
+                const Text('알림 내용',
                     style:
                         TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                 const SizedBox(height: 6),
@@ -8264,14 +8278,15 @@ class _AdminScreenState extends State<AdminScreen>
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
             ElevatedButton.icon(
               onPressed: isSending
                   ? null
                   : () async {
                       if (titleCtrl.text.trim().isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('알림 제목을 입력하세요')),
+                          const SnackBar(content: Text('알림 제목을 입력하세요')),
                         );
                         return;
                       }
@@ -8335,7 +8350,7 @@ class _AdminScreenState extends State<AdminScreen>
         builder: (ctx, setD) => AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(children: [
+          title: const Row(children: [
             Icon(Icons.star_rounded, color: AppColors.accent, size: 22),
             SizedBox(width: 8),
             Text('일괄 등급 변경', style: TextStyle(fontWeight: FontWeight.w800)),
@@ -8359,7 +8374,8 @@ class _AdminScreenState extends State<AdminScreen>
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
             ElevatedButton(
               onPressed: selectedGrade == null
                   ? null
@@ -8381,7 +8397,7 @@ class _AdminScreenState extends State<AdminScreen>
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white),
-              child: Text('변경'),
+              child: const Text('변경'),
             ),
           ],
         ),
@@ -8914,14 +8930,14 @@ class _AdminScreenState extends State<AdminScreen>
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 3),
                     color: Colors.black38,
-                    child: Text('탭하여 교체',
+                    child: const Text('탭하여 교체',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.white, fontSize: 11)),
                   ),
                 ),
               ]);
             }
-            return Column(
+            return const Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.add_photo_alternate_rounded,
@@ -8939,7 +8955,8 @@ class _AdminScreenState extends State<AdminScreen>
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Row(
               children: [
-                Text('배너 편집', style: TextStyle(fontWeight: FontWeight.w800)),
+                const Text('배너 편집',
+                    style: TextStyle(fontWeight: FontWeight.w800)),
                 const Spacer(),
                 if (hasVideo)
                   Container(
@@ -8975,7 +8992,7 @@ class _AdminScreenState extends State<AdminScreen>
                   _dlgField(tagCtrl, '태그 보엠 텍스트 (ex: NEW ARRIVALS)'),
                   const SizedBox(height: 14),
                   // ── 메인 타이틀 ──
-                  Align(
+                  const Align(
                       alignment: Alignment.centerLeft,
                       child: Text('타이틀 (한/영)',
                           style: TextStyle(
@@ -9001,7 +9018,7 @@ class _AdminScreenState extends State<AdminScreen>
                   _dlgField(ctaEnCtrl, 'CTA (영어)'),
                   const SizedBox(height: 14),
                   // ── 배경 이미지 ──
-                  Align(
+                  const Align(
                       alignment: Alignment.centerLeft,
                       child: Text('배경 이미지',
                           style: TextStyle(
@@ -9044,7 +9061,7 @@ class _AdminScreenState extends State<AdminScreen>
                         const Icon(Icons.videocam_rounded,
                             size: 16, color: AppColors.error),
                         const SizedBox(width: 6),
-                        Text('동영상 설정',
+                        const Text('동영상 설정',
                             style: TextStyle(
                                 fontSize: 12, fontWeight: FontWeight.w700)),
                         const Spacer(),
@@ -9289,7 +9306,7 @@ class _AdminScreenState extends State<AdminScreen>
             actions: [
               TextButton(
                   onPressed: isUploading ? null : () => Navigator.pop(ctx),
-                  child: Text('취소')),
+                  child: const Text('취소')),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary),
@@ -9342,8 +9359,9 @@ class _AdminScreenState extends State<AdminScreen>
                           )) {
                             setDlg(() => uploadProgress = progress);
                           }
-                          if (uploadedVideoUrl != null)
+                          if (uploadedVideoUrl != null) {
                             videoUrl = uploadedVideoUrl;
+                          }
                         }
 
                         // Firestore 저장 (기간 포함)
@@ -9368,9 +9386,10 @@ class _AdminScreenState extends State<AdminScreen>
 
                         if (ctx.mounted) Navigator.pop(ctx);
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text('배너가 수정되었습니다'),
-                              backgroundColor: AppColors.primary));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('배너가 수정되었습니다'),
+                                  backgroundColor: AppColors.primary));
                         }
                       },
                 child: isUploading
@@ -9379,7 +9398,7 @@ class _AdminScreenState extends State<AdminScreen>
                         height: 16,
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: Colors.white))
-                    : Text('저장', style: TextStyle(color: Colors.white)),
+                    : const Text('저장', style: TextStyle(color: Colors.white)),
               ),
             ],
           );
@@ -9413,7 +9432,8 @@ class _AdminScreenState extends State<AdminScreen>
         builder: (ctx, setDlg) => AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text('배너 추가', style: TextStyle(fontWeight: FontWeight.w800)),
+          title: const Text('배너 추가',
+              style: TextStyle(fontWeight: FontWeight.w800)),
           content: SizedBox(
             width: 380,
             child: SingleChildScrollView(
@@ -9422,7 +9442,7 @@ class _AdminScreenState extends State<AdminScreen>
                 const SizedBox(height: 10),
                 _dlgField(tagCtrl, '태그 뱃지 (ex: NEW ARRIVALS)'),
                 const SizedBox(height: 14),
-                Align(
+                const Align(
                     alignment: Alignment.centerLeft,
                     child: Text('타이틀 (한/영)',
                         style: TextStyle(
@@ -9442,7 +9462,7 @@ class _AdminScreenState extends State<AdminScreen>
                 const SizedBox(height: 8),
                 _dlgField(ctaEnCtrl, 'CTA (영어)'),
                 const SizedBox(height: 14),
-                Align(
+                const Align(
                     alignment: Alignment.centerLeft,
                     child: Text('배경 이미지',
                         style: TextStyle(
@@ -9495,7 +9515,7 @@ class _AdminScreenState extends State<AdminScreen>
                                 ),
                               ),
                             ])
-                          : Column(
+                          : const Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.add_photo_alternate_rounded,
@@ -9514,11 +9534,11 @@ class _AdminScreenState extends State<AdminScreen>
                 const Divider(),
                 const SizedBox(height: 8),
                 // ── 동영상 옵션 ──
-                Row(
+                const Row(
                   children: [
-                    const Icon(Icons.videocam_rounded,
+                    Icon(Icons.videocam_rounded,
                         size: 15, color: AppColors.error),
-                    const SizedBox(width: 5),
+                    SizedBox(width: 5),
                     Text('동영상 (선택)',
                         style: TextStyle(
                             fontSize: 12, fontWeight: FontWeight.w700)),
@@ -9687,7 +9707,7 @@ class _AdminScreenState extends State<AdminScreen>
           actions: [
             TextButton(
                 onPressed: isUploading ? null : () => Navigator.pop(ctx),
-                child: Text('취소')),
+                child: const Text('취소')),
             ElevatedButton(
               style:
                   ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
@@ -9730,9 +9750,10 @@ class _AdminScreenState extends State<AdminScreen>
 
                       if (ctx.mounted) Navigator.pop(ctx);
                       if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('배너가 추가되었습니다'),
-                            backgroundColor: AppColors.primary));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('배너가 추가되었습니다'),
+                                backgroundColor: AppColors.primary));
                       }
                     },
               child: isUploading
@@ -9741,7 +9762,7 @@ class _AdminScreenState extends State<AdminScreen>
                       height: 16,
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: Colors.white))
-                  : Text('추가', style: TextStyle(color: Colors.white)),
+                  : const Text('추가', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -9799,7 +9820,7 @@ class _AdminScreenState extends State<AdminScreen>
     required BuildContext context,
     required void Function(DateTime? s, DateTime? e) onChanged,
   }) {
-    String _fmt(DateTime? d) => d == null
+    String fmt(DateTime? d) => d == null
         ? '설정 안함'
         : '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
 
@@ -9839,7 +9860,7 @@ class _AdminScreenState extends State<AdminScreen>
     String statusText = '';
     Color statusColor = Colors.grey;
     if (scheduleStart != null && now.isBefore(scheduleStart)) {
-      statusText = '⏳ 노출 예정 (${_fmt(scheduleStart)} 시작)';
+      statusText = '⏳ 노출 예정 (${fmt(scheduleStart)} 시작)';
       statusColor = AppColors.info;
     } else if (scheduleEnd != null && now.isAfter(scheduleEnd)) {
       statusText = '⛔ 기간 종료됨';
@@ -9916,7 +9937,7 @@ class _AdminScreenState extends State<AdminScreen>
                             style: TextStyle(
                                 fontSize: 10, color: Colors.grey.shade600)),
                         const SizedBox(height: 2),
-                        Text(_fmt(scheduleStart),
+                        Text(fmt(scheduleStart),
                             style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -9955,7 +9976,7 @@ class _AdminScreenState extends State<AdminScreen>
                             style: TextStyle(
                                 fontSize: 10, color: Colors.grey.shade600)),
                         const SizedBox(height: 2),
-                        Text(_fmt(scheduleEnd),
+                        Text(fmt(scheduleEnd),
                             style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -10074,10 +10095,9 @@ class _AdminScreenState extends State<AdminScreen>
         builder: (ctx2, dlgSetState) => AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(children: [
-            const Icon(Icons.warehouse_rounded,
-                size: 18, color: AppColors.primary),
-            const SizedBox(width: 8),
+          title: const Row(children: [
+            Icon(Icons.warehouse_rounded, size: 18, color: AppColors.primary),
+            SizedBox(width: 8),
             Text('재고 수정', style: TextStyle(fontWeight: FontWeight.w800)),
           ]),
           content: SingleChildScrollView(
@@ -10130,7 +10150,7 @@ class _AdminScreenState extends State<AdminScreen>
                             enabled: !isSoldOut,
                             style: const TextStyle(
                                 fontSize: 13, fontWeight: FontWeight.w700),
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.symmetric(vertical: 8),
                               isDense: true,
@@ -10156,7 +10176,7 @@ class _AdminScreenState extends State<AdminScreen>
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '총 재고: ${sizeCtrls.entries.where((e) => !p.soldOutSizes.contains(e.key)).fold(0, (sum, e) => sum + (int.tryParse(e.value.text) ?? 0))}개',
+                    '총 재고: ${sizeCtrls.entries.where((e) => !p.soldOutSizes.contains(e.key)).fold(0, (total, e) => total + (int.tryParse(e.value.text) ?? 0))}개',
                     style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -10188,7 +10208,7 @@ class _AdminScreenState extends State<AdminScreen>
                   }
                   Navigator.pop(ctx);
                 },
-                child: Text('취소')),
+                child: const Text('취소')),
             ElevatedButton(
               style:
                   ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
@@ -10221,7 +10241,7 @@ class _AdminScreenState extends State<AdminScreen>
                       backgroundColor: AppColors.primary));
                 }
               },
-              child: Text('저장', style: TextStyle(color: Colors.white)),
+              child: const Text('저장', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -10253,7 +10273,7 @@ class _AdminScreenState extends State<AdminScreen>
         builder: (ctx, setState) => AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(children: [
+          title: const Row(children: [
             Icon(Icons.local_shipping_outlined,
                 color: AppColors.primary, size: 22),
             SizedBox(width: 8),
@@ -10306,7 +10326,8 @@ class _AdminScreenState extends State<AdminScreen>
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
             ElevatedButton(
               onPressed: () async {
                 final trackingNum = trackingCtrl.text.trim();
@@ -10371,7 +10392,7 @@ class _AdminScreenState extends State<AdminScreen>
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
               ),
-              child: Text('저장'),
+              child: const Text('저장'),
             ),
           ],
         ),
@@ -10387,11 +10408,13 @@ class _AdminScreenState extends State<AdminScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('상품 삭제', style: TextStyle(fontWeight: FontWeight.w800)),
+        title:
+            const Text('상품 삭제', style: TextStyle(fontWeight: FontWeight.w800)),
         content: Text('"${p.name}"을(를) 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.',
             style: const TextStyle(fontSize: 13)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () async {
@@ -10407,7 +10430,7 @@ class _AdminScreenState extends State<AdminScreen>
                     backgroundColor: AppColors.error));
               }
             },
-            child: Text('삭제', style: TextStyle(color: Colors.white)),
+            child: const Text('삭제', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -10435,7 +10458,7 @@ class _AdminScreenState extends State<AdminScreen>
           width: 360,
           height: 300,
           child: uid.isEmpty
-              ? Center(child: Text('회원 정보를 불러올 수 없습니다'))
+              ? const Center(child: Text('회원 정보를 불러올 수 없습니다'))
               : FutureBuilder<List<OrderModel>>(
                   future: OrderService.getUserOrders(uid),
                   builder: (ctx, snap) {
@@ -10455,7 +10478,7 @@ class _AdminScreenState extends State<AdminScreen>
                                   color: AppColors.textSecondary)),
                           const SizedBox(height: 8),
                           Text('이메일: $email',
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],
                       );
@@ -10499,7 +10522,7 @@ class _AdminScreenState extends State<AdminScreen>
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context), child: Text('닫기')),
+              onPressed: () => Navigator.pop(context), child: const Text('닫기')),
         ],
       ),
     );
@@ -10529,10 +10552,11 @@ class _AdminScreenState extends State<AdminScreen>
                 value: grade,
                 groupValue: selectedGrade,
                 onChanged: (v) {
-                  if (v != null)
+                  if (v != null) {
                     setS(() {
                       selectedGrade = v;
                     });
+                  }
                 },
                 title: Text(grade, style: const TextStyle(fontSize: 13)),
                 contentPadding: EdgeInsets.zero,
@@ -10540,7 +10564,8 @@ class _AdminScreenState extends State<AdminScreen>
               ),
           ]),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
             ElevatedButton(
               style:
                   ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
@@ -10555,7 +10580,7 @@ class _AdminScreenState extends State<AdminScreen>
                   );
                 }
               },
-              child: Text('변경', style: TextStyle(color: Colors.white)),
+              child: const Text('변경', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -10588,7 +10613,8 @@ class _AdminScreenState extends State<AdminScreen>
           style: const TextStyle(fontSize: 13),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: isBlocked ? AppColors.success : AppColors.error,
@@ -10608,7 +10634,7 @@ class _AdminScreenState extends State<AdminScreen>
               }
             },
             child: Text(isBlocked ? '해제' : '차단',
-                style: TextStyle(color: Colors.white)),
+                style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -10646,7 +10672,7 @@ class _AdminScreenState extends State<AdminScreen>
                 memoCtrl.dispose();
                 Navigator.pop(ctx);
               },
-              child: Text('취소')),
+              child: const Text('취소')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             onPressed: () async {
@@ -10656,13 +10682,13 @@ class _AdminScreenState extends State<AdminScreen>
               await AuthService.updateUserMemo(uid, memo);
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
+                  const SnackBar(
                       content: Text('메모가 저장되었습니다'),
                       backgroundColor: AppColors.primary),
                 );
               }
             },
-            child: Text('저장', style: TextStyle(color: Colors.white)),
+            child: const Text('저장', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -10761,7 +10787,7 @@ class _AdminScreenState extends State<AdminScreen>
                         ),
                       );
                     },
-              child: Text('적립', style: const TextStyle(color: Colors.white)),
+              child: const Text('적립', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -10784,7 +10810,7 @@ class _AdminScreenState extends State<AdminScreen>
               const Icon(Icons.notifications_outlined,
                   size: 20, color: AppColors.primary),
               const SizedBox(width: 8),
-              Text('관리자 알림 & 설정',
+              const Text('관리자 알림 & 설정',
                   style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
               const Spacer(),
               // 브라우저 알림 권한 버튼
@@ -10847,7 +10873,7 @@ class _AdminScreenState extends State<AdminScreen>
                     // ── 실시간 알림 목록 ──
                     Row(
                       children: [
-                        Text('최근 알림',
+                        const Text('최근 알림',
                             style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
@@ -10859,7 +10885,7 @@ class _AdminScreenState extends State<AdminScreen>
                               AdminNotificationStore.clear();
                               setDlgState(() {});
                             },
-                            child: Text('전체 삭제',
+                            child: const Text('전체 삭제',
                                 style: TextStyle(
                                     fontSize: 11, color: AppColors.error)),
                           ),
@@ -10875,7 +10901,7 @@ class _AdminScreenState extends State<AdminScreen>
                             Icon(Icons.notifications_none_rounded,
                                 size: 40, color: Colors.grey.shade300),
                             const SizedBox(height: 8),
-                            Text('새 알림이 없습니다',
+                            const Text('새 알림이 없습니다',
                                 style: TextStyle(
                                     fontSize: 12,
                                     color: AppColors.textSecondary)),
@@ -10895,7 +10921,7 @@ class _AdminScreenState extends State<AdminScreen>
                           )),
                     const Divider(height: 20),
                     // ── 알림 설정 ──
-                    Text('알림 설정',
+                    const Text('알림 설정',
                         style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -10904,7 +10930,8 @@ class _AdminScreenState extends State<AdminScreen>
                     SwitchListTile.adaptive(
                       dense: true,
                       contentPadding: EdgeInsets.zero,
-                      title: Text('새 채팅 문의 알림', style: TextStyle(fontSize: 13)),
+                      title: const Text('새 채팅 문의 알림',
+                          style: TextStyle(fontSize: 13)),
                       value: _notifyNewChat,
                       activeColor: AppColors.primary,
                       onChanged: (v) {
@@ -10916,7 +10943,8 @@ class _AdminScreenState extends State<AdminScreen>
                     SwitchListTile.adaptive(
                       dense: true,
                       contentPadding: EdgeInsets.zero,
-                      title: Text('새 주문 알림', style: TextStyle(fontSize: 13)),
+                      title:
+                          const Text('새 주문 알림', style: TextStyle(fontSize: 13)),
                       value: _notifyNewOrder,
                       activeColor: AppColors.primary,
                       onChanged: (v) {
@@ -10928,9 +10956,9 @@ class _AdminScreenState extends State<AdminScreen>
                     SwitchListTile.adaptive(
                       dense: true,
                       contentPadding: EdgeInsets.zero,
-                      title:
-                          Text('문자(SMS) 알림 연동', style: TextStyle(fontSize: 13)),
-                      subtitle: Text('관리자 전화번호로 문의/주문 알림 발송',
+                      title: const Text('문자(SMS) 알림 연동',
+                          style: TextStyle(fontSize: 13)),
+                      subtitle: const Text('관리자 전화번호로 문의/주문 알림 발송',
                           style: TextStyle(fontSize: 11)),
                       value: _notifyChatSms,
                       activeColor: AppColors.primary,
@@ -10979,7 +11007,7 @@ class _AdminScreenState extends State<AdminScreen>
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: AppColors.accent),
                       ),
-                      child: Column(
+                      child: const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(children: [
@@ -11022,13 +11050,13 @@ class _AdminScreenState extends State<AdminScreen>
             ),
             actions: [
               TextButton(
-                  onPressed: () => Navigator.pop(ctx), child: Text('닫기')),
+                  onPressed: () => Navigator.pop(ctx), child: const Text('닫기')),
               ElevatedButton(
                 onPressed: () {
                   _saveAdminSettings();
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                         content: Text('알림 설정이 저장되었습니다'),
                         backgroundColor: AppColors.success),
                   );
@@ -11036,7 +11064,7 @@ class _AdminScreenState extends State<AdminScreen>
                 style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white),
-                child: Text('저장'),
+                child: const Text('저장'),
               ),
             ],
           );
@@ -11134,7 +11162,7 @@ class _AdminScreenState extends State<AdminScreen>
           Expanded(
             child: _selectedRoomId != null
                 ? _buildFirestoreChatDetail(_selectedRoomId!)
-                : Center(
+                : const Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -11180,7 +11208,7 @@ class _AdminScreenState extends State<AdminScreen>
               const Icon(Icons.chat_rounded,
                   size: 16, color: AppColors.primary),
               const SizedBox(width: 6),
-              Expanded(
+              const Expanded(
                   child: Text('채팅 상담 목록',
                       style: TextStyle(
                           fontSize: 13, fontWeight: FontWeight.w700))),
@@ -11238,11 +11266,11 @@ class _AdminScreenState extends State<AdminScreen>
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
             ),
-            child: Row(
+            child: const Row(
               children: [
-                const Icon(Icons.notifications_active_rounded,
+                Icon(Icons.notifications_active_rounded,
                     size: 13, color: AppColors.info),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 Expanded(
                     child: Text('실시간 채팅 알림 활성화됨',
                         style: TextStyle(fontSize: 11, color: AppColors.info))),
@@ -11261,10 +11289,12 @@ class _AdminScreenState extends State<AdminScreen>
               final allRooms = snapshot.data ?? [];
               // 필터 적용
               final rooms = allRooms.where((r) {
-                if (_chatFilterTab == 'active')
+                if (_chatFilterTab == 'active') {
                   return !r.isCompleted && !r.isBlocked;
-                if (_chatFilterTab == 'completed')
+                }
+                if (_chatFilterTab == 'completed') {
                   return r.isCompleted && !r.isBlocked;
+                }
                 if (_chatFilterTab == 'blocked') return r.isBlocked;
                 return true; // all
               }).toList();
@@ -11551,7 +11581,7 @@ class _AdminScreenState extends State<AdminScreen>
                           color:
                               AppColors.textSecondary.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(8)),
-                      child: Text('상담완료',
+                      child: const Text('상담완료',
                           style: TextStyle(
                               fontSize: 10,
                               color: AppColors.textSecondary,
@@ -11564,7 +11594,7 @@ class _AdminScreenState extends State<AdminScreen>
                       decoration: BoxDecoration(
                           color: AppColors.error.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(8)),
-                      child: Text('차단됨',
+                      child: const Text('차단됨',
                           style: TextStyle(
                               fontSize: 10,
                               color: AppColors.error,
@@ -11577,7 +11607,7 @@ class _AdminScreenState extends State<AdminScreen>
                       decoration: BoxDecoration(
                           color: AppColors.success.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(8)),
-                      child: Text('상담중',
+                      child: const Text('상담중',
                           style: TextStyle(
                               fontSize: 10,
                               color: AppColors.success,
@@ -11605,7 +11635,7 @@ class _AdminScreenState extends State<AdminScreen>
                     await ChatService.reopenRoom(room.id);
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                           content: Text('상담을 재개했습니다.'),
                           backgroundColor: AppColors.success),
                     );
@@ -11614,7 +11644,7 @@ class _AdminScreenState extends State<AdminScreen>
                         completedBy: 'admin');
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                           content: Text('상담을 완료 처리했습니다.'),
                           backgroundColor: AppColors.textSecondary),
                     );
@@ -11630,7 +11660,7 @@ class _AdminScreenState extends State<AdminScreen>
               title: Text(room.isBlocked ? '차단 해제' : '사용자 차단'),
               subtitle: room.isBlocked
                   ? null
-                  : Text('차단 시 해당 사용자의 메시지를 받지 않습니다',
+                  : const Text('차단 시 해당 사용자의 메시지를 받지 않습니다',
                       style: TextStyle(fontSize: 11)),
               onTap: () async {
                 Navigator.pop(context);
@@ -11646,16 +11676,16 @@ class _AdminScreenState extends State<AdminScreen>
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (_) => AlertDialog(
-                      title: Text('사용자 차단'),
+                      title: const Text('사용자 차단'),
                       content: Text(
                           '${room.userName}님을 차단하시겠습니까?\n차단 후에도 이전 대화 내용은 유지됩니다.'),
                       actions: [
                         TextButton(
                             onPressed: () => Navigator.pop(context, false),
-                            child: Text('취소')),
+                            child: const Text('취소')),
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
-                          child: Text('차단',
+                          child: const Text('차단',
                               style: TextStyle(color: AppColors.error)),
                         ),
                       ],
@@ -11677,24 +11707,25 @@ class _AdminScreenState extends State<AdminScreen>
             ListTile(
               leading: const Icon(Icons.delete_outline_rounded,
                   color: AppColors.error),
-              title: Text('채팅 삭제', style: TextStyle(color: AppColors.error)),
-              subtitle:
-                  Text('모든 대화 내용이 영구 삭제됩니다', style: TextStyle(fontSize: 11)),
+              title:
+                  const Text('채팅 삭제', style: TextStyle(color: AppColors.error)),
+              subtitle: const Text('모든 대화 내용이 영구 삭제됩니다',
+                  style: TextStyle(fontSize: 11)),
               onTap: () async {
                 Navigator.pop(context);
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (_) => AlertDialog(
-                    title: Text('채팅 삭제'),
+                    title: const Text('채팅 삭제'),
                     content: Text(
                         '${room.userName}님과의 모든 채팅을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.'),
                     actions: [
                       TextButton(
                           onPressed: () => Navigator.pop(context, false),
-                          child: Text('취소')),
+                          child: const Text('취소')),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: Text('삭제',
+                        child: const Text('삭제',
                             style: TextStyle(
                                 color: AppColors.error,
                                 fontWeight: FontWeight.w700)),
@@ -11706,8 +11737,9 @@ class _AdminScreenState extends State<AdminScreen>
                   try {
                     await ChatService.deleteRoom(room.id);
                     if (!mounted) return;
-                    if (_selectedRoomId == room.id)
+                    if (_selectedRoomId == room.id) {
                       setState(() => _selectedRoomId = null);
+                    }
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                           content: Text('${room.userName}님의 채팅을 삭제했습니다.'),
@@ -11802,7 +11834,7 @@ class _AdminScreenState extends State<AdminScreen>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(room?.userName ?? '고객',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w700),
                                       overflow: TextOverflow.ellipsis),
@@ -11810,7 +11842,7 @@ class _AdminScreenState extends State<AdminScreen>
                                       room?.language == 'ko'
                                           ? '한국어 채팅'
                                           : '다국어 채팅',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           fontSize: 10,
                                           color: Color(0xFFFF8F00))),
                                 ],
@@ -11831,7 +11863,7 @@ class _AdminScreenState extends State<AdminScreen>
                                 await ChatService.reopenRoom(roomId);
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
+                                  const SnackBar(
                                       content: Text('상담을 재개했습니다.'),
                                       backgroundColor: AppColors.success),
                                 );
@@ -11847,7 +11879,7 @@ class _AdminScreenState extends State<AdminScreen>
                                       color: AppColors.textSecondary
                                           .withValues(alpha: 0.3)),
                                 ),
-                                child: Row(
+                                child: const Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text('상담완료',
@@ -11870,7 +11902,7 @@ class _AdminScreenState extends State<AdminScreen>
                                     completedBy: 'admin');
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
+                                  const SnackBar(
                                       content: Text('상담을 완료 처리했습니다.'),
                                       backgroundColor: AppColors.success),
                                 );
@@ -11886,7 +11918,7 @@ class _AdminScreenState extends State<AdminScreen>
                                       color: AppColors.success
                                           .withValues(alpha: 0.3)),
                                 ),
-                                child: Row(
+                                child: const Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text('상담 중',
@@ -11941,7 +11973,7 @@ class _AdminScreenState extends State<AdminScreen>
                   // 새 메시지 도착 시 자동 스크롤
                   if (msgs.isNotEmpty) scrollToBottom();
                   if (msgs.isEmpty) {
-                    return Center(
+                    return const Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -12159,7 +12191,7 @@ class _AdminScreenState extends State<AdminScreen>
           Icon(Icons.chat_bubble_outline_rounded,
               size: 64, color: AppColors.textHint.withValues(alpha: 0.4)),
           const SizedBox(height: 16),
-          Text('채팅 세션을 선택하세요',
+          const Text('채팅 세션을 선택하세요',
               style: TextStyle(fontSize: 15, color: AppColors.textSecondary)),
         ],
       ),
@@ -12209,7 +12241,7 @@ class _AdminScreenState extends State<AdminScreen>
                             style: const TextStyle(
                                 fontSize: 14, fontWeight: FontWeight.w700),
                             overflow: TextOverflow.ellipsis),
-                        Text('한국어로 표시 중',
+                        const Text('한국어로 표시 중',
                             style: TextStyle(
                                 fontSize: 10, color: Color(0xFFFF8F00))),
                       ],
@@ -12224,7 +12256,7 @@ class _AdminScreenState extends State<AdminScreen>
                       border: Border.all(
                           color: AppColors.success.withValues(alpha: 0.3)),
                     ),
-                    child: Text('상담 중',
+                    child: const Text('상담 중',
                         style: TextStyle(
                             fontSize: 10,
                             color: AppColors.success,
@@ -12341,10 +12373,10 @@ class _AdminScreenState extends State<AdminScreen>
                         color: Colors.white, size: 18),
                   ),
                   const SizedBox(width: 10),
-                  Expanded(
+                  const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text('섹션 이미지 관리',
                             style: TextStyle(
                                 fontSize: 14, fontWeight: FontWeight.w800),
@@ -12361,7 +12393,7 @@ class _AdminScreenState extends State<AdminScreen>
                   ElevatedButton.icon(
                     onPressed: () => _showAddSectionDialog(),
                     icon: const Icon(Icons.add_rounded, size: 13),
-                    label: Text('섹션 추가', style: TextStyle(fontSize: 11)),
+                    label: const Text('섹션 추가', style: TextStyle(fontSize: 11)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -12388,7 +12420,7 @@ class _AdminScreenState extends State<AdminScreen>
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: _sectionSelectedProductId,
-                    hint: Text('상품을 선택하세요',
+                    hint: const Text('상품을 선택하세요',
                         style: TextStyle(
                             fontSize: 13, color: AppColors.textSecondary)),
                     isExpanded: true,
@@ -12494,7 +12526,7 @@ class _AdminScreenState extends State<AdminScreen>
                         size: 40, color: AppColors.textHint),
                   ),
                   const SizedBox(height: 16),
-                  Text('위에서 상품을 선택하면\n섹션별 이미지를 관리할 수 있습니다',
+                  const Text('위에서 상품을 선택하면\n섹션별 이미지를 관리할 수 있습니다',
                       style: TextStyle(
                           fontSize: 14,
                           color: AppColors.textSecondary,
@@ -12514,14 +12546,14 @@ class _AdminScreenState extends State<AdminScreen>
                         const Icon(Icons.add_circle_outline_rounded,
                             size: 48, color: AppColors.textHint),
                         const SizedBox(height: 12),
-                        Text('섹션이 없습니다',
+                        const Text('섹션이 없습니다',
                             style: TextStyle(
                                 fontSize: 14, color: AppColors.textSecondary)),
                         const SizedBox(height: 12),
                         ElevatedButton.icon(
                           onPressed: () => _showAddSectionDialog(),
                           icon: const Icon(Icons.add_rounded, size: 16),
-                          label: Text('첫 섹션 추가하기'),
+                          label: const Text('첫 섹션 추가하기'),
                           style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white),
@@ -12639,7 +12671,7 @@ class _AdminScreenState extends State<AdminScreen>
         builder: (ctx, setDialogState) => AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text('섹션 추가',
+          title: const Text('섹션 추가',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
           content: SingleChildScrollView(
             child: Column(
@@ -12674,7 +12706,7 @@ class _AdminScreenState extends State<AdminScreen>
                 ),
                 const SizedBox(height: 14),
                 // ── 대표 이미지 업로드 ──
-                Text('대표 이미지 (선택)',
+                const Text('대표 이미지 (선택)',
                     style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -12731,7 +12763,7 @@ class _AdminScreenState extends State<AdminScreen>
                               ),
                             ],
                           )
-                        : Column(
+                        : const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.add_photo_alternate_rounded,
@@ -12749,7 +12781,8 @@ class _AdminScreenState extends State<AdminScreen>
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
             ElevatedButton(
               onPressed: isUploading
                   ? null
@@ -12804,7 +12837,7 @@ class _AdminScreenState extends State<AdminScreen>
                       height: 16,
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: Colors.white))
-                  : Text('추가'),
+                  : const Text('추가'),
             ),
           ],
         ),
@@ -12934,8 +12967,9 @@ class _AdminScreenState extends State<AdminScreen>
               setState(() => _customSections.removeAt(index));
               final saved = await _persistContentCatalogs();
               if (!saved) {
-                if (mounted)
+                if (mounted) {
                   setState(() => _customSections.insert(index, removed));
+                }
                 return;
               }
               if (ctx.mounted) Navigator.pop(ctx);
@@ -12994,7 +13028,7 @@ class _AdminScreenState extends State<AdminScreen>
                             color: Colors.white, size: 18),
                       ),
                       const SizedBox(width: 10),
-                      Expanded(
+                      const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
@@ -13004,16 +13038,16 @@ class _AdminScreenState extends State<AdminScreen>
                               maxLines: 1,
                               softWrap: false,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 15, fontWeight: FontWeight.w800),
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: 2),
                             Text(
                               '상품 색상을 추가·편집·삭제합니다',
                               maxLines: 1,
                               softWrap: false,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 11, color: AppColors.textSecondary),
                             ),
                           ],
@@ -13110,13 +13144,13 @@ class _AdminScreenState extends State<AdminScreen>
                   onPressed: _confirmDeleteSelectedColors,
                   icon: const Icon(Icons.delete_rounded,
                       size: 16, color: AppColors.error),
-                  label: Text('삭제',
+                  label: const Text('삭제',
                       style: TextStyle(
                           color: AppColors.error, fontWeight: FontWeight.w700)),
                 ),
                 TextButton(
                   onPressed: () => setState(() => _selectedColorIds.clear()),
-                  child: Text('취소',
+                  child: const Text('취소',
                       style: TextStyle(color: AppColors.textSecondary)),
                 ),
               ],
@@ -13132,14 +13166,14 @@ class _AdminScreenState extends State<AdminScreen>
                       const Icon(Icons.palette_outlined,
                           size: 60, color: AppColors.border),
                       const SizedBox(height: 16),
-                      Text('색상이 없습니다',
+                      const Text('색상이 없습니다',
                           style: TextStyle(
                               fontSize: 15, color: AppColors.textSecondary)),
                       const SizedBox(height: 12),
                       ElevatedButton.icon(
                         onPressed: () => _showAddColorDialog(),
                         icon: const Icon(Icons.add_rounded, size: 16),
-                        label: Text('색상 추가'),
+                        label: const Text('색상 추가'),
                         style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white),
@@ -13170,7 +13204,7 @@ class _AdminScreenState extends State<AdminScreen>
                               }),
                               activeColor: AppColors.primary,
                             ),
-                            Text('전체 선택',
+                            const Text('전체 선택',
                                 style: TextStyle(
                                     fontSize: 13, fontWeight: FontWeight.w600)),
                             const Spacer(),
@@ -13314,7 +13348,7 @@ class _AdminScreenState extends State<AdminScreen>
                                                   BorderRadius.circular(8),
                                             ),
                                             child: Text(active ? '활성' : '비활성',
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                     color: Colors.white,
                                                     fontSize: 9,
                                                     fontWeight:
@@ -13386,7 +13420,7 @@ class _AdminScreenState extends State<AdminScreen>
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(4)),
-                                                    child: Text('이미지',
+                                                    child: const Text('이미지',
                                                         style: TextStyle(
                                                             fontSize: 9,
                                                             color: Color(
@@ -13406,7 +13440,7 @@ class _AdminScreenState extends State<AdminScreen>
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(4)),
-                                                    child: Text('카드',
+                                                    child: const Text('카드',
                                                         style: TextStyle(
                                                             fontSize: 9,
                                                             color: Color(
@@ -13437,7 +13471,7 @@ class _AdminScreenState extends State<AdminScreen>
                                                   borderRadius:
                                                       BorderRadius.circular(6),
                                                 ),
-                                                child: Row(
+                                                child: const Row(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment.center,
                                                   children: [
@@ -13462,7 +13496,7 @@ class _AdminScreenState extends State<AdminScreen>
                                               showDialog(
                                                 context: context,
                                                 builder: (_) => AlertDialog(
-                                                  title: Text('색상 삭제'),
+                                                  title: const Text('색상 삭제'),
                                                   content: Text(
                                                       '"${c['name']}" 색상을 삭제하시겠습니까?'),
                                                   actions: [
@@ -13470,7 +13504,8 @@ class _AdminScreenState extends State<AdminScreen>
                                                         onPressed: () =>
                                                             Navigator.pop(
                                                                 context),
-                                                        child: Text('취소')),
+                                                        child:
+                                                            const Text('취소')),
                                                     ElevatedButton(
                                                       style: ElevatedButton
                                                           .styleFrom(
@@ -13514,7 +13549,7 @@ class _AdminScreenState extends State<AdminScreen>
                                                           );
                                                         }
                                                       },
-                                                      child: Text('삭제'),
+                                                      child: const Text('삭제'),
                                                     ),
                                                   ],
                                                 ),
@@ -13626,14 +13661,14 @@ class _AdminScreenState extends State<AdminScreen>
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setS) => AlertDialog(
-          title: Text('색상 추가',
+          title: const Text('색상 추가',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('색상 이름',
+                const Text('색상 이름',
                     style:
                         TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
@@ -13665,7 +13700,7 @@ class _AdminScreenState extends State<AdminScreen>
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text('카테고리',
+                const Text('카테고리',
                     style:
                         TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
@@ -13690,7 +13725,7 @@ class _AdminScreenState extends State<AdminScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('이미지 연결',
+                          const Text('이미지 연결',
                               style: TextStyle(
                                   fontSize: 12, fontWeight: FontWeight.w700)),
                           Switch(
@@ -13706,7 +13741,7 @@ class _AdminScreenState extends State<AdminScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('버튼카드 생성',
+                          const Text('버튼카드 생성',
                               style: TextStyle(
                                   fontSize: 12, fontWeight: FontWeight.w700)),
                           Switch(
@@ -13722,7 +13757,7 @@ class _AdminScreenState extends State<AdminScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('활성화',
+                          const Text('활성화',
                               style: TextStyle(
                                   fontSize: 12, fontWeight: FontWeight.w700)),
                           Switch(
@@ -13740,7 +13775,7 @@ class _AdminScreenState extends State<AdminScreen>
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Text('미리보기: ', style: TextStyle(fontSize: 12)),
+                    const Text('미리보기: ', style: TextStyle(fontSize: 12)),
                     Container(
                       width: 40,
                       height: 24,
@@ -13756,7 +13791,8 @@ class _AdminScreenState extends State<AdminScreen>
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -13766,7 +13802,7 @@ class _AdminScreenState extends State<AdminScreen>
                 final hex = hexCtrl.text.trim();
                 if (name.isEmpty || hex.length < 4) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                         content: Text('색상 이름과 HEX 코드를 입력해주세요'),
                         backgroundColor: AppColors.error),
                   );
@@ -13798,7 +13834,7 @@ class _AdminScreenState extends State<AdminScreen>
                   );
                 }
               },
-              child: Text('추가'),
+              child: const Text('추가'),
             ),
           ],
         ),
@@ -13840,7 +13876,7 @@ class _AdminScreenState extends State<AdminScreen>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('색상 이름',
+                const Text('색상 이름',
                     style:
                         TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
@@ -13883,7 +13919,7 @@ class _AdminScreenState extends State<AdminScreen>
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text('카테고리',
+                const Text('카테고리',
                     style:
                         TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
@@ -13904,7 +13940,7 @@ class _AdminScreenState extends State<AdminScreen>
                   onChanged: (v) => setS(() => category = v ?? category),
                 ),
                 const SizedBox(height: 12),
-                Text('설정',
+                const Text('설정',
                     style:
                         TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
@@ -13928,7 +13964,8 @@ class _AdminScreenState extends State<AdminScreen>
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -13965,7 +14002,7 @@ class _AdminScreenState extends State<AdminScreen>
                   );
                 }
               },
-              child: Text('저장'),
+              child: const Text('저장'),
             ),
           ],
         ),
@@ -14023,7 +14060,7 @@ class _AdminScreenState extends State<AdminScreen>
                         color: Colors.white, size: 18),
                   ),
                   const SizedBox(width: 10),
-                  Expanded(
+                  const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -14178,21 +14215,21 @@ class _AdminScreenState extends State<AdminScreen>
                       _selectedDesignRequestIds.clear();
                     });
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                           content: Text('선택된 요청이 삭제되었습니다'),
                           backgroundColor: AppColors.error),
                     );
                   },
                   icon: const Icon(Icons.delete_rounded,
                       size: 16, color: AppColors.error),
-                  label: Text('삭제',
+                  label: const Text('삭제',
                       style: TextStyle(
                           color: AppColors.error, fontWeight: FontWeight.w700)),
                 ),
                 TextButton(
                   onPressed: () =>
                       setState(() => _selectedDesignRequestIds.clear()),
-                  child: Text('취소',
+                  child: const Text('취소',
                       style: TextStyle(color: AppColors.textSecondary)),
                 ),
               ],
@@ -14242,7 +14279,7 @@ class _AdminScreenState extends State<AdminScreen>
                               }),
                               activeColor: AppColors.primary,
                             ),
-                            Text('전체 선택',
+                            const Text('전체 선택',
                                 style: TextStyle(
                                     fontSize: 13, fontWeight: FontWeight.w600)),
                             const Spacer(),
@@ -14475,7 +14512,7 @@ class _AdminScreenState extends State<AdminScreen>
                                                               as String? ??
                                                           '';
                                                       return Text(
-                                                        '${idx}번${name.isNotEmpty ? " $name" : ""}: $before → $after',
+                                                        '$idx번${name.isNotEmpty ? " $name" : ""}: $before → $after',
                                                         style: const TextStyle(
                                                             fontSize: 11,
                                                             color: Color(
@@ -14606,8 +14643,9 @@ class _AdminScreenState extends State<AdminScreen>
                                           .collection('orders')
                                           .doc(orderId)
                                           .get();
-                                      if (!doc.exists || !context.mounted)
+                                      if (!doc.exists || !context.mounted) {
                                         return;
+                                      }
                                       final order =
                                           OrderService.parseOrderFromFirestore(
                                               doc.data()!,
@@ -14865,7 +14903,7 @@ class _AdminScreenState extends State<AdminScreen>
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('관리자 메모',
+        title: const Text('관리자 메모',
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
         content: TextField(
           controller: noteCtrl,
@@ -14877,7 +14915,8 @@ class _AdminScreenState extends State<AdminScreen>
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -14923,7 +14962,7 @@ class _AdminScreenState extends State<AdminScreen>
                 }
               }
             },
-            child: Text('저장'),
+            child: const Text('저장'),
           ),
         ],
       ),
@@ -15061,15 +15100,15 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
       context: context,
       builder: (_) => AlertDialog(
         title: Text('${widget.sectionLabel} 이미지 전체 삭제'),
-        content: Text('이 섹션의 모든 이미지를 삭제하시겠습니까?'),
+        content: const Text('이 섹션의 모든 이미지를 삭제하시겠습니까?'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text('취소')),
+              child: const Text('취소')),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: Text('삭제', style: TextStyle(color: Colors.white)),
+            child: const Text('삭제', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -15293,7 +15332,7 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                               color: const Color(0xFFFFEBEE),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Row(
+                            child: const Row(
                               children: [
                                 Icon(Icons.delete_sweep_rounded,
                                     color: AppColors.error, size: 16),
@@ -15353,7 +15392,7 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                             color: AppColors.success,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text('추가',
+                          child: const Text('추가',
                               style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 13,
@@ -15366,7 +15405,7 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                   // ── 등록된 이미지 목록 ──
                   if (hasImages) ...[
                     const SizedBox(height: 14),
-                    Row(
+                    const Row(
                       children: [
                         Icon(Icons.photo_library_rounded,
                             size: 14, color: AppColors.textSecondary),
@@ -15497,7 +15536,7 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                         border: Border.all(
                             color: AppColors.border, style: BorderStyle.solid),
                       ),
-                      child: Column(
+                      child: const Column(
                         children: [
                           Icon(Icons.image_outlined,
                               size: 32, color: AppColors.border),
@@ -15676,7 +15715,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   // ── 자동저장 타이머 (수정 모드 전용)
   Timer? _autoSaveTimer;
 // ignore: unused_field
-  bool _autoSaved = false; // 마지막 자동저장 성공 표시
+  final bool _autoSaved = false; // 마지막 자동저장 성공 표시
   // ── 신규 등록 시 사용할 고정 임시 ID (업로드와 저장 간 ID 일치 보장)
   late final String _tempProductId;
   // ── 토글
@@ -15958,19 +15997,19 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   Future<void> _save() async {
     if (_nameCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('상품명을 입력해주세요')));
+          .showSnackBar(const SnackBar(content: Text('상품명을 입력해주세요')));
       return;
     }
     // ── 업로드 중이면 완료 대기
     if (_isUploading) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('이미지 업로드 중입니다. 완료 후 저장해주세요.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('이미지 업로드 중입니다. 완료 후 저장해주세요.')));
       return;
     }
     final price = double.tryParse(_priceCtrl.text.replaceAll(',', '')) ?? 0;
     if (price <= 0) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('올바른 가격을 입력해주세요')));
+          .showSnackBar(const SnackBar(content: Text('올바른 가격을 입력해주세요')));
       return;
     }
     final origPrice = double.tryParse(_origPriceCtrl.text.replaceAll(',', ''));
@@ -15979,7 +16018,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     final pendingCount = _imageItems.where((e) => e['pending'] == true).length;
     if (pendingCount > 0) {
       // pending 항목이 있으면 아직 업로드 중
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('이미지 Firebase 업로드 중입니다. 잠시 후 다시 저장해주세요.'),
         duration: Duration(seconds: 3),
       ));
@@ -16001,11 +16040,12 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     if (translations.isEmpty || _lastTranslatedName != productName) {
       if (mounted) setState(() => _isTranslating = true);
       translations = await TranslationService.translateWithCache(productName);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _nameTranslations = translations;
           _isTranslating = false;
         });
+      }
     }
     // 설명 번역 (번역 없으면 실행)
     if (descTranslations.isEmpty && productDesc.isNotEmpty) {
@@ -16074,12 +16114,13 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
           ? _buildStockData()
               .values
               .expand((colorMap) => colorMap.values)
-              .fold(0, (sum, qty) => sum + qty)
+              .fold(0, (total, qty) => total + qty)
           : _sizeStockCtrls.isEmpty
               ? (int.tryParse(_stockCtrl.text) ?? 100)
               : _sizeStockCtrls.entries
                   .where((e) => !_soldOutSizes.contains(e.key))
-                  .fold(0, (sum, e) => sum + (int.tryParse(e.value.text) ?? 0)),
+                  .fold(0,
+                      (total, e) => total + (int.tryParse(e.value.text) ?? 0)),
       soldOutSizes: _soldOutSizes.toList(),
       isActive: _isActive,
       createdAt: widget.existing?.createdAt ?? DateTime.now(),
@@ -16488,7 +16529,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     // ── 이미지 업로드 섹션
                     // ══════════════════════════════
                     Row(children: [
-                      Text('상품 이미지',
+                      const Text('상품 이미지',
                           style: TextStyle(
                               fontSize: 13, fontWeight: FontWeight.w700)),
                       const SizedBox(width: 6),
@@ -16610,7 +16651,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                               borderRadius: BorderRadius.circular(10)),
                           minimumSize: Size.zero,
                         ),
-                        child: Text('추가',
+                        child: const Text('추가',
                             style:
                                 TextStyle(color: Colors.white, fontSize: 13)),
                       ),
@@ -16702,7 +16743,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                         color: AppColors.primary,
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      child: Text('대표',
+                                      child: const Text('대표',
                                           style: TextStyle(
                                               fontSize: 9,
                                               color: Colors.white,
@@ -16832,10 +16873,12 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                         _selSubCat.contains('싱글렛'));
                                 final isTaiz = _selSubCat.contains('타이즈') ||
                                     _selCat == '하의';
-                                if (isSingletSet)
+                                if (isSingletSet) {
                                   return '자동: 상의 폴리에스터 92%/라이크라 8% + 하의 나일론 75%/라이크라 25%';
-                                if (isSingletTop)
+                                }
+                                if (isSingletTop) {
                                   return '자동: 폴리에스터 92% / 라이크라 8%';
+                                }
                                 if (isTaiz) return '자동: 나일론 75% / 라이크라 25%';
                                 return '자동: 비어있으면 기본값 78% Nylon, 22% Spandex';
                               }(),
@@ -16905,7 +16948,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: const Color(0xFFFFB74D)),
                       ),
-                      child: Row(children: [
+                      child: const Row(children: [
                         Icon(Icons.info_outline,
                             size: 13, color: AppColors.accent),
                         SizedBox(width: 6),
@@ -17089,10 +17132,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (_isGroupOnly && _isReadyMade) ...[
-                                Row(children: [
-                                  const Icon(Icons.info_outline_rounded,
+                                const Row(children: [
+                                  Icon(Icons.info_outline_rounded,
                                       size: 13, color: Color(0xFF8E24AA)),
-                                  const SizedBox(width: 5),
+                                  SizedBox(width: 5),
                                   Expanded(
                                       child: Text(
                                     '단체전용 + 기성품 동시 적용',
@@ -17205,7 +17248,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: Text('닫기'),
+                      child: const Text('닫기'),
                     )),
                     const SizedBox(width: 10),
                     Expanded(
@@ -17225,7 +17268,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                   child: CircularProgressIndicator(
                                       strokeWidth: 2, color: Colors.white))
                               : _isUploading
-                                  ? Row(
+                                  ? const Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
@@ -17241,7 +17284,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                                   color: Colors.white70,
                                                   fontWeight: FontWeight.w700)),
                                         ])
-                                  : Row(
+                                  : const Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
@@ -17266,7 +17309,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: Text('취소'),
+                      child: const Text('취소'),
                     )),
                     const SizedBox(width: 10),
                     Expanded(
@@ -17408,7 +17451,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
         children: [
           // ── 빠른 프리셋 버튼
           Row(children: [
-            Text('빠른 선택',
+            const Text('빠른 선택',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -17520,7 +17563,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
               const Icon(Icons.remove_shopping_cart_outlined,
                   size: 15, color: AppColors.error),
               const SizedBox(width: 6),
-              Text('품절 사이즈 설정',
+              const Text('품절 사이즈 설정',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -17544,7 +17587,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: const Color(0xFFEF9A9A)),
                     ),
-                    child: Text('전체 해제',
+                    child: const Text('전체 해제',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -17556,7 +17599,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
           ),
           const SizedBox(height: 8),
           // 안내 문구
-          Text(
+          const Text(
             '탭하여 품절 사이즈를 지정합니다. 상품 상세에서 취소선+품절 표시됩니다.',
             style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
           ),
@@ -17882,7 +17925,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
             const Icon(Icons.warehouse_rounded,
                 size: 15, color: AppColors.info),
             const SizedBox(width: 6),
-            Text('사이즈별 재고',
+            const Text('사이즈별 재고',
                 style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -17898,20 +17941,20 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     return AlertDialog(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16)),
-                      title: Text('전체 재고 일괄 설정',
+                      title: const Text('전체 재고 일괄 설정',
                           style: TextStyle(
                               fontSize: 15, fontWeight: FontWeight.w700)),
                       content: TextField(
                         controller: ctrl,
                         keyboardType: TextInputType.number,
                         autofocus: true,
-                        decoration:
-                            InputDecoration(labelText: '수량', suffixText: '개'),
+                        decoration: const InputDecoration(
+                            labelText: '수량', suffixText: '개'),
                       ),
                       actions: [
                         TextButton(
                             onPressed: () => Navigator.pop(context),
-                            child: Text('취소')),
+                            child: const Text('취소')),
                         ElevatedButton(
                           onPressed: () {
                             final v = int.tryParse(ctrl.text) ?? 100;
@@ -17922,7 +17965,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                             });
                             Navigator.pop(context);
                           },
-                          child: Text('적용'),
+                          child: const Text('적용'),
                         ),
                       ],
                     );
@@ -17936,7 +17979,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                   color: AppColors.info,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text('일괄 설정',
+                child: const Text('일괄 설정',
                     style: TextStyle(
                         fontSize: 11,
                         color: Colors.white,
@@ -18095,7 +18138,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(children: [
+        title: const Row(children: [
           Icon(Icons.category_outlined, color: AppColors.primary, size: 20),
           SizedBox(width: 8),
           Text('메인 카테고리 추가',
@@ -18107,7 +18150,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('새 카테고리 이름을 입력하세요.',
+              const Text('새 카테고리 이름을 입력하세요.',
                   style:
                       TextStyle(fontSize: 12, color: AppColors.textSecondary)),
               const SizedBox(height: 10),
@@ -18132,14 +18175,15 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             onPressed: () {
               final v = ctrl.text.trim();
               if (v.isNotEmpty) Navigator.pop(ctx, v);
             },
-            child: Text('추가', style: TextStyle(color: Colors.white)),
+            child: const Text('추가', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -18215,7 +18259,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3F51B5)),
@@ -18223,7 +18268,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
               final v = ctrl.text.trim();
               if (v.isNotEmpty) Navigator.pop(ctx, v);
             },
-            child: Text('추가', style: TextStyle(color: Colors.white)),
+            child: const Text('추가', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -18629,7 +18674,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── 테마 선택 ──
-                  Text('테마 *',
+                  const Text('테마 *',
                       style:
                           TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 8),
@@ -18670,7 +18715,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                     }).toList(),
                   ),
                   const SizedBox(height: 16),
-                  Text('제목 *',
+                  const Text('제목 *',
                       style:
                           TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
@@ -18685,7 +18730,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text('내용 *',
+                  const Text('내용 *',
                       style:
                           TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
@@ -18705,11 +18750,11 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                   // ── 이미지 설정 ──
                   Row(
                     children: [
-                      Text('팝업 이미지',
+                      const Text('팝업 이미지',
                           style: TextStyle(
                               fontSize: 13, fontWeight: FontWeight.w700)),
                       const Spacer(),
-                      Text('자동 이미지',
+                      const Text('자동 이미지',
                           style: TextStyle(
                               fontSize: 12, color: AppColors.textSecondary)),
                       const SizedBox(width: 4),
@@ -18833,7 +18878,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                                       fit: BoxFit.cover,
                                     ),
                                   )
-                                : Column(
+                                : const Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(Icons.add_photo_alternate_rounded,
@@ -18944,7 +18989,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                           color: const Color(0xFFE8F5E9),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: Row(
+                        child: const Row(
                           children: [
                             Icon(Icons.check_circle_rounded,
                                 size: 14, color: AppColors.success),
@@ -18963,7 +19008,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Text('즉시 활성화',
+                      const Text('즉시 활성화',
                           style: TextStyle(
                               fontSize: 13, fontWeight: FontWeight.w700)),
                       const Spacer(),
@@ -18983,7 +19028,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                           color:
                               const Color(0xFFFFCC02).withValues(alpha: 0.5)),
                     ),
-                    child: Row(
+                    child: const Row(
                       children: [
                         Icon(Icons.translate_rounded,
                             size: 14, color: Color(0xFF795548)),
@@ -19043,8 +19088,8 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child:
-                  Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+              child: const Text('취소',
+                  style: TextStyle(color: AppColors.textSecondary)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -19058,7 +19103,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                 final content = contentCtrl.text.trim();
                 if (title.isEmpty || content.isEmpty) {
                   ScaffoldMessenger.of(ctx).showSnackBar(
-                    SnackBar(content: Text('제목과 내용을 모두 입력해주세요')),
+                    const SnackBar(content: Text('제목과 내용을 모두 입력해주세요')),
                   );
                   return;
                 }
@@ -19147,7 +19192,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 22),
             SizedBox(width: 8),
@@ -19163,7 +19208,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('취소'),
+            child: const Text('취소'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -19173,7 +19218,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                   borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('삭제'),
+            child: const Text('삭제'),
           ),
         ],
       ),
@@ -19185,7 +19230,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(children: [
+            content: const Row(children: [
               Icon(Icons.delete_rounded, color: Colors.white, size: 16),
               SizedBox(width: 8),
               Text('공지사항이 삭제되었습니다'),
@@ -19299,7 +19344,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
               border: Border.all(
                   color: const Color(0xFF5C6BC0).withValues(alpha: 0.3)),
             ),
-            child: Row(
+            child: const Row(
               children: [
                 Icon(Icons.info_outline_rounded,
                     size: 16, color: Color(0xFF3949AB)),
@@ -19338,7 +19383,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                                   size: 48, color: AppColors.primaryLight),
                             ),
                             const SizedBox(height: 16),
-                            Text('등록된 공지사항이 없습니다',
+                            const Text('등록된 공지사항이 없습니다',
                                 style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
@@ -19458,7 +19503,7 @@ class _NoticeCard extends StatelessWidget {
                         color: AppColors.info.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.translate_rounded,
@@ -19568,7 +19613,7 @@ class _NoticeCard extends StatelessWidget {
                   OutlinedButton.icon(
                     onPressed: onEdit,
                     icon: const Icon(Icons.edit_rounded, size: 14),
-                    label: Text('수정',
+                    label: const Text('수정',
                         style: TextStyle(
                             fontSize: 12, fontWeight: FontWeight.w600)),
                     style: OutlinedButton.styleFrom(
@@ -19685,11 +19730,12 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
         );
       }
     }
-    if (mounted)
+    if (mounted) {
       setState(() {
         _loading = false;
         _selectedMain ??= CategoryService.mainCategories.firstOrNull;
       });
+    }
   }
 
   @override
@@ -19724,7 +19770,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                         const Icon(Icons.category_rounded,
                             size: 16, color: AppColors.primary),
                         const SizedBox(width: 6),
-                        Text('메인 카테고리',
+                        const Text('메인 카테고리',
                             style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
@@ -19740,7 +19786,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                               color: AppColors.primary,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(Icons.add, size: 13, color: Colors.white),
@@ -19860,7 +19906,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                 color: const Color(0xFF3F51B5),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Row(
+                              child: const Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(Icons.add,
@@ -19880,7 +19926,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                     const SizedBox(height: 10),
                     Expanded(
                       child: _selectedMain == null
-                          ? Center(
+                          ? const Center(
                               child: Text('왼쪽에서 메인 카테고리를 선택하세요',
                                   style: TextStyle(
                                       color: AppColors.textSecondary)))
@@ -19898,7 +19944,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                               size: 40,
                                               color: AppColors.border),
                                           const SizedBox(height: 8),
-                                          Text('하위 카테고리가 없습니다',
+                                          const Text('하위 카테고리가 없습니다',
                                               style: TextStyle(
                                                   color: AppColors.textHint)),
                                           const SizedBox(height: 12),
@@ -19906,7 +19952,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                             onPressed: _showAddSubCatDialog,
                                             icon:
                                                 const Icon(Icons.add, size: 14),
-                                            label: Text('추가하기'),
+                                            label: const Text('추가하기'),
                                             style: ElevatedButton.styleFrom(
                                                 backgroundColor:
                                                     const Color(0xFF3F51B5),
@@ -20000,7 +20046,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: const Color(0xFFFFD54F)),
                       ),
-                      child: Row(
+                      child: const Row(
                         children: [
                           Icon(Icons.info_outline_rounded,
                               size: 13, color: AppColors.warning),
@@ -20032,7 +20078,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(children: [
+        title: const Row(children: [
           Icon(Icons.add_circle_outline_rounded,
               color: AppColors.primary, size: 20),
           SizedBox(width: 8),
@@ -20045,7 +20091,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('새 카테고리 이름을 입력하세요.',
+                const Text('새 카테고리 이름을 입력하세요.',
                     style: TextStyle(
                         fontSize: 12, color: AppColors.textSecondary)),
                 const SizedBox(height: 10),
@@ -20069,14 +20115,15 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
               ]),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             onPressed: () {
               final v = ctrl.text.trim();
               if (v.isNotEmpty) Navigator.pop(ctx, v);
             },
-            child: Text('추가', style: TextStyle(color: Colors.white)),
+            child: const Text('추가', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -20154,7 +20201,8 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
               ]),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3F51B5)),
@@ -20162,7 +20210,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
               final v = ctrl.text.trim();
               if (v.isNotEmpty) Navigator.pop(ctx, v);
             },
-            child: Text('추가', style: TextStyle(color: Colors.white)),
+            child: const Text('추가', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -20200,16 +20248,18 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('카테고리 삭제', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: const Text('카테고리 삭제',
+            style: TextStyle(fontWeight: FontWeight.w700)),
         content: Text(
             '"$cat" 카테고리와 하위 카테고리를 모두 삭제합니다.\n삭제 후 이 카테고리의 상품은 카테고리가 유지되지만 목록에서 선택 불가합니다.'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false), child: Text('취소')),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('취소')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('삭제', style: TextStyle(color: Colors.white)),
+            child: const Text('삭제', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -20219,8 +20269,9 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       await CategoryService.removeMainCategory(cat);
       if (mounted) {
         setState(() {
-          if (_selectedMain == cat)
+          if (_selectedMain == cat) {
             _selectedMain = CategoryService.mainCategories.firstOrNull;
+          }
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -20317,16 +20368,17 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title:
-            Text('하위 카테고리 삭제', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: const Text('하위 카테고리 삭제',
+            style: TextStyle(fontWeight: FontWeight.w700)),
         content: Text('"$_selectedMain" → "$sub" 하위 카테고리를 삭제합니다.'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false), child: Text('취소')),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('취소')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('삭제', style: TextStyle(color: Colors.white)),
+            child: const Text('삭제', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

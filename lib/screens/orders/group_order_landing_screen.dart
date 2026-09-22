@@ -81,7 +81,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           ),
           title: Text(
             context.loc.t('단체주문방법', '단체주문방법'),
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
           ),
         ),
         body: _buildGuideTab(),
@@ -108,7 +108,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           ),
           title: Text(
             context.loc.t('단체주문방법', '단체주문방법'),
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
           ),
         ),
         body: Center(
@@ -192,17 +192,17 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
                 const SizedBox(height: 10),
                 Text(
                   context.loc.t('단체주문_안내', '단체주문 안내'),
-                  style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.6),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.6),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   context.loc.t('5명_이상_단체_맞춤_제작__a802bf',
                       '5명 이상 단체 맞춤 제작 전문\n최고의 품질로 특별한 유니폼을 만들어드립니다.'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.white70, fontSize: 12, height: 1.5),
                 ),
               ],
@@ -415,7 +415,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           Text(
             context.loc.t('상품을_선택하지_않고_바로__efb285',
                 '상품을 선택하지 않고 바로 단체주문서를 작성할 수 있습니다.\n아래 카테고리에서 원하는 상품 유형을 선택해주세요.'),
-            style: TextStyle(fontSize: 12, color: _kGrey6, height: 1.6),
+            style: const TextStyle(fontSize: 12, color: _kGrey6, height: 1.6),
           ),
           const SizedBox(height: 20),
 
@@ -466,7 +466,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             child: Text(
               context.loc.t('상품_상세_페이지에서_단체주_e5e1e7',
                   '상품 상세 페이지에서 단체주문서 작성 시 상품 정보가 자동으로 입력됩니다.\n더 빠른 주문을 원하시면 상품을 먼저 선택해주세요.'),
-              style: TextStyle(fontSize: 11, color: _kGrey4, height: 1.5),
+              style: const TextStyle(fontSize: 11, color: _kGrey4, height: 1.5),
             ),
           ),
           const SizedBox(height: 20),
@@ -512,17 +512,18 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _kBorder),
         boxShadow: const [
-          BoxShadow(color: Color(0x081A1A2E), blurRadius: 12, offset: Offset(0, 4)),
+          BoxShadow(
+              color: Color(0x081A1A2E), blurRadius: 12, offset: Offset(0, 4)),
         ],
       ),
       child: Row(children: [
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(9),
-            ),
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(9),
+          ),
           child: Center(
             child: Text(
               step,
@@ -647,7 +648,8 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       decoration: BoxDecoration(
         color: AppColors.surfaceGray,
         borderRadius: BorderRadius.circular(12),
-        border: const Border(left: BorderSide(color: AppColors.accent, width: 3)),
+        border:
+            const Border(left: BorderSide(color: AppColors.accent, width: 3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -686,33 +688,33 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       child: Column(
         children: [
           Row(children: [
-            Icon(Icons.chat_rounded, size: 16, color: Colors.white),
-            SizedBox(width: 8),
+            const Icon(Icons.chat_rounded, size: 16, color: Colors.white),
+            const SizedBox(width: 8),
             Text(
               context.loc.t('카카오톡_채널_2fit_mall', '카카오톡 채널: @2fit-mall'),
-              style: TextStyle(
+              style: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
                   fontWeight: FontWeight.w700),
             ),
           ]),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Row(children: [
-            Icon(Icons.email_rounded, size: 16, color: Colors.white),
-            SizedBox(width: 8),
+            const Icon(Icons.email_rounded, size: 16, color: Colors.white),
+            const SizedBox(width: 8),
             Text(
-              context.loc
-                  .t('이메일_chw243527_gmail_com', '이메일: ${AppConstants.customerServiceEmail}'),
-              style: TextStyle(color: Colors.white, fontSize: 12),
+              context.loc.t('이메일_chw243527_gmail_com',
+                  '이메일: ${AppConstants.customerServiceEmail}'),
+              style: const TextStyle(color: Colors.white, fontSize: 12),
             ),
           ]),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Row(children: [
-            Icon(Icons.schedule_rounded, size: 16, color: Colors.white),
-            SizedBox(width: 8),
+            const Icon(Icons.schedule_rounded, size: 16, color: Colors.white),
+            const SizedBox(width: 8),
             Text(
               context.loc.t('운영시간_평일_10_00_18_00', '운영시간: 평일 10:00 ~ 18:00'),
-              style: TextStyle(color: Colors.white70, fontSize: 11),
+              style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
           ]),
         ],
@@ -735,7 +737,8 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: _kBorder),
           boxShadow: const [
-            BoxShadow(color: Color(0x081A1A2E), blurRadius: 12, offset: Offset(0, 4)),
+            BoxShadow(
+                color: Color(0x081A1A2E), blurRadius: 12, offset: Offset(0, 4)),
           ],
         ),
         child: Row(children: [

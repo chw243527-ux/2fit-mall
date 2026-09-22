@@ -1,3 +1,4 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
 import 'package:flutter/material.dart';
 
 import 'dart:io';
@@ -80,13 +81,17 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
       OrderStatus.confirmed => AppColors.info,
       OrderStatus.processing => AppColors.primary,
       OrderStatus.shipped => const Color(0xFF6A5ACD),
-      OrderStatus.delivered || OrderStatus.purchaseConfirmed => AppColors.success,
+      OrderStatus.delivered ||
+      OrderStatus.purchaseConfirmed =>
+        AppColors.success,
       OrderStatus.cancelled || OrderStatus.refunded => AppColors.error,
     };
   }
 
-  String _money(double value) =>
-      value.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
+  String _money(double value) => value
+      .toInt()
+      .toString()
+      .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
 
   String _date(DateTime value) =>
       '${value.year}.${value.month.toString().padLeft(2, '0')}.${value.day.toString().padLeft(2, '0')} '
@@ -113,8 +118,10 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
                         : ListView.separated(
                             padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
                             itemCount: orders.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 10),
-                            itemBuilder: (_, index) => _buildOrderCard(orders[index]),
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 10),
+                            itemBuilder: (_, index) =>
+                                _buildOrderCard(orders[index]),
                           ),
               ),
             ],
@@ -128,7 +135,7 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 620;
-        final title = const Text(
+        const title = Text(
           '단체주문 접수 관리',
           maxLines: 1,
           softWrap: false,
@@ -156,7 +163,7 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
               )
             : Row(
                 children: [
-                  Expanded(child: title),
+                  const Expanded(child: title),
                   countText,
                   const SizedBox(width: 8),
                   policyButton,
@@ -247,7 +254,8 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
             const SizedBox(height: 12),
             TextField(
               controller: discountCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(
                 labelText: '단체주문 할인율',
                 suffixText: '%',
@@ -257,18 +265,26 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('취소')),
           FilledButton(
             onPressed: () {
               final minimum = int.tryParse(minCtrl.text.trim());
               final discount = double.tryParse(discountCtrl.text.trim());
-              if (minimum == null || minimum < 1 || discount == null || discount < 0 || discount > 90) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('수량과 할인율을 올바르게 입력해 주세요.')));
+              if (minimum == null ||
+                  minimum < 1 ||
+                  discount == null ||
+                  discount < 0 ||
+                  discount > 90) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('수량과 할인율을 올바르게 입력해 주세요.')));
                 return;
               }
               Navigator.pop(
                 dialogContext,
-                GroupOrderPolicy(minimumQuantity: minimum, discountRate: discount),
+                GroupOrderPolicy(
+                    minimumQuantity: minimum, discountRate: discount),
               );
             },
             child: const Text('저장'),
@@ -282,10 +298,12 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
     try {
       await GroupOrderPolicyService.savePolicy(result);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('단체주문 정책을 저장했습니다.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('단체주문 정책을 저장했습니다.')));
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('정책 저장 실패: $error')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('정책 저장 실패: $error')));
     }
   }
 
@@ -305,10 +323,12 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
 
   Widget _buildOrderCard(OrderModel order) {
     final options = order.customOptions ?? const <String, dynamic>{};
-    final teamName = (order.groupName ?? options['teamName'] ?? '팀명 미입력').toString();
+    final teamName =
+        (order.groupName ?? options['teamName'] ?? '팀명 미입력').toString();
     final manager = (options['manager'] ?? order.userName).toString();
     final phone = (options['phone'] ?? order.userPhone).toString();
-    final count = order.groupCount ?? int.tryParse('${options['persons'] ?? ''}') ?? 0;
+    final count =
+        order.groupCount ?? int.tryParse('${options['persons'] ?? ''}') ?? 0;
     final color = _statusColor(order.status);
 
     return InkWell(
@@ -330,22 +350,28 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
                   child: Text(teamName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w800)),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(_statusLabel(order.status),
-                      style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+                      style: TextStyle(
+                          color: color,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700)),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text('${order.id} · ${_date(order.createdAt)}',
-                style: const TextStyle(fontSize: 11, color: AppColors.textHint)),
+                style:
+                    const TextStyle(fontSize: 11, color: AppColors.textHint)),
             const SizedBox(height: 12),
             Wrap(
               spacing: 14,
@@ -358,12 +384,16 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
               ],
             ),
             const SizedBox(height: 10),
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text('상세 보기', style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w700)),
-                const SizedBox(width: 3),
-                const Icon(Icons.chevron_right_rounded, size: 18),
+                Text('상세 보기',
+                    style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700)),
+                SizedBox(width: 3),
+                Icon(Icons.chevron_right_rounded, size: 18),
               ],
             ),
           ],
@@ -378,7 +408,9 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
       children: [
         Icon(icon, size: 15, color: AppColors.textSecondary),
         const SizedBox(width: 4),
-        Text(text, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        Text(text,
+            style:
+                const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
       ],
     );
   }
@@ -390,10 +422,13 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) {
-          final dialogWidth =
-              (MediaQuery.sizeOf(context).width - 32).clamp(280.0, 560.0).toDouble();
+          final dialogWidth = (MediaQuery.sizeOf(context).width - 32)
+              .clamp(280.0, 560.0)
+              .toDouble();
           return AlertDialog(
-            title: Text(order.groupName ?? options['teamName']?.toString() ?? '단체주문 상세'),
+            title: Text(order.groupName ??
+                options['teamName']?.toString() ??
+                '단체주문 상세'),
             content: SizedBox(
               width: dialogWidth,
               child: SingleChildScrollView(
@@ -402,15 +437,21 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
                   children: [
                     _detailLine('주문번호', order.id),
                     _detailLine('접수일시', _date(order.createdAt)),
-                    _detailLine('담당자', '${options['manager'] ?? order.userName}'),
-                    _detailLine('연락처', '${options['phone'] ?? order.userPhone}'),
-                    _detailLine('이메일', '${options['email'] ?? order.userEmail}'),
-                    _detailLine('인원', '${options['persons'] ?? order.groupCount ?? '-'}명'),
+                    _detailLine(
+                        '담당자', '${options['manager'] ?? order.userName}'),
+                    _detailLine(
+                        '연락처', '${options['phone'] ?? order.userPhone}'),
+                    _detailLine(
+                        '이메일', '${options['email'] ?? order.userEmail}'),
+                    _detailLine('인원',
+                        '${options['persons'] ?? order.groupCount ?? '-'}명'),
                     _detailLine('배송지', order.userAddress),
                     _detailLine('주문금액', '₩${_money(order.totalAmount)}'),
-                    if (options['memo'] != null) _detailLine('메모', '${options['memo']}'),
+                    if (options['memo'] != null)
+                      _detailLine('메모', '${options['memo']}'),
                     const Divider(height: 28),
-                    const Text('주문 상품', style: TextStyle(fontWeight: FontWeight.w800)),
+                    const Text('주문 상품',
+                        style: TextStyle(fontWeight: FontWeight.w800)),
                     const SizedBox(height: 8),
                     ...order.items.map((item) => Padding(
                           padding: const EdgeInsets.only(bottom: 6),
@@ -431,14 +472,16 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
                           OutlinedButton.icon(
                             onPressed: _isGeneratingPdf
                                 ? null
-                                : () => _downloadSingletPdf(order, productionOnly: false),
+                                : () => _downloadSingletPdf(order,
+                                    productionOnly: false),
                             icon: const Icon(Icons.picture_as_pdf, size: 17),
                             label: const Text('고객용 PDF 다운로드'),
                           ),
                           FilledButton.icon(
                             onPressed: _isGeneratingPdf
                                 ? null
-                                : () => _downloadSingletPdf(order, productionOnly: true),
+                                : () => _downloadSingletPdf(order,
+                                    productionOnly: true),
                             icon: const Icon(Icons.factory_outlined, size: 17),
                             label: const Text('발주용 PDF 다운로드'),
                           ),
@@ -446,7 +489,8 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
                       ),
                     ],
                     const SizedBox(height: 16),
-                    const Text('상태 변경', style: TextStyle(fontWeight: FontWeight.w800)),
+                    const Text('상태 변경',
+                        style: TextStyle(fontWeight: FontWeight.w800)),
                     const SizedBox(height: 6),
                     DropdownButtonFormField<OrderStatus>(
                       value: selected,
@@ -457,16 +501,20 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
                               ))
                           .toList(),
                       onChanged: (value) {
-                        if (value != null) setDialogState(() => selected = value);
+                        if (value != null)
+                          setDialogState(() => selected = value);
                       },
-                      decoration: const InputDecoration(isDense: true, border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                          isDense: true, border: OutlineInputBorder()),
                     ),
                   ],
                 ),
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('닫기')),
+              TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('닫기')),
               FilledButton(
                 onPressed: selected == order.status
                     ? null
@@ -580,7 +628,8 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
         'orderId': orderId,
         'documentType': documentType,
         'outcome': outcome,
-        if (error != null) 'error': error.substring(0, error.length > 500 ? 500 : error.length),
+        if (error != null)
+          'error': error.substring(0, error.length > 500 ? 500 : error.length),
         'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (_) {
@@ -594,8 +643,14 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 78, child: Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12))),
-          Expanded(child: Text(value.isEmpty ? '-' : value, style: const TextStyle(fontSize: 13))),
+          SizedBox(
+              width: 78,
+              child: Text(label,
+                  style: const TextStyle(
+                      color: AppColors.textSecondary, fontSize: 12))),
+          Expanded(
+              child: Text(value.isEmpty ? '-' : value,
+                  style: const TextStyle(fontSize: 13))),
         ],
       ),
     );

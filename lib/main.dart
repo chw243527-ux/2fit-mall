@@ -77,7 +77,8 @@ Future<bool> _initializeFirebaseInBackground() async {
 Future<bool>? _firebaseReadyFuture;
 
 // 관리자 전용 Cloudflare Pages 빌드에서만 true가 됩니다.
-const bool adminOnlyBuild = bool.fromEnvironment('ADMIN_ONLY', defaultValue: false);
+const bool adminOnlyBuild =
+    bool.fromEnvironment('ADMIN_ONLY', defaultValue: false);
 
 class _AppErrorFallback extends StatelessWidget {
   final FlutterErrorDetails details;
@@ -85,9 +86,8 @@ class _AppErrorFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final message = kDebugMode
-        ? details.exceptionAsString()
-        : '화면을 불러오는 중 문제가 발생했습니다.';
+    final message =
+        kDebugMode ? details.exceptionAsString() : '화면을 불러오는 중 문제가 발생했습니다.';
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme(),
@@ -103,7 +103,8 @@ class _AppErrorFallback extends StatelessWidget {
                     size: 48, color: Color(0xFF6A1B9A)),
                 const SizedBox(height: 16),
                 const Text('화면을 불러오지 못했습니다.',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
                 const Text('잠시 후 다시 시도해 주세요.', textAlign: TextAlign.center),
                 if (kDebugMode) ...[
@@ -161,21 +162,22 @@ Future<void> main() async {
 
     // 선택적 네트워크 초기화는 Firebase 완료 후 첫 프레임 뒤 실행합니다.
     _firebaseReadyFuture!.then((firebaseReady) {
-    if (!firebaseReady) return;
-    Future<void>(() async {
-      try {
-        await FcmService.initialize().timeout(const Duration(seconds: 8));
-      } catch (e) {
-        if (kDebugMode) debugPrint('client_operation_failed');
-      }
-      try {
-        await CategoryService.load().timeout(const Duration(seconds: 8));
-        if (kDebugMode) {
-          debugPrint('✅ CategoryService 로드: ${CategoryService.mainCategories}');
+      if (!firebaseReady) return;
+      Future<void>(() async {
+        try {
+          await FcmService.initialize().timeout(const Duration(seconds: 8));
+        } catch (e) {
+          if (kDebugMode) debugPrint('client_operation_failed');
         }
-      } catch (e) {
-        if (kDebugMode) debugPrint('client_operation_failed');
-      }
+        try {
+          await CategoryService.load().timeout(const Duration(seconds: 8));
+          if (kDebugMode) {
+            debugPrint(
+                '✅ CategoryService 로드: ${CategoryService.mainCategories}');
+          }
+        } catch (e) {
+          if (kDebugMode) debugPrint('client_operation_failed');
+        }
       });
     });
   });
@@ -255,8 +257,7 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
           // twofitmall://naver가 앱의 404 화면으로 빠지지 않게 합니다.
           // 실제 code/state 처리는 AppLinks listener가 AuthService로 전달합니다.
           final lowerRoute = routeName.toLowerCase();
-          final isNaverDeepLink =
-              lowerRoute.contains('twofitmall:/naver') ||
+          final isNaverDeepLink = lowerRoute.contains('twofitmall:/naver') ||
               lowerRoute.startsWith('/naver') ||
               lowerRoute.startsWith('naver?') ||
               lowerRoute.contains('naver_callback');
@@ -536,8 +537,10 @@ class _AppInitState extends State<_AppInit> {
       appLinks.getInitialLink().then((uri) {
         if (uri != null) AuthService.handleNaverDeepLink(uri);
       });
-      _deepLinkSub = appLinks.uriLinkStream.listen(AuthService.handleNaverDeepLink);
-      _notificationTapSub = FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      _deepLinkSub =
+          appLinks.uriLinkStream.listen(AuthService.handleNaverDeepLink);
+      _notificationTapSub =
+          FirebaseMessaging.onMessageOpenedApp.listen((message) {
         if (!mounted) return;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) navigatorKey.currentState?.pushNamed('/notifications');
@@ -573,7 +576,8 @@ class _AppInitState extends State<_AppInit> {
       // 종료 상태에서 알림을 눌러 실행된 경우에도 알림센터로 이동합니다.
       RemoteMessage? initialNotification;
       try {
-        initialNotification = await FirebaseMessaging.instance.getInitialMessage();
+        initialNotification =
+            await FirebaseMessaging.instance.getInitialMessage();
       } catch (e) {
         if (kDebugMode) debugPrint('client_operation_failed');
       }

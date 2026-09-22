@@ -40,10 +40,12 @@ class GroupOrderDocument {
         if (value is num) return value != 0;
         if (value is String) {
           final lower = value.trim().toLowerCase();
-          if (['true', '1', 'yes', 'y', '선택함', '신청함'].contains(lower))
+          if (['true', '1', 'yes', 'y', '선택함', '신청함'].contains(lower)) {
             return true;
-          if (['false', '0', 'no', 'n', '선택 안 함', '신청하지 않음'].contains(lower))
+          }
+          if (['false', '0', 'no', 'n', '선택 안 함', '신청하지 않음'].contains(lower)) {
             return false;
+          }
         }
       }
       return fallback;
@@ -129,10 +131,12 @@ class GroupOrderDocument {
     if (value is num) return value != 0;
     if (value is String) {
       final normalized = value.trim().toLowerCase();
-      if (['true', '1', 'yes', 'y', '선택함', '신청함'].contains(normalized))
+      if (['true', '1', 'yes', 'y', '선택함', '신청함'].contains(normalized)) {
         return true;
-      if (['false', '0', 'no', 'n', '선택 안 함', '신청하지 않음'].contains(normalized))
+      }
+      if (['false', '0', 'no', 'n', '선택 안 함', '신청하지 않음'].contains(normalized)) {
         return false;
+      }
     }
     return fallback;
   }
@@ -159,8 +163,9 @@ class GroupOrderDocument {
 
   String get waistbandInfo {
     final option = text(['waistbandOption', 'waistband']);
-    if (option.isEmpty || option.contains('기본') || option.contains('변경없음'))
+    if (option.isEmpty || option.contains('기본') || option.contains('변경없음')) {
       return '';
+    }
     final hex = text(['waistbandColorHex']);
     return hex.startsWith('#') && hex.length == 7 ? '$option ($hex)' : option;
   }
@@ -170,8 +175,9 @@ class GroupOrderDocument {
         ['productImageUrl', 'designImageUrl', 'designFileUrl', 'imageUrl']);
     if (fromOptions.isNotEmpty) return fromOptions;
     for (final item in order.items) {
-      if (item.imageUrl != null && item.imageUrl!.isNotEmpty)
+      if (item.imageUrl != null && item.imageUrl!.isNotEmpty) {
         return item.imageUrl!;
+      }
       final itemOptions = _map(item.customOptions);
       final itemUrl = _mapText(itemOptions,
           ['productImageUrl', 'designFileUrl', 'designImageUrl', 'imageUrl']);
@@ -216,15 +222,17 @@ class GroupOrderDocument {
         orElse: () => keys.first)];
     if (value is bool) return value;
     if (value is num) return value != 0;
-    if (value is String)
+    if (value is String) {
       return ['true', '1', 'yes', '선택함'].contains(value.trim().toLowerCase());
+    }
     return fallback;
   }
 
   static Map<String, dynamic> _map(dynamic value) {
     if (value is Map<String, dynamic>) return Map<String, dynamic>.from(value);
-    if (value is Map)
+    if (value is Map) {
       return value.map((key, value) => MapEntry(key.toString(), value));
+    }
     return <String, dynamic>{};
   }
 

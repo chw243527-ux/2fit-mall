@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../providers/providers.dart';
 import '../../services/payment_service.dart';
-import '../../services/secure_checkout_service.dart';
 import '../mypage/mypage_screen.dart';
 import '../../utils/theme.dart';
 
@@ -26,7 +25,8 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_args != null) return;
-    final args = ModalRoute.of(context)?.settings.arguments as PaymentCheckoutArgs?;
+    final args =
+        ModalRoute.of(context)?.settings.arguments as PaymentCheckoutArgs?;
     if (args == null) {
       setState(() {
         _loading = false;
@@ -260,7 +260,8 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.error_outline, color: AppColors.error, size: 56),
+                    const Icon(Icons.error_outline,
+                        color: AppColors.error, size: 56),
                     const SizedBox(height: 16),
                     Text(_error!, textAlign: TextAlign.center),
                     const SizedBox(height: 20),
@@ -274,9 +275,12 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
             )
           : Stack(
               children: [
-                if (_controller != null) WebViewWidget(controller: _controller!),
+                if (_controller != null)
+                  WebViewWidget(controller: _controller!),
                 if (_loading)
-                  const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                  const Center(
+                      child:
+                          CircularProgressIndicator(color: AppColors.primary)),
               ],
             ),
     );

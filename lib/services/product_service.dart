@@ -1,3 +1,4 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
 // product_service.dart — Firestore 기반 상품 서비스 (로컬 캐시 병행)
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -38,10 +39,12 @@ class ProductService {
         'mn': '2FIT Тойрог захтай цамц',
       },
       descriptionTranslations: {
-        'en': 'Round neck T-shirt made from high-quality nylon/spandex fabric. 4-way stretch for maximum mobility.',
+        'en':
+            'Round neck T-shirt made from high-quality nylon/spandex fabric. 4-way stretch for maximum mobility.',
         'ja': '高品質ナイロン/スパンデックス素材のラウンドネックTシャツ。4ウェイストレッチで最高の動きやすさ。',
         'zh': '采用高品质尼龙/氨纶面料的圆领T恤。4向弹力设计，提供最佳活动性。',
-        'mn': 'Өндөр чанарын нейлон/спандекс даавуугаар хийсэн тойрог захтай цамц. 4 чиглэлтэй сунах чадвартай, хөдөлгөөний чөлөө хамгийн дээд.',
+        'mn':
+            'Өндөр чанарын нейлон/спандекс даавуугаар хийсэн тойрог захтай цамц. 4 чиглэлтэй сунах чадвартай, хөдөлгөөний чөлөө хамгийн дээд.',
       },
     ),
     ProductModel(
@@ -69,10 +72,12 @@ class ProductService {
         'mn': '2FIT Кроп топ',
       },
       descriptionTranslations: {
-        'en': 'Slim-fit crop top. Perfect for running, yoga, fitness and various activities.',
+        'en':
+            'Slim-fit crop top. Perfect for running, yoga, fitness and various activities.',
         'ja': 'スリムフィットクロップトップ。ランニング、ヨガ、フィットネスなど様々な運動に最適。',
         'zh': '修身短款上衣。非常适合跑步、瑜伽、健身等各种运动。',
-        'mn': 'Нарийн тохиромжтой кроп топ. Гүйлт, йога, фитнесс болон бусад дасгалд тохиромжтой.',
+        'mn':
+            'Нарийн тохиромжтой кроп топ. Гүйлт, йога, фитнесс болон бусад дасгалд тохиромжтой.',
       },
     ),
     ProductModel(
@@ -101,10 +106,12 @@ class ProductService {
         'mn': '2FIT Худдтай зипп хувцас',
       },
       descriptionTranslations: {
-        'en': 'Warm hoodie zip-up. Design optimized for before and after workout.',
+        'en':
+            'Warm hoodie zip-up. Design optimized for before and after workout.',
         'ja': '温かいフードジップアップ。運動前後の着用に最適化されたデザイン。',
         'zh': '温暖的连帽拉链衫。专为运动前后穿着而优化设计。',
-        'mn': 'Дулаан худдтай зипп хувцас. Дасгалын өмнө болон дараа өмсөхөд тохируулан дизайнлагдсан.',
+        'mn':
+            'Дулаан худдтай зипп хувцас. Дасгалын өмнө болон дараа өмсөхөд тохируулан дизайнлагдсан.',
       },
     ),
     ProductModel(
@@ -158,10 +165,12 @@ class ProductService {
         'mn': '2FIT Сингулет А загвар',
       },
       descriptionTranslations: {
-        'en': 'Maximum breathability singlet. Ideal for marathons and triathlons.',
+        'en':
+            'Maximum breathability singlet. Ideal for marathons and triathlons.',
         'ja': '通気性を最大化したシングレット。マラソン・トライアスロンに最適。',
         'zh': '透气性最大化背心。适合马拉松、铁人三项。',
-        'mn': 'Агаар нэвтрэх чадварыг дээд зэргээр нэмэгдүүлсэн. Марафон, триатлонд тохиромжтой.',
+        'mn':
+            'Агаар нэвтрэх чадварыг дээд зэргээр нэмэгдүүлсэн. Марафон, триатлонд тохиромжтой.',
       },
     ),
     ProductModel(
@@ -186,7 +195,8 @@ class ProductService {
         'mn': '2FIT Захтай цамц',
       },
       descriptionTranslations: {
-        'en': 'Stylish collar design sports shirt. Recommended for golf and tennis.',
+        'en':
+            'Stylish collar design sports shirt. Recommended for golf and tennis.',
         'ja': 'スタイリッシュなカラーデザインのスポーツシャツ。ゴルフ・テニスにおすすめ。',
         'zh': '时尚领型设计运动衬衫。推荐用于高尔夫和网球。',
         'mn': 'Загварлаг захтай спортын цамц. Гольф, теннист тохиромжтой.',
@@ -217,7 +227,8 @@ class ProductService {
         'mn': '2FIT Дасгалын өмд',
       },
       descriptionTranslations: {
-        'en': 'Comfortable training pants. Suitable for both indoor and outdoor sports.',
+        'en':
+            'Comfortable training pants. Suitable for both indoor and outdoor sports.',
         'ja': '快適な着心地のトレーニングパンツ。室内外どちらの運動にも適しています。',
         'zh': '穿着舒适的训练裤。适合室内外运动。',
         'mn': 'Тав тухтай дасгалын өмд. Дотор, гадаа хоёулаа тохиромжтой.',
@@ -246,7 +257,8 @@ class ProductService {
         'mn': '2FIT Шорт',
       },
       descriptionTranslations: {
-        'en': 'Lightweight and cool sports shorts. Optimized for running and football.',
+        'en':
+            'Lightweight and cool sports shorts. Optimized for running and football.',
         'ja': '軽くて涼しいスポーツショートパンツ。ランニング・サッカーに最適。',
         'zh': '轻盈凉爽的运动短裤。专为跑步和足球优化。',
         'mn': 'Хөнгөн, сэрүүн спортын шорт. Гүйлт, хөлбөмбөгт оновчтой.',
@@ -277,10 +289,12 @@ class ProductService {
         'mn': '2FIT Урт легинс',
       },
       descriptionTranslations: {
-        'en': 'Full-length ankle leggings. Perfect balance of compression and elasticity.',
+        'en':
+            'Full-length ankle leggings. Perfect balance of compression and elasticity.',
         'ja': '足首までのフルレギンス。圧迫感と伸縮性の完璧なバランス。',
         'zh': '全长及踝紧身裤。压缩感与弹性的完美平衡。',
-        'mn': 'Бүтэн урт шагайны легинс. Даралт ба уян хатан чанарын төгс тэнцвэр.',
+        'mn':
+            'Бүтэн урт шагайны легинс. Даралт ба уян хатан чанарын төгс тэнцвэр.',
       },
     ),
     ProductModel(
@@ -305,10 +319,12 @@ class ProductService {
         'mn': '2FIT Богино легинс',
       },
       descriptionTranslations: {
-        'en': 'Short leggings above the knee. Ideal for cycling and trail running.',
+        'en':
+            'Short leggings above the knee. Ideal for cycling and trail running.',
         'ja': '膝上までのショートレギンス。自転車・トレイルランニングに最適。',
         'zh': '膝上短紧身裤。适合骑行和越野跑。',
-        'mn': 'Өвдөгний дээр хүрэх богино легинс. Дугуй унах, уулын гүйлтэд тохиромжтой.',
+        'mn':
+            'Өвдөгний дээр хүрэх богино легинс. Дугуй унах, уулын гүйлтэд тохиромжтой.',
       },
     ),
     ProductModel(
@@ -334,7 +350,8 @@ class ProductService {
         'mn': '2FIT Дугуй унах шорт',
       },
       descriptionTranslations: {
-        'en': 'Cycling shorts with built-in padding. Optimized for long-distance riding.',
+        'en':
+            'Cycling shorts with built-in padding. Optimized for long-distance riding.',
         'ja': 'パッド内蔵サイクリング専用ショーツ。長距離ライディングに最適。',
         'zh': '内置垫片骑行专用短裤。适合长途骑行。',
         'mn': 'Дотор доторлогоотой дугуй унах шорт. Урт замын унаанд оновчтой.',
@@ -368,10 +385,12 @@ class ProductService {
         'mn': '2FIT Богиносгосон топ + богино легинс иж бүрдэл',
       },
       descriptionTranslations: {
-        'en': 'Matching set of crop top and short leggings. Ideal for yoga and Pilates.',
+        'en':
+            'Matching set of crop top and short leggings. Ideal for yoga and Pilates.',
         'ja': 'クロップトップとショートレギンスのマッチングセット。ヨガ・ピラティスに最適。',
         'zh': '短款上衣和短紧身裤的配套套装。适合瑜伽和普拉提。',
-        'mn': 'Богиносгосон топ болон богино легинсийн иж бүрдэл. Йога, Пилатест тохиромжтой.',
+        'mn':
+            'Богиносгосон топ болон богино легинсийн иж бүрдэл. Йога, Пилатест тохиромжтой.',
       },
     ),
     ProductModel(
@@ -460,10 +479,12 @@ class ProductService {
         'mn': '2FIT Салхи тэсвэрлэх куртка',
       },
       descriptionTranslations: {
-        'en': 'Lightweight windbreaker with windproof and waterproof features. Ideal for running and hiking.',
+        'en':
+            'Lightweight windbreaker with windproof and waterproof features. Ideal for running and hiking.',
         'ja': '防風・防水機能の軽量ウィンドブレーカー。ランニング・ハイキングに最適。',
         'zh': '具有防风防水功能的轻量防风夹克。适合跑步和徒步。',
-        'mn': 'Салхи ба усны тэсвэртэй хөнгөн куртка. Гүйлт, явган аялалд тохиромжтой.',
+        'mn':
+            'Салхи ба усны тэсвэртэй хөнгөн куртка. Гүйлт, явган аялалд тохиромжтой.',
       },
     ),
     ProductModel(
@@ -578,10 +599,12 @@ class ProductService {
         'mn': '2FIT Спортын үс оогуур',
       },
       descriptionTranslations: {
-        'en': 'Non-slip coated sports headband. Dedicated for running and tennis.',
+        'en':
+            'Non-slip coated sports headband. Dedicated for running and tennis.',
         'ja': 'ノンスリップコーティングスポーツヘアバンド。ランニング・テニス専用。',
         'zh': '防滑涂层运动发带。专为跑步和网球设计。',
-        'mn': 'Гулгахгүй бүрлэгтэй спортын үс оогуур. Гүйлт, теннист зориулсан.',
+        'mn':
+            'Гулгахгүй бүрлэгтэй спортын үс оогуур. Гүйлт, теннист зориулсан.',
       },
     ),
     ProductModel(
@@ -644,10 +667,12 @@ class ProductService {
         'mn': '2FIT Сингулет А загвар иж бүрдэл (Бүлэг)',
       },
       descriptionTranslations: {
-        'en': 'Singlet Type-A + Bottom Set. Exclusively for marathon/triathlon team group orders. Minimum 5 people.',
+        'en':
+            'Singlet Type-A + Bottom Set. Exclusively for marathon/triathlon team group orders. Minimum 5 people.',
         'ja': 'シングレット Aタイプ＋ボトムセット。マラソン・トライアスロンチームの団体製作専用。5名以上から注文可能。',
         'zh': '背心A型+下装套装。专为马拉松·铁人三项团体定制。最少5人起订。',
-        'mn': 'Сингулет А загвар + Доод хэсгийн иж бүрдэл. Марафон·триатлоны баг бүлгийн захиалга. 5-аас дээш хүн захиалах боломжтой.',
+        'mn':
+            'Сингулет А загвар + Доод хэсгийн иж бүрдэл. Марафон·триатлоны баг бүлгийн захиалга. 5-аас дээш хүн захиалах боломжтой.',
       },
     ),
     ProductModel(
@@ -680,10 +705,12 @@ class ProductService {
         'mn': '2FIT Таайтс (Бүлэг)',
       },
       descriptionTranslations: {
-        'en': 'High-elasticity 4-way stretch tights. Perfect balance of compression and elasticity. For group orders only.',
+        'en':
+            'High-elasticity 4-way stretch tights. Perfect balance of compression and elasticity. For group orders only.',
         'ja': '高弾性4ウェイストレッチタイツ。圧迫感と伸縮性の完璧なバランス。団体製作専用。',
         'zh': '高弹4向拉伸紧身裤。压缩感与弹性的完美平衡。仅限团体定制。',
-        'mn': 'Өндөр уян хатан 4 чиглэлтэй стретч таайтс. Даралт ба уян хатан чанарын төгс тэнцвэр. Зөвхөн бүлгийн захиалгад.',
+        'mn':
+            'Өндөр уян хатан 4 чиглэлтэй стретч таайтс. Даралт ба уян хатан чанарын төгс тэнцвэр. Зөвхөн бүлгийн захиалгад.',
       },
     ),
   ];
@@ -719,9 +746,8 @@ class ProductService {
         data['id'] ??= doc.id; // doc.id 명시적 추가 (문서 내 id 필드 없을 경우 대비)
         // Firestore Timestamp → String 변환
         if (data['createdAt'] is Timestamp) {
-          data['createdAt'] = (data['createdAt'] as Timestamp)
-              .toDate()
-              .toIso8601String();
+          data['createdAt'] =
+              (data['createdAt'] as Timestamp).toDate().toIso8601String();
         }
         return ProductModel.fromJson(data);
       }).toList();
@@ -765,8 +791,8 @@ class ProductService {
       final saved = prefs.getStringList(_prefKey);
       if (saved != null && saved.isNotEmpty) {
         final loaded = saved
-            .map((s) => ProductModel.fromJson(
-                jsonDecode(s) as Map<String, dynamic>))
+            .map((s) =>
+                ProductModel.fromJson(jsonDecode(s) as Map<String, dynamic>))
             .toList();
         _products.clear();
         _products.addAll(loaded);
@@ -831,7 +857,8 @@ class ProductService {
       _products.addAll(active);
       _cache = List.from(active);
       _loaded = true;
-      if (kDebugMode) debugPrint('✅ 관리자 전체 상품 ${all.length}개 로드 (활성: ${active.length})');
+      if (kDebugMode)
+        debugPrint('✅ 관리자 전체 상품 ${all.length}개 로드 (활성: ${active.length})');
       await _persistToLocal();
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
@@ -841,7 +868,8 @@ class ProductService {
     }
   }
 
-  static Future<List<ProductModel>> getProductsByCategory(String category) async {
+  static Future<List<ProductModel>> getProductsByCategory(
+      String category) async {
     if (!_loaded) await _loadFromFirestore();
     if (category == '전체') return _products.where((p) => p.isActive).toList();
     if (category == '신상품') {
@@ -870,15 +898,18 @@ class ProductService {
           .get()
           .timeout(const Duration(seconds: 10));
 
-      final list = snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] ??= doc.id;
-        if (data['createdAt'] is Timestamp) {
-          data['createdAt'] =
-              (data['createdAt'] as Timestamp).toDate().toIso8601String();
-        }
-        return ProductModel.fromJson(data);
-      }).where((product) => product.isGroupOnly || product.isGroup).toList();
+      final list = snapshot.docs
+          .map((doc) {
+            final data = doc.data();
+            data['id'] ??= doc.id;
+            if (data['createdAt'] is Timestamp) {
+              data['createdAt'] =
+                  (data['createdAt'] as Timestamp).toDate().toIso8601String();
+            }
+            return ProductModel.fromJson(data);
+          })
+          .where((product) => product.isGroupOnly || product.isGroup)
+          .toList();
 
       if (kDebugMode) {
         debugPrint('✅ 홈 단체주문 상품 ${list.length}개 로드');
@@ -888,7 +919,9 @@ class ProductService {
       if (kDebugMode) debugPrint('client_operation_failed');
       // 폴백: 캐시에서 필터링
       _ensureCache();
-      return _cache.where((p) => (p.isGroupOnly || p.isGroup) && p.isActive).toList();
+      return _cache
+          .where((p) => (p.isGroupOnly || p.isGroup) && p.isActive)
+          .toList();
     }
   }
 
@@ -902,19 +935,23 @@ class ProductService {
           .where('isActive', isEqualTo: true)
           .get()
           .timeout(const Duration(seconds: 10));
-      return snapshot.docs.map((doc) {
-        final data = Map<String, dynamic>.from(doc.data());
-        data['id'] ??= doc.id;
-        if (data['createdAt'] is Timestamp) {
-          data['createdAt'] =
-              (data['createdAt'] as Timestamp).toDate().toIso8601String();
-        }
-        return ProductModel.fromJson(data);
-      }).where(predicate).toList();
+      return snapshot.docs
+          .map((doc) {
+            final data = Map<String, dynamic>.from(doc.data());
+            data['id'] ??= doc.id;
+            if (data['createdAt'] is Timestamp) {
+              data['createdAt'] =
+                  (data['createdAt'] as Timestamp).toDate().toIso8601String();
+            }
+            return ProductModel.fromJson(data);
+          })
+          .where(predicate)
+          .toList();
     } catch (_) {
       _ensureCache();
-      return _cache.where((product) =>
-          product.isActive && predicate(product)).toList();
+      return _cache
+          .where((product) => product.isActive && predicate(product))
+          .toList();
     }
   }
 
@@ -990,8 +1027,7 @@ class ProductService {
   }
 
   static Future<List<ProductModel>> getPopularProducts() async {
-    final sorted = List<ProductModel>.from(
-        _products.where((p) => p.isActive))
+    final sorted = List<ProductModel>.from(_products.where((p) => p.isActive))
       ..sort((a, b) => b.reviewCount.compareTo(a.reviewCount));
     return sorted.take(8).toList();
   }
@@ -1044,13 +1080,18 @@ class ProductService {
       stockCount: product.stockCount > 0 ? product.stockCount : 100,
     );
     _products.add(safeProduct);
-    _allProducts.add(safeProduct);               // 관리자 목록에도 즉시 반영
+    _allProducts.add(safeProduct); // 관리자 목록에도 즉시 반영
     _cache = List.from(_products);
     await _persistToLocal();
     // Firestore에도 저장
     try {
-      await _db.collection('products').doc(safeProduct.id).set(safeProduct.toJson());
-      if (kDebugMode) debugPrint('✅ Firestore 상품 등록 완료: ${safeProduct.id} (isActive=true, stockCount=${safeProduct.stockCount})');
+      await _db
+          .collection('products')
+          .doc(safeProduct.id)
+          .set(safeProduct.toJson());
+      if (kDebugMode)
+        debugPrint(
+            '✅ Firestore 상품 등록 완료: ${safeProduct.id} (isActive=true, stockCount=${safeProduct.stockCount})');
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
     }
@@ -1090,7 +1131,10 @@ class ProductService {
         // sectionImages 키 제거 후 merge → Firestore 기존 sectionImages 유지
         json.remove('sectionImages');
       }
-      await _db.collection('products').doc(safeUpdated.id).set(json, SetOptions(merge: true));
+      await _db
+          .collection('products')
+          .doc(safeUpdated.id)
+          .set(json, SetOptions(merge: true));
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
     }
@@ -1155,9 +1199,8 @@ class ProductService {
       final sizes = current?.sizes.isNotEmpty == true
           ? current!.sizes
           : sizeStocks.keys.toList();
-      final colors = current?.colors.isNotEmpty == true
-          ? current!.colors
-          : <String>['기본'];
+      final colors =
+          current?.colors.isNotEmpty == true ? current!.colors : <String>['기본'];
 
       // 사이즈별 총량을 색상×사이즈 재고로 변환합니다.
       // 기존 색상별 분배 비율은 유지하고, 기존 데이터가 없으면 색상별 균등 분배합니다.
@@ -1167,7 +1210,8 @@ class ProductService {
         final target = sizeStocks[size] ?? 0;
         if (target <= 0) soldOutSizes.add(size);
         final previous = current?.stockData[size] ?? const <String, int>{};
-        final previousTotal = previous.values.fold<int>(0, (sum, qty) => sum + qty);
+        final previousTotal =
+            previous.values.fold<int>(0, (total, qty) => total + qty);
         final perColor = <String, int>{};
         if (colors.isEmpty) continue;
         if (previousTotal > 0) {
@@ -1240,14 +1284,31 @@ class ProductService {
       newMap[sectionKey] = List<String>.from(urls);
     }
     _products[idx] = ProductModel(
-      id: p.id, name: p.name, category: p.category, subCategory: p.subCategory,
-      price: p.price, originalPrice: p.originalPrice,
-      description: p.description, images: p.images,
-      sizes: p.sizes, colors: p.colors, colorHexes: p.colorHexes, material: p.material,
-      isNew: p.isNew, newExpiresAt: p.newExpiresAt, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
-      isGroupOnly: p.isGroupOnly, isGroup: p.isGroup, isActive: p.isActive,
-      rating: p.rating, reviewCount: p.reviewCount, stockCount: p.stockCount,
-      createdAt: p.createdAt, productCode: p.productCode, sectionImages: newMap,
+      id: p.id,
+      name: p.name,
+      category: p.category,
+      subCategory: p.subCategory,
+      price: p.price,
+      originalPrice: p.originalPrice,
+      description: p.description,
+      images: p.images,
+      sizes: p.sizes,
+      colors: p.colors,
+      colorHexes: p.colorHexes,
+      material: p.material,
+      isNew: p.isNew,
+      newExpiresAt: p.newExpiresAt,
+      isSale: p.isSale,
+      isFreeShipping: p.isFreeShipping,
+      isGroupOnly: p.isGroupOnly,
+      isGroup: p.isGroup,
+      isActive: p.isActive,
+      rating: p.rating,
+      reviewCount: p.reviewCount,
+      stockCount: p.stockCount,
+      createdAt: p.createdAt,
+      productCode: p.productCode,
+      sectionImages: newMap,
       nameTranslations: p.nameTranslations,
       descriptionTranslations: p.descriptionTranslations,
     );
@@ -1255,7 +1316,10 @@ class ProductService {
     await _persist();
     // Firestore 섹션 이미지 업데이트
     try {
-      await _db.collection('products').doc(productId).update({'sectionImages': newMap});
+      await _db
+          .collection('products')
+          .doc(productId)
+          .update({'sectionImages': newMap});
       return true;
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
@@ -1269,14 +1333,31 @@ class ProductService {
     if (idx < 0) return false;
     final p = _products[idx];
     _products[idx] = ProductModel(
-      id: p.id, name: p.name, category: p.category, subCategory: p.subCategory,
-      price: p.price, originalPrice: p.originalPrice,
-      description: p.description, images: urls,
-      sizes: p.sizes, colors: p.colors, colorHexes: p.colorHexes, material: p.material,
-      isNew: p.isNew, newExpiresAt: p.newExpiresAt, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
-      isGroupOnly: p.isGroupOnly, isGroup: p.isGroup, isActive: p.isActive,
-      rating: p.rating, reviewCount: p.reviewCount, stockCount: p.stockCount,
-      createdAt: p.createdAt, productCode: p.productCode, sectionImages: p.sectionImages,
+      id: p.id,
+      name: p.name,
+      category: p.category,
+      subCategory: p.subCategory,
+      price: p.price,
+      originalPrice: p.originalPrice,
+      description: p.description,
+      images: urls,
+      sizes: p.sizes,
+      colors: p.colors,
+      colorHexes: p.colorHexes,
+      material: p.material,
+      isNew: p.isNew,
+      newExpiresAt: p.newExpiresAt,
+      isSale: p.isSale,
+      isFreeShipping: p.isFreeShipping,
+      isGroupOnly: p.isGroupOnly,
+      isGroup: p.isGroup,
+      isActive: p.isActive,
+      rating: p.rating,
+      reviewCount: p.reviewCount,
+      stockCount: p.stockCount,
+      createdAt: p.createdAt,
+      productCode: p.productCode,
+      sectionImages: p.sectionImages,
       nameTranslations: p.nameTranslations,
       descriptionTranslations: p.descriptionTranslations,
     );
@@ -1312,7 +1393,9 @@ class ProductService {
     if (category == '세일') return _cache.where((p) => p.isSale).toList();
     // 단체주문 탭: 단체전용 또는 일반 단체 상품 반환
     if (category == '단체주문') {
-      return _cache.where((p) => (p.isGroupOnly || p.isGroup) && p.isActive).toList();
+      return _cache
+          .where((p) => (p.isGroupOnly || p.isGroup) && p.isActive)
+          .toList();
     }
     return _cache.where((p) => p.category == category).toList();
   }
@@ -1337,22 +1420,24 @@ class ProductService {
       if (nameTranslations != null && nameTranslations.isNotEmpty) {
         data['nameTranslations'] = nameTranslations;
       }
-      if (descriptionTranslations != null && descriptionTranslations.isNotEmpty) {
+      if (descriptionTranslations != null &&
+          descriptionTranslations.isNotEmpty) {
         data['descriptionTranslations'] = descriptionTranslations;
       }
       if (data.isEmpty) return;
 
       await _db.collection('products').doc(productId).set(
-        data,
-        SetOptions(merge: true),
-      );
+            data,
+            SetOptions(merge: true),
+          );
       // 로컬 캐시도 업데이트
       final idx = _products.indexWhere((p) => p.id == productId);
       if (idx >= 0) {
         final p = _products[idx];
         _products[idx] = p.copyWithTranslations(
           nameTranslations: nameTranslations ?? p.nameTranslations,
-          descriptionTranslations: descriptionTranslations ?? p.descriptionTranslations,
+          descriptionTranslations:
+              descriptionTranslations ?? p.descriptionTranslations,
         );
         _cache = List.from(_products);
       }

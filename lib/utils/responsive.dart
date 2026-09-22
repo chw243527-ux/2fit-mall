@@ -20,12 +20,12 @@ import 'package:flutter/material.dart';
 // 320px: iPhone SE(1세대) 계열, 360px: Galaxy S 계열의 일반적인 최소 CSS 폭
 const double kNarrowMobileBreakpoint = 360;
 const double kMobileBreakpoint = 600;
-const double kTabletBreakpoint = 900;   // = kPcBreakpoint 와 동일
-const double kPcMaxWidth       = 1280;  // PC 콘텐츠 최대 너비
+const double kTabletBreakpoint = 900; // = kPcBreakpoint 와 동일
+const double kPcMaxWidth = 1280; // PC 콘텐츠 최대 너비
 
 // ── 폰트 스케일 상한/하한 ────────────────────────
-const double kMinFontScale = 0.85;  // 아주 작은 기기에서 너무 작아지지 않게
-const double kMaxFontScale = 1.15;  // PC/4K 모니터에서 텍스트 과도하게 커지지 않게
+const double kMinFontScale = 0.85; // 아주 작은 기기에서 너무 작아지지 않게
+const double kMaxFontScale = 1.15; // PC/4K 모니터에서 텍스트 과도하게 커지지 않게
 
 class Responsive {
   final double screenWidth;
@@ -41,8 +41,8 @@ class Responsive {
   factory Responsive.of(BuildContext context) {
     final mq = MediaQuery.of(context);
     return Responsive._(
-      screenWidth:      mq.size.width,
-      screenHeight:     mq.size.height,
+      screenWidth: mq.size.width,
+      screenHeight: mq.size.height,
       devicePixelRatio: mq.devicePixelRatio,
     );
   }
@@ -50,8 +50,9 @@ class Responsive {
   // ── 기기 구분 ────────────────────────────────
   bool get isMobile => screenWidth < kMobileBreakpoint;
   bool get isNarrowMobile => screenWidth <= kNarrowMobileBreakpoint;
-  bool get isTablet => screenWidth >= kMobileBreakpoint && screenWidth < kTabletBreakpoint;
-  bool get isPc     => screenWidth >= kTabletBreakpoint;
+  bool get isTablet =>
+      screenWidth >= kMobileBreakpoint && screenWidth < kTabletBreakpoint;
+  bool get isPc => screenWidth >= kTabletBreakpoint;
 
   /// 모바일 본문 공통 좌우 여백. 320~360px에서는 12px로 줄여 콘텐츠 폭을 확보합니다.
   double get contentGutter {
@@ -66,19 +67,19 @@ class Responsive {
 
   // ── 기준 너비 (기기별) ─────────────────────────
   double get _baseWidth {
-    if (isPc)     return 1280.0;
+    if (isPc) return 1280.0;
     if (isTablet) return 768.0;
-    return 390.0;   // 모바일 기준
+    return 390.0; // 모바일 기준
   }
 
   double get _baseHeight {
-    if (isPc)     return 800.0;
+    if (isPc) return 800.0;
     if (isTablet) return 1024.0;
-    return 844.0;   // 모바일 기준 (iPhone 15 Pro)
+    return 844.0; // 모바일 기준 (iPhone 15 Pro)
   }
 
   // ── 스케일 팩터 ──────────────────────────────
-  double get scaleW => screenWidth  / _baseWidth;
+  double get scaleW => screenWidth / _baseWidth;
   double get scaleH => screenHeight / _baseHeight;
 
   /// 폰트 스케일: 너비+높이 평균으로 산출, 상하한 클램프
@@ -101,20 +102,24 @@ class Responsive {
 
   /// 패딩/마진 — 너비 비례
   EdgeInsets padding({
-    double left   = 0,
-    double top    = 0,
-    double right  = 0,
+    double left = 0,
+    double top = 0,
+    double right = 0,
     double bottom = 0,
-  }) => EdgeInsets.fromLTRB(
-    w(left), h(top), w(right), h(bottom),
-  );
+  }) =>
+      EdgeInsets.fromLTRB(
+        w(left),
+        h(top),
+        w(right),
+        h(bottom),
+      );
 
   EdgeInsets symmetric({double h = 0, double v = 0}) =>
       EdgeInsets.symmetric(horizontal: w(h), vertical: this.h(v));
 
   /// 반응형 값 선택 (mobile / tablet / pc)
   T value<T>({required T mobile, T? tablet, T? pc}) {
-    if (isPc)     return pc     ?? tablet ?? mobile;
+    if (isPc) return pc ?? tablet ?? mobile;
     if (isTablet) return tablet ?? mobile;
     return mobile;
   }

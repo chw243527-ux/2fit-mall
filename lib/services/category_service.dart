@@ -11,7 +11,14 @@ class CategoryService {
 
   // ── 기본(내장) 카테고리 ─────────────────────────────────────
   static const List<String> defaultMainCategories = [
-    '상의', '하의', '세트', '아우터', '스킨슈트', '악세사리', '이벤트', '단체주문',
+    '상의',
+    '하의',
+    '세트',
+    '아우터',
+    '스킨슈트',
+    '악세사리',
+    '이벤트',
+    '단체주문',
   ];
 
   static const Map<String, List<String>> defaultSubCatMap = {
@@ -24,10 +31,20 @@ class CategoryService {
       'Standard 심리스 싱글렛 B',
       'Standard 여성 크롭 싱글렛 A',
       'Standard 여성 크롭 싱글렛 B',
-      '크롭탑', '라운드티', '카라티', '롱 슬리브', '맨투맨', '후드집업', '트레이닝 집업',
+      '크롭탑',
+      '라운드티',
+      '카라티',
+      '롱 슬리브',
+      '맨투맨',
+      '후드집업',
+      '트레이닝 집업',
     ],
     '하의': [
-      '타이즈', '남성 5부', '여성 2.5부', '숏츠', '트레이닝바지',
+      '타이즈',
+      '남성 5부',
+      '여성 2.5부',
+      '숏츠',
+      '트레이닝바지',
     ],
     '세트': ['싱글렛세트A타입', '트레이닝복세트'],
     '아우터': ['바람막이', '다운패딩', '다운조끼패딩', '롱패딩'],
@@ -95,12 +112,12 @@ class CategoryService {
       _cachedMainCats ?? List<String>.from(defaultMainCategories);
 
   static Map<String, List<String>> get subCatMap =>
-      _cachedSubCatMap ?? Map<String, List<String>>.from(defaultSubCatMap.map(
+      _cachedSubCatMap ??
+      Map<String, List<String>>.from(defaultSubCatMap.map(
         (k, v) => MapEntry(k, List<String>.from(v)),
       ));
 
-  static List<String> subCatsFor(String mainCat) =>
-      subCatMap[mainCat] ?? [];
+  static List<String> subCatsFor(String mainCat) => subCatMap[mainCat] ?? [];
 
   // ── 메인 카테고리 추가 ─────────────────────────────────────
   static Future<void> addMainCategory(String name) async {
@@ -200,7 +217,8 @@ class CategoryService {
   }
 
   // ── 하위 카테고리 순서 변경 ────────────────────────────────
-  static Future<void> reorderSubCategories(String mainCat, List<String> newOrder) async {
+  static Future<void> reorderSubCategories(
+      String mainCat, List<String> newOrder) async {
     final prevSubs = _cachedSubCatMap;
     final subs = Map<String, List<String>>.from(subCatMap);
     subs[mainCat] = newOrder;
@@ -219,7 +237,8 @@ class CategoryService {
     final prevCats = _cachedMainCats;
     _cachedMainCats = newOrder;
     try {
-      await _saveToFirestore(newOrder, Map<String, List<String>>.from(subCatMap));
+      await _saveToFirestore(
+          newOrder, Map<String, List<String>>.from(subCatMap));
     } catch (e) {
       _cachedMainCats = prevCats;
       debugPrint('client_operation_failed');

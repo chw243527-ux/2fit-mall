@@ -254,7 +254,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
       final now = DateTime.now();
       // 기성품은 PERS_, 단체주문은 TEST_GRP_
       final prefix = orderType == 'personal' ? 'TEST_PERS_' : 'TEST_GRP_';
-      final orderId = '${prefix}${now.millisecondsSinceEpoch}';
+      final orderId = '$prefix${now.millisecondsSinceEpoch}';
       final total = unitPrice * count;
 
       // 실제 상품 데이터 사용
@@ -371,7 +371,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
       }
 
       final msg = '✅ [${orderType == "personal" ? "기성품" : "단체"} $teamName] '
-          '${count}개 | ${_fmt(total)}원 | ${status.label}\n'
+          '$count개 | ${_fmt(total)}원 | ${status.label}\n'
           '   ID: $orderId';
       setState(() {
         _results.insert(0, msg);
@@ -423,10 +423,11 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         title: Row(children: [
-          Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 20),
-          SizedBox(width: 8),
+          const Icon(Icons.warning_amber_rounded,
+              color: AppColors.error, size: 20),
+          const SizedBox(width: 8),
           Text(context.loc.t('테스트_주문_삭제', '테스트 주문 삭제'),
-              style: TextStyle(fontSize: 15)),
+              style: const TextStyle(fontSize: 15)),
         ]),
         content: Text(context.loc.t('TEST_GRP____TES_604fd0',
             'TEST_GRP_ / TEST_PERS_ 로 시작하는\n테스트 주문을 모두 삭제합니다.')),
@@ -477,7 +478,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
         _isLoading = false;
         _results.clear();
       });
-      _toast('테스트 주문 ${total}건 삭제 완료');
+      _toast('테스트 주문 $total건 삭제 완료');
     } catch (e) {
       setState(() => _isLoading = false);
       _toast('테스트 주문 삭제에 실패했습니다.', error: true);
@@ -509,10 +510,11 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         title: Row(children: [
-          Icon(Icons.science_rounded, size: 18),
-          SizedBox(width: 8),
+          const Icon(Icons.science_rounded, size: 18),
+          const SizedBox(width: 8),
           Text(context.loc.t('주문_테스트', '주문 테스트'),
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ]),
         actions: [
           IconButton(
@@ -526,10 +528,10 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
       body: _isLoading
           ? Center(
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-              CircularProgressIndicator(color: AppColors.primary),
-              SizedBox(height: 12),
+              const CircularProgressIndicator(color: AppColors.primary),
+              const SizedBox(height: 12),
               Text(context.loc.t('처리_중', '처리 중...'),
-                  style: TextStyle(color: AppColors.textSecondary)),
+                  style: const TextStyle(color: AppColors.textSecondary)),
             ]))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(12),
@@ -600,7 +602,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
                 : Text(
                     context.loc
                         .t('로그인_필요___로그인_후__9ac61d', '로그인 필요 — 로그인 후 사용하세요'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.accent,
                         fontWeight: FontWeight.w600)),
@@ -617,14 +619,15 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
           border: Border.all(color: const Color(0xFFFFCC02), width: 1.2),
         ),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Icon(Icons.info_outline_rounded, color: AppColors.warning, size: 16),
-          SizedBox(width: 8),
+          const Icon(Icons.info_outline_rounded,
+              color: AppColors.warning, size: 16),
+          const SizedBox(width: 8),
           Expanded(
               child: Text(
             context.loc.t('생성된_주문_로그인_유저_ID_마이페이지_확인',
                 '• 생성된 주문은 로그인 유저 ID로 저장 → 마이페이지에서 즉시 확인 가능\n• 기성품/단체주문 둘 다 생성 가능 · 상태(배송중/완료 등) 선택 가능\n• 주문번호 TEST_GRP_ / TEST_PERS_ 로 시작 → 상단 🗑 버튼으로 일괄 삭제'),
-            style:
-                TextStyle(fontSize: 11, color: Color(0xFF795548), height: 1.6),
+            style: const TextStyle(
+                fontSize: 11, color: Color(0xFF795548), height: 1.6),
           )),
         ]),
       );
@@ -704,7 +707,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
                 decoration: BoxDecoration(
                     color: p.color, borderRadius: BorderRadius.circular(6)),
                 child: Text(context.loc.t('실행', '실행'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 11,
                         color: Colors.white,
                         fontWeight: FontWeight.w700)),
@@ -891,7 +894,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                      '예상 합계 (${_customCount}${_customOrderType == "personal" ? "개" : "인"})',
+                      '예상 합계 ($_customCount${_customOrderType == "personal" ? "개" : "인"})',
                       style: const TextStyle(
                           fontSize: 12, color: AppColors.textSecondary)),
                   Text('${_fmt(_customPrice * _customCount)}원',
@@ -925,7 +928,8 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
               ),
               icon: const Icon(Icons.send_rounded, size: 15),
               label: Text(context.loc.t('마이페이지에_주문_생성', '마이페이지에 주문 생성'),
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w700)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -949,12 +953,13 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
             const Icon(Icons.terminal_rounded, color: Colors.white54, size: 13),
             const SizedBox(width: 5),
             Text(context.loc.t('실행_로그', '실행 로그'),
-                style: TextStyle(color: Colors.white54, fontSize: 11)),
+                style: const TextStyle(color: Colors.white54, fontSize: 11)),
             const Spacer(),
             GestureDetector(
               onTap: () => setState(() => _results.clear()),
               child: Text(context.loc.t('지우기', '지우기'),
-                  style: TextStyle(color: Color(0xFF90CAF9), fontSize: 11)),
+                  style:
+                      const TextStyle(color: Color(0xFF90CAF9), fontSize: 11)),
             ),
           ]),
           const SizedBox(height: 8),

@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 // payment_service.dart
 // ══════════════════════════════════════════════════════════════
 // 토스페이먼츠 결제 서비스 — Payment Widget 방식 (v2)
@@ -43,7 +44,6 @@ class TossConfig {
 // PaymentService — Payment Widget 방식
 // ══════════════════════════════════════════════════════════════
 class PaymentService {
-
   // ─── Widget 초기화 (JS 호출) ──────────────────────────────────
   // checkout 화면 initState에서 호출 → 위젯 인스턴스 준비
   static Future<String> initWidget({
@@ -102,13 +102,13 @@ class PaymentService {
       if (!completer.isCompleted) completer.complete(result);
     });
     final params = js.JsObject.jsify({
-      'orderId':             orderId,
-      'orderName':           orderName,
-      'customerName':        customerName,
-      'customerEmail':       customerEmail,
+      'orderId': orderId,
+      'orderName': orderName,
+      'customerName': customerName,
+      'customerEmail': customerEmail,
       'customerMobilePhone': customerMobilePhone,
-      'successUrl':          successUrl,
-      'failUrl':             failUrl,
+      'successUrl': successUrl,
+      'failUrl': failUrl,
     });
     js.context.callMethod('submitTossWidget', [params]);
     // 성공 시 successUrl로 리디렉션되어 이 future는 완료되지 않음
@@ -153,20 +153,22 @@ class PaymentService {
       final user = FirebaseAuth.instance.currentUser;
       final token = await user?.getIdToken(true);
       if (user == null || token == null || token.isEmpty) {
-        return PaymentResult(success: false, error: '로그인이 필요합니다.');
+        return const PaymentResult(success: false, error: '로그인이 필요합니다.');
       }
-      final response = await http.post(
-        Uri.parse(TossConfig.confirmEdgeFunctionUrl),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'paymentKey': paymentKey,
-          'orderId': orderId,
-          'amount': amount,
-        }),
-      ).timeout(const Duration(seconds: 30));
+      final response = await http
+          .post(
+            Uri.parse(TossConfig.confirmEdgeFunctionUrl),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode({
+              'paymentKey': paymentKey,
+              'orderId': orderId,
+              'amount': amount,
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
 
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['success'] == true) {
@@ -182,7 +184,8 @@ class PaymentService {
         error: data['message'] ?? '결제 승인에 실패했습니다.',
       );
     } catch (e) {
-      return const PaymentResult(success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      return const PaymentResult(
+          success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }
 
@@ -194,18 +197,20 @@ class PaymentService {
   }) async {
     try {
       final credentials = base64Encode(utf8.encode('${TossConfig.secretKey}:'));
-      final response = await http.post(
-        Uri.parse('https://api.tosspayments.com/v1/payments/confirm'),
-        headers: {
-          'Authorization': 'Basic $credentials',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'paymentKey': paymentKey,
-          'orderId': orderId,
-          'amount': amount,
-        }),
-      ).timeout(const Duration(seconds: 30));
+      final response = await http
+          .post(
+            Uri.parse('https://api.tosspayments.com/v1/payments/confirm'),
+            headers: {
+              'Authorization': 'Basic $credentials',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({
+              'paymentKey': paymentKey,
+              'orderId': orderId,
+              'amount': amount,
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -240,7 +245,8 @@ class PaymentService {
           method: 'CARD',
         );
       }
-      return const PaymentResult(success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      return const PaymentResult(
+          success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }
 
@@ -257,7 +263,7 @@ class PaymentService {
   static Future<CashReceiptResult> issueCashReceipt({
     required String paymentKey,
     required String customerIdentityNumber, // 전화번호(010-...) or 사업자번호(10자리)
-    String type = '소득공제',               // '소득공제' or '지출증빙'
+    String type = '소득공제', // '소득공제' or '지출증빙'
     int taxFreeAmount = 0,
   }) async {
     if (TossConfig.useEdgeFunction &&
@@ -288,21 +294,23 @@ class PaymentService {
       final user = FirebaseAuth.instance.currentUser;
       final token = await user?.getIdToken(true);
       if (user == null || token == null || token.isEmpty) {
-        return CashReceiptResult(success: false, error: '로그인이 필요합니다.');
+        return const CashReceiptResult(success: false, error: '로그인이 필요합니다.');
       }
-      final response = await http.post(
-        Uri.parse(TossConfig.cashReceiptEdgeFunctionUrl),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'paymentKey': paymentKey,
-          'customerIdentityNumber': customerIdentityNumber,
-          'type': type,
-          'taxFreeAmount': taxFreeAmount,
-        }),
-      ).timeout(const Duration(seconds: 30));
+      final response = await http
+          .post(
+            Uri.parse(TossConfig.cashReceiptEdgeFunctionUrl),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode({
+              'paymentKey': paymentKey,
+              'customerIdentityNumber': customerIdentityNumber,
+              'type': type,
+              'taxFreeAmount': taxFreeAmount,
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
 
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['success'] == true) {
@@ -317,7 +325,8 @@ class PaymentService {
         error: data['message'] as String? ?? '현금영수증 발급에 실패했습니다.',
       );
     } catch (e) {
-      return const CashReceiptResult(success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      return const CashReceiptResult(
+          success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }
 
@@ -330,19 +339,21 @@ class PaymentService {
   }) async {
     try {
       final credentials = base64Encode(utf8.encode('${TossConfig.secretKey}:'));
-      final response = await http.post(
-        Uri.parse(
-            'https://api.tosspayments.com/v1/payments/$paymentKey/cash-receipts'),
-        headers: {
-          'Authorization': 'Basic $credentials',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'customerIdentityNumber': customerIdentityNumber,
-          'type': type,
-          if (taxFreeAmount > 0) 'taxFreeAmount': taxFreeAmount,
-        }),
-      ).timeout(const Duration(seconds: 30));
+      final response = await http
+          .post(
+            Uri.parse(
+                'https://api.tosspayments.com/v1/payments/$paymentKey/cash-receipts'),
+            headers: {
+              'Authorization': 'Basic $credentials',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({
+              'customerIdentityNumber': customerIdentityNumber,
+              'type': type,
+              if (taxFreeAmount > 0) 'taxFreeAmount': taxFreeAmount,
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -371,19 +382,26 @@ class PaymentService {
           receiptKey: 'test_rcpt_${DateTime.now().millisecondsSinceEpoch}',
         );
       }
-      return const CashReceiptResult(success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      return const CashReceiptResult(
+          success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }
 
   // ─── 결제 수단 매핑 (기존 호환용) ────────────────────────────
   static String mapPaymentMethod(String method) {
     switch (method) {
-      case '카카오페이':    return 'KAKAO_PAY';
-      case '네이버페이':    return 'NAVER_PAY';
-      case '토스페이':     return 'TOSS_PAY';
-      case '신용/체크카드': return 'CARD';
-      case '무통장입금':    return 'VIRTUAL_ACCOUNT';
-      default:            return 'CARD';
+      case '카카오페이':
+        return 'KAKAO_PAY';
+      case '네이버페이':
+        return 'NAVER_PAY';
+      case '토스페이':
+        return 'TOSS_PAY';
+      case '신용/체크카드':
+        return 'CARD';
+      case '무통장입금':
+        return 'VIRTUAL_ACCOUNT';
+      default:
+        return 'CARD';
     }
   }
 

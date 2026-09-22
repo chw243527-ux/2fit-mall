@@ -126,7 +126,7 @@ class AccountDeletionScreen extends StatelessWidget {
                           child: OutlinedButton.icon(
                             onPressed: () => _openDeletionRequestEmail(context),
                             icon: const Icon(Icons.email_outlined),
-                            label: Text(
+                            label: const Text(
                                 '${AppConstants.customerServiceEmail}로 삭제 요청'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.primary,
@@ -151,20 +151,20 @@ class AccountDeletionScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _SectionCard(
+                  const _SectionCard(
                     title: '삭제 또는 익명화되는 정보',
                     icon: Icons.privacy_tip_outlined,
-                    child: const _BulletList([
+                    child: _BulletList([
                       '삭제: 로그인 계정, 회원정보, 찜·쿠폰·포인트 내역, 사이즈 프로필, 알림, 재입고 신청, 채팅, 리뷰 및 리뷰 이미지',
                       '익명화 후 보관: 주문·결제 및 교환·반품 기록 중 법령상 또는 분쟁 처리에 필요한 거래 정보',
                       '회원 탈퇴 후에는 같은 계정으로 로그인하거나 삭제된 정보를 복구할 수 없습니다.',
                     ]),
                   ),
                   const SizedBox(height: 12),
-                  _SectionCard(
+                  const _SectionCard(
                     title: '처리 기준',
                     icon: Icons.info_outline_rounded,
-                    child: const _BulletList([
+                    child: _BulletList([
                       '직접 탈퇴: 보안 확인이 끝나면 즉시 처리됩니다.',
                       '이메일 요청: 본인 확인이 필요한 경우 고객센터에서 안내드립니다.',
                       '보존되는 거래 기록의 범위와 기간은 개인정보처리방침에 따릅니다.',

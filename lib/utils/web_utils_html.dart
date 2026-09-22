@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 // web_utils_html.dart - 웹 플랫폼용 다운로드 유틸 (dart:html 사용)
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;

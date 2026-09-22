@@ -32,7 +32,6 @@ class AdminConfig {
 // NotificationService — 알림 발송 통합
 // ══════════════════════════════════════════════════════════════
 class NotificationService {
-
   // ─── 주문 접수 알림 (고객 + 관리자) ─────────────────────────
   static Future<void> sendOrderConfirmed(OrderModel order) async {
     await Future.wait([
@@ -107,14 +106,16 @@ class NotificationService {
       }
       final idToken = await user.getIdToken();
       if (idToken == null || idToken.isEmpty) return;
-      final response = await http.post(
-        Uri.parse('$_functionsBaseUrl/$endpoint'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $idToken',
-        },
-        body: jsonEncode(body),
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .post(
+            Uri.parse('$_functionsBaseUrl/$endpoint'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $idToken',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 10));
       if (response.statusCode >= 400 && kDebugMode) {
         debugPrint('서버 알림 실패: ${response.statusCode}');
       }
@@ -148,19 +149,21 @@ class NotificationService {
 
     if (AdminConfig.hasEdgeFunction && SupabaseConfig.isConfigured) {
       try {
-        await http.post(
-          Uri.parse(AdminConfig.emailEdgeFunctionUrl),
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': SupabaseConfig.supabaseAnonKey,
-            'Authorization': 'Bearer ${SupabaseConfig.supabaseAnonKey}',
-          },
-          body: jsonEncode({
-            'to': AdminConfig.adminEmail,
-            'subject': subject,
-            'html': body,
-          }),
-        ).timeout(const Duration(seconds: 10));
+        await http
+            .post(
+              Uri.parse(AdminConfig.emailEdgeFunctionUrl),
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': SupabaseConfig.supabaseAnonKey,
+                'Authorization': 'Bearer ${SupabaseConfig.supabaseAnonKey}',
+              },
+              body: jsonEncode({
+                'to': AdminConfig.adminEmail,
+                'subject': subject,
+                'html': body,
+              }),
+            )
+            .timeout(const Duration(seconds: 10));
       } catch (e) {
         if (kDebugMode) debugPrint('client_operation_failed');
       }
@@ -231,7 +234,6 @@ class NotificationService {
 </body>
 </html>''';
   }
-
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -304,7 +306,10 @@ class AdminWebNotifier {
     final lang = language ?? 'KO';
     const title = '💬 새 채팅 문의 — 2FIT MALL';
     final body = '[$lang] $userName: $message';
-    await _showBrowserNotification(title: title, body: body, tag: 'chat_${DateTime.now().millisecondsSinceEpoch}');
+    await _showBrowserNotification(
+        title: title,
+        body: body,
+        tag: 'chat_${DateTime.now().millisecondsSinceEpoch}');
   }
 
   // ── 신규 주문 알림 ──────────────────────────────────────────
@@ -313,11 +318,14 @@ class AdminWebNotifier {
     required String userName,
     required double totalAmount,
   }) async {
-    final price = totalAmount.toInt().toString()
+    final price = totalAmount
+        .toInt()
+        .toString()
         .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
     const title = '🛍️ 새 주문 접수 — 2FIT MALL';
     final body = '주문번호: $orderId\n고객: $userName\n금액: $price원';
-    await _showBrowserNotification(title: title, body: body, tag: 'order_$orderId');
+    await _showBrowserNotification(
+        title: title, body: body, tag: 'order_$orderId');
   }
 
   // ── 내부: 브라우저 알림 표시 ────────────────────────────────
@@ -409,7 +417,9 @@ class AdminNotificationStore {
     required String userName,
     required double totalAmount,
   }) {
-    final price = totalAmount.toInt().toString()
+    final price = totalAmount
+        .toInt()
+        .toString()
         .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
     add(AdminNotification(
       id: 'order_$orderId',

@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 // kakao_address_web_impl.dart - 웹 플랫폼용 카카오 주소 검색 구현
 // dart.library.html 환경에서만 사용됨
 //

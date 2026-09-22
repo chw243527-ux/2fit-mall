@@ -1,3 +1,5 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -25,9 +27,9 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
   DateTime _from = DateTime(DateTime.now().year, DateTime.now().month, 1);
   DateTime _to = DateTime.now();
 // ignore: unused_field
-  double _hqRate = .70;
+  final double _hqRate = .70;
 // ignore: unused_field
-  bool _showPurchases = false;
+  final bool _showPurchases = false;
   bool _performanceEnabled = false;
   double _performanceTargetSales = 0;
   int _performanceMinOrders = 0;
@@ -49,9 +51,11 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
       if (!mounted || data == null) return;
       setState(() {
         _performanceEnabled = data['enabled'] == true;
-        _performanceTargetSales = (data['targetSales'] as num?)?.toDouble() ?? 0;
+        _performanceTargetSales =
+            (data['targetSales'] as num?)?.toDouble() ?? 0;
         _performanceMinOrders = (data['minOrders'] as num?)?.toInt() ?? 0;
-        _performanceMaxRefundRate = (data['maxRefundRate'] as num?)?.toDouble() ?? 100;
+        _performanceMaxRefundRate =
+            (data['maxRefundRate'] as num?)?.toDouble() ?? 100;
       });
     } catch (_) {}
   }
@@ -62,7 +66,8 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
       DateTime(value.year, value.month - 1, 1);
 
   bool _isCancelledOrRefunded(OrderModel order) =>
-      order.status == OrderStatus.cancelled || order.status == OrderStatus.refunded;
+      order.status == OrderStatus.cancelled ||
+      order.status == OrderStatus.refunded;
 
   double _monthSales(List<OrderModel> orders, DateTime month) {
     final start = _monthStart(month);
@@ -70,7 +75,7 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
     return orders
         .where((o) => !o.createdAt.isBefore(start) && o.createdAt.isBefore(end))
         .where((o) => !_isCancelledOrRefunded(o))
-        .fold<double>(0, (sum, o) => sum + o.totalAmount);
+        .fold<double>(0, (total, o) => total + o.totalAmount);
   }
 
   int _monthOrderCount(List<OrderModel> orders, DateTime month) {
@@ -85,8 +90,9 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
   double _monthRefundRate(List<OrderModel> orders, DateTime month) {
     final start = _monthStart(month);
     final end = DateTime(start.year, start.month + 1, 1);
-    final monthOrders = orders.where((o) =>
-        !o.createdAt.isBefore(start) && o.createdAt.isBefore(end)).toList();
+    final monthOrders = orders
+        .where((o) => !o.createdAt.isBefore(start) && o.createdAt.isBefore(end))
+        .toList();
     if (monthOrders.isEmpty) return 0;
     final refunded = monthOrders.where(_isCancelledOrRefunded).length;
     return refunded / monthOrders.length * 100;
@@ -104,16 +110,24 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
 
   double _rateForOrder(List<OrderModel> orders, OrderModel order) {
     // 계약서 제8조 권장안: 전월 성과 달성 시 다음 달 1일부터 60/40 적용.
-    return _performanceMet(orders, _previousMonthStart(order.createdAt)) ? .60 : .70;
+    return _performanceMet(orders, _previousMonthStart(order.createdAt))
+        ? .60
+        : .70;
   }
 
   double _rateForRange(List<OrderModel> orders) {
-    final rates = orders.where((o) => _inRange(o.createdAt)).map((o) => _rateForOrder(orders, o)).toSet();
+    final rates = orders
+        .where((o) => _inRange(o.createdAt))
+        .map((o) => _rateForOrder(orders, o))
+        .toSet();
     return rates.length == 1 ? rates.first : -1;
   }
 
   Future<void> _savePerformanceSettings() async {
-    await FirebaseFirestore.instance.collection('settlement_settings').doc('performance').set({
+    await FirebaseFirestore.instance
+        .collection('settlement_settings')
+        .doc('performance')
+        .set({
       'enabled': _performanceEnabled,
       'targetSales': _performanceTargetSales,
       'minOrders': _performanceMinOrders,
@@ -124,37 +138,60 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
 
   Future<void> _configurePerformance() async {
     var enabled = _performanceEnabled;
-    final target = TextEditingController(text: _performanceTargetSales == 0 ? '' : _performanceTargetSales.toStringAsFixed(0));
-    final minOrders = TextEditingController(text: _performanceMinOrders.toString());
-    final maxRefund = TextEditingController(text: _performanceMaxRefundRate.toStringAsFixed(2));
+    final target = TextEditingController(
+        text: _performanceTargetSales == 0
+            ? ''
+            : _performanceTargetSales.toStringAsFixed(0));
+    final minOrders =
+        TextEditingController(text: _performanceMinOrders.toString());
+    final maxRefund = TextEditingController(
+        text: _performanceMaxRefundRate.toStringAsFixed(2));
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('성과 배분 조건 설정'),
-        content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          StatefulBuilder(builder: (ctx, setLocal) => SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('성과연동 자동 적용'),
-            subtitle: const Text('전월 조건 충족 시 다음 달부터 본사 60%·운영자 40%'),
-            value: enabled,
-            onChanged: (v) => setLocal(() => enabled = v),
-          )),
-          TextField(controller: target, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: '전월 최소 정산대상 매출(원)', hintText: '계약서 별지 기준 입력')),
-          TextField(controller: minOrders, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: '전월 최소 주문 수(선택)')),
-          TextField(controller: maxRefund, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: '최대 취소·환불률(%, 선택)')),
+        content: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+          StatefulBuilder(
+              builder: (ctx, setLocal) => SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('성과연동 자동 적용'),
+                    subtitle: const Text('전월 조건 충족 시 다음 달부터 본사 60%·운영자 40%'),
+                    value: enabled,
+                    onChanged: (v) => setLocal(() => enabled = v),
+                  )),
+          TextField(
+              controller: target,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                  labelText: '전월 최소 정산대상 매출(원)', hintText: '계약서 별지 기준 입력')),
+          TextField(
+              controller: minOrders,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: '전월 최소 주문 수(선택)')),
+          TextField(
+              controller: maxRefund,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: '최대 취소·환불률(%, 선택)')),
           const SizedBox(height: 8),
-          Text('계약서에 별지 수치가 확정되기 전에는 조건을 임의로 입력하지 마세요.', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+          Text('계약서에 별지 수치가 확정되기 전에는 조건을 임의로 입력하지 마세요.',
+              style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
         ])),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('저장')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('취소')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('저장')),
         ],
       ),
     );
     if (result != true) return;
     setState(() {
       _performanceEnabled = enabled;
-      _performanceTargetSales = double.tryParse(target.text.replaceAll(',', '')) ?? 0;
+      _performanceTargetSales =
+          double.tryParse(target.text.replaceAll(',', '')) ?? 0;
       _performanceMinOrders = int.tryParse(minOrders.text) ?? 0;
       _performanceMaxRefundRate = double.tryParse(maxRefund.text) ?? 100;
     });
@@ -171,9 +208,11 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
     return '₩$b';
   }
 
-  String _date(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  String _date(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-  bool _inRange(DateTime d) => !d.isBefore(DateTime(_from.year, _from.month, _from.day)) &&
+  bool _inRange(DateTime d) =>
+      !d.isBefore(DateTime(_from.year, _from.month, _from.day)) &&
       !d.isAfter(DateTime(_to.year, _to.month, _to.day, 23, 59, 59));
 
   Future<void> _pickDate(bool start) async {
@@ -195,18 +234,27 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
     });
   }
 
-  Future<void> _downloadPdf(List<OrderModel> orders, List<Map<String, dynamic>> purchases) async {
+  Future<void> _downloadPdf(
+      List<OrderModel> orders, List<Map<String, dynamic>> purchases) async {
     final filtered = orders.where((o) => _inRange(o.createdAt)).toList();
-    final confirmed = filtered.where((o) => o.status != OrderStatus.cancelled && o.status != OrderStatus.refunded).toList();
+    final confirmed = filtered
+        .where((o) =>
+            o.status != OrderStatus.cancelled &&
+            o.status != OrderStatus.refunded)
+        .toList();
     final gross = confirmed.fold<double>(0, (s, o) => s + o.totalAmount);
-    final orderRates = <String, double>{for (final o in confirmed) o.id: _rateForOrder(orders, o)};
-    final hq = confirmed.fold<double>(0, (sum, o) => sum + o.totalAmount * (orderRates[o.id] ?? .70));
+    final orderRates = <String, double>{
+      for (final o in confirmed) o.id: _rateForOrder(orders, o)
+    };
+    final hq = confirmed.fold<double>(
+        0, (total, o) => total + o.totalAmount * (orderRates[o.id] ?? .70));
     final operatorShare = gross - hq;
     final purchaseTotal = purchases.where((p) {
       final ts = p['purchaseDate'];
       final date = ts is Timestamp ? ts.toDate() : DateTime.tryParse('$ts');
       return date != null && _inRange(date);
-    }).fold<double>(0, (s, p) => s + ((p['totalAmount'] as num?)?.toDouble() ?? 0));
+    }).fold<double>(
+        0, (s, p) => s + ((p['totalAmount'] as num?)?.toDouble() ?? 0));
 
     final doc = pw.Document();
     // Helvetica에는 한글 글리프가 없어 PDF에서 네모 문자로 표시되므로
@@ -217,7 +265,11 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
       pageFormat: PdfPageFormat.a4,
       theme: pw.ThemeData.withFont(base: font, bold: font),
       build: (_) => [
-        pw.Header(level: 0, child: pw.Text('2FIT MALL 본사 정산내역', style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold))),
+        pw.Header(
+            level: 0,
+            child: pw.Text('2FIT MALL 본사 정산내역',
+                style: pw.TextStyle(
+                    fontSize: 20, fontWeight: pw.FontWeight.bold))),
         pw.Text('정산기간: ${_date(_from)} ~ ${_date(_to)}'),
         if (confirmed.isEmpty)
           pw.Container(
@@ -240,49 +292,79 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
           cellPadding: const pw.EdgeInsets.all(6),
         ),
         pw.SizedBox(height: 18),
-        pw.Text('주문별 정산', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+        pw.Text('주문별 정산',
+            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
         pw.Table.fromTextArray(
           headers: const ['주문번호', '주문일', '주문유형', '상태', '배분', '상품매출', '본사 공급가'],
-          data: confirmed.map((o) { final rate = orderRates[o.id] ?? .70; return [o.id, _date(o.createdAt), o.orderType == 'group' ? '단체' : '기성품', o.status.label, rate == .60 ? '60/40' : '70/30', _money(o.totalAmount), _money(o.totalAmount * rate)]; }).toList(),
+          data: confirmed.map((o) {
+            final rate = orderRates[o.id] ?? .70;
+            return [
+              o.id,
+              _date(o.createdAt),
+              o.orderType == 'group' ? '단체' : '기성품',
+              o.status.label,
+              rate == .60 ? '60/40' : '70/30',
+              _money(o.totalAmount),
+              _money(o.totalAmount * rate)
+            ];
+          }).toList(),
           border: pw.TableBorder.all(color: PdfColors.grey400),
           cellPadding: const pw.EdgeInsets.all(5),
           cellStyle: const pw.TextStyle(fontSize: 8),
         ),
         if (purchases.isNotEmpty) ...[
           pw.SizedBox(height: 18),
-          pw.Text('매입 내역', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+          pw.Text('매입 내역',
+              style:
+                  pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
           pw.Table.fromTextArray(
             headers: const ['매입일', '공급처', '상품/사유', '수량', '합계'],
-            data: purchases.where((p) {
-              final ts = p['purchaseDate'];
-              final date = ts is Timestamp ? ts.toDate() : DateTime.tryParse('$ts');
-              return date != null && _inRange(date);
-            }).map((p) => [
-              '${p['purchaseDate'] is Timestamp ? _date((p['purchaseDate'] as Timestamp).toDate()) : p['purchaseDate']}',
-              p['supplier'] ?? '', p['description'] ?? '', '${p['quantity'] ?? 0}', _money((p['totalAmount'] as num?)?.toDouble() ?? 0)
-            ]).toList(),
+            data: purchases
+                .where((p) {
+                  final ts = p['purchaseDate'];
+                  final date =
+                      ts is Timestamp ? ts.toDate() : DateTime.tryParse('$ts');
+                  return date != null && _inRange(date);
+                })
+                .map((p) => [
+                      '${p['purchaseDate'] is Timestamp ? _date((p['purchaseDate'] as Timestamp).toDate()) : p['purchaseDate']}',
+                      p['supplier'] ?? '',
+                      p['description'] ?? '',
+                      '${p['quantity'] ?? 0}',
+                      _money((p['totalAmount'] as num?)?.toDouble() ?? 0)
+                    ])
+                .toList(),
             border: pw.TableBorder.all(color: PdfColors.grey400),
             cellPadding: const pw.EdgeInsets.all(5),
             cellStyle: const pw.TextStyle(fontSize: 8),
           ),
         ],
         pw.SizedBox(height: 20),
-        pw.Text('성과조건: ${_performanceEnabled ? '전월 매출 ${_money(_performanceTargetSales)} 이상, 최소 주문 ${_performanceMinOrders}건, 취소·환불률 ${_performanceMaxRefundRate.toStringAsFixed(2)}% 이하 충족 시 다음 달 60/40 적용' : '자동 성과연동 미사용'}', style: const pw.TextStyle(fontSize: 8)),
+        pw.Text(
+            '성과조건: ${_performanceEnabled ? '전월 매출 ${_money(_performanceTargetSales)} 이상, 최소 주문 $_performanceMinOrders건, 취소·환불률 ${_performanceMaxRefundRate.toStringAsFixed(2)}% 이하 충족 시 다음 달 60/40 적용' : '자동 성과연동 미사용'}',
+            style: const pw.TextStyle(fontSize: 8)),
         pw.SizedBox(height: 6),
-        pw.Text('※ 본 문서는 협의용 계약서의 확정된 기본 70/30 구조를 기준으로 산출한 관리자 제출용 초안입니다. 할인 기준, 부가세 기준, 성과연동 40% 적용 여부 등 계약서의 [확인 필요] 항목은 최종 계약 확정 후 관리자 설정에서 변경해야 합니다.', style: const pw.TextStyle(fontSize: 8)),
+        pw.Text(
+            '※ 본 문서는 협의용 계약서의 확정된 기본 70/30 구조를 기준으로 산출한 관리자 제출용 초안입니다. 할인 기준, 부가세 기준, 성과연동 40% 적용 여부 등 계약서의 [확인 필요] 항목은 최종 계약 확정 후 관리자 설정에서 변경해야 합니다.',
+            style: const pw.TextStyle(fontSize: 8)),
       ],
     ));
     final bytes = Uint8List.fromList(await doc.save());
-    final name = '2FIT_본사정산_${_date(_from).replaceAll('-', '')}_${_date(_to).replaceAll('-', '')}.pdf';
+    final name =
+        '2FIT_본사정산_${_date(_from).replaceAll('-', '')}_${_date(_to).replaceAll('-', '')}.pdf';
     if (kIsWeb) {
       downloadFileWeb(bytes, name, 'application/pdf');
     } else {
       final dir = await getTemporaryDirectory();
       final path = '${dir.path}/$name';
       await File(path).writeAsBytes(bytes, flush: true);
-      await SharePlus.instance.share(ShareParams(files: [XFile(path, mimeType: 'application/pdf', name: name)], subject: '2FIT 본사 정산내역'));
+      await SharePlus.instance.share(ShareParams(
+          files: [XFile(path, mimeType: 'application/pdf', name: name)],
+          subject: '2FIT 본사 정산내역'));
     }
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$name 다운로드를 시작했습니다.')));
+    if (mounted)
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('$name 다운로드를 시작했습니다.')));
   }
 
   Future<void> _addPurchase() async {
@@ -291,26 +373,68 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
     final qty = TextEditingController(text: '1');
     final amount = TextEditingController();
     DateTime date = DateTime.now();
-    final ok = await showDialog<bool>(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, setLocal) => AlertDialog(
-      title: const Text('매입 내역 추가'),
-      content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(controller: supplier, decoration: const InputDecoration(labelText: '공급처')),
-        TextField(controller: desc, decoration: const InputDecoration(labelText: '상품/매입 사유')),
-        TextField(controller: qty, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: '수량')),
-        TextField(controller: amount, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: '총 매입액(원)')),
-        ListTile(title: Text('매입일 ${_date(date)}'), trailing: const Icon(Icons.calendar_month), onTap: () async { final d = await showDatePicker(context: ctx, firstDate: DateTime(2020), lastDate: DateTime.now().add(const Duration(days: 365)), initialDate: date); if (d != null) setLocal(() => date = d); }),
-      ])),
-      actions: [TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')), FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('저장'))],
-    )));
+    final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => StatefulBuilder(
+            builder: (ctx, setLocal) => AlertDialog(
+                  title: const Text('매입 내역 추가'),
+                  content: SingleChildScrollView(
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    TextField(
+                        controller: supplier,
+                        decoration: const InputDecoration(labelText: '공급처')),
+                    TextField(
+                        controller: desc,
+                        decoration:
+                            const InputDecoration(labelText: '상품/매입 사유')),
+                    TextField(
+                        controller: qty,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: '수량')),
+                    TextField(
+                        controller: amount,
+                        keyboardType: TextInputType.number,
+                        decoration:
+                            const InputDecoration(labelText: '총 매입액(원)')),
+                    ListTile(
+                        title: Text('매입일 ${_date(date)}'),
+                        trailing: const Icon(Icons.calendar_month),
+                        onTap: () async {
+                          final d = await showDatePicker(
+                              context: ctx,
+                              firstDate: DateTime(2020),
+                              lastDate:
+                                  DateTime.now().add(const Duration(days: 365)),
+                              initialDate: date);
+                          if (d != null) setLocal(() => date = d);
+                        }),
+                  ])),
+                  actions: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('취소')),
+                    FilledButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text('저장'))
+                  ],
+                )));
     if (ok != true || amount.text.trim().isEmpty) return;
     await FirebaseFirestore.instance.collection('purchase_records').add({
-      'supplier': supplier.text.trim(), 'description': desc.text.trim(), 'quantity': int.tryParse(qty.text) ?? 1,
-      'totalAmount': double.tryParse(amount.text.replaceAll(',', '')) ?? 0, 'purchaseDate': Timestamp.fromDate(date),
-      'createdAt': FieldValue.serverTimestamp(), 'createdBy': 'admin',
+      'supplier': supplier.text.trim(),
+      'description': desc.text.trim(),
+      'quantity': int.tryParse(qty.text) ?? 1,
+      'totalAmount': double.tryParse(amount.text.replaceAll(',', '')) ?? 0,
+      'purchaseDate': Timestamp.fromDate(date),
+      'createdAt': FieldValue.serverTimestamp(),
+      'createdBy': 'admin',
     });
   }
 
-  Widget _dateButton(String label, DateTime value, VoidCallback onTap) => OutlinedButton.icon(onPressed: onTap, icon: const Icon(Icons.calendar_today, size: 16), label: Text('$label ${_date(value)}'));
+  Widget _dateButton(String label, DateTime value, VoidCallback onTap) =>
+      OutlinedButton.icon(
+          onPressed: onTap,
+          icon: const Icon(Icons.calendar_today, size: 16),
+          label: Text('$label ${_date(value)}'));
 
   Widget _purchaseTable(List<Map<String, dynamic>> purchases) {
     if (purchases.isEmpty) {
@@ -333,9 +457,8 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
           ],
           rows: purchases.map((p) {
             final ts = p['purchaseDate'];
-            final date = ts is Timestamp
-                ? ts.toDate()
-                : DateTime.tryParse('$ts');
+            final date =
+                ts is Timestamp ? ts.toDate() : DateTime.tryParse('$ts');
             final amount = (p['totalAmount'] as num?)?.toDouble() ?? 0;
             return DataRow(cells: [
               DataCell(Text(date == null ? '-' : _date(date))),
@@ -411,22 +534,22 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
                 .where((order) => !_isCancelledOrRefunded(order))
                 .toList();
             final sales = filtered.fold<double>(
-                0, (sum, order) => sum + order.totalAmount);
+                0, (total, order) => total + order.totalAmount);
             final hq = filtered.fold<double>(
                 0,
-                (sum, order) =>
-                    sum + order.totalAmount * _rateForOrder(orders, order));
+                (total, order) =>
+                    total + order.totalAmount * _rateForOrder(orders, order));
             final rangeRate = _rateForRange(orders);
             final purchaseTotal = purchases.where((purchase) {
               final ts = purchase['purchaseDate'];
-              final date = ts is Timestamp
-                  ? ts.toDate()
-                  : DateTime.tryParse('$ts');
+              final date =
+                  ts is Timestamp ? ts.toDate() : DateTime.tryParse('$ts');
               return date != null && _inRange(date);
             }).fold<double>(
                 0,
-                (sum, purchase) =>
-                    sum + ((purchase['totalAmount'] as num?)?.toDouble() ?? 0));
+                (total, purchase) =>
+                    total +
+                    ((purchase['totalAmount'] as num?)?.toDouble() ?? 0));
             final rateLabel = rangeRate < 0
                 ? '기간 내 월별 성과 기준 혼합 적용'
                 : '본사 ${(rangeRate * 100).round()}% / 운영자 ${((1 - rangeRate) * 100).round()}%';
@@ -436,7 +559,8 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
                 final width = constraints.maxWidth;
                 final isMobile = width < 600;
                 final isTablet = width >= 600 && width < 1024;
-                final horizontalPadding = isMobile ? 14.0 : (isTablet ? 20.0 : 28.0);
+                final horizontalPadding =
+                    isMobile ? 14.0 : (isTablet ? 20.0 : 28.0);
                 final cardWidth = isMobile
                     ? width - horizontalPadding * 2
                     : isTablet
@@ -527,11 +651,14 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
                           _card('정산대상 매출', _money(sales),
                               Icons.payments_outlined, Colors.green,
                               width: cardWidth),
-                          _card('본사 공급가', _money(hq),
-                              Icons.business_outlined, Colors.indigo,
+                          _card('본사 공급가', _money(hq), Icons.business_outlined,
+                              Colors.indigo,
                               width: cardWidth),
-                          _card('운영자 매출총이익', _money(sales - hq),
-                              Icons.account_balance_wallet_outlined, Colors.blue,
+                          _card(
+                              '운영자 매출총이익',
+                              _money(sales - hq),
+                              Icons.account_balance_wallet_outlined,
+                              Colors.blue,
                               width: cardWidth),
                           _card('매입 합계', _money(purchaseTotal),
                               Icons.inventory_2_outlined, Colors.orange,
@@ -564,7 +691,8 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
                       const SizedBox(height: 16),
                       Text(
                         '계약서 기준: 매입·재판매형, 정산대상 상품매출은 실제 결제 상품대금에서 취소·환불·반품 확정분을 차감합니다. 할인 기준·부가세·성과연동 적용은 최종 계약 확정 후 변경하세요.',
-                        style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                        style: TextStyle(
+                            fontSize: 11, color: Colors.grey.shade600),
                       ),
                     ],
                   ),
@@ -577,7 +705,8 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
     );
   }
 
-  Widget _card(String title, String value, IconData icon, Color color, {double width = 230}) {
+  Widget _card(String title, String value, IconData icon, Color color,
+      {double width = 230}) {
     return SizedBox(
       width: width,
       child: Card(
@@ -592,8 +721,8 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(title,
-                        style: const TextStyle(
-                            fontSize: 11, color: Colors.grey)),
+                        style:
+                            const TextStyle(fontSize: 11, color: Colors.grey)),
                     const SizedBox(height: 4),
                     Text(value,
                         style: const TextStyle(

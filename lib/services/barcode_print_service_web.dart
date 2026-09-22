@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 // ignore_for_file: avoid_web_libraries_in_flutter
 import 'dart:js' as js;
 import '../models/models.dart';
@@ -34,11 +35,14 @@ class BarcodePrintService {
   /// 형식: PC(8) + SIZE_IDX(2) + COLOR_IDX(2) + CHECK(1)
   static String _buildBarcode(String productCode, String size, String color) {
     // productCode 숫자 8자리 보정
-    final pc = productCode.replaceAll(RegExp(r'\D'), '').padLeft(8, '0').substring(0, 8);
-    final sizeIdx  = (size.hashCode.abs()  % 100).toString().padLeft(2, '0');
+    final pc = productCode
+        .replaceAll(RegExp(r'\D'), '')
+        .padLeft(8, '0')
+        .substring(0, 8);
+    final sizeIdx = (size.hashCode.abs() % 100).toString().padLeft(2, '0');
     final colorIdx = (color.hashCode.abs() % 100).toString().padLeft(2, '0');
-    final body     = pc + sizeIdx + colorIdx;
-    final check    = _ean13Check(body);
+    final body = pc + sizeIdx + colorIdx;
+    final check = _ean13Check(body);
     return body + check.toString();
   }
 
@@ -47,8 +51,11 @@ class BarcodePrintService {
     var odd = 0, even = 0;
     for (var i = 0; i < 12; i++) {
       final d = int.tryParse(body12[i]) ?? 0;
-      if (i.isEven) odd  += d;
-      else           even += d;
+      if (i.isEven) {
+        odd += d;
+      } else {
+        even += d;
+      }
     }
     final total = odd + even * 3;
     return (10 - (total % 10)) % 10;
@@ -83,8 +90,10 @@ class BarcodePrintService {
 </div>''';
   }
 
-  static String _esc(String s) =>
-      s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  static String _esc(String s) => s
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
 
   static void _openPrintWindow(List<String> labels) {
     final body = labels.join('\n');
@@ -150,22 +159,24 @@ window.onload = function() {
 </body>
 </html>''';
 
-    js.context.callMethod('eval', ['''
+    js.context.callMethod('eval', [
+      '''
 (function(){
   var w = window.open('','_blank','width=900,height=700');
   w.document.open();
   w.document.write(${_jsString(html)});
   w.document.close();
 })();
-''']);
+'''
+    ]);
   }
 
   /// Dart 문자열 → JS 문자열 리터럴 (백틱 템플릿)
   static String _jsString(String s) {
     final escaped = s
         .replaceAll('\\', '\\\\')
-        .replaceAll('`',  '\\`')
-        .replaceAll('\$',  '\\\$');
+        .replaceAll('`', '\\`')
+        .replaceAll('\$', '\\\$');
     return '`$escaped`';
   }
 
@@ -179,11 +190,11 @@ window.onload = function() {
     for (final size in inventory.stock.keys) {
       for (final color in inventory.stock[size]!.keys) {
         result.add(BarcodeItem(
-          productId:   inventory.productId,
+          productId: inventory.productId,
           productName: inventory.productName,
-          size:        size,
-          color:       color,
-          barcode:     _buildBarcode(inventory.productCode, size, color),
+          size: size,
+          color: color,
+          barcode: _buildBarcode(inventory.productCode, size, color),
         ));
       }
     }

@@ -56,6 +56,7 @@ class _LoginScreenState extends State<LoginScreen>
         return isAdmin ? const AdminScreen() : const MainScreen();
     }
   }
+
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _pwCtrl = TextEditingController();
@@ -143,8 +144,7 @@ class _LoginScreenState extends State<LoginScreen>
                     label: Text(email,
                         style: const TextStyle(fontSize: 11),
                         overflow: TextOverflow.ellipsis),
-                    selected:
-                        email == _emailCtrl.text.trim().toLowerCase(),
+                    selected: email == _emailCtrl.text.trim().toLowerCase(),
                     onSelected: (_) => _selectRememberedEmail(email),
                     onDeleted: () => _removeRememberedEmail(email),
                     deleteIconColor: AppColors.textSecondary,
@@ -268,11 +268,11 @@ class _LoginScreenState extends State<LoginScreen>
                           child: Column(
                             children: [
                               Image.asset(
-                                  'assets/images/2fit_logo.png',
-                                  width: 200,
-                                  height: 80,
-                                  fit: BoxFit.contain,
-                                ),
+                                'assets/images/2fit_logo.png',
+                                width: 200,
+                                height: 80,
+                                fit: BoxFit.contain,
+                              ),
                               const SizedBox(height: 16),
                               // ── 언어 선택 버튼 ──
                               const LanguageSelectorWidget(),
@@ -293,8 +293,9 @@ class _LoginScreenState extends State<LoginScreen>
                             icon: Icons.email_outlined,
                           ),
                           validator: (v) {
-                            if (v == null || v.trim().isEmpty)
+                            if (v == null || v.trim().isEmpty) {
                               return loc.loginEmailRequired;
+                            }
                             if (!v.contains('@')) return loc.loginEmailInvalid;
                             return null;
                           },
@@ -326,8 +327,9 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                           ),
                           validator: (v) {
-                            if (v == null || v.isEmpty)
+                            if (v == null || v.isEmpty) {
                               return loc.loginPasswordRequired;
+                            }
                             if (v.length < 4) return loc.loginPasswordTooShort;
                             return null;
                           },
@@ -523,9 +525,9 @@ class _LoginScreenState extends State<LoginScreen>
                     children: [
                       Image.asset(
                         'assets/images/logo_2fit_white.png',
-                          width: 180,
-                          height: 70,
-                          fit: BoxFit.contain,
+                        width: 180,
+                        height: 70,
+                        fit: BoxFit.contain,
                       ),
                       const SizedBox(height: 24),
                       const Text('2FIT MALL',
@@ -600,13 +602,15 @@ class _LoginScreenState extends State<LoginScreen>
                                         hint: 'example@2fit.co.kr',
                                         icon: Icons.email_outlined),
                                     validator: (v) {
-                                      if (v == null || v.trim().isEmpty)
+                                      if (v == null || v.trim().isEmpty) {
                                         return context.loc
                                             .t('이메일을 입력해주세요', '이메일을 입력해주세요');
-                                      if (!v.contains('@'))
+                                      }
+                                      if (!v.contains('@')) {
                                         return context.loc.t(
                                             '올바른 이메일 형식을 입력해주세요',
                                             '올바른 이메일 형식을 입력해주세요');
+                                      }
                                       return null;
                                     },
                                   ),
@@ -634,12 +638,14 @@ class _LoginScreenState extends State<LoginScreen>
                                       ),
                                     ),
                                     validator: (v) {
-                                      if (v == null || v.isEmpty)
+                                      if (v == null || v.isEmpty) {
                                         return context.loc
                                             .t('비밀번호를 입력해주세요', '비밀번호를 입력해주세요');
-                                      if (v.length < 4)
+                                      }
+                                      if (v.length < 4) {
                                         return context.loc.t(
                                             '비밀번호가 너무 짧습니다', '비밀번호가 너무 짧습니다');
+                                      }
                                       return null;
                                     },
                                     onFieldSubmitted: (_) => _login(),
@@ -675,7 +681,9 @@ class _LoginScreenState extends State<LoginScreen>
                                                   : null,
                                             ),
                                             const SizedBox(width: 7),
-                                            Text(context.loc.t('아이디_저장', '아이디 저장'),
+                                            Text(
+                                                context.loc
+                                                    .t('아이디_저장', '아이디 저장'),
                                                 style: const TextStyle(
                                                     fontSize: 13,
                                                     color: AppColors
@@ -992,7 +1000,8 @@ class _LoginScreenState extends State<LoginScreen>
         context.read<CouponProvider>().loadValidCoupons(result.user!.id);
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
+            pageBuilder: (_, __, ___) =>
+                _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
             transitionsBuilder: (_, a, __, child) =>
                 FadeTransition(opacity: a, child: child),
             transitionDuration: const Duration(milliseconds: 400),
@@ -1050,7 +1059,8 @@ class _LoginScreenState extends State<LoginScreen>
         context.read<CouponProvider>().loadValidCoupons(result.user!.id);
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
+            pageBuilder: (_, __, ___) =>
+                _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
             transitionsBuilder: (_, a, __, child) =>
                 FadeTransition(opacity: a, child: child),
             transitionDuration: const Duration(milliseconds: 400),
@@ -1109,7 +1119,8 @@ class _LoginScreenState extends State<LoginScreen>
         context.read<CouponProvider>().loadValidCoupons(result.user!.id);
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
+            pageBuilder: (_, __, ___) =>
+                _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
             transitionsBuilder: (_, a, __, child) =>
                 FadeTransition(opacity: a, child: child),
             transitionDuration: const Duration(milliseconds: 400),
@@ -1277,10 +1288,12 @@ class _LoginScreenState extends State<LoginScreen>
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                     builder: (_) => SocialPhoneOnboardingScreen(
-                      name: result.pendingName ?? (isKakao ? '카카오 사용자' : 'Google 사용자'),
+                      name: result.pendingName ??
+                          (isKakao ? '카카오 사용자' : 'Google 사용자'),
                       email: result.pendingEmail ?? '',
                       photoUrl: result.pendingPhotoUrl ?? '',
-                      provider: result.pendingProvider ?? (isKakao ? 'kakao' : 'google'),
+                      provider: result.pendingProvider ??
+                          (isKakao ? 'kakao' : 'google'),
                     ),
                   ),
                 );
@@ -1288,10 +1301,13 @@ class _LoginScreenState extends State<LoginScreen>
               }
               if (result.success && result.user != null) {
                 userProv.login(result.user!);
-        context.read<CouponProvider>().loadValidCoupons(result.user!.id);
+                context
+                    .read<CouponProvider>()
+                    .loadValidCoupons(result.user!.id);
                 Navigator.of(context).pushReplacement(
                   PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
+                    pageBuilder: (_, __, ___) => _targetAfterLogin(
+                        isAdmin: result.user?.isAdmin == true),
                     transitionsBuilder: (_, a, __, child) =>
                         FadeTransition(opacity: a, child: child),
                     transitionDuration: const Duration(milliseconds: 400),

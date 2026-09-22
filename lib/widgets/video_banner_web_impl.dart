@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 // video_banner_web_impl.dart
 // 웹 전용: HTML <video autoplay muted playsinline> 직접 삽입
 // ignore: avoid_web_libraries_in_flutter

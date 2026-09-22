@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 // order_excel_service.dart — 주문 엑셀 내보내기 서비스 (전면 개선판)
 // 포함 항목: 디자인이미지URL, 주문날짜, 키/몸무게/허리/허벅지, 이름, 인쇄옵션,
 //            하의길이, 색상, 수량, 성별, 허리밴드
@@ -1594,7 +1595,7 @@ class OrderExcelService {
     summarySheet.setRowHeight(imgRow, 20);
 
     // infoRows — B~J열 merge, 행 높이 18
-    void _writeInfoRow(Sheet sh, int row, String label, dynamic value,
+    void writeInfoRow(Sheet sh, int row, String label, dynamic value,
         {bool isColor = false, bool isWaistband = false}) {
       _setCell(sh, row, 0, label, style: labelStyle);
       sh.merge(
@@ -1684,7 +1685,7 @@ class OrderExcelService {
     ];
 
     for (var i = 0; i < infoRows.length; i++) {
-      _writeInfoRow(summarySheet, infoStartRow + i, infoRows[i][0].toString(),
+      writeInfoRow(summarySheet, infoStartRow + i, infoRows[i][0].toString(),
           infoRows[i][1],
           isColor: infoRows[i][2] as bool, isWaistband: infoRows[i][3] as bool);
     }
@@ -2060,7 +2061,7 @@ class OrderExcelService {
       if (order.isAdditionalOrder) ...[
         ['원주문 번호', origOrderId.isNotEmpty ? origOrderId : '-'],
         ['원주문 팀명', origTeamName.isNotEmpty ? origTeamName : '-'],
-        ['원주문 인원', origTotalCount.isNotEmpty ? '${origTotalCount}명' : '-'],
+        ['원주문 인원', origTotalCount.isNotEmpty ? '$origTotalCount명' : '-'],
       ],
     ];
     for (var i = 0; i < addRows.length; i++) {
@@ -2231,7 +2232,7 @@ class OrderExcelService {
 
     // ── 행 0: 제목 ──
     _setCell(sheet, rowIdx, 0,
-        '[$teamName]  총 ${totalCount}명  |  ${_fmtFull(order.createdAt)}',
+        '[$teamName]  총 $totalCount명  |  ${_fmtFull(order.createdAt)}',
         style: titleStyle);
     sheet.merge(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIdx),
@@ -2290,7 +2291,7 @@ class OrderExcelService {
     }
 
     // ── infoRows ──
-    void _writePdfLinkRow(String label, String url, String fileName) {
+    void writePdfLinkRow(String label, String url, String fileName) {
       if (url.isEmpty && fileName.isEmpty) return;
       _setCell(sheet, rowIdx, 0, label, style: labelStyle);
       sheet.merge(
@@ -2309,7 +2310,7 @@ class OrderExcelService {
       rowIdx++;
     }
 
-    void _writeRow(String label, dynamic value,
+    void writeRow(String label, dynamic value,
         {bool isColor = false,
         bool isWaistband = false,
         bool isNoOption = false}) {
@@ -2336,33 +2337,32 @@ class OrderExcelService {
       rowIdx++;
     }
 
-    _writeRow('주문번호', order.id);
-    _writeRow('주문날짜', _fmtFull(order.createdAt));
-    _writeRow('단체명/팀명', teamName);
-    _writeRow(
-        '담당자', _optText(opts, ['manager', 'managerName'], order.userName));
-    _writeRow('연락처',
+    writeRow('주문번호', order.id);
+    writeRow('주문날짜', _fmtFull(order.createdAt));
+    writeRow('단체명/팀명', teamName);
+    writeRow('담당자', _optText(opts, ['manager', 'managerName'], order.userName));
+    writeRow('연락처',
         _maskPhone(_optText(opts, ['phone', 'contactPhone'], order.userPhone)));
-    _writeRow('이메일',
+    writeRow('이메일',
         _maskEmail(_optText(opts, ['email', 'contactEmail'], order.userEmail)));
-    _writeRow('배송지',
+    writeRow('배송지',
         _optText(opts, ['address', 'deliveryAddress'], order.userAddress));
-    _writeRow('총 인원', '${totalCount}명  (남 ${maleCount}명 / 여 ${femaleCount}명)');
-    _writeRow('인쇄옵션', printType.isNotEmpty ? printType : '인쇄옵션 없음',
+    writeRow('총 인원', '$totalCount명  (남 $maleCount명 / 여 $femaleCount명)');
+    writeRow('인쇄옵션', printType.isNotEmpty ? printType : '인쇄옵션 없음',
         isNoOption: printType.isEmpty);
-    _writeRow('색상', colorDisplay, isColor: true);
-    _writeRow('하의길이', defaultLength);
-    _writeRow('허리밴드', waistbandInfo.isNotEmpty ? waistbandInfo : '없음',
+    writeRow('색상', colorDisplay, isColor: true);
+    writeRow('하의길이', defaultLength);
+    writeRow('허리밴드', waistbandInfo.isNotEmpty ? waistbandInfo : '없음',
         isWaistband: waistbandInfo.isNotEmpty);
-    _writeRow(
+    writeRow(
         '원단 종류', _optText(opts, ['fabricType', 'fabricName', 'fabric'], '-'));
-    _writeRow('원단 무게', _optText(opts, ['fabricWeight', 'weight'], '-'));
-    _writeRow('독점디자인', _isExclusive(opts) ? '예' : '아니오');
-    _writeRow('주문 유형', order.isAdditionalOrder ? '추가제작주문' : '신규주문');
-    _writeRow('주문 상태', _statusLabel(order.status));
-    _writeRow('메모', _optText(opts, ['memoText', 'memo'], order.memo ?? '-'));
-    _writePdfLinkRow('디자인 로고 파일', designLogoUrl, designLogoName);
-    _writePdfLinkRow('허리밴드 로고 파일', waistbandLogoUrl, waistbandLogoName);
+    writeRow('원단 무게', _optText(opts, ['fabricWeight', 'weight'], '-'));
+    writeRow('독점디자인', _isExclusive(opts) ? '예' : '아니오');
+    writeRow('주문 유형', order.isAdditionalOrder ? '추가제작주문' : '신규주문');
+    writeRow('주문 상태', _statusLabel(order.status));
+    writeRow('메모', _optText(opts, ['memoText', 'memo'], order.memo ?? '-'));
+    writePdfLinkRow('디자인 로고 파일', designLogoUrl, designLogoName);
+    writePdfLinkRow('허리밴드 로고 파일', waistbandLogoUrl, waistbandLogoName);
 
     // ── 인원별 사이즈 섹션 ──
     rowIdx++; // 빈 행
@@ -2504,7 +2504,7 @@ class OrderExcelService {
       // 합계 행
       _setCell(sheet, rowIdx, 0, '합계', style: totalStyle);
       _setCell(sheet, rowIdx, 1, '${sorted.length}명', style: totalStyle);
-      _setCell(sheet, rowIdx, 2, '남 ${maleCount}명 / 여 ${femaleCount}명',
+      _setCell(sheet, rowIdx, 2, '남 $maleCount명 / 여 $femaleCount명',
           style: totalStyle);
       sheet.merge(
         CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: rowIdx),
@@ -4096,7 +4096,7 @@ class OrderExcelService {
             : '-'
       ],
       ['원주문 팀명', origTeamName.isNotEmpty ? origTeamName : '-'],
-      ['원주문 인원', origTotalCount.isNotEmpty ? '${origTotalCount}명' : '-'],
+      ['원주문 인원', origTotalCount.isNotEmpty ? '$origTotalCount명' : '-'],
       ['제작 요청일', ''],
       ['최종 수정 요청 완료', ''],
       ['출고 예정일', ''],
@@ -4352,7 +4352,7 @@ class OrderExcelService {
           origOrderDate.isNotEmpty ? origOrderDate.substring(0, 10) : '-'
         ],
         ['원주문 팀명', origTeamName.isNotEmpty ? origTeamName : '-'],
-        ['원주문 인원', origTotalCount.isNotEmpty ? '${origTotalCount}명' : '-'],
+        ['원주문 인원', origTotalCount.isNotEmpty ? '$origTotalCount명' : '-'],
       ];
       for (int i = 0; i < origRows.length; i++) {
         _setCell(infoSheet, ir, 0, origRows[i][0], style: greenLabelStyle);
@@ -4835,10 +4835,10 @@ class OrderExcelService {
     final printType = document.text(['printType', 'printTypeLabel']);
     final refImageUrl =
         document.text(['refImageUrl', 'maleRefImageUrl', 'femaleRefImageUrl']);
-    final referenceImageUrls = <String>[
+    final referenceImageUrls = <String>{
       ...document.referenceImageUrls,
       if (refImageUrl.isNotEmpty) refImageUrl,
-    ].toSet().toList();
+    }.toList();
     final fabric = document.text(['fabricType', 'fabricName', 'fabric'], '-');
     final fabricWeight = document.text(['fabricWeight', 'weight'], '-');
 // ignore: unused_element
@@ -4850,7 +4850,7 @@ class OrderExcelService {
 
     final calculatedSubtotal = order.items.fold<double>(
       0,
-      (sum, item) => sum + item.price * item.quantity,
+      (total, item) => total + item.price * item.quantity,
     );
     final subtotal = document.number(['subtotal'], calculatedSubtotal);
     final discount = document.number(['discountAmount'],
@@ -5336,9 +5336,8 @@ class OrderExcelService {
                                   : pNote;
                           return pw.TableRow(
                               children: [
-                            '${document.personText(p, [
-                                  'index'
-                                ], '${entry.key + 1}')}',
+                            (document.personText(
+                                p, ['index'], '${entry.key + 1}')),
                             document.personText(p, ['name'], '-'),
                             gender,
                             pSizeType,

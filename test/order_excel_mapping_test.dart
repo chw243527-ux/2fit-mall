@@ -117,7 +117,10 @@ void main() {
       expect(persons[0]['gender'], '남');
       expect(persons[1]['gender'], '여');
       expect(persons[0]['note'], '기장 1cm 조정');
-      expect(persons.every((p) => !(p as Map<String, dynamic>).containsKey('color')), isTrue);
+      expect(
+          persons
+              .every((p) => !(p as Map<String, dynamic>).containsKey('color')),
+          isTrue);
     });
 
     test('customOptions가 없어도 top-level persons와 groupName을 폴백한다', () {

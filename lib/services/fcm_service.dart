@@ -1,3 +1,4 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
 // fcm_service.dart - Firebase Cloud Messaging + 웹 브라우저 알림
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -43,7 +44,8 @@ class FcmService {
           settings.authorizationStatus == AuthorizationStatus.provisional) {
         // Flutter 앱과 별도로 등록되는 Firebase Service Worker가 먼저 활성화될 때까지 대기합니다.
         if (kIsWeb) {
-          await web_notif.ensureServiceWorkerReady()
+          await web_notif
+              .ensureServiceWorkerReady()
               .timeout(const Duration(seconds: 10));
         }
 
@@ -52,7 +54,8 @@ class FcmService {
           if (kIsWeb) {
             // 웹: VAPID 키 없으면 토큰 없이 진행
             _currentToken = await messaging.getToken(
-              vapidKey: 'BNR5gKg1dAUGcgrbSw8MMf0ekkB9zK2mWLM5EqTINWn7CQTpqsQewNo3KtuYJyTZ3OHs05nGBtCydQKCqpSIx-U',
+              vapidKey:
+                  'BNR5gKg1dAUGcgrbSw8MMf0ekkB9zK2mWLM5EqTINWn7CQTpqsQewNo3KtuYJyTZ3OHs05nGBtCydQKCqpSIx-U',
             );
           } else {
             _currentToken = await messaging.getToken();
@@ -60,7 +63,9 @@ class FcmService {
           if (kDebugMode) {
             final tokenPreview = _currentToken == null
                 ? 'null'
-                : (_currentToken!.length > 20 ? _currentToken!.substring(0, 20) : _currentToken!);
+                : (_currentToken!.length > 20
+                    ? _currentToken!.substring(0, 20)
+                    : _currentToken!);
             debugPrint('FCM 토큰: $tokenPreview...');
           }
         } catch (e) {
@@ -69,22 +74,27 @@ class FcmService {
         }
 
         // 포그라운드 메시지 핸들러
-        _messageSubscription ??= FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        _messageSubscription ??=
+            FirebaseMessaging.onMessage.listen((RemoteMessage message) {
           final title = message.notification?.title ??
-              message.data['title']?.toString() ?? '2FIT MALL';
+              message.data['title']?.toString() ??
+              '2FIT MALL';
           final body = message.notification?.body ??
-              message.data['body']?.toString() ?? '새로운 알림이 있습니다.';
+              message.data['body']?.toString() ??
+              '새로운 알림이 있습니다.';
           final serverSentAt = message.data['sentAt']?.toString();
           final receivedAt = DateTime.now().toUtc();
           int? deliveryDelayMs;
           if (serverSentAt != null && serverSentAt.isNotEmpty) {
             final parsedSentAt = DateTime.tryParse(serverSentAt);
             if (parsedSentAt != null) {
-              deliveryDelayMs = receivedAt.difference(parsedSentAt.toUtc()).inMilliseconds;
+              deliveryDelayMs =
+                  receivedAt.difference(parsedSentAt.toUtc()).inMilliseconds;
             }
           }
           if (kDebugMode) {
-            debugPrint('FCM_DELIVERY_TIMING mode=foreground serverSentAt=$serverSentAt receivedAt=${receivedAt.toIso8601String()} delayMs=$deliveryDelayMs');
+            debugPrint(
+                'FCM_DELIVERY_TIMING mode=foreground serverSentAt=$serverSentAt receivedAt=${receivedAt.toIso8601String()} delayMs=$deliveryDelayMs');
           }
           if (message.data['type']?.toString() == 'low_stock') {
             AdminNotificationStore.add(AdminNotification(
@@ -105,7 +115,8 @@ class FcmService {
         });
 
         // 토큰 갱신 핸들러
-        _tokenRefreshSubscription ??= messaging.onTokenRefresh.listen((newToken) async {
+        _tokenRefreshSubscription ??=
+            messaging.onTokenRefresh.listen((newToken) async {
           _currentToken = newToken;
           final userId = FirebaseAuth.instance.currentUser?.uid;
           if (userId != null && userId.isNotEmpty) {
@@ -169,8 +180,10 @@ class FcmService {
       if (value is num) return value != 0;
       if (value is String) {
         final normalized = value.trim().toLowerCase();
-        if (normalized == 'true' || normalized == '1' || normalized == 'yes') return true;
-        if (normalized == 'false' || normalized == '0' || normalized == 'no') return false;
+        if (normalized == 'true' || normalized == '1' || normalized == 'yes')
+          return true;
+        if (normalized == 'false' || normalized == '0' || normalized == 'no')
+          return false;
       }
       return fallback;
     } catch (e) {
@@ -251,7 +264,8 @@ class FcmService {
       await notifRef.set({
         'id': notifRef.id,
         'title': '🛒 새 주문 접수',
-        'body': '${order.userName}님 주문 #$sid (${_fmtPrice(order.totalAmount)}원)',
+        'body':
+            '${order.userName}님 주문 #$sid (${_fmtPrice(order.totalAmount)}원)',
         'type': 'new_order',
         'orderId': order.id,
         'orderAmount': order.totalAmount,
@@ -384,22 +398,23 @@ class FcmService {
         .collection('notifications')
         .where('userId', isEqualTo: userId)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => d.data())
-            .toList()
-            ..sort((a, b) {
-              final at = a['createdAt'];
-              final bt = b['createdAt'];
-              if (at == null || bt == null) return 0;
-              return (bt as dynamic).compareTo(at);
-            }))
+        .map((snap) => snap.docs.map((d) => d.data()).toList()
+          ..sort((a, b) {
+            final at = a['createdAt'];
+            final bt = b['createdAt'];
+            if (at == null || bt == null) return 0;
+            return (bt as dynamic).compareTo(at);
+          }))
         .handleError((_) => <Map<String, dynamic>>[]);
   }
 
   // ── 알림 읽음 처리 ────────────────────────────────────
   static Future<void> markAsRead(String notifId) async {
     try {
-      await _db.collection('notifications').doc(notifId).update({'isRead': true});
+      await _db
+          .collection('notifications')
+          .doc(notifId)
+          .update({'isRead': true});
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
     }

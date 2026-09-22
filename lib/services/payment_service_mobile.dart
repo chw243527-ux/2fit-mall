@@ -1,3 +1,4 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,78 +7,180 @@ class TossConfig {
   static const clientKey = 'live_gck_eqRGgYO1r5yAb12QKyZorQnN2Eya';
   static const secretKey = '';
   static const easyPayClientKey = 'live_gck_eqRGgYO1r5yAb12QKyZorQnN2Eya';
-  static const confirmEdgeFunctionUrl = 'https://us-central1-fit-mall.cloudfunctions.net/confirmSecurePayment';
-  static const cashReceiptEdgeFunctionUrl = 'https://us-central1-fit-mall.cloudfunctions.net/issueCashReceiptSecure';
+  static const confirmEdgeFunctionUrl =
+      'https://us-central1-fit-mall.cloudfunctions.net/confirmSecurePayment';
+  static const cashReceiptEdgeFunctionUrl =
+      'https://us-central1-fit-mall.cloudfunctions.net/issueCashReceiptSecure';
   static bool get useEdgeFunction => confirmEdgeFunctionUrl.isNotEmpty;
   static bool get isLiveMode => !clientKey.startsWith('test_');
 }
 
 class PaymentService {
-  static Future<String> initWidget({required int amount, required String customerKey}) async =>
+  static Future<String> initWidget(
+          {required int amount, required String customerKey}) async =>
       'error: Android 앱에서는 현재 웹 결제 위젯을 사용할 수 없습니다.';
-  static Future<String> renderWidget() async => 'error: Android 앱에서는 현재 웹 결제 위젯을 사용할 수 없습니다.';
+  static Future<String> renderWidget() async =>
+      'error: Android 앱에서는 현재 웹 결제 위젯을 사용할 수 없습니다.';
   static void updateWidgetAmount(int amount) {}
-  static Future<String> submitWidget({required String orderId, required String orderName, required String customerName, required String customerEmail, String customerMobilePhone = '', required String successUrl, required String failUrl}) async =>
+  static Future<String> submitWidget(
+          {required String orderId,
+          required String orderName,
+          required String customerName,
+          required String customerEmail,
+          String customerMobilePhone = '',
+          required String successUrl,
+          required String failUrl}) async =>
       'error: Android 앱 결제 화면 준비 중입니다.';
 
-  static Future<PaymentResult> confirmPayment({required String paymentKey, required String orderId, required int amount}) async {
+  static Future<PaymentResult> confirmPayment(
+      {required String paymentKey,
+      required String orderId,
+      required int amount}) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       final token = await user?.getIdToken(true);
       if (user == null || token == null || token.isEmpty) {
-        return PaymentResult(success: false, error: '로그인이 필요합니다.');
+        return const PaymentResult(success: false, error: '로그인이 필요합니다.');
       }
-      final response = await http.post(Uri.parse(TossConfig.confirmEdgeFunctionUrl), headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'}, body: jsonEncode({'paymentKey': paymentKey, 'orderId': orderId, 'amount': amount})).timeout(const Duration(seconds: 30));
+      final response = await http
+          .post(Uri.parse(TossConfig.confirmEdgeFunctionUrl),
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $token'
+              },
+              body: jsonEncode({
+                'paymentKey': paymentKey,
+                'orderId': orderId,
+                'amount': amount
+              }))
+          .timeout(const Duration(seconds: 30));
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['success'] == true) {
-        return PaymentResult(success: true, paymentKey: data['paymentKey'], orderId: data['orderId'], method: data['method']);
+        return PaymentResult(
+            success: true,
+            paymentKey: data['paymentKey'],
+            orderId: data['orderId'],
+            method: data['method']);
       }
-      return PaymentResult(success: false, error: data['message'] ?? '결제 승인에 실패했습니다.');
+      return PaymentResult(
+          success: false, error: data['message'] ?? '결제 승인에 실패했습니다.');
     } catch (e) {
-      return const PaymentResult(success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      return const PaymentResult(
+          success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }
 
-  static Future<CashReceiptResult> issueCashReceipt({required String paymentKey, required String customerIdentityNumber, String type = '소득공제', int taxFreeAmount = 0}) async {
+  static Future<CashReceiptResult> issueCashReceipt(
+      {required String paymentKey,
+      required String customerIdentityNumber,
+      String type = '소득공제',
+      int taxFreeAmount = 0}) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       final token = await user?.getIdToken(true);
       if (user == null || token == null || token.isEmpty) {
-        return CashReceiptResult(success: false, error: '로그인이 필요합니다.');
+        return const CashReceiptResult(success: false, error: '로그인이 필요합니다.');
       }
-      final response = await http.post(Uri.parse(TossConfig.cashReceiptEdgeFunctionUrl), headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'}, body: jsonEncode({'paymentKey': paymentKey, 'customerIdentityNumber': customerIdentityNumber, 'type': type, 'taxFreeAmount': taxFreeAmount})).timeout(const Duration(seconds: 30));
+      final response = await http
+          .post(Uri.parse(TossConfig.cashReceiptEdgeFunctionUrl),
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $token'
+              },
+              body: jsonEncode({
+                'paymentKey': paymentKey,
+                'customerIdentityNumber': customerIdentityNumber,
+                'type': type,
+                'taxFreeAmount': taxFreeAmount
+              }))
+          .timeout(const Duration(seconds: 30));
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200 && data['success'] == true) return CashReceiptResult(success: true, receiptKey: data['receiptKey'], orderId: data['orderId']);
-      return CashReceiptResult(success: false, error: data['message'] ?? '현금영수증 발급에 실패했습니다.');
+      if (response.statusCode == 200 && data['success'] == true)
+        return CashReceiptResult(
+            success: true,
+            receiptKey: data['receiptKey'],
+            orderId: data['orderId']);
+      return CashReceiptResult(
+          success: false, error: data['message'] ?? '현금영수증 발급에 실패했습니다.');
     } catch (e) {
-      return const CashReceiptResult(success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      return const CashReceiptResult(
+          success: false, error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }
 
   static String mapPaymentMethod(String method) {
     switch (method) {
-      case '카카오페이': return 'KAKAO_PAY';
-      case '네이버페이': return 'NAVER_PAY';
-      case '토스페이': return 'TOSS_PAY';
-      case '신용/체크카드': return 'CARD';
-      case '무통장입금': return 'VIRTUAL_ACCOUNT';
-      default: return 'CARD';
+      case '카카오페이':
+        return 'KAKAO_PAY';
+      case '네이버페이':
+        return 'NAVER_PAY';
+      case '토스페이':
+        return 'TOSS_PAY';
+      case '신용/체크카드':
+        return 'CARD';
+      case '무통장입금':
+        return 'VIRTUAL_ACCOUNT';
+      default:
+        return 'CARD';
     }
   }
-  static bool needsCashReceiptApiCall(String? paymentMethod) => paymentMethod != null && !['무통장입금', 'VIRTUAL_ACCOUNT'].contains(paymentMethod);
-  static String buildSuccessUrl(String orderId, int amount) => 'https://2fit-mall.co.kr/payment/success?orderId=$orderId&amount=$amount';
-  static String buildFailUrl(String orderId) => 'https://2fit-mall.co.kr/payment/fail?orderId=$orderId';
+
+  static bool needsCashReceiptApiCall(String? paymentMethod) =>
+      paymentMethod != null &&
+      !['무통장입금', 'VIRTUAL_ACCOUNT'].contains(paymentMethod);
+  static String buildSuccessUrl(String orderId, int amount) =>
+      'https://2fit-mall.co.kr/payment/success?orderId=$orderId&amount=$amount';
+  static String buildFailUrl(String orderId) =>
+      'https://2fit-mall.co.kr/payment/fail?orderId=$orderId';
 }
 
 class PaymentResult {
-  final bool success; final String? paymentKey; final String? orderId; final String? method; final String? error;
-  const PaymentResult({required this.success, this.paymentKey, this.orderId, this.method, this.error});
+  final bool success;
+  final String? paymentKey;
+  final String? orderId;
+  final String? method;
+  final String? error;
+  const PaymentResult(
+      {required this.success,
+      this.paymentKey,
+      this.orderId,
+      this.method,
+      this.error});
 }
+
 class CashReceiptResult {
-  final bool success; final String? receiptKey; final String? orderId; final String? error;
-  const CashReceiptResult({required this.success, this.receiptKey, this.orderId, this.error});
+  final bool success;
+  final String? receiptKey;
+  final String? orderId;
+  final String? error;
+  const CashReceiptResult(
+      {required this.success, this.receiptKey, this.orderId, this.error});
 }
+
 class PaymentCheckoutArgs {
-  final String orderId; final String orderName; final int amount; final String customerName; final String customerEmail; final String customerPhone; final String selectedPayment; final String? couponId; final List<String> couponIds; final double couponDiscount; final int usedPoints; final double pointDiscount;
-  const PaymentCheckoutArgs({required this.orderId, required this.orderName, required this.amount, required this.customerName, required this.customerEmail, required this.customerPhone, required this.selectedPayment, this.couponId, this.couponIds = const [], this.couponDiscount = 0, this.usedPoints = 0, this.pointDiscount = 0});
+  final String orderId;
+  final String orderName;
+  final int amount;
+  final String customerName;
+  final String customerEmail;
+  final String customerPhone;
+  final String selectedPayment;
+  final String? couponId;
+  final List<String> couponIds;
+  final double couponDiscount;
+  final int usedPoints;
+  final double pointDiscount;
+  const PaymentCheckoutArgs(
+      {required this.orderId,
+      required this.orderName,
+      required this.amount,
+      required this.customerName,
+      required this.customerEmail,
+      required this.customerPhone,
+      required this.selectedPayment,
+      this.couponId,
+      this.couponIds = const [],
+      this.couponDiscount = 0,
+      this.usedPoints = 0,
+      this.pointDiscount = 0});
 }

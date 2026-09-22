@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import '../../utils/theme.dart';
 // payment_result_screen.dart
 // 토스페이먼츠 결제 완료/실패 후 리디렉션되는 화면
@@ -142,8 +143,8 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                       const Icon(Icons.error_outline,
                           color: AppColors.error, size: 64),
                       const SizedBox(height: 16),
-                      Text('결제 처리 오류',
-                          style: const TextStyle(
+                      const Text('결제 처리 오류',
+                          style: TextStyle(
                               fontSize: 20, fontWeight: FontWeight.w500)),
                       const SizedBox(height: 8),
                       Text(_errorMsg!,

@@ -11,25 +11,21 @@ class SizeProfileService {
   // ── 프로필 목록 조회 ────────────────────────────────────
   static Future<List<SizeProfile>> getProfiles(String userId) async {
     final snap = await _col(userId).get();
-    final list = snap.docs
-        .map((d) => SizeProfile.fromJson(d.id, d.data()))
-        .toList();
+    final list =
+        snap.docs.map((d) => SizeProfile.fromJson(d.id, d.data())).toList();
     list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     return list;
   }
 
   // ── 실시간 스트림 ────────────────────────────────────────
   static Stream<List<SizeProfile>> watchProfiles(String userId) {
-    return _col(userId)
-        .snapshots()
-        .map((snap) {
-          final list = snap.docs
-              .map((d) => SizeProfile.fromJson(d.id, d.data()))
-              .toList();
-          // 메모리 정렬 (index 불필요)
-          list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-          return list;
-        });
+    return _col(userId).snapshots().map((snap) {
+      final list =
+          snap.docs.map((d) => SizeProfile.fromJson(d.id, d.data())).toList();
+      // 메모리 정렬 (index 불필요)
+      list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+      return list;
+    });
   }
 
   // ── 저장 (신규 or 업데이트) ──────────────────────────────
@@ -41,8 +37,8 @@ class SizeProfileService {
     if (profile.id.isEmpty) {
       // 신규 생성
       final ref = await _col(userId).add(data);
-      return SizeProfile.fromJson(ref.id, profile.toJson()
-        ..['updatedAt'] = DateTime.now().toIso8601String());
+      return SizeProfile.fromJson(ref.id,
+          profile.toJson()..['updatedAt'] = DateTime.now().toIso8601String());
     } else {
       // 업데이트
       await _col(userId).doc(profile.id).set(data, SetOptions(merge: true));

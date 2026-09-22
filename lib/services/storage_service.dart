@@ -9,15 +9,13 @@ class StorageService {
   static Future<String> uploadProductImage({
     required String productId,
     Uint8List? imageBytes,
-    Uint8List? bytes,           // admin_screen 호환 (bytes 파라미터)
+    Uint8List? bytes, // admin_screen 호환 (bytes 파라미터)
     required String fileName,
   }) async {
     final data = imageBytes ?? bytes;
     if (data == null) return '';
     try {
-      final ref = _storage
-          .ref()
-          .child('products/$productId/$fileName');
+      final ref = _storage.ref().child('products/$productId/$fileName');
       final task = await ref.putData(
         data,
         SettableMetadata(contentType: 'image/jpeg'),
@@ -36,9 +34,7 @@ class StorageService {
     required String fileName,
   }) async {
     try {
-      final ref = _storage
-          .ref()
-          .child('reviews/$reviewId/$fileName');
+      final ref = _storage.ref().child('reviews/$reviewId/$fileName');
       final task = await ref.putData(
         imageBytes,
         SettableMetadata(contentType: 'image/jpeg'),
@@ -102,17 +98,13 @@ class StorageService {
     }
   }
 
-
-
   /// 배너 이미지 업로드
   static Future<String?> uploadBannerImage({
     required String bannerId,
     required Uint8List imageBytes,
   }) async {
     try {
-      final ref = _storage
-          .ref()
-          .child('banners/$bannerId.jpg');
+      final ref = _storage.ref().child('banners/$bannerId.jpg');
       final task = await ref.putData(
         imageBytes,
         SettableMetadata(contentType: 'image/jpeg'),
@@ -144,14 +136,15 @@ class StorageService {
               ? 'video/quicktime'
               : 'video/mp4';
 
-      final ref = _storage
-          .ref()
-          .child('banners/videos/$bannerId.$ext');
+      final ref = _storage.ref().child('banners/videos/$bannerId.$ext');
       final task = await ref.putData(
         videoBytes,
         SettableMetadata(
           contentType: contentType,
-          customMetadata: {'banner': bannerId, 'uploadedAt': DateTime.now().toIso8601String()},
+          customMetadata: {
+            'banner': bannerId,
+            'uploadedAt': DateTime.now().toIso8601String()
+          },
         ),
       );
       return await task.ref.getDownloadURL();
@@ -179,9 +172,7 @@ class StorageService {
               ? 'video/quicktime'
               : 'video/mp4';
 
-      final ref = _storage
-          .ref()
-          .child('banners/videos/$bannerId.$ext');
+      final ref = _storage.ref().child('banners/videos/$bannerId.$ext');
       final task = ref.putData(
         videoBytes,
         SettableMetadata(contentType: contentType),
@@ -216,9 +207,8 @@ class StorageService {
   }) async* {
     try {
       final ext = fileName.contains('.') ? fileName.split('.').last : 'jpg';
-      final ref = _storage
-          .ref()
-          .child('notices/$noticeId/${DateTime.now().millisecondsSinceEpoch}.$ext');
+      final ref = _storage.ref().child(
+          'notices/$noticeId/${DateTime.now().millisecondsSinceEpoch}.$ext');
       final task = ref.putData(
         imageBytes,
         SettableMetadata(contentType: 'image/${ext == 'png' ? 'png' : 'jpeg'}'),

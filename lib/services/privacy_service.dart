@@ -119,7 +119,7 @@ class PrivacyService {
       }
       if (cleaned > 0) await batch.commit();
 
-      if (kDebugMode) debugPrint('✅ 개인정보 정리: ${cleaned}건');
+      if (kDebugMode) debugPrint('✅ 개인정보 정리: $cleaned건');
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
     }

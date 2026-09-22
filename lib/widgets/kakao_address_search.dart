@@ -51,42 +51,42 @@ class _KakaoAddressDialog extends StatelessWidget {
       child: SizedBox(
         height: h * 0.82,
         child: Column(
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 4),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.border,
-              borderRadius: BorderRadius.circular(2),
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 4),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                const Icon(Icons.location_on_rounded,
-                    color: AppColors.primary, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(loc.kakaoAddressSearch,
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w800)),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 22),
-                  onPressed: () => Navigator.pop(context),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  const Icon(Icons.location_on_rounded,
+                      color: AppColors.primary, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(loc.kakaoAddressSearch,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w800)),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 22),
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Divider(height: 1, color: AppColors.border),
-          Expanded(
-            child: kIsWeb ? const _KakaoWebViewWeb() : const _KakaoWebView(),
-          ),
-        ],
+            const Divider(height: 1, color: AppColors.border),
+            const Expanded(
+              child: kIsWeb ? _KakaoWebViewWeb() : _KakaoWebView(),
+            ),
+          ],
         ),
       ),
     );
@@ -174,7 +174,9 @@ if(document.readyState==='loading'){
             roadAddress: data['roadAddress'] as String? ?? '',
             jibunAddress: data['jibunAddress'] as String? ?? '',
           );
-          if (mounted && result.zonecode.isNotEmpty && result.address.isNotEmpty) {
+          if (mounted &&
+              result.zonecode.isNotEmpty &&
+              result.address.isNotEmpty) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) Navigator.pop(context, result);
             });

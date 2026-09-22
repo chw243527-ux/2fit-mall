@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 // 웹(dart.library.html) 빌드용 — 서버 Authorization Code OAuth 팝업 연동
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:async';

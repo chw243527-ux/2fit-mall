@@ -5,7 +5,8 @@ import 'package:twofit_mall/models/models.dart';
 void main() {
   group('단체주문 디자인 수정 단계별 7일 정책', () {
     test('1차 수정은 주문 후 7일 이내에만 가능하다', () {
-      final order = _order(createdAt: DateTime.now().subtract(const Duration(days: 6)));
+      final order =
+          _order(createdAt: DateTime.now().subtract(const Duration(days: 6)));
       expect(order.canRequestDesignRevision, isTrue);
       expect(order.isDesignConfirmed, isFalse);
 

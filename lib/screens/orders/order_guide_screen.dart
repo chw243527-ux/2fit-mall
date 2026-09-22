@@ -137,7 +137,8 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               const Icon(Icons.groups_rounded, color: Colors.white, size: 32),
               const SizedBox(height: 10),
               Consumer<LanguageProvider>(
-                  builder: (_, lp, __) => Text(context.loc.t('단체주문방법', '단체주문방법'),
+                  builder: (_, lp, __) => Text(
+                      context.loc.t('단체주문방법', '단체주문방법'),
                       style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -230,7 +231,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Row(
+                    const Row(
                       children: [
                         Icon(Icons.phone_rounded,
                             size: 13, color: AppColors.textSecondary),
@@ -1042,7 +1043,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                 Text(
                   context.loc.t('도서_산간_지역_추가_배송비_배송_관련_문의_고객',
                       '※ 도서/산간 지역은 추가 배송비가 발생할 수 있습니다.\n※ 배송 관련 문의는 고객센터로 연락해주세요.'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 12,
                       height: 1.6,
                       color: AppColors.textSecondary),
@@ -1055,7 +1056,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                       child: Text(
                         context.loc.t('해외_배송비_국가별_상이_채팅안내',
                             '※ 해외 배송비는 국가 및 무게에 따라 상이합니다.'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 12,
                             height: 1.6,
                             color: AppColors.textSecondary),

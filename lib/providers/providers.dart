@@ -26,6 +26,7 @@ class LanguageProvider extends ChangeNotifier
   bool _isTranslating = false;
 
   AppLanguage get language => _language;
+  @override
   AppLocalizations get loc => AppLocalizations(_language);
   bool get isTranslating => _isTranslating;
 
@@ -268,9 +269,10 @@ class CartProvider extends ChangeNotifier {
   }
 
   List<CartItem> get items => List.unmodifiable(_items);
-  int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
+  int get itemCount => _items.fold(0, (total, item) => total + item.quantity);
 
-  double get subtotal => _items.fold(0, (sum, item) => sum + item.totalPrice);
+  double get subtotal =>
+      _items.fold(0, (total, item) => total + item.totalPrice);
   double get shippingFee =>
       subtotal >= 300000 ? 0 : 4000; // 30만원 이상 무료배송, 미만 4,000원
   double get total => subtotal + shippingFee;
@@ -289,7 +291,7 @@ class CartProvider extends ChangeNotifier {
               item.product.id == product.id &&
               item.selectedSize == size &&
               item.selectedColor == color)
-          .fold<int>(0, (sum, item) => sum + item.quantity);
+          .fold<int>(0, (total, item) => total + item.quantity);
       quantity = quantity.clamp(0, optionStock - existingQty);
       if (quantity <= 0) return;
     }
@@ -426,8 +428,9 @@ class UserProvider extends ChangeNotifier {
         sound: true,
       );
       if (settings.authorizationStatus != AuthorizationStatus.authorized &&
-          settings.authorizationStatus != AuthorizationStatus.provisional)
+          settings.authorizationStatus != AuthorizationStatus.provisional) {
         return;
+      }
 
       String? token;
       if (kIsWeb) {
@@ -983,30 +986,26 @@ class NoticeThemeHelper {
       '설날',
       '추석',
       '크리스마스'
-    ])) return 'holiday';
+    ])) {
+      return 'holiday';
+    }
 
     // 이벤트
-    if (_has(
-        text, ['이벤트', '기념', '축제', '파티', '선물', '경품', '추첨', 'event', '기회', '특별']))
+    if (_has(text,
+        ['이벤트', '기념', '축제', '파티', '선물', '경품', '추첨', 'event', '기회', '특별'])) {
       return 'event';
+    }
 
     // 배송
-    if (_has(text, [
-      '배송',
-      '출고',
-      '택배',
-      '발송',
-      '배달',
-      '도착',
-      '운송',
-      'delivery',
-      '입고',
-      '재고'
-    ])) return 'delivery';
+    if (_has(text,
+        ['배송', '출고', '택배', '발송', '배달', '도착', '운송', 'delivery', '입고', '재고'])) {
+      return 'delivery';
+    }
 
     // 신상품
-    if (_has(text, ['신상', '신제품', '새로운', '출시', '런칭', 'new', '신규']))
+    if (_has(text, ['신상', '신제품', '새로운', '출시', '런칭', 'new', '신규'])) {
       return 'newitem';
+    }
 
     // 할인/프로모
     if (_has(text, [
@@ -1021,19 +1020,24 @@ class NoticeThemeHelper {
       '% off',
       '무료',
       '증정'
-    ])) return 'promo';
+    ])) {
+      return 'promo';
+    }
 
     // 주의/안내
-    if (_has(text, ['주의', '경고', '중요', '긴급', '안전', '필독', '꼭 확인']))
+    if (_has(text, ['주의', '경고', '중요', '긴급', '안전', '필독', '꼭 확인'])) {
       return 'warning';
+    }
 
     // 업데이트
-    if (_has(text, ['업데이트', '개선', '변경', '수정', '패치', '버전', '기능 추가']))
+    if (_has(text, ['업데이트', '개선', '변경', '수정', '패치', '버전', '기능 추가'])) {
       return 'update';
+    }
 
     // 날씨/계절
-    if (_has(text, ['날씨', '기온', '여름', '겨울', '봄', '가을', '비', '눈', '더위', '추위']))
+    if (_has(text, ['날씨', '기온', '여름', '겨울', '봄', '가을', '비', '눈', '더위', '추위'])) {
       return 'weather';
+    }
 
     // 리뷰
     if (_has(text, ['리뷰', '후기', '평점', '만족', '추천'])) return 'review';
@@ -1156,7 +1160,7 @@ class NoticeModel {
     } else {
       createdAt = DateTime.now();
     }
-    DateTime? _parseDate(dynamic v) {
+    DateTime? parseDate(dynamic v) {
       if (v == null) return null;
       if (v is Timestamp) return v.toDate();
       if (v is String) return DateTime.tryParse(v);
@@ -1178,8 +1182,8 @@ class NoticeModel {
       createdAt: createdAt,
       theme: data['theme'] as String? ?? 'general',
       imageUrl: data['imageUrl'] as String? ?? '',
-      startDate: _parseDate(data['startDate']),
-      endDate: _parseDate(data['endDate']),
+      startDate: parseDate(data['startDate']),
+      endDate: parseDate(data['endDate']),
       showAsPopup: data['showAsPopup'] as bool? ?? true,
       popupPriority: (data['popupPriority'] as num?)?.toInt() ?? 0,
     );

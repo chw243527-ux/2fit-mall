@@ -42,7 +42,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
-  bool _isTyping = false;
+  final bool _isTyping = false;
   // ignore: unused_field
   final bool _showFaq = true;
   bool _faqExpanded = true;
@@ -71,7 +71,8 @@ class _ChatScreenState extends State<ChatScreen> {
     final user = context.read<UserProvider>().user;
     final firebaseUser = FirebaseAuth.instance.currentUser;
     final userId = firebaseUser?.uid;
-    final userName = user?.name ?? firebaseUser?.displayName ?? _loc.chatVisitor;
+    final userName =
+        user?.name ?? firebaseUser?.displayName ?? _loc.chatVisitor;
     final lang = _loc.language.code;
 
     if (userId == null) {
@@ -312,16 +313,17 @@ class _ChatScreenState extends State<ChatScreen> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(children: [
-          Icon(Icons.check_circle_outline_rounded,
+          const Icon(Icons.check_circle_outline_rounded,
               color: AppColors.success, size: 22),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           Text(context.loc.t('상담 종료', '상담 종료'),
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ]),
         content: Text(
             context.loc.t('상담을 완료로 처리하시겠습니까 종료 후에는 새 채팅을 시작하셔야 합니다',
                 '상담을 완료로 처리하시겠습니까?\n종료 후에는 새 채팅을 시작하셔야 합니다.'),
-            style: TextStyle(fontSize: 14)),
+            style: const TextStyle(fontSize: 14)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -345,7 +347,7 @@ class _ChatScreenState extends State<ChatScreen> {
           content:
               Text(context.loc.t('상담이 완료되었습니다 감사합니다', '상담이 완료되었습니다. 감사합니다!')),
           backgroundColor: AppColors.success,
-          duration: Duration(seconds: 3),
+          duration: const Duration(seconds: 3),
         ),
       );
     }
@@ -540,7 +542,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(context.loc.t('상담종료', '상담종료'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.w700)),
@@ -663,8 +665,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                     itemCount:
                                         _messages.length + (_isTyping ? 1 : 0),
                                     itemBuilder: (context, index) {
-                                      if (index == _messages.length)
+                                      if (index == _messages.length) {
                                         return _buildTypingIndicator();
+                                      }
                                       return _buildMessageBubble(
                                           _messages[index], loc);
                                     },
@@ -690,8 +693,9 @@ class _ChatScreenState extends State<ChatScreen> {
                               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                               itemCount: _messages.length + (_isTyping ? 1 : 0),
                               itemBuilder: (context, index) {
-                                if (index == _messages.length)
+                                if (index == _messages.length) {
                                   return _buildTypingIndicator();
+                                }
                                 return _buildMessageBubble(
                                     _messages[index], loc);
                               },
@@ -830,7 +834,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   decoration: const BoxDecoration(
                       color: AppColors.primary, shape: BoxShape.circle),
                   child: Icon(
-                    isSystem ? Icons.auto_awesome_rounded : Icons.support_agent_rounded,
+                    isSystem
+                        ? Icons.auto_awesome_rounded
+                        : Icons.support_agent_rounded,
                     color: Colors.white,
                     size: 16,
                   ),
@@ -852,7 +858,9 @@ class _ChatScreenState extends State<ChatScreen> {
                           fontWeight: FontWeight.w700,
                           color: message.isUser
                               ? AppColors.primary
-                              : (isSystem ? AppColors.info : AppColors.textSecondary),
+                              : (isSystem
+                                  ? AppColors.info
+                                  : AppColors.textSecondary),
                         ),
                       ),
                     ),
@@ -864,7 +872,9 @@ class _ChatScreenState extends State<ChatScreen> {
                       decoration: BoxDecoration(
                         color: message.isUser
                             ? AppColors.primary
-                            : (isSystem ? const Color(0xFFEAF2FF) : Colors.white),
+                            : (isSystem
+                                ? const Color(0xFFEAF2FF)
+                                : Colors.white),
                         borderRadius: BorderRadius.only(
                           topLeft: const Radius.circular(16),
                           topRight: const Radius.circular(16),
@@ -1049,7 +1059,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: AppColors.success, size: 18),
             const SizedBox(width: 6),
             Text(context.loc.t('상담이 완료되었습니다', '상담이 완료되었습니다'),
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.success,
                     fontWeight: FontWeight.w600)),
@@ -1121,7 +1131,6 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
-
 }
 
 // ─────────────────────────────────────────────────────────────────

@@ -41,7 +41,8 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
               onPressed: () => goBackOrHome(context),
             ),
             title: Text(context.loc.t('이용약관', '이용약관'),
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                style:
+                    const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
             centerTitle: true,
             elevation: 0,
           ),
@@ -59,15 +60,16 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(context.loc.t('2FIT_MALL_이용약관', '2FIT MALL 이용약관'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.w800)),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                         context.loc.t('시행일__2025년_3월_2_62b7e9',
                             '시행일: 2025년 3월 21일  |  최종수정: 2026년 6월 17일'),
-                        style: TextStyle(color: Colors.white70, fontSize: 13)),
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 13)),
                   ],
                 ),
               ),
@@ -87,25 +89,24 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(context.loc.t('사업자_정보', '사업자 정보'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary)),
-                    SizedBox(height: 10),
-                    _InfoRow(context.loc.t('회사명', '회사명'),
-                        AppConstants.companyName),
-                    _InfoRow(context.loc.t('대표자', '대표자'),
-                        AppConstants.ceoName),
+                    const SizedBox(height: 10),
                     _InfoRow(
-                        context.loc.t('사업장_주소', '사업장 주소'),
+                        context.loc.t('회사명', '회사명'), AppConstants.companyName),
+                    _InfoRow(context.loc.t('대표자', '대표자'), AppConstants.ceoName),
+                    _InfoRow(context.loc.t('사업장_주소', '사업장 주소'),
                         AppConstants.companyAddress),
-                    _InfoRow(
-                        context.loc.t('사업자등록번호', '사업자등록번호'), AppConstants.businessRegNumber),
+                    _InfoRow(context.loc.t('사업자등록번호', '사업자등록번호'),
+                        AppConstants.businessRegNumber),
                     _InfoRow(context.loc.t('통신판매업신고', '통신판매업신고'),
                         AppConstants.ecommerceRegNumber),
-                    _InfoRow(context.loc.t('고객센터', '고객센터'), AppConstants.customerServicePhone),
-                    _InfoRow(
-                        context.loc.t('이메일', '이메일'), AppConstants.customerServiceEmail),
+                    _InfoRow(context.loc.t('고객센터', '고객센터'),
+                        AppConstants.customerServicePhone),
+                    _InfoRow(context.loc.t('이메일', '이메일'),
+                        AppConstants.customerServiceEmail),
                     _InfoRow(
                         context.loc.t('운영시간', '운영시간'),
                         context.loc.t('평일_10_00_18_00_점심_12_00_14_00',
@@ -173,12 +174,12 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
                 child: Column(
                   children: [
                     Text(context.loc.t('이용약관_관련_문의', '이용약관 관련 문의'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary)),
                     const SizedBox(height: 8),
-                    Text(AppConstants.customerServiceEmail,
+                    const Text(AppConstants.customerServiceEmail,
                         style: TextStyle(
                             fontSize: 14,
                             color: Color(0xFF6C63FF),

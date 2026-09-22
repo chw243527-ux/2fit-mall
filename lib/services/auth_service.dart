@@ -14,7 +14,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
 // 웹 JS interop
 import 'naver_web_stub.dart' if (dart.library.html) 'naver_web_login.dart'
-    as naverWeb;
+    as naver_web;
 import '../models/models.dart';
 
 class AuthService {
@@ -24,15 +24,14 @@ class AuthService {
   static const _legacyRememberedEmailsKey = 'rememberedEmails';
   static const _legacyRememberMeEmailKey = 'rememberMeEmail';
   static const _deviceScopeStorageKey = 'deviceInstallationScope';
-  static final FlutterSecureStorage _deviceStorage = FlutterSecureStorage();
+  static const FlutterSecureStorage _deviceStorage = FlutterSecureStorage();
   static String? _deviceScope;
   static Future<String>? _deviceScopeInFlight;
   static Completer<Map<String, String>>? _naverMobileCodeWaiter;
   static Map<String, String>? _pendingNaverMobileCode;
   static Future<AuthResult>? _restoreSessionInFlight;
   static final Completer<bool> _firebaseReady = Completer<bool>();
-  static const _naverRedirectUri =
-      'https://2fit-mall.co.kr/naver_callback';
+  static const _naverRedirectUri = 'https://2fit-mall.co.kr/naver_callback';
 
   static void handleNaverDeepLink(Uri uri) {
     // Android/app_links can parse the same intent as either
@@ -41,7 +40,8 @@ class AuthService {
     final normalized = uri.host == 'naver'
         ? uri
         : (uri.scheme == 'twofitmall' && uri.path.startsWith('/naver')
-            ? Uri.parse('twofitmall://naver${uri.path.substring('/naver'.length)}${uri.hasQuery ? '?${uri.query}' : ''}')
+            ? Uri.parse(
+                'twofitmall://naver${uri.path.substring('/naver'.length)}${uri.hasQuery ? '?${uri.query}' : ''}')
             : uri);
     if (normalized.scheme != 'twofitmall' || normalized.host != 'naver') return;
     final code = normalized.queryParameters['code'] ?? '';
@@ -82,8 +82,9 @@ class AuthService {
       onTimeout: () => throw TimeoutException('네이버 로그인 시간이 만료되었습니다.'),
     )
         .whenComplete(() {
-      if (identical(_naverMobileCodeWaiter, waiter))
+      if (identical(_naverMobileCodeWaiter, waiter)) {
         _naverMobileCodeWaiter = null;
+      }
     });
   }
 
@@ -177,7 +178,7 @@ class AuthService {
       if (kDebugMode) debugPrint('client_operation_failed');
     }
 
-    final created = Uuid().v4();
+    final created = const Uuid().v4();
     _deviceScope = created;
     try {
       await _deviceStorage.write(key: _deviceScopeStorageKey, value: created);
@@ -263,7 +264,8 @@ class AuthService {
           }
         } catch (_) {
           if (!completer.isCompleted) {
-            completer.complete({'status': 'error', 'message': '자동 인증에 실패했습니다. 다시 시도해주세요.'});
+            completer.complete(
+                {'status': 'error', 'message': '자동 인증에 실패했습니다. 다시 시도해주세요.'});
           }
         }
       },
@@ -333,7 +335,8 @@ class AuthService {
           : await _auth.signInWithCredential(credential);
       final phoneNumber = result.user?.phoneNumber ?? '';
       if (!hadAuthenticatedUser && result.user != null) {
-        final existingProfile = await _db.collection('users').doc(result.user!.uid).get();
+        final existingProfile =
+            await _db.collection('users').doc(result.user!.uid).get();
         if (existingProfile.exists) {
           await _auth.signOut();
           return {
@@ -399,7 +402,8 @@ class AuthService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
       if (previousPhone.isNotEmpty &&
-          normalizePhoneNumber(previousPhone) != normalizePhoneNumber(phoneNumber)) {
+          normalizePhoneNumber(previousPhone) !=
+              normalizePhoneNumber(phoneNumber)) {
         await releasePhoneIndex(previousPhone);
       }
       return {'status': 'verified', 'phoneNumber': phoneNumber};
@@ -464,7 +468,8 @@ class AuthService {
       final docRef = _db.collection('users').doc(user.uid);
       final existing = await docRef.get();
       if (existing.exists) {
-        return const AuthResult(success: false, error: '이미 가입된 계정입니다. 다시 로그인해주세요.');
+        return const AuthResult(
+            success: false, error: '이미 가입된 계정입니다. 다시 로그인해주세요.');
       }
       await user.updateDisplayName(name.trim());
       await user.getIdToken(true);
@@ -499,7 +504,8 @@ class AuthService {
       return AuthResult(success: true, user: userModel);
     } on FirebaseException catch (e) {
       if (kDebugMode) debugPrint('소셜 본인확인 온보딩 저장 실패: ${e.code}');
-      return const AuthResult(success: false, error: '회원정보 저장에 실패했습니다. 다시 시도해주세요.');
+      return const AuthResult(
+          success: false, error: '회원정보 저장에 실패했습니다. 다시 시도해주세요.');
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
       return const AuthResult(success: false, error: '본인확인 가입 중 오류가 발생했습니다.');
@@ -627,7 +633,8 @@ class AuthService {
           'email': emailKey,
           'phone': verifiedPhone.isNotEmpty ? verifiedPhone : phone.trim(),
           'phoneVerified': verifiedPhone.isNotEmpty,
-          'phoneVerifiedAt': verifiedPhone.isNotEmpty ? FieldValue.serverTimestamp() : null,
+          'phoneVerifiedAt':
+              verifiedPhone.isNotEmpty ? FieldValue.serverTimestamp() : null,
           'isAdmin': isAdmin,
           'grade': 'bronze',
           'wishlist': <String>[],
@@ -775,7 +782,8 @@ class AuthService {
       final idToken = await firebaseUser.getIdToken();
       if (idToken == null || idToken.isEmpty) return;
       final response = await http.post(
-        Uri.parse('https://us-central1-fit-mall.cloudfunctions.net/ensureOwnerAdminClaim'),
+        Uri.parse(
+            'https://us-central1-fit-mall.cloudfunctions.net/ensureOwnerAdminClaim'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $idToken',
@@ -813,9 +821,9 @@ class AuthService {
       if (firebaseUser == null) {
         try {
           firebaseUser = await _auth.authStateChanges().first.timeout(
-            const Duration(seconds: 5),
-            onTimeout: () => null,
-          );
+                const Duration(seconds: 5),
+                onTimeout: () => null,
+              );
         } catch (_) {}
       }
       // Firebase Auth 복원 결과와 로컬 세션을 함께 기준으로 버전을 확인합니다.
@@ -823,8 +831,8 @@ class AuthService {
         return const AuthResult(success: false);
       }
       if (firebaseUser != null) {
-        final user =
-            await _loadUser(firebaseUser.uid, firebaseUser.email ?? '', forceRefreshAdminClaim: true);
+        final user = await _loadUser(firebaseUser.uid, firebaseUser.email ?? '',
+            forceRefreshAdminClaim: true);
         if (user != null) {
           await _saveSession(firebaseUser.uid);
           return AuthResult(success: true, user: user);
@@ -837,7 +845,8 @@ class AuthService {
       final activeUid = _auth.currentUser?.uid;
       if (savedUid != null && activeUid != null && savedUid == activeUid) {
         final email = sessionBox.get('currentEmail') as String? ?? '';
-        final user = await _loadUser(savedUid, email, forceRefreshAdminClaim: true);
+        final user =
+            await _loadUser(savedUid, email, forceRefreshAdminClaim: true);
         if (user != null) {
           await _saveSession(savedUid);
           return AuthResult(success: true, user: user);
@@ -887,7 +896,9 @@ class AuthService {
         // 전화번호 변경은 기존 본인확인 결과를 무효화할 수 있으므로,
         // NICE/Firebase 재인증 플로우 없이 일반 프로필 수정으로 변경하지 못하게 합니다.
         final verifiedPhone = firebaseUser.phoneNumber?.trim() ?? '';
-        if (verifiedPhone.isEmpty || phone.trim() != verifiedPhone) return false;
+        if (verifiedPhone.isEmpty || phone.trim() != verifiedPhone) {
+          return false;
+        }
       }
 
       if (newPassword != null && newPassword.isNotEmpty) {
@@ -917,7 +928,8 @@ class AuthService {
       final user = _auth.currentUser;
       final email = user?.email;
       if (user == null || email == null || email.isEmpty) {
-        return const AuthResult(success: false, error: '이 계정은 이메일 비밀번호 로그인을 사용하지 않습니다.');
+        return const AuthResult(
+            success: false, error: '이 계정은 이메일 비밀번호 로그인을 사용하지 않습니다.');
       }
       final credential = EmailAuthProvider.credential(
         email: email,
@@ -926,12 +938,14 @@ class AuthService {
       await user.reauthenticateWithCredential(credential);
       return const AuthResult(success: true);
     } on FirebaseAuthException catch (e) {
-      final message = e.code == 'wrong-password' || e.code == 'invalid-credential'
-          ? '현재 비밀번호가 올바르지 않습니다.'
-          : '비밀번호 확인에 실패했습니다. 다시 시도해주세요.';
+      final message =
+          e.code == 'wrong-password' || e.code == 'invalid-credential'
+              ? '현재 비밀번호가 올바르지 않습니다.'
+              : '비밀번호 확인에 실패했습니다. 다시 시도해주세요.';
       return AuthResult(success: false, error: message);
     } catch (_) {
-      return const AuthResult(success: false, error: '비밀번호 확인에 실패했습니다. 다시 시도해주세요.');
+      return const AuthResult(
+          success: false, error: '비밀번호 확인에 실패했습니다. 다시 시도해주세요.');
     }
   }
 
@@ -1061,13 +1075,17 @@ class AuthService {
 
   static List<AddressModel> _parseAddresses(dynamic value) {
     if (value is! List) return <AddressModel>[];
-    return value.whereType<Map>().map((raw) {
-      try {
-        return AddressModel.fromJson(Map<String, dynamic>.from(raw));
-      } catch (_) {
-        return null;
-      }
-    }).whereType<AddressModel>().toList();
+    return value
+        .whereType<Map>()
+        .map((raw) {
+          try {
+            return AddressModel.fromJson(Map<String, dynamic>.from(raw));
+          } catch (_) {
+            return null;
+          }
+        })
+        .whereType<AddressModel>()
+        .toList();
   }
 
   static bool _asBool(dynamic value, bool fallback) {
@@ -1124,14 +1142,18 @@ class AuthService {
               data['grade']?.toString() ??
               'bronze',
           wishlist: (data['wishlist'] is List)
-              ? (data['wishlist'] as List).map((item) => item.toString()).toList()
+              ? (data['wishlist'] as List)
+                  .map((item) => item.toString())
+                  .toList()
               : <String>[],
           createdAt:
               (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
           loginProvider: data['loginProvider']?.toString() ?? 'email',
           cashReceiptNum: data['cashReceiptNum']?.toString(),
-          orderNotificationsEnabled: _asBool(data['orderNotificationsEnabled'], true),
-          marketingNotificationsEnabled: _asBool(data['marketingNotificationsEnabled'], false),
+          orderNotificationsEnabled:
+              _asBool(data['orderNotificationsEnabled'], true),
+          marketingNotificationsEnabled:
+              _asBool(data['marketingNotificationsEnabled'], false),
           addresses: _parseAddresses(data['addresses']),
         );
       }
@@ -1412,8 +1434,9 @@ class AuthService {
         userCredential = await _auth.signInWithCredential(credential);
       }
       final user = userCredential.user;
-      if (user == null)
+      if (user == null) {
         return const AuthResult(success: false, error: '로그인 실패');
+      }
 
       final isAdmin = await _hasAdminClaim();
 
@@ -1508,7 +1531,8 @@ class AuthService {
           if (userModel.cashReceiptNum?.isNotEmpty == true)
             'cashReceiptNum': userModel.cashReceiptNum,
           'orderNotificationsEnabled': userModel.orderNotificationsEnabled,
-          'marketingNotificationsEnabled': userModel.marketingNotificationsEnabled,
+          'marketingNotificationsEnabled':
+              userModel.marketingNotificationsEnabled,
         });
       } catch (e) {
         if (kDebugMode) debugPrint('client_operation_failed');
@@ -1517,7 +1541,8 @@ class AuthService {
       return AuthResult(success: true, user: userModel);
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
-      return const AuthResult(success: false, error: '구글 로그인에 실패했습니다. 다시 시도해 주세요.');
+      return const AuthResult(
+          success: false, error: '구글 로그인에 실패했습니다. 다시 시도해 주세요.');
     }
   }
 
@@ -1538,16 +1563,27 @@ class AuthService {
     kakao.OAuthToken token;
     try {
       if (kIsWeb) {
-        token = await kakao.UserApi.instance.loginWithKakaoAccount();
+        // iOS Safari에서 동의 완료 후 callback이 반환되지 않는 경우에도 무기한 대기하지 않습니다.
+        token = await kakao.UserApi.instance
+            .loginWithKakaoAccount()
+            .timeout(const Duration(seconds: 45));
       } else {
         final isInstalled = await kakao.isKakaoTalkInstalled();
         token = isInstalled
-            ? await kakao.UserApi.instance.loginWithKakaoTalk()
-            : await kakao.UserApi.instance.loginWithKakaoAccount();
+            ? await kakao.UserApi.instance
+                .loginWithKakaoTalk()
+                .timeout(const Duration(seconds: 45))
+            : await kakao.UserApi.instance
+                .loginWithKakaoAccount()
+                .timeout(const Duration(seconds: 45));
       }
+    } on TimeoutException {
+      return const AuthResult(
+          success: false, error: '카카오 로그인 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.');
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
-      return AuthResult(success: false, error: '카카오 로그인에 실패했습니다. 다시 시도해주세요.');
+      return const AuthResult(
+          success: false, error: '카카오 로그인에 실패했습니다. 다시 시도해주세요.');
     }
 
     if (kDebugMode) debugPrint('✅ 카카오 토큰 발급 성공');
@@ -1567,7 +1603,7 @@ class AuthService {
       photoUrl = profile?.profileImageUrl ?? '';
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
-      return AuthResult(success: false, error: '카카오 사용자 정보를 가져올 수 없습니다.');
+      return const AuthResult(success: false, error: '카카오 사용자 정보를 가져올 수 없습니다.');
     }
 
     // ── Step 3: 서버 검증 후 Firebase Custom Token 로그인 ─────────
@@ -1575,19 +1611,19 @@ class AuthService {
     // 서버에서 검증하고 provider:kakao Custom Claim을 포함한 토큰을 발급받습니다.
     UserCredential userCred;
     try {
-      final response = await http.post(
-        Uri.parse('https://us-central1-fit-mall.cloudfunctions.net/exchangeKakaoToken'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'accessToken': token.accessToken}),
-      );
+      final response = await http
+          .post(
+            Uri.parse(
+                'https://us-central1-fit-mall.cloudfunctions.net/exchangeKakaoToken'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'accessToken': token.accessToken}),
+          )
+          .timeout(const Duration(seconds: 20));
       final payload = jsonDecode(response.body) as Map<String, dynamic>;
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        final serverError = payload['error'] as String?;
-        return AuthResult(
+        return const AuthResult(
           success: false,
-          error: serverError == null || serverError.isEmpty
-              ? '카카오 인증 서버에서 계정을 확인하지 못했습니다.'
-              : '카카오 인증 서버 오류: $serverError',
+          error: '카카오 인증 서버에서 계정을 확인하지 못했습니다.',
         );
       }
       final customToken = payload['customToken'] as String?;
@@ -1603,6 +1639,9 @@ class AuthService {
           error: '카카오 인증은 완료됐지만 쇼핑몰 로그인에 실패했습니다 (${e.code}).',
         );
       }
+    } on TimeoutException {
+      return const AuthResult(
+          success: false, error: '카카오 인증 서버 응답이 지연되고 있습니다. 다시 시도해 주세요.');
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
       return const AuthResult(
@@ -1721,7 +1760,8 @@ class AuthService {
         if (userModel.cashReceiptNum?.isNotEmpty == true)
           'cashReceiptNum': userModel.cashReceiptNum,
         'orderNotificationsEnabled': userModel.orderNotificationsEnabled,
-        'marketingNotificationsEnabled': userModel.marketingNotificationsEnabled,
+        'marketingNotificationsEnabled':
+            userModel.marketingNotificationsEnabled,
       });
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
@@ -1780,7 +1820,8 @@ class AuthService {
       return await _exchangeNaverCodeForFirebase(info);
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
-      return const AuthResult(success: false, error: '네이버 로그인에 실패했습니다. 다시 시도해주세요.');
+      return const AuthResult(
+          success: false, error: '네이버 로그인에 실패했습니다. 다시 시도해주세요.');
     }
   }
 
@@ -1869,7 +1910,7 @@ class AuthService {
   /// 웹 전용 네이버 OAuth: authorization code를 서버에서 교환하고 Custom Token으로 로그인
   static Future<AuthResult> _signInWithNaverWeb() async {
     try {
-      final info = await naverWeb.callNaverOAuth();
+      final info = await naver_web.callNaverOAuth();
       if (info == null) {
         return const AuthResult(success: false, error: '네이버 로그인이 취소되었습니다.');
       }
@@ -1908,20 +1949,20 @@ class AuthService {
         return const AuthResult(
             success: false, error: 'Firebase 사용자 정보를 받지 못했습니다.');
       }
-    final doc = await _db.collection('users').doc(firebaseUser.uid).get();
-    if (!doc.exists) {
-      return AuthResult(
-        success: false,
-        requiresPhoneVerification: true,
-        pendingName: firebaseUser.displayName ?? '네이버 사용자',
-        pendingEmail: firebaseUser.email ?? '',
-        pendingPhotoUrl: firebaseUser.photoURL ?? '',
-        pendingProvider: 'naver',
-        error: '전화번호 본인확인을 완료해주세요.',
-      );
-    }
-    final data = doc.data() ?? <String, dynamic>{};
-    final tier =
+      final doc = await _db.collection('users').doc(firebaseUser.uid).get();
+      if (!doc.exists) {
+        return AuthResult(
+          success: false,
+          requiresPhoneVerification: true,
+          pendingName: firebaseUser.displayName ?? '네이버 사용자',
+          pendingEmail: firebaseUser.email ?? '',
+          pendingPhotoUrl: firebaseUser.photoURL ?? '',
+          pendingProvider: 'naver',
+          error: '전화번호 본인확인을 완료해주세요.',
+        );
+      }
+      final data = doc.data() ?? <String, dynamic>{};
+      final tier =
           data['memberTier'] as String? ?? data['grade'] as String? ?? 'bronze';
       final userModel = UserModel(
         id: firebaseUser.uid,
@@ -1959,7 +2000,8 @@ class AuthService {
         if (userModel.cashReceiptNum?.isNotEmpty == true)
           'cashReceiptNum': userModel.cashReceiptNum,
         'orderNotificationsEnabled': userModel.orderNotificationsEnabled,
-        'marketingNotificationsEnabled': userModel.marketingNotificationsEnabled,
+        'marketingNotificationsEnabled':
+            userModel.marketingNotificationsEnabled,
       });
       await _saveSession(firebaseUser.uid);
       return AuthResult(success: true, user: userModel);

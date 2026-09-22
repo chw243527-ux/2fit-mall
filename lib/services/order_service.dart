@@ -1,3 +1,4 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
 // order_service.dart — Firestore 기반 주문 서비스 (Hive 로컬 백업 병행)
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
@@ -103,9 +104,8 @@ class OrderService {
   static Future<List<OrderModel>> getAllOrders() async {
     try {
       final snapshot = await _db.collection('orders').get();
-      final orders = snapshot.docs
-          .map((doc) => _orderFromFirestore(doc.data()))
-          .toList();
+      final orders =
+          snapshot.docs.map((doc) => _orderFromFirestore(doc.data())).toList();
       orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return orders;
     } catch (e) {
@@ -118,10 +118,7 @@ class OrderService {
   // 실시간 주문 스트림 (관리자용)
   // ────────────────────────────────────────────
   static Stream<List<OrderModel>> watchAllOrders() {
-    return _db
-        .collection('orders')
-        .snapshots()
-        .map((snapshot) {
+    return _db.collection('orders').snapshots().map((snapshot) {
       final orders = snapshot.docs
           .map((doc) => _orderFromFirestore(doc.data(), docId: doc.id))
           .toList();
@@ -187,7 +184,8 @@ class OrderService {
         final updated = Map<String, dynamic>.from(data as Map);
         updated['status'] = status.name;
         if (trackingNumber != null) updated['trackingNumber'] = trackingNumber;
-        if (shippingCompany != null) updated['shippingCompany'] = shippingCompany;
+        if (shippingCompany != null)
+          updated['shippingCompany'] = shippingCompany;
         await box.put(orderId, updated);
       }
 
@@ -230,7 +228,8 @@ class OrderService {
   // ────────────────────────────────────────────
   // 주문 상태 업데이트
   // ────────────────────────────────────────────
-  static Future<void> updateOrderStatus(String orderId, OrderStatus status) async {
+  static Future<void> updateOrderStatus(
+      String orderId, OrderStatus status) async {
     // 1) Hive 업데이트
     try {
       final box = await _getBox();
@@ -254,18 +253,22 @@ class OrderService {
       }
       // 주문확인(confirmed) 시 1차 디자인 수정 마감일 = 주문 후 1주일로 설정
       if (status == OrderStatus.confirmed) {
-        updateData['designRevisionDeadline'] =
-            DateTime.now().add(const Duration(days: AppConstants.customOrderModifyDays)).toIso8601String();
+        updateData['designRevisionDeadline'] = DateTime.now()
+            .add(const Duration(days: AppConstants.customOrderModifyDays))
+            .toIso8601String();
       }
       await _db.collection('orders').doc(orderId).update(updateData);
-      if (kDebugMode) debugPrint('✅ Firestore 주문 상태 업데이트: $orderId → ${status.name}');
+      if (kDebugMode)
+        debugPrint('✅ Firestore 주문 상태 업데이트: $orderId → ${status.name}');
 
       // 3) FCM 알림 + 이메일 발송
       try {
         final orderDoc = await _db.collection('orders').doc(orderId).get();
         if (orderDoc.exists) {
-          final order = _orderFromFirestore(orderDoc.data()!, docId: orderDoc.id);
-          await FcmService.sendOrderStatusNotification(order: order, newStatus: status);
+          final order =
+              _orderFromFirestore(orderDoc.data()!, docId: orderDoc.id);
+          await FcmService.sendOrderStatusNotification(
+              order: order, newStatus: status);
           EmailService.sendOrderStatusEmail(order: order, newStatus: status)
               .catchError((e) => false);
         }
@@ -292,8 +295,10 @@ class OrderService {
   // ────────────────────────────────────────────
   static String generateOrderId() {
     final now = DateTime.now();
-    final ts = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
-    final seq = (now.millisecondsSinceEpoch % 100000).toString().padLeft(5, '0');
+    final ts =
+        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+    final seq =
+        (now.millisecondsSinceEpoch % 100000).toString().padLeft(5, '0');
     return 'ORD-$ts-$seq';
   }
 
@@ -330,19 +335,23 @@ class OrderService {
         final data = box.get(orderId);
         if (data != null) {
           final updated = Map<String, dynamic>.from(data as Map);
-          updated['colorEditCount'] = ((updated['colorEditCount'] as int?) ?? 0) + 1;
-          if (newColorName != null) updated['requestedColorName'] = newColorName;
+          updated['colorEditCount'] =
+              ((updated['colorEditCount'] as int?) ?? 0) + 1;
+          if (newColorName != null)
+            updated['requestedColorName'] = newColorName;
           await box.put(orderId, updated);
         }
       } catch (_) {}
 
       // ── 관리자 알림 전송 (디자인 수정 요청) ──
       try {
-        final notifRef = FirebaseFirestore.instance.collection('admin_notifications').doc();
+        final notifRef =
+            FirebaseFirestore.instance.collection('admin_notifications').doc();
         final sid = orderId.length > 8 ? orderId.substring(0, 8) : orderId;
         final changeSummary = [
           if (newColorName != null) '색상: $newColorName',
-          if (newTeamName != null && newTeamName.isNotEmpty) '단체명: $newTeamName',
+          if (newTeamName != null && newTeamName.isNotEmpty)
+            '단체명: $newTeamName',
           if (memo != null && memo.isNotEmpty) '메모: $memo',
         ].join(' / ');
         await notifRef.set({
@@ -384,7 +393,8 @@ class OrderService {
     if (order.status != OrderStatus.confirmed &&
         order.status != OrderStatus.shipped &&
         order.status != OrderStatus.delivered) {
-      final autoDate = order.createdAt.add(const Duration(days: AppConstants.customOrderAutoConfirmDays));
+      final autoDate = order.createdAt
+          .add(const Duration(days: AppConstants.customOrderAutoConfirmDays));
       return DateTime.now().isAfter(autoDate);
     }
     return false;
@@ -440,25 +450,32 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
       for (final doc in snap.docs) {
         final data = doc.data();
         final trackingNumber = (data['trackingNumber'] as String? ?? '').trim();
-        final shippingCompany = (data['shippingCompany'] as String? ?? '').trim();
+        final shippingCompany =
+            (data['shippingCompany'] as String? ?? '').trim();
         if (trackingNumber.isEmpty) continue;
 
         try {
           final carrierId = _carrierIdFromName(shippingCompany);
-          final resp = await http.post(
-            Uri.parse(endpoint),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'query': query,
-              'variables': {'carrierId': carrierId, 'trackingNumber': trackingNumber},
-            }),
-          ).timeout(const Duration(seconds: 8));
+          final resp = await http
+              .post(
+                Uri.parse(endpoint),
+                headers: {'Content-Type': 'application/json'},
+                body: jsonEncode({
+                  'query': query,
+                  'variables': {
+                    'carrierId': carrierId,
+                    'trackingNumber': trackingNumber
+                  },
+                }),
+              )
+              .timeout(const Duration(seconds: 8));
 
           if (resp.statusCode != 200) continue;
           final body = jsonDecode(resp.body) as Map<String, dynamic>;
           if (body.containsKey('errors')) continue;
 
-          final code = body['data']?['track']?['lastEvent']?['status']?['code'] as String?;
+          final code = body['data']?['track']?['lastEvent']?['status']?['code']
+              as String?;
           if (code == null) continue;
 
           if (code.toUpperCase() == 'DELIVERED') {
@@ -488,7 +505,8 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
               );
             } catch (_) {}
             updated++;
-            if (kDebugMode) debugPrint('✅ 자동 배송완료: ${doc.id} ($trackingNumber)');
+            if (kDebugMode)
+              debugPrint('✅ 자동 배송완료: ${doc.id} ($trackingNumber)');
           }
         } catch (e) {
           if (kDebugMode) debugPrint('client_operation_failed');
@@ -511,13 +529,11 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
   static Future<Map<String, int>> getSalesCountMap() async {
     try {
       // Firestore whereNotIn은 최대 10개 값 지원
-      final snapshot = await _db
-          .collection('orders')
-          .where('status', whereNotIn: [
-            OrderStatus.cancelled.name,
-            OrderStatus.refunded.name,
-          ])
-          .get();
+      final snapshot =
+          await _db.collection('orders').where('status', whereNotIn: [
+        OrderStatus.cancelled.name,
+        OrderStatus.refunded.name,
+      ]).get();
 
       final Map<String, int> countMap = {};
       for (final doc in snapshot.docs) {
@@ -612,7 +628,8 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
     }
     // 결제키 / 현금영수증 번호
     if (order.paymentKey != null) map['paymentKey'] = order.paymentKey;
-    if (order.cashReceiptNum != null) map['cashReceiptNum'] = order.cashReceiptNum;
+    if (order.cashReceiptNum != null)
+      map['cashReceiptNum'] = order.cashReceiptNum;
     return map;
   }
 
@@ -639,13 +656,16 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
   }
 
   /// public wrapper — mypage_screen 등 외부에서 Firestore doc 파싱에 직접 사용
-  static OrderModel parseOrderFromFirestore(Map<String, dynamic> data, {String? docId}) {
+  static OrderModel parseOrderFromFirestore(Map<String, dynamic> data,
+      {String? docId}) {
     return _orderFromFirestore(data, docId: docId);
   }
 
-  static OrderModel _orderFromFirestore(Map<String, dynamic> data, {String? docId}) {
+  static OrderModel _orderFromFirestore(Map<String, dynamic> data,
+      {String? docId}) {
     // 문서 ID: 파라미터 우선, 없으면 data['id'] 사용
-    final resolvedDocId = (docId?.isNotEmpty == true) ? docId! : (data['id'] as String? ?? '');
+    final resolvedDocId =
+        (docId?.isNotEmpty == true) ? docId! : (data['id'] as String? ?? '');
 
     // Firestore Timestamp → DateTime 변환
     final createdAtRaw = data['createdAt'];
@@ -685,7 +705,8 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
     }
 
     // groupName, teamName 통합
-    if (customOptions['teamName'] == null || (customOptions['teamName'] as String?)?.isEmpty == true) {
+    if (customOptions['teamName'] == null ||
+        (customOptions['teamName'] as String?)?.isEmpty == true) {
       final gn = data['groupName'] as String?;
       if (gn != null && gn.isNotEmpty) customOptions['teamName'] = gn;
     }
@@ -702,7 +723,8 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
       customOptions['femaleCount'] = data['femaleCount'];
     }
     // manager/담당자 이름 통합
-    if (customOptions['manager'] == null && customOptions['managerName'] == null) {
+    if (customOptions['manager'] == null &&
+        customOptions['managerName'] == null) {
       final mgr = data['managerName'] as String?;
       if (mgr != null && mgr.isNotEmpty) customOptions['manager'] = mgr;
     }
@@ -718,7 +740,8 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
         merged.addAll(Map<String, dynamic>.from(topDrReq));
         customOptions['designRevisionRequest'] = merged;
       } else {
-        customOptions['designRevisionRequest'] = Map<String, dynamic>.from(topDrReq);
+        customOptions['designRevisionRequest'] =
+            Map<String, dynamic>.from(topDrReq);
       }
     }
 
@@ -726,23 +749,26 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
     // Firestore에 'personal'로 저장됐더라도 진짜 단체주문이면 보정
     String rawOrderType = data['orderType'] as String? ?? 'personal';
     if (rawOrderType == 'personal') {
-      final hasPersons = (customOptions['persons'] as List?)?.isNotEmpty == true;
-      final hasTeamName = (customOptions['teamName'] as String?)?.isNotEmpty == true;
+      final hasPersons =
+          (customOptions['persons'] as List?)?.isNotEmpty == true;
+      final hasTeamName =
+          (customOptions['teamName'] as String?)?.isNotEmpty == true;
       // GRP_/GROUP- 접두사이거나, persons+teamName 모두 있으면 단체주문으로 보정
-      final isGrpId = resolvedDocId.startsWith('GRP_') || resolvedDocId.startsWith('GROUP-');
+      final isGrpId = resolvedDocId.startsWith('GRP_') ||
+          resolvedDocId.startsWith('GROUP-');
       if (isGrpId || (hasPersons && hasTeamName)) {
         final optionType = (customOptions['orderType'] ?? '')
-                .toString()
-                .trim()
-                .toLowerCase()
-                .replaceAll('-', '_');
+            .toString()
+            .trim()
+            .toLowerCase()
+            .replaceAll('-', '_');
         final hasOriginalOrder = (customOptions['originalOrderId'] ??
-                    customOptions['parentOrderId'] ??
-                    customOptions['sourceOrderId'] ??
-                    '')
-                .toString()
-                .trim()
-                .isNotEmpty;
+                customOptions['parentOrderId'] ??
+                customOptions['sourceOrderId'] ??
+                '')
+            .toString()
+            .trim()
+            .isNotEmpty;
         final isAdditional = optionType == 'additional' ||
             customOptions['isAdditional'] == true ||
             customOptions['isAdditionalOrder'] == true ||
@@ -773,7 +799,9 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
       couponId: data['couponId'] as String?,
       couponIds: data['couponIds'] is List
           ? List<String>.from(data['couponIds'] as List)
-          : (data['couponId'] is String ? [data['couponId'] as String] : const []),
+          : (data['couponId'] is String
+              ? [data['couponId'] as String]
+              : const []),
       couponDiscount: (data['couponDiscount'] as num?)?.toDouble() ?? 0,
       couponDiscounts: data['couponDiscounts'] is List
           ? (data['couponDiscounts'] as List)
@@ -790,7 +818,8 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
       groupCount: (data['groupCount'] as num?)?.toInt(),
       memo: data['memo'] as String?,
       createdAt: createdAt,
-      additionalOrderCount: (data['additionalOrderCount'] as num?)?.toInt() ?? 0,
+      additionalOrderCount:
+          (data['additionalOrderCount'] as num?)?.toInt() ?? 0,
       colorEditCount: (data['colorEditCount'] as num?)?.toInt() ?? 0,
       designRevisionCount: (data['designRevisionCount'] as num?)?.toInt() ?? 0,
       designRevisionDeadline: data['designRevisionDeadline'] != null
@@ -816,7 +845,8 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
         final item = Map<String, dynamic>.from(i as Map);
         Map<String, dynamic>? itemOpts;
         final rawItemOpts = item['customOptions'];
-        if (rawItemOpts is Map) itemOpts = Map<String, dynamic>.from(rawItemOpts);
+        if (rawItemOpts is Map)
+          itemOpts = Map<String, dynamic>.from(rawItemOpts);
         return OrderItem(
           productId: item['productId'] as String? ?? '',
           productName: item['productName'] as String? ?? '',
@@ -832,23 +862,28 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
 
     // ── 폴백: items 없을 때 customOptions / top-level 필드에서 구성
     final opts = data['customOptions'];
-    final optsMap = opts is Map ? Map<String, dynamic>.from(opts) : <String, dynamic>{};
+    final optsMap =
+        opts is Map ? Map<String, dynamic>.from(opts) : <String, dynamic>{};
 
     // 상품명 후보: customOptions.productName > customOptions.teamName+'단체복' > groupName+'단체복' > '주문 상품'
     final productName = (optsMap['productName'] as String?)?.isNotEmpty == true
         ? optsMap['productName'] as String
         : (data['productName'] as String?)?.isNotEmpty == true
             ? data['productName'] as String
-            : ((optsMap['teamName'] ?? data['groupName']) as String?)?.isNotEmpty == true
+            : ((optsMap['teamName'] ?? data['groupName']) as String?)
+                        ?.isNotEmpty ==
+                    true
                 ? '${optsMap['teamName'] ?? data['groupName']} 단체복'
                 : '주문 상품';
 
     final totalAmount = (data['totalAmount'] as num?)?.toDouble() ?? 0;
     final shippingFee = (data['shippingFee'] as num?)?.toDouble() ?? 0;
-    final qty = (data['groupCount'] as num?)?.toInt()
-        ?? (optsMap['totalCount'] as num?)?.toInt()
-        ?? 1;
-    final price = qty > 0 ? (totalAmount - shippingFee) / qty : (totalAmount - shippingFee);
+    final qty = (data['groupCount'] as num?)?.toInt() ??
+        (optsMap['totalCount'] as num?)?.toInt() ??
+        1;
+    final price = qty > 0
+        ? (totalAmount - shippingFee) / qty
+        : (totalAmount - shippingFee);
 
     final imageUrl = (optsMap['productImageUrl'] as String?)?.isNotEmpty == true
         ? optsMap['productImageUrl'] as String?
@@ -888,7 +923,9 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
       couponId: data['couponId'] as String?,
       couponIds: data['couponIds'] is List
           ? List<String>.from(data['couponIds'] as List)
-          : (data['couponId'] is String ? [data['couponId'] as String] : const []),
+          : (data['couponId'] is String
+              ? [data['couponId'] as String]
+              : const []),
       couponDiscount: (data['couponDiscount'] as num?)?.toDouble() ?? 0,
       couponDiscounts: data['couponDiscounts'] is List
           ? (data['couponDiscounts'] as List)
@@ -903,9 +940,11 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
       groupName: data['groupName'] as String?,
       groupCount: data['groupCount'] as int?,
       memo: data['memo'] as String?,
-      createdAt: DateTime.tryParse(data['createdAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse(data['createdAt'] as String? ?? '') ??
+          DateTime.now(),
       customOptions: data['customOptions'] as Map<String, dynamic>?,
-      additionalOrderCount: (data['additionalOrderCount'] as num?)?.toInt() ?? 0,
+      additionalOrderCount:
+          (data['additionalOrderCount'] as num?)?.toInt() ?? 0,
       colorEditCount: (data['colorEditCount'] as num?)?.toInt() ?? 0,
       designRevisionCount: (data['designRevisionCount'] as num?)?.toInt() ?? 0,
       designRevisionDeadline: data['designRevisionDeadline'] != null

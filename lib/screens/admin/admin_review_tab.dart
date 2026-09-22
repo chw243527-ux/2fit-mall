@@ -94,9 +94,10 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(saved
-          ? (review.isBest ? '베스트 리뷰를 해제했습니다.' : '베스트 리뷰로 선정했습니다.')
-          : '베스트 상태 저장에 실패했습니다.')),
+      SnackBar(
+          content: Text(saved
+              ? (review.isBest ? '베스트 리뷰를 해제했습니다.' : '베스트 리뷰로 선정했습니다.')
+              : '베스트 상태 저장에 실패했습니다.')),
     );
     if (saved) await _loadReviews();
   }
@@ -188,7 +189,7 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                 _DetailRow(context.loc.t('작성일', '작성일'), _fmtDate(r.createdAt)),
                 const SizedBox(height: 10),
                 Text(context.loc.t('내용', '내용'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
                         fontWeight: FontWeight.w600)),
@@ -206,7 +207,7 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                 if (r.images.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Text(context.loc.t('첨부 이미지', '첨부 이미지'),
-                      style: TextStyle(
+                      style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
                           fontWeight: FontWeight.w600)),
@@ -273,15 +274,16 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
     return Column(
       children: [
         // ── 관리 헤더 ──
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 14, 16, 8),
           child: Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text('리뷰 관리',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               ),
-              const Text('원문 보호 · 베스트 선정 · 답변 관리',
+              Text('원문 보호 · 베스트 선정 · 답변 관리',
                   style: TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,
@@ -381,7 +383,8 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                       child: TextField(
                         controller: _searchCtrl,
                         decoration: InputDecoration(
-                          hintText: context.loc.t('작성자 상품명 내용 검색', '작성자, 상품명, 내용 검색'),
+                          hintText:
+                              context.loc.t('작성자 상품명 내용 검색', '작성자, 상품명, 내용 검색'),
                           hintStyle: const TextStyle(
                               fontSize: 12, color: AppColors.textHint),
                           prefixIcon: const Icon(Icons.search,
@@ -397,7 +400,8 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                               : null,
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: AppColors.border)),
+                              borderSide:
+                                  const BorderSide(color: AppColors.border)),
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 0),
                         ),
@@ -549,9 +553,10 @@ class _ReviewCard extends StatelessWidget {
                         fontSize: 11, color: AppColors.textSecondary)),
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: Icon(review.isBest
-                      ? Icons.emoji_events_rounded
-                      : Icons.emoji_events_outlined,
+                  icon: Icon(
+                      review.isBest
+                          ? Icons.emoji_events_rounded
+                          : Icons.emoji_events_outlined,
                       size: 18,
                       color: review.isBest
                           ? AppColors.warning
@@ -564,9 +569,10 @@ class _ReviewCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 2),
                 IconButton(
-                  icon: Icon(review.adminReply.isEmpty
-                      ? Icons.reply_outlined
-                      : Icons.reply_rounded,
+                  icon: Icon(
+                      review.adminReply.isEmpty
+                          ? Icons.reply_outlined
+                          : Icons.reply_rounded,
                       size: 18,
                       color: review.adminReply.isEmpty
                           ? AppColors.textSecondary

@@ -177,7 +177,7 @@ class InventoryService {
         updates['stockData'] = stockData;
         updates['stockCount'] = stockData.values
             .expand((colorMap) => colorMap.values)
-            .fold<int>(0, (sum, qty) => sum + qty);
+            .fold<int>(0, (total, qty) => total + qty);
       }
       synced++;
 
@@ -283,7 +283,7 @@ class InventoryService {
         nextSizeStocks[entry.key] = safeQuantity * colorMap.length;
       }
       final total =
-          nextSizeStocks.values.fold<int>(0, (sum, value) => sum + value);
+          nextSizeStocks.values.fold<int>(0, (total, value) => total + value);
       tx.update(productRef, {
         'stockData': nextStockData,
         'sizeStocks': nextSizeStocks,
@@ -397,7 +397,7 @@ class InventoryService {
         nextSizeStocks[entry.key] = sizeTotal;
       }
       totalStockAfter =
-          nextSizeStocks.values.fold(0, (sum, value) => sum + value);
+          nextSizeStocks.values.fold(0, (total, value) => total + value);
 
       tx.update(prodDoc, {
         'stockData': nextStockData,
@@ -464,7 +464,8 @@ class InventoryService {
       }
       sizeStocks[entry.key.toString()] = sizeTotal;
     }
-    final siblingTotal = sizeStocks.values.fold(0, (sum, value) => sum + value);
+    final siblingTotal =
+        sizeStocks.values.fold(0, (total, value) => total + value);
     final batch = _db.batch();
     var count = 0;
     for (final doc in siblings.docs) {

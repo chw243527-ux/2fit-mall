@@ -58,29 +58,37 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
     for (final order in orders) {
       if (order.createdAt.isBefore(cutoff) ||
           order.status == OrderStatus.cancelled ||
-          order.status == OrderStatus.refunded) continue;
+          order.status == OrderStatus.refunded) {
+        continue;
+      }
       for (final item in order.items) {
         final color = item.color.trim().isEmpty ? '미지정' : item.color.trim();
         final size = item.size.trim().isEmpty ? '미지정' : item.size.trim();
         final key = '${item.productId}::$size::$color';
-        final row = rows.putIfAbsent(key, () => {
-              'productId': item.productId,
-              'name': item.productName,
-              'size': size,
-              'color': color,
-              'quantity': 0,
-              'revenue': 0.0,
-              'orders': <String>{},
-            });
+        final row = rows.putIfAbsent(
+            key,
+            () => {
+                  'productId': item.productId,
+                  'name': item.productName,
+                  'size': size,
+                  'color': color,
+                  'quantity': 0,
+                  'revenue': 0.0,
+                  'orders': <String>{},
+                });
         row['quantity'] = (row['quantity'] as int) + item.quantity;
-        row['revenue'] = (row['revenue'] as double) + item.price * item.quantity;
+        row['revenue'] =
+            (row['revenue'] as double) + item.price * item.quantity;
         (row['orders'] as Set<String>).add(order.id);
       }
     }
     final sorted = rows.values.toList()
-      ..sort((a, b) => (b['revenue'] as double).compareTo(a['revenue'] as double));
-    final totalQty = sorted.fold<int>(0, (sum, row) => sum + row['quantity'] as int);
-    final totalRevenue = sorted.fold<double>(0, (sum, row) => sum + row['revenue']);
+      ..sort(
+          (a, b) => (b['revenue'] as double).compareTo(a['revenue'] as double));
+    final totalQty =
+        sorted.fold<int>(0, (total, row) => total + row['quantity'] as int);
+    final totalRevenue =
+        sorted.fold<double>(0, (total, row) => total + row['revenue']);
 
     return Container(
       margin: const EdgeInsets.only(top: 16),
@@ -88,27 +96,34 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)],
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
             const Expanded(
-              child: Text('옵션별 판매 통계', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              child: Text('옵션별 판매 통계',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
             ),
             DropdownButton<int>(
               value: _optionPeriodDays,
               underline: const SizedBox.shrink(),
-              items: const [7, 30, 90, 365].map((days) => DropdownMenuItem(
-                    value: days,
-                    child: Text('최근 $days일', style: TextStyle(fontSize: 12)),
-                  )).toList(),
-              onChanged: (value) => setState(() => _optionPeriodDays = value ?? 30),
+              items: const [7, 30, 90, 365]
+                  .map((days) => DropdownMenuItem(
+                        value: days,
+                        child: Text('최근 $days일',
+                            style: const TextStyle(fontSize: 12)),
+                      ))
+                  .toList(),
+              onChanged: (value) =>
+                  setState(() => _optionPeriodDays = value ?? 30),
             ),
           ]),
           const SizedBox(height: 6),
-          Text('판매 ${totalQty}개 · 매출 ₩${_fmtPrice(totalRevenue)}',
+          Text('판매 $totalQty개 · 매출 ₩${_fmtPrice(totalRevenue)}',
               style: const TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 14),
           if (sorted.isEmpty)
@@ -120,7 +135,8 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: DataTable(
-                headingRowColor: WidgetStatePropertyAll(Color(0xFFF5F6F8)),
+                headingRowColor:
+                    const WidgetStatePropertyAll(Color(0xFFF5F6F8)),
                 columns: const [
                   DataColumn(label: Text('상품')),
                   DataColumn(label: Text('사이즈')),
@@ -129,14 +145,21 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                   DataColumn(label: Text('매출')),
                   DataColumn(label: Text('주문 수')),
                 ],
-                rows: sorted.take(50).map((row) => DataRow(cells: [
-                  DataCell(SizedBox(width: 190, child: Text(row['name'], overflow: TextOverflow.ellipsis))),
-                  DataCell(Text(row['size'])),
-                  DataCell(Text(row['color'])),
-                  DataCell(Text('${row['quantity']}개')),
-                  DataCell(Text('₩${_fmtPrice(row['revenue'])}')),
-                  DataCell(Text('${(row['orders'] as Set<String>).length}건')),
-                ])).toList(),
+                rows: sorted
+                    .take(50)
+                    .map((row) => DataRow(cells: [
+                          DataCell(SizedBox(
+                              width: 190,
+                              child: Text(row['name'],
+                                  overflow: TextOverflow.ellipsis))),
+                          DataCell(Text(row['size'])),
+                          DataCell(Text(row['color'])),
+                          DataCell(Text('${row['quantity']}개')),
+                          DataCell(Text('₩${_fmtPrice(row['revenue'])}')),
+                          DataCell(Text(
+                              '${(row['orders'] as Set<String>).length}건')),
+                        ]))
+                    .toList(),
               ),
             ),
         ],
@@ -187,7 +210,7 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
   Future<void> _exportOrdersToExcel(List<OrderModel> orders) async {
     if (orders.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
             content: Text('내보낼 주문이 없습니다.'), backgroundColor: AppColors.warning),
       );
       return;
@@ -225,12 +248,13 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
       String pocketVal = '-';
       if (isGroup) {
         final p = opts['pocket'];
-        if (p == true || p == 'true')
+        if (p == true || p == 'true') {
           pocketVal = '있음';
-        else if (p == false || p == 'false')
+        } else if (p == false || p == 'false') {
           pocketVal = '없음';
-        else
+        } else {
           pocketVal = '없음';
+        }
       }
       final myRevenue = (o.totalAmount * 0.3).roundToDouble();
       final hqRevenue = (o.totalAmount * 0.7).roundToDouble();
@@ -356,9 +380,11 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
         final cell = summarySheet
             .cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1));
         cell.value = TextCellValue(summaryData[r][c]);
-        if (isMyRev)
+        if (isMyRev) {
           cell.cellStyle = myRevStyle;
-        else if (isHqRev) cell.cellStyle = hqRevStyle;
+        } else if (isHqRev) {
+          cell.cellStyle = hqRevStyle;
+        }
       }
     }
 
@@ -472,14 +498,14 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
             children: [
               Row(
                 children: [
-                  Text('매출 통계',
+                  const Text('매출 통계',
                       style:
                           TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                   const Spacer(),
                   ElevatedButton.icon(
                     onPressed: () => _exportOrdersToExcel(orders),
                     icon: const Icon(Icons.download_rounded, size: 16),
-                    label: Text('엑셀 다운로드'),
+                    label: const Text('엑셀 다운로드'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF217346),
                       foregroundColor: Colors.white,
@@ -523,7 +549,7 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                 children: [
                   _statsKpiCard('총 주문', '${orders.length}건',
                       Icons.receipt_long_rounded, const Color(0xFF00BCD4)),
-                  _statsKpiCard('오늘 주문', '${todayOrders}건', Icons.today_rounded,
+                  _statsKpiCard('오늘 주문', '$todayOrders건', Icons.today_rounded,
                       const Color(0xFFFF9800)),
                   _statsKpiCard(
                       '평균 주문액',
@@ -551,7 +577,7 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('월별 매출',
+                    const Text('월별 매출',
                         style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 16),
@@ -655,14 +681,14 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('주문 상태 분포',
+                          const Text('주문 상태 분포',
                               style: TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.w700)),
                           const SizedBox(height: 16),
                           SizedBox(
                             height: 180,
                             child: orders.isEmpty
-                                ? Center(child: Text('주문 없음'))
+                                ? const Center(child: Text('주문 없음'))
                                 : PieChart(
                                     PieChartData(
                                       sections: statusCount.entries.map((e) {
@@ -710,7 +736,7 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('주문 유형별',
+                          const Text('주문 유형별',
                               style: TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.w700)),
                           const SizedBox(height: 16),
@@ -802,7 +828,8 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
       throw StateError('관리자 로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
     }
     final response = await http.post(
-      Uri.parse('https://us-central1-fit-mall.cloudfunctions.net/setStaffAdminClaim'),
+      Uri.parse(
+          'https://us-central1-fit-mall.cloudfunctions.net/setStaffAdminClaim'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -826,88 +853,90 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-        title: const Text('직원 계정에 관리자 권한 부여'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('이미 가입된 회원의 이메일을 입력하면 관리자 권한을 부여합니다.',
-                style: TextStyle(fontSize: 13, color: Colors.grey)),
-            const SizedBox(height: 12),
-            TextField(
-              controller: emailCtrl,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: '이메일',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.email_rounded),
+          title: const Text('직원 계정에 관리자 권한 부여'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('이미 가입된 회원의 이메일을 입력하면 관리자 권한을 부여합니다.',
+                  style: TextStyle(fontSize: 13, color: Colors.grey)),
+              const SizedBox(height: 12),
+              TextField(
+                controller: emailCtrl,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: '이메일',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email_rounded),
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: staffRole,
-              decoration: const InputDecoration(
-                labelText: '직급',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.badge_outlined),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: staffRole,
+                decoration: const InputDecoration(
+                  labelText: '직급',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.badge_outlined),
+                ),
+                items: _staffRoles
+                    .map((role) =>
+                        DropdownMenuItem(value: role, child: Text(role)))
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) setDialogState(() => staffRole = value);
+                },
               ),
-              items: _staffRoles
-                  .map((role) => DropdownMenuItem(value: role, child: Text(role)))
-                  .toList(),
-              onChanged: (value) {
-                if (value != null) setDialogState(() => staffRole = value);
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  final email = emailCtrl.text.trim().toLowerCase();
+                  if (email.isEmpty) return;
+
+                  final query = await FirebaseFirestore.instance
+                      .collection('users')
+                      .where('email', isEqualTo: email)
+                      .limit(1)
+                      .get();
+
+                  if (query.docs.isNotEmpty) {
+                    await _syncStaffAdminClaim(
+                      targetUid: query.docs.first.id,
+                      grant: true,
+                      staffRole: staffRole,
+                    );
+                    if (ctx.mounted) Navigator.pop(ctx);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('$email 님에게 관리자 권한을 부여했습니다')),
+                      );
+                    }
+                  } else {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('해당 이메일의 회원을 찾을 수 없습니다')),
+                      );
+                    }
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('직원 권한 저장에 실패했습니다: $e')),
+                    );
+                  }
+                }
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('권한 부여'),
             ),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                final email = emailCtrl.text.trim().toLowerCase();
-                if (email.isEmpty) return;
-
-              final query = await FirebaseFirestore.instance
-                  .collection('users')
-                  .where('email', isEqualTo: email)
-                  .limit(1)
-                  .get();
-
-              if (query.docs.isNotEmpty) {
-                await _syncStaffAdminClaim(
-                  targetUid: query.docs.first.id,
-                  grant: true,
-                  staffRole: staffRole,
-                );
-                if (ctx.mounted) Navigator.pop(ctx);
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('$email 님에게 관리자 권한을 부여했습니다')),
-                  );
-                }
-              } else {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('해당 이메일의 회원을 찾을 수 없습니다')),
-                  );
-                }
-              }
-            } catch (e) {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('직원 권한 저장에 실패했습니다: $e')),
-                );
-              }
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('권한 부여'),
-          ),
-        ],
-      ),
       ),
     );
   }
@@ -934,10 +963,12 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
             },
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white),
               onPressed: () async {
                 try {
                   final targetUid = staff['id'] as String?;
@@ -980,7 +1011,8 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
         title: Text('관리자 권한 해제: ${staff['name'] ?? ''}'),
         content: Text('${staff['email']} 님의 관리자 권한을 해제하시겠습니까?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             onPressed: () async {
               try {
@@ -992,7 +1024,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                   targetUid: targetUid,
                   grant: false,
                 );
-              if (ctx.mounted) Navigator.pop(ctx);
+                if (ctx.mounted) Navigator.pop(ctx);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -1011,7 +1043,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
             ),
-            child: Text('해제'),
+            child: const Text('해제'),
           ),
         ],
       ),
@@ -1023,8 +1055,9 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: AuthService.watchAllUsers(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData)
+        if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
         final staffList =
             snapshot.data!.where((u) => u['isAdmin'] == true).toList();
         final allUsers = snapshot.data!;
@@ -1040,7 +1073,8 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                     child: Text('직원 계정 관리',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                        style: TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.w800)),
                   ),
                   const SizedBox(width: 8),
                   Builder(builder: (context) {
@@ -1058,7 +1092,8 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                           )
                         : ElevatedButton.icon(
                             onPressed: _showAddStaffDialog,
-                            icon: const Icon(Icons.person_add_rounded, size: 16),
+                            icon:
+                                const Icon(Icons.person_add_rounded, size: 16),
                             label: const Text('직원 추가'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
@@ -1123,7 +1158,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                                         AppColors.error.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  child: Text('관리자',
+                                  child: const Text('관리자',
                                       style: TextStyle(
                                           color: AppColors.error,
                                           fontSize: 11,
@@ -1157,11 +1192,12 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                             tooltip: '직급 수정',
                           ),
                           IconButton(
-                        onPressed: () => _showRevokeDialog(staff),
-                        icon: const Icon(Icons.remove_circle_outline_rounded,
-                            color: AppColors.error),
-                        tooltip: '권한 해제',
-                      ),
+                            onPressed: () => _showRevokeDialog(staff),
+                            icon: const Icon(
+                                Icons.remove_circle_outline_rounded,
+                                color: AppColors.error),
+                            tooltip: '권한 해제',
+                          ),
                         ],
                       ),
                     ],
@@ -1185,7 +1221,7 @@ Future<void> exportDesignRequestsToExcel(
 ) async {
   if (requests.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
           content: Text('내보낼 디자인 요청이 없습니다.'),
           backgroundColor: AppColors.warning),
     );
@@ -1243,9 +1279,11 @@ Future<void> exportDesignRequestsToExcel(
 
     final pocketRaw = opts['pocket'];
     String pocketVal = '-';
-    if (pocketRaw == true || pocketRaw == 'true')
+    if (pocketRaw == true || pocketRaw == 'true') {
       pocketVal = '있음';
-    else if (pocketRaw == false || pocketRaw == 'false') pocketVal = '없음';
+    } else if (pocketRaw == false || pocketRaw == 'false') {
+      pocketVal = '없음';
+    }
 
     final rowData = [
       '${r + 1}',

@@ -69,9 +69,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
     Future<void>.delayed(const Duration(milliseconds: 180), () {
       if (!mounted) return;
       setState(() {
-        _visibleProductCount = (_visibleProductCount + _pageSize)
-            .clamp(0, totalCount)
-            .toInt();
+        _visibleProductCount =
+            (_visibleProductCount + _pageSize).clamp(0, totalCount).toInt();
         _isLoadingMore = false;
       });
     });
@@ -593,11 +592,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ),
               // 타이틀
               Padding(
-                padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(context.loc.t('정렬', '정렬'),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
                         color: AppColors.primary,
@@ -670,11 +669,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
               // 하단 여백 (iOS 홈 바 대응)
               SizedBox(height: MediaQuery.of(context).padding.bottom + 12),
             ],
-                    ),
+          ),
         ),
       ),
     );
   }
+
   // ── 정렬/필터 바 ──
   Widget _buildSortFilterBar(int count) {
     final sortOptions = [
@@ -699,143 +699,150 @@ class _ProductListScreenState extends State<ProductListScreen> {
         children: [
           Row(
             children: [
-          if (_onlyBest) ...[
-            Container(
-              margin: const EdgeInsets.only(right: 6),
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(context.loc.t('베스트', '베스트'),
-                  style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white)),
-            ),
-          ],
-          if (_onlyNew) ...[
-            Container(
-              margin: const EdgeInsets.only(right: 6),
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(context.loc.t('신상품', '신상품'),
-                  style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primary)),
-            ),
-          ],
-          Text('$count${loc.productCount}',
-              style: const TextStyle(
-                  fontSize: 12.5,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500)),
-          const Spacer(),
-          // ── 정렬 버튼 (바텀시트 트리거) ──
-          GestureDetector(
-            onTap: _showSortBottomSheet,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceGray,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.sort_rounded,
-                      size: 14, color: AppColors.textSecondary),
-                  const SizedBox(width: 5),
-                  Text(
-                    currentSortLabel,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
+              if (_onlyBest) ...[
+                Container(
+                  margin: const EdgeInsets.only(right: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                  const SizedBox(width: 3),
-                  const Icon(Icons.keyboard_arrow_down_rounded,
-                      size: 15, color: AppColors.textSecondary),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 6),
-          // ── 필터 버튼 ──
-          GestureDetector(
-            onTap: () => setState(() => _showPriceFilter = !_showPriceFilter),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: _activeFilterCount > 0 || _showPriceFilter
-                    ? AppColors.primary
-                    : AppColors.surfaceGray,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: _activeFilterCount > 0 || _showPriceFilter
-                      ? AppColors.primary
-                      : AppColors.border,
+                  child: Text(context.loc.t('베스트', '베스트'),
+                      style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white)),
+                ),
+              ],
+              if (_onlyNew) ...[
+                Container(
+                  margin: const EdgeInsets.only(right: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(context.loc.t('신상품', '신상품'),
+                      style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary)),
+                ),
+              ],
+              Text('$count${loc.productCount}',
+                  style: const TextStyle(
+                      fontSize: 12.5,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500)),
+              const Spacer(),
+              // ── 정렬 버튼 (바텀시트 트리거) ──
+              GestureDetector(
+                onTap: _showSortBottomSheet,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceGray,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.sort_rounded,
+                          size: 14, color: AppColors.textSecondary),
+                      const SizedBox(width: 5),
+                      Text(
+                        currentSortLabel,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 3),
+                      const Icon(Icons.keyboard_arrow_down_rounded,
+                          size: 15, color: AppColors.textSecondary),
+                    ],
+                  ),
                 ),
               ),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(Icons.tune_rounded,
-                    size: 14,
+              const SizedBox(width: 6),
+              // ── 필터 버튼 ──
+              GestureDetector(
+                onTap: () =>
+                    setState(() => _showPriceFilter = !_showPriceFilter),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
                     color: _activeFilterCount > 0 || _showPriceFilter
-                        ? Colors.white
-                        : AppColors.textSecondary),
-                const SizedBox(width: 5),
-                Text(context.loc.t('필터', '필터'),
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                        ? AppColors.primary
+                        : AppColors.surfaceGray,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
                       color: _activeFilterCount > 0 || _showPriceFilter
-                          ? Colors.white
-                          : const Color(0xFF777777),
-                    )),
-                if (_activeFilterCount > 0) ...[
-                  const SizedBox(width: 4),
-                  Container(
-                    width: 16,
-                    height: 16,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
+                          ? AppColors.primary
+                          : AppColors.border,
                     ),
-                    child: Center(
-                        child: Text('$_activeFilterCount',
-                            style: const TextStyle(
-                                fontSize: 9,
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w800))),
-                  )
-                ],
-              ]),
-            ),
-          ),
-          const SizedBox(width: 6),
-          // ── 그리드/리스트 토글 ──
-          GestureDetector(
-            onTap: () => setState(() => _isGridView = !_isGridView),
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceGray,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.tune_rounded,
+                        size: 14,
+                        color: _activeFilterCount > 0 || _showPriceFilter
+                            ? Colors.white
+                            : AppColors.textSecondary),
+                    const SizedBox(width: 5),
+                    Text(context.loc.t('필터', '필터'),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: _activeFilterCount > 0 || _showPriceFilter
+                              ? Colors.white
+                              : const Color(0xFF777777),
+                        )),
+                    if (_activeFilterCount > 0) ...[
+                      const SizedBox(width: 4),
+                      Container(
+                        width: 16,
+                        height: 16,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                            child: Text('$_activeFilterCount',
+                                style: const TextStyle(
+                                    fontSize: 9,
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w800))),
+                      )
+                    ],
+                  ]),
+                ),
               ),
-              child: Icon(
-                _isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
-                size: 16,
-                color: AppColors.textSecondary,
+              const SizedBox(width: 6),
+              // ── 그리드/리스트 토글 ──
+              GestureDetector(
+                onTap: () => setState(() => _isGridView = !_isGridView),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceGray,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Icon(
+                    _isGridView
+                        ? Icons.view_list_rounded
+                        : Icons.grid_view_rounded,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ),
-            ),
-          ),
             ],
           ),
           const SizedBox(height: 10),
@@ -866,8 +873,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         selected: selected,
         onSelected: (_) => _selectSort(label),
         avatar: Icon(icon,
-            size: 15,
-            color: selected ? Colors.white : AppColors.textSecondary),
+            size: 15, color: selected ? Colors.white : AppColors.textSecondary),
         label: Text(label),
         labelStyle: TextStyle(
             fontSize: 11.5,
@@ -998,8 +1004,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     spacing: spacing,
                     runSpacing: spacing,
                     children: visibleProducts
-                        .map((p) => SizedBox(
-                            width: cardW, child: _buildProductCard(p)))
+                        .map((p) =>
+                            SizedBox(width: cardW, child: _buildProductCard(p)))
                         .toList(),
                   ),
                   _buildLoadMoreFooter(products.length),
@@ -1147,7 +1153,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             borderRadius: BorderRadius.circular(3),
                           ),
                           child: Text(context.loc.t('단체주문 전용', '단체주문 전용'),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   color: AppColors.primary,
                                   fontSize: 9,
                                   fontWeight: FontWeight.w800,
@@ -1171,7 +1177,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         Container(
                           margin: const EdgeInsets.only(bottom: 5),
                           child: const Text('기성품',
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.primary)),
                         ),
                       ],
                       if (p.subCategory.isNotEmpty) ...[
@@ -1246,7 +1255,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   Widget _buildColorDots(ProductModel p) {
-    final palette = AppColorPalette.registeredColors;
+    const palette = AppColorPalette.registeredColors;
     final byName = <String, Map<String, dynamic>>{
       for (final c in palette) c['name'] as String: c,
     };
@@ -1254,7 +1263,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
       children: [
         ...p.colors.take(6).map((name) {
           final entry = byName[name];
-          final hex = p.colorHexes[name] ?? (entry?['hex'] as int?) ?? 0xFF777777;
+          final hex =
+              p.colorHexes[name] ?? (entry?['hex'] as int?) ?? 0xFF777777;
           return Padding(
             padding: const EdgeInsets.only(right: 5),
             child: Container(
@@ -1269,7 +1279,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
           );
         }),
         if (p.colors.length > 6)
-          Text('+${p.colors.length - 6}', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+          Text('+${p.colors.length - 6}',
+              style: const TextStyle(
+                  fontSize: 10, color: AppColors.textSecondary)),
       ],
     );
   }
@@ -1331,7 +1343,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       const SizedBox(height: 4),
                     if (!p.isGroupOnly)
                       const Text('기성품',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primary)),
                     if (!p.isGroupOnly) const SizedBox(height: 3),
                     Text(p.localizedName(_lang),
                         maxLines: 2,

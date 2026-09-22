@@ -193,8 +193,10 @@ class _SocialPhoneOnboardingScreenState
             const Text('가입을 계속하려면 전화번호 인증이 필요합니다.',
                 style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('${widget.name}님, 소셜 로그인은 완료되었습니다.\n전화번호를 인증하면 동일 계정으로 회원가입이 완료됩니다.',
-                style: const TextStyle(color: AppColors.textSecondary, height: 1.5)),
+            Text(
+                '${widget.name}님, 소셜 로그인은 완료되었습니다.\n전화번호를 인증하면 동일 계정으로 회원가입이 완료됩니다.',
+                style: const TextStyle(
+                    color: AppColors.textSecondary, height: 1.5)),
             const SizedBox(height: 28),
             TextField(
               controller: _phoneController,
@@ -252,7 +254,8 @@ class _SocialPhoneOnboardingScreenState
             if (_verified) ...[
               const SizedBox(height: 18),
               const Text('전화번호 인증 완료',
-                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                  style: TextStyle(
+                      color: AppColors.primary, fontWeight: FontWeight.bold)),
               const SizedBox(height: 18),
               SizedBox(
                 height: 54,

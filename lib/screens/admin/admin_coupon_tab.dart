@@ -58,14 +58,15 @@ class _AdminCouponTabBodyState extends State<_AdminCouponTabBody> {
             foregroundColor: Colors.white,
             minimumSize: const Size(44, 44),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
 
         return Container(
           width: double.infinity,
-          padding: EdgeInsets.fromLTRB(20, narrow ? 14 : 16, 20, narrow ? 12 : 16),
+          padding:
+              EdgeInsets.fromLTRB(20, narrow ? 14 : 16, 20, narrow ? 12 : 16),
           decoration: const BoxDecoration(
             color: Colors.white,
             border: Border(bottom: BorderSide(color: AppColors.border)),
@@ -74,12 +75,12 @@ class _AdminCouponTabBodyState extends State<_AdminCouponTabBody> {
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(
+                    const Row(
                       children: [
-                        const Icon(Icons.local_activity_rounded,
+                        Icon(Icons.local_activity_rounded,
                             color: AppColors.primary, size: 22),
-                        const SizedBox(width: 10),
-                        const Expanded(
+                        SizedBox(width: 10),
+                        Expanded(
                           child: Text(
                             '쿠폰 관리',
                             maxLines: 1,
@@ -168,9 +169,7 @@ class _AdminCouponTabBodyState extends State<_AdminCouponTabBody> {
                     size: 64, color: Colors.grey[300]),
                 const SizedBox(height: 12),
                 Text(
-                  _filter == '전체'
-                      ? '등록된 쿠폰이 없습니다.'
-                      : '해당 쿠폰이 없습니다.',
+                  _filter == '전체' ? '등록된 쿠폰이 없습니다.' : '해당 쿠폰이 없습니다.',
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.grey, fontSize: 14),
                 ),

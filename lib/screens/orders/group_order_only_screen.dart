@@ -81,7 +81,10 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     setState(() {
       _policy = policy;
       _eligibleProducts = products;
-      _tabs = ['전체', ...products.map((p) => p.category).where((c) => c.isNotEmpty).toSet()];
+      _tabs = [
+        '전체',
+        ...products.map((p) => p.category).where((c) => c.isNotEmpty).toSet()
+      ];
       _tabCtrl?.dispose();
       _tabCtrl = TabController(length: _tabs.length, vsync: this);
     });
@@ -170,10 +173,9 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     // 탭이 비어있으면 기본 탭 하나 생성
     if (_tabs.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _initTabs());
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: Colors.white,
-        body: const Center(
-            child: CircularProgressIndicator(color: AppColors.accent)),
+        body: Center(child: CircularProgressIndicator(color: AppColors.accent)),
       );
     }
 
@@ -219,7 +221,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                 TextButton(
                   onPressed: _goToLanding,
                   child: Text(context.loc.t('주문안내', '주문안내'),
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: AppColors.accent,
                           fontSize: 12,
                           fontWeight: FontWeight.w800)),
@@ -284,7 +286,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                 )
               : null,
           title: Text(context.loc.t('단체주문_전용_상품', '단체주문 전용 상품'),
-              style: TextStyle(
+              style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 17,
                   color: AppColors.primary)),
@@ -306,8 +308,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                 onPressed: _goToLanding,
                 icon: const Icon(Icons.info_outline_rounded, size: 16),
                 label: Text(context.loc.t('단체주문_안내', '단체주문 안내'),
-                    style:
-                        TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   side: const BorderSide(color: AppColors.border),
@@ -404,7 +406,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
       return Stack(
         fit: StackFit.expand,
         children: [
-          NetImage(
+          const NetImage(
             'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800',
             fit: BoxFit.cover,
             alignment: Alignment.topCenter,
@@ -446,7 +448,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                 ),
                 const SizedBox(height: 8),
                 Text(context.loc.t('단체주문_n전용_상품', '단체주문\n전용 상품'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: Colors.white,
                         fontSize: 26,
                         fontWeight: FontWeight.w900,
@@ -455,7 +457,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                 Text(
                     context.loc
                         .t('10인_이상_팀_맞춤_제작__bb552f', '10인 이상 팀 맞춤 제작 · 무료배송'),
-                    style: TextStyle(color: Colors.white70, fontSize: 11)),
+                    style:
+                        const TextStyle(color: Colors.white70, fontSize: 11)),
               ],
             ),
           ),
@@ -469,7 +472,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
       child: Stack(
         fit: StackFit.expand,
         children: [
-          NetImage(
+          const NetImage(
             'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1600',
             fit: BoxFit.cover,
             alignment: Alignment.topCenter,
@@ -515,7 +518,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                           ),
                           const SizedBox(height: 10),
                           Text(context.loc.t('단체주문_전용_상품', '단체주문 전용 상품'),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 32,
                                   fontWeight: FontWeight.w900,
@@ -524,7 +527,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                           Text(
                               context.loc.t('10인_이상_팀_맞춤_제작__d95012',
                                   '10인 이상 팀 맞춤 제작 전용 · 무료배송 · 14~21일 제작'),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   color: Colors.white70, fontSize: 13)),
                         ],
                       ),
@@ -628,7 +631,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
               ),
               const SizedBox(height: 16),
               Text(context.loc.t('준비_중인_상품입니다', '준비 중인 상품입니다'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textSecondary)),
@@ -636,8 +639,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
               Text(
                   context.loc
                       .t('단체주문_문의는_주문안내를__1ea171', '단체주문 문의는 주문안내를 확인해주세요.'),
-                  style:
-                      TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary)),
               const SizedBox(height: 20),
               OutlinedButton.icon(
                 onPressed: _goToLanding,
@@ -727,8 +730,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ProductDetailScreen(
-                    product: list[i], groupOrderContext: true),
+            builder: (_) =>
+                ProductDetailScreen(product: list[i], groupOrderContext: true),
           ),
         ),
       ),
@@ -745,8 +748,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (_) => ProductDetailScreen(
-                product: p, groupOrderContext: true)),
+            builder: (_) =>
+                ProductDetailScreen(product: p, groupOrderContext: true)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -814,7 +817,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(context.loc.t('무료배송', '무료배송'),
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 9,
                                       fontWeight: FontWeight.w700)),
@@ -888,8 +891,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (_) => ProductDetailScreen(
-                product: p, groupOrderContext: true)),
+            builder: (_) =>
+                ProductDetailScreen(product: p, groupOrderContext: true)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -905,12 +908,17 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
               fit: StackFit.expand,
               children: [
                 p.images.isNotEmpty
-                    ? NetImage(p.images.first, fit: BoxFit.cover, alignment: Alignment.topCenter)
+                    ? NetImage(p.images.first,
+                        fit: BoxFit.cover, alignment: Alignment.topCenter)
                     : _imgPlaceholder(full: true),
                 if (p.stockCount <= 0)
                   Container(
                     color: Colors.black.withValues(alpha: 0.5),
-                    child: const Center(child: Text('SOLD OUT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900))),
+                    child: const Center(
+                        child: Text('SOLD OUT',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900))),
                   ),
               ],
             ),
@@ -938,7 +946,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
           onPressed: _goToLanding,
           icon: const Icon(Icons.edit_note_rounded, size: 20),
           label: Text(context.loc.t('단체주문서_작성하기', '단체주문서 작성하기'),
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+              style:
+                  const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,

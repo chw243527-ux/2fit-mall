@@ -152,8 +152,9 @@ class _SplashScreenState extends State<SplashScreen>
         if (deepLink != null && deepLink.requiresAuth) {
           _goToLoginWithRedirect(deepLink);
         } else if (deepLink != null) {
-          if (mounted)
+          if (mounted) {
             _navigateAfterLogin(deepLink, isLoggedIn: false, isAdmin: false);
+          }
         } else {
           _goToPublicHome();
         }
@@ -170,9 +171,10 @@ class _SplashScreenState extends State<SplashScreen>
           context.read<UserProvider>().login(result.user!);
           context.read<CouponProvider>().loadValidCoupons(result.user!.id);
         }
-        if (mounted)
+        if (mounted) {
           _navigateAfterLogin(deepLink,
               isLoggedIn: true, isAdmin: result.user!.isAdmin);
+        }
       } else {
         // 세션 없음
         if (deepLink != null && deepLink.requiresAuth) {
@@ -180,8 +182,9 @@ class _SplashScreenState extends State<SplashScreen>
           _goToLoginWithRedirect(deepLink);
         } else if (deepLink != null) {
           // 로그인 불필요 공개 페이지 → 바로 이동
-          if (mounted)
+          if (mounted) {
             _navigateAfterLogin(deepLink, isLoggedIn: false, isAdmin: false);
+          }
         } else {
           _goToPublicHome();
         }
@@ -344,11 +347,13 @@ class _SplashScreenState extends State<SplashScreen>
           if (isLoggedIn && isAdmin) {
             final tab = link.query['tab'];
             int initialTab = 0;
-            if (tab == 'orders')
+            if (tab == 'orders') {
               initialTab = 1;
-            else if (tab == 'products')
+            } else if (tab == 'products') {
               initialTab = 2;
-            else if (tab == 'users') initialTab = 3;
+            } else if (tab == 'users') {
+              initialTab = 3;
+            }
             target = AdminScreen(
               initialTab: initialTab,
               adminOnly: true,

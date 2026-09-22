@@ -1,7 +1,10 @@
+// ignore_for_file: avoid_print
 /// ============================================================
 /// 실제 사용자 흐름 통합 테스트 (2FIT Mall)
 /// Run: flutter test test/user_flow_test.dart --no-pub
 /// ============================================================
+library;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:twofit_mall/models/models.dart';
 
@@ -12,7 +15,8 @@ String fmtAmt(double v) =>
 // ── 헬퍼: 주문 ID 생성 ──
 String _genId() {
   final now = DateTime.now();
-  final ts = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+  final ts =
+      '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
   final seq = (now.millisecondsSinceEpoch % 100000).toString().padLeft(5, '0');
   return 'ORD-$ts-$seq';
 }
@@ -158,8 +162,8 @@ OrderModel makePersonalOrder({
   DateTime? createdAt,
 }) {
   final oi = items ?? [makeOrderItem()];
-  final amt = totalAmount ??
-      oi.fold<double>(0.0, (s, i) => s + i.price * i.quantity);
+  final amt =
+      totalAmount ?? oi.fold<double>(0.0, (s, i) => s + i.price * i.quantity);
   return OrderModel(
     id: id ?? _genId(),
     userId: userId,
@@ -227,7 +231,8 @@ void main() {
           ? ((originalPrice - p.price) / originalPrice * 100).round()
           : 0;
       expect(rate, greaterThanOrEqualTo(0));
-      print('  ✅ 할인율 $rate% (원가 ${fmtAmt(originalPrice)} → ${fmtAmt(p.price)})');
+      print(
+          '  ✅ 할인율 $rate% (원가 ${fmtAmt(originalPrice)} → ${fmtAmt(p.price)})');
     });
 
     test('상품 카탈로그 4종', () {
@@ -254,20 +259,34 @@ void main() {
       expect(item.selectedColor, 'Navy');
       expect(item.quantity, 3);
       expect(item.totalPrice, item.product.price * 3);
-      print('  ✅ 장바구니: ${item.product.name} / ${item.selectedColor} / ${item.selectedSize} ×${item.quantity} = ${fmtAmt(item.totalPrice)}');
+      print(
+          '  ✅ 장바구니: ${item.product.name} / ${item.selectedColor} / ${item.selectedSize} ×${item.quantity} = ${fmtAmt(item.totalPrice)}');
     });
 
     test('다수 CartItem 합산', () {
       final cart = [
-        makeCartItem(product: makeProduct(id: 'p001', price: 35000), size: 'M', color: 'Black', quantity: 2),
-        makeCartItem(product: makeProduct(id: 'p002', name: '크롭탑', price: 28000), size: 'S', color: 'White', quantity: 1),
-        makeCartItem(product: makeProduct(id: 'p003', name: '팬츠', price: 52000), size: 'L', color: 'Gray', quantity: 1),
+        makeCartItem(
+            product: makeProduct(id: 'p001', price: 35000),
+            size: 'M',
+            color: 'Black',
+            quantity: 2),
+        makeCartItem(
+            product: makeProduct(id: 'p002', name: '크롭탑', price: 28000),
+            size: 'S',
+            color: 'White',
+            quantity: 1),
+        makeCartItem(
+            product: makeProduct(id: 'p003', name: '팬츠', price: 52000),
+            size: 'L',
+            color: 'Gray',
+            quantity: 1),
       ];
       final total = cart.fold(0.0, (s, c) => s + c.totalPrice);
       expect(total, 35000 * 2 + 28000 + 52000);
       print('  ✅ 장바구니 ${cart.length}종 — 합계: ${fmtAmt(total)}');
       for (final c in cart) {
-        print('     • ${c.product.name} ×${c.quantity} = ${fmtAmt(c.totalPrice)}');
+        print(
+            '     • ${c.product.name} ×${c.quantity} = ${fmtAmt(c.totalPrice)}');
       }
     });
 
@@ -275,34 +294,51 @@ void main() {
       final item = makeCartItem(quantity: 2, extraPrice: 2000);
       expect(item.unitPrice, 37000);
       expect(item.totalPrice, 74000);
-      print('  ✅ 기본가 ${fmtAmt(item.product.price)} + 추가 ${fmtAmt(item.extraPrice)} = 단가 ${fmtAmt(item.unitPrice)} ×${item.quantity} = ${fmtAmt(item.totalPrice)}');
+      print(
+          '  ✅ 기본가 ${fmtAmt(item.product.price)} + 추가 ${fmtAmt(item.extraPrice)} = 단가 ${fmtAmt(item.unitPrice)} ×${item.quantity} = ${fmtAmt(item.totalPrice)}');
     });
   });
 
   // ────────────────────────────────────────────
   group('🧾 주문 생성', () {
     test('단일 상품 개인 주문', () {
-      final order = makePersonalOrder(items: [makeOrderItem(quantity: 1, price: 35000)]);
+      final order =
+          makePersonalOrder(items: [makeOrderItem(quantity: 1, price: 35000)]);
       expect(order.orderType, 'personal');
       expect(order.totalAmount, 35000);
       expect(order.status, OrderStatus.pending);
       expect(order.id, matches(RegExp(r'^ORD-\d{8}-\d{5}$')));
-      print('  ✅ 주문 ${order.id} — ${fmtAmt(order.totalAmount)} [${order.status.label}]');
+      print(
+          '  ✅ 주문 ${order.id} — ${fmtAmt(order.totalAmount)} [${order.status.label}]');
     });
 
     test('다품목 주문 금액 합산', () {
       final items = [
         makeOrderItem(productId: 'p001', quantity: 2, price: 35000),
-        makeOrderItem(productId: 'p002', productName: '크롭탑', size: 'S', color: 'White', quantity: 1, price: 28000),
-        makeOrderItem(productId: 'p003', productName: '팬츠', size: 'L', color: 'Gray', quantity: 1, price: 52000),
+        makeOrderItem(
+            productId: 'p002',
+            productName: '크롭탑',
+            size: 'S',
+            color: 'White',
+            quantity: 1,
+            price: 28000),
+        makeOrderItem(
+            productId: 'p003',
+            productName: '팬츠',
+            size: 'L',
+            color: 'Gray',
+            quantity: 1,
+            price: 52000),
       ];
-      final expected = 35000 * 2 + 28000 + 52000;
-      final order = makePersonalOrder(items: items, totalAmount: expected.toDouble());
+      const expected = 35000 * 2 + 28000 + 52000;
+      final order =
+          makePersonalOrder(items: items, totalAmount: expected.toDouble());
       expect(order.items.length, 3);
       expect(order.totalAmount, expected.toDouble());
       print('  ✅ 3종 주문 — 합계: ${fmtAmt(order.totalAmount)}');
       for (final i in order.items) {
-        print('     • ${i.productName} / ${i.color} / ${i.size} ×${i.quantity} = ${fmtAmt(i.price * i.quantity)}');
+        print(
+            '     • ${i.productName} / ${i.color} / ${i.size} ×${i.quantity} = ${fmtAmt(i.price * i.quantity)}');
       }
     });
 
@@ -314,7 +350,8 @@ void main() {
       expect(json['color'], 'Black');
       expect(json['quantity'], 2);
       expect(json['price'], 35000.0);
-      print('  ✅ OrderItem JSON: ${json['productName']} / ${json['color']} / ${json['size']} ×${json['quantity']}');
+      print(
+          '  ✅ OrderItem JSON: ${json['productName']} / ${json['color']} / ${json['size']} ×${json['quantity']}');
     });
 
     test('주문 JSON 직렬화', () {
@@ -364,7 +401,11 @@ void main() {
 
     test('취소 가능 여부 판단', () {
       final canCancel = [OrderStatus.pending, OrderStatus.confirmed];
-      final cannotCancel = [OrderStatus.processing, OrderStatus.shipped, OrderStatus.delivered];
+      final cannotCancel = [
+        OrderStatus.processing,
+        OrderStatus.shipped,
+        OrderStatus.delivered
+      ];
       for (final s in canCancel) {
         expect(s == OrderStatus.pending || s == OrderStatus.confirmed, isTrue);
         print('  ✅ ${s.label} → 취소 가능');
@@ -379,17 +420,21 @@ void main() {
   // ────────────────────────────────────────────
   group('👥 단체주문', () {
     test('단체주문 생성', () {
-      final order = makeGroupOrder(groupName: '남원FC', groupCount: 22, totalAmount: 770000);
+      final order = makeGroupOrder(
+          groupName: '남원FC', groupCount: 22, totalAmount: 770000);
       expect(order.orderType, 'group');
       expect(order.groupName, '남원FC');
       expect(order.groupCount, 22);
       expect(order.totalAmount, 770000);
-      print('  ✅ 단체주문: ${order.groupName} ${order.groupCount}벌 — ${fmtAmt(order.totalAmount)}');
+      print(
+          '  ✅ 단체주문: ${order.groupName} ${order.groupCount}벌 — ${fmtAmt(order.totalAmount)}');
     });
 
     test('추가제작 마감일 (7일)', () {
-      final recent = makeGroupOrder(createdAt: DateTime.now().subtract(const Duration(days: 3)));
-      final old = makeGroupOrder(createdAt: DateTime.now().subtract(const Duration(days: 10)));
+      final recent = makeGroupOrder(
+          createdAt: DateTime.now().subtract(const Duration(days: 3)));
+      final old = makeGroupOrder(
+          createdAt: DateTime.now().subtract(const Duration(days: 10)));
       expect(recent.canOrderAdditionalFree, isTrue);
       expect(old.canOrderAdditionalFree, isFalse);
       print('  ✅ 3일 전 주문 → 추가제작 가능 / 10일 전 주문 → 불가');
@@ -424,9 +469,11 @@ void main() {
       expect(order.groupName, isNotNull);
       expect(order.groupCount, isNotNull);
       // fallback: groupName + groupCount + totalAmount 표시 검증
-      final displayName = order.groupName!.isNotEmpty ? order.groupName! : '단체주문';
+      final displayName =
+          order.groupName!.isNotEmpty ? order.groupName! : '단체주문';
       expect(displayName, '남원FC');
-      print('  ✅ items 없는 단체주문 → fallback: "$displayName" ${order.groupCount}벌 ${fmtAmt(order.totalAmount)}');
+      print(
+          '  ✅ items 없는 단체주문 → fallback: "$displayName" ${order.groupCount}벌 ${fmtAmt(order.totalAmount)}');
     });
   });
 
@@ -461,18 +508,24 @@ void main() {
   group('🎟️ 쿠폰', () {
     test('정률 쿠폰 10% 할인', () {
       final coupon = makeCoupon(type: CouponType.percent, value: 10);
-      final amt = 50000.0;
+      const amt = 50000.0;
       final discount = coupon.calculateDiscount(amt);
       expect(discount, 5000.0);
-      print('  ✅ 10% 쿠폰: ${fmtAmt(amt)} → 할인 ${fmtAmt(discount)} → 최종 ${fmtAmt(amt - discount)}');
+      print(
+          '  ✅ 10% 쿠폰: ${fmtAmt(amt)} → 할인 ${fmtAmt(discount)} → 최종 ${fmtAmt(amt - discount)}');
     });
 
     test('정액 쿠폰 3,000원 할인', () {
-      final coupon = makeCoupon(type: CouponType.fixed, value: 3000, code: 'FIXED3K', name: '3,000원 할인');
-      final amt = 50000.0;
+      final coupon = makeCoupon(
+          type: CouponType.fixed,
+          value: 3000,
+          code: 'FIXED3K',
+          name: '3,000원 할인');
+      const amt = 50000.0;
       final discount = coupon.calculateDiscount(amt);
       expect(discount, 3000.0);
-      print('  ✅ 정액 쿠폰: ${fmtAmt(amt)} → 할인 ${fmtAmt(discount)} → 최종 ${fmtAmt(amt - discount)}');
+      print(
+          '  ✅ 정액 쿠폰: ${fmtAmt(amt)} → 할인 ${fmtAmt(discount)} → 최종 ${fmtAmt(amt - discount)}');
     });
 
     test('최소주문금액 미달 시 할인 0원', () {
@@ -483,7 +536,8 @@ void main() {
     });
 
     test('만료 쿠폰 isValid = false', () {
-      final expired = makeCoupon(expiresAt: DateTime.now().subtract(const Duration(days: 1)));
+      final expired = makeCoupon(
+          expiresAt: DateTime.now().subtract(const Duration(days: 1)));
       expect(expired.isValid, isFalse);
       expect(expired.calculateDiscount(50000), 0.0);
       print('  ✅ 만료 쿠폰 → 사용 불가 (할인 0원)');
@@ -497,20 +551,28 @@ void main() {
 
     test('최대 할인금액 상한선', () {
       final coupon = CouponModel(
-        id: 'c_max', code: 'MAX20', name: '20% (최대 5,000원)',
-        type: CouponType.percent, value: 20,
-        minOrderAmount: 0, maxDiscountAmount: 5000,
+        id: 'c_max',
+        code: 'MAX20',
+        name: '20% (최대 5,000원)',
+        type: CouponType.percent,
+        value: 20,
+        minOrderAmount: 0,
+        maxDiscountAmount: 5000,
         isUsed: false,
         expiresAt: DateTime.now().add(const Duration(days: 30)),
       );
-      final discount = coupon.calculateDiscount(100000); // 20% = 20,000 → 상한 5,000
+      final discount =
+          coupon.calculateDiscount(100000); // 20% = 20,000 → 상한 5,000
       expect(discount, 5000.0);
-      print('  ✅ 상한선 쿠폰: 20% × ${fmtAmt(100000)} = ${fmtAmt(20000)} → 상한 적용 → ${fmtAmt(discount)}');
+      print(
+          '  ✅ 상한선 쿠폰: 20% × ${fmtAmt(100000)} = ${fmtAmt(20000)} → 상한 적용 → ${fmtAmt(discount)}');
     });
 
     test('쿠폰 typeLabel', () {
-      expect(makeCoupon(type: CouponType.percent, value: 10).typeLabel, '10% 할인');
-      expect(makeCoupon(type: CouponType.fixed, value: 3000).typeLabel, '3000원 할인');
+      expect(
+          makeCoupon(type: CouponType.percent, value: 10).typeLabel, '10% 할인');
+      expect(makeCoupon(type: CouponType.fixed, value: 3000).typeLabel,
+          '3000원 할인');
       print('  ✅ typeLabel: "10% 할인" / "3000원 할인"');
     });
 
@@ -556,21 +618,34 @@ void main() {
       expect(addr.recipient, '최혜원');
       expect(addr.isDefault, isTrue);
       expect(addr.address1, isNotEmpty);
-      print('  ✅ 배송지: [${addr.label}] ${addr.recipient} / ${addr.phone} / ${addr.address1} ${addr.address2}');
+      print(
+          '  ✅ 배송지: [${addr.label}] ${addr.recipient} / ${addr.phone} / ${addr.address1} ${addr.address2}');
     });
 
     test('배송지 다수 등록 및 기본 선택', () {
       final addresses = [
-        makeAddress(id: 'addr_001', label: '집', recipient: '최혜원', isDefault: true),
-        makeAddress(id: 'addr_002', label: '회사', recipient: '최혜원', address1: '서울시 강남구 테헤란로 123', isDefault: false),
-        makeAddress(id: 'addr_003', label: '부모님댁', recipient: '최혜원 모', address1: '전남 순천시 조례동 456', isDefault: false),
+        makeAddress(
+            id: 'addr_001', label: '집', recipient: '최혜원', isDefault: true),
+        makeAddress(
+            id: 'addr_002',
+            label: '회사',
+            recipient: '최혜원',
+            address1: '서울시 강남구 테헤란로 123',
+            isDefault: false),
+        makeAddress(
+            id: 'addr_003',
+            label: '부모님댁',
+            recipient: '최혜원 모',
+            address1: '전남 순천시 조례동 456',
+            isDefault: false),
       ];
       final def = addresses.firstWhere((a) => a.isDefault);
       expect(def.id, 'addr_001');
       expect(addresses.length, 3);
       print('  ✅ 배송지 ${addresses.length}개 등록:');
       for (final a in addresses) {
-        print('     ${a.isDefault ? "★" : "○"} [${a.label}] ${a.recipient} — ${a.address1}');
+        print(
+            '     ${a.isDefault ? "★" : "○"} [${a.label}] ${a.recipient} — ${a.address1}');
       }
     });
 
@@ -581,7 +656,8 @@ void main() {
       expect(restored.id, addr.id);
       expect(restored.recipient, addr.recipient);
       expect(restored.isDefault, addr.isDefault);
-      print('  ✅ JSON 복원: [${restored.label}] ${restored.recipient} / ${restored.address1}');
+      print(
+          '  ✅ JSON 복원: [${restored.label}] ${restored.recipient} / ${restored.address1}');
     });
   });
 
@@ -599,12 +675,16 @@ void main() {
         makeGroupOrder(status: OrderStatus.pending),
       ];
       final counts = <OrderStatus, int>{};
-      for (final o in orders) counts[o.status] = (counts[o.status] ?? 0) + 1;
+      for (final o in orders) {
+        counts[o.status] = (counts[o.status] ?? 0) + 1;
+      }
       expect(counts[OrderStatus.pending], 3);
       expect(counts[OrderStatus.delivered], 1);
       expect(counts[OrderStatus.cancelled], 1);
       print('  ✅ 상태 집계:');
-      for (final e in counts.entries) print('     ${e.key.label}: ${e.value}건');
+      for (final e in counts.entries) {
+        print('     ${e.key.label}: ${e.value}건');
+      }
     });
 
     test('진행중 주문 필터 (결제완료+배송준비+배송중)', () {
@@ -616,12 +696,15 @@ void main() {
         makePersonalOrder(status: OrderStatus.delivered),
         makePersonalOrder(status: OrderStatus.cancelled),
       ];
-      final inProgress = orders.where((o) =>
-          o.status == OrderStatus.confirmed ||
-          o.status == OrderStatus.processing ||
-          o.status == OrderStatus.shipped).toList();
+      final inProgress = orders
+          .where((o) =>
+              o.status == OrderStatus.confirmed ||
+              o.status == OrderStatus.processing ||
+              o.status == OrderStatus.shipped)
+          .toList();
       expect(inProgress.length, 3);
-      print('  ✅ 진행중: ${inProgress.length}건 (${inProgress.map((o) => o.status.label).join(', ')})');
+      print(
+          '  ✅ 진행중: ${inProgress.length}건 (${inProgress.map((o) => o.status.label).join(', ')})');
     });
 
     test('특정 사용자 주문 필터링', () {
@@ -667,9 +750,12 @@ void main() {
     test('최신순 정렬', () {
       final now = DateTime.now();
       final orders = [
-        makePersonalOrder(id: 'old', createdAt: now.subtract(const Duration(days: 30))),
-        makePersonalOrder(id: 'mid', createdAt: now.subtract(const Duration(days: 10))),
-        makePersonalOrder(id: 'new', createdAt: now.subtract(const Duration(days: 1))),
+        makePersonalOrder(
+            id: 'old', createdAt: now.subtract(const Duration(days: 30))),
+        makePersonalOrder(
+            id: 'mid', createdAt: now.subtract(const Duration(days: 10))),
+        makePersonalOrder(
+            id: 'new', createdAt: now.subtract(const Duration(days: 1))),
       ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
       expect(orders.first.id, 'new');
       expect(orders.last.id, 'old');
@@ -710,18 +796,27 @@ void main() {
       print('  ② 찜: ${p.name} (찜 ${user.wishlist.length}개)');
 
       // 장바구니 → 주문
-      final cartItem = makeCartItem(product: p, size: 'M', color: 'Black', quantity: 2);
+      final cartItem =
+          makeCartItem(product: p, size: 'M', color: 'Black', quantity: 2);
       expect(cartItem.totalPrice, 70000);
-      print('  ③ 장바구니: ${cartItem.product.name} ×${cartItem.quantity} = ${fmtAmt(cartItem.totalPrice)}');
+      print(
+          '  ③ 장바구니: ${cartItem.product.name} ×${cartItem.quantity} = ${fmtAmt(cartItem.totalPrice)}');
 
-      final item = makeOrderItem(productId: p.id, productName: p.name, quantity: 2, price: p.price);
+      final item = makeOrderItem(
+          productId: p.id, productName: p.name, quantity: 2, price: p.price);
       var order = makePersonalOrder(userId: user.id, items: [item]);
       expect(order.totalAmount, 70000);
       expect(order.status, OrderStatus.pending);
-      print('  ④ 주문: ${order.id} [${order.status.label}] ${fmtAmt(order.totalAmount)}');
+      print(
+          '  ④ 주문: ${order.id} [${order.status.label}] ${fmtAmt(order.totalAmount)}');
 
       // 배송 흐름
-      for (final s in [OrderStatus.confirmed, OrderStatus.processing, OrderStatus.shipped, OrderStatus.delivered]) {
+      for (final s in [
+        OrderStatus.confirmed,
+        OrderStatus.processing,
+        OrderStatus.shipped,
+        OrderStatus.delivered
+      ]) {
         order = order.copyWith(status: s);
         print('  → ${order.status.label}');
       }
@@ -732,8 +827,10 @@ void main() {
     test('[시나리오 2] 단체주문 → 컬러수정 → 디자인수정 → 추가제작 → 완료', () {
       print('\n  📋 시나리오 2: 단체주문 전체 흐름');
 
-      var order = makeGroupOrder(groupName: '남원FC', groupCount: 22, totalAmount: 770000);
-      print('  ① 단체주문: ${order.groupName} ${order.groupCount}벌 ${fmtAmt(order.totalAmount)}');
+      var order = makeGroupOrder(
+          groupName: '남원FC', groupCount: 22, totalAmount: 770000);
+      print(
+          '  ① 단체주문: ${order.groupName} ${order.groupCount}벌 ${fmtAmt(order.totalAmount)}');
 
       // 컬러 수정 1회
       order = order.copyWith(colorEditCount: 1);
@@ -750,7 +847,12 @@ void main() {
       print('  ④ 추가제작 가능: ${order.canOrderAdditionalFree}');
 
       // 상태 흐름
-      for (final s in [OrderStatus.confirmed, OrderStatus.processing, OrderStatus.shipped, OrderStatus.delivered]) {
+      for (final s in [
+        OrderStatus.confirmed,
+        OrderStatus.processing,
+        OrderStatus.shipped,
+        OrderStatus.delivered
+      ]) {
         order = order.copyWith(status: s);
         print('  → ${order.status.label}');
       }
@@ -783,14 +885,35 @@ void main() {
       final now = DateTime.now();
 
       final orders = [
-        makePersonalOrder(id: 'ORD-001', userId: uid, status: OrderStatus.pending, createdAt: now),
-        makeGroupOrder(id: 'GRP_001', userId: uid, groupName: '남원FC', status: OrderStatus.processing, createdAt: now.subtract(const Duration(days: 5))),
-        makePersonalOrder(id: 'ORD-002', userId: uid, status: OrderStatus.delivered, createdAt: now.subtract(const Duration(days: 30))),
-        makePersonalOrder(id: 'ORD-003', userId: uid, status: OrderStatus.cancelled, createdAt: now.subtract(const Duration(days: 60))),
+        makePersonalOrder(
+            id: 'ORD-001',
+            userId: uid,
+            status: OrderStatus.pending,
+            createdAt: now),
+        makeGroupOrder(
+            id: 'GRP_001',
+            userId: uid,
+            groupName: '남원FC',
+            status: OrderStatus.processing,
+            createdAt: now.subtract(const Duration(days: 5))),
+        makePersonalOrder(
+            id: 'ORD-002',
+            userId: uid,
+            status: OrderStatus.delivered,
+            createdAt: now.subtract(const Duration(days: 30))),
+        makePersonalOrder(
+            id: 'ORD-003',
+            userId: uid,
+            status: OrderStatus.cancelled,
+            createdAt: now.subtract(const Duration(days: 60))),
       ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
       expect(orders.first.id, 'ORD-001');
-      final active = orders.where((o) => o.status != OrderStatus.cancelled && o.status != OrderStatus.refunded).length;
+      final active = orders
+          .where((o) =>
+              o.status != OrderStatus.cancelled &&
+              o.status != OrderStatus.refunded)
+          .length;
       expect(active, 3);
 
       print('  전체 ${orders.length}건 (활성 $active건):');
@@ -808,7 +931,8 @@ void main() {
       print('  ① 주문 생성: ${order.id} [${order.status.label}]');
 
       // 취소 가능 여부 확인
-      final canCancel = order.status == OrderStatus.pending || order.status == OrderStatus.confirmed;
+      final canCancel = order.status == OrderStatus.pending ||
+          order.status == OrderStatus.confirmed;
       expect(canCancel, isTrue);
       print('  ② 취소 가능 여부: $canCancel');
 
@@ -826,14 +950,15 @@ void main() {
       print('  ① 초기 포인트: ${user.points}P');
 
       // 주문 후 포인트 적립 (주문금액의 1%)
-      final orderAmt = 70000;
+      const orderAmt = 70000;
       final earnedPoints = (orderAmt * 0.01).round();
       user.points += earnedPoints;
       expect(user.points, 700);
-      print('  ② 주문 ${fmtAmt(orderAmt.toDouble())} → 적립 ${earnedPoints}P (보유: ${user.points}P)');
+      print(
+          '  ② 주문 ${fmtAmt(orderAmt.toDouble())} → 적립 ${earnedPoints}P (보유: ${user.points}P)');
 
       // 다음 주문에 포인트 사용
-      final usePoints = 500;
+      const usePoints = 500;
       user.points -= usePoints;
       expect(user.points, 200);
       print('  ③ ${usePoints}P 사용 → 잔여: ${user.points}P');

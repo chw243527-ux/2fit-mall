@@ -120,10 +120,14 @@ void main() {
             .toList();
         expect(mediaFiles, isNotEmpty);
         expect(mediaFiles.any((file) => file.content.length > 0), isTrue);
-        expect(archive.files.any((file) =>
-            file.name == 'xl/drawings/drawing1.xml'), isTrue);
-        expect(archive.files.any((file) => file.name.contains(
-            'xl/worksheets/_rels/sheet1.xml.rels')), isTrue);
+        expect(
+            archive.files
+                .any((file) => file.name == 'xl/drawings/drawing1.xml'),
+            isTrue);
+        expect(
+            archive.files.any((file) =>
+                file.name.contains('xl/worksheets/_rels/sheet1.xml.rels')),
+            isTrue);
       } finally {
         await server.close(force: true);
       }
@@ -187,9 +191,7 @@ Sheet _summarySheet(Uint8List bytes) {
   return workbook['주문요약'];
 }
 
-String _summaryCell(Sheet sheet, int column, int row) =>
-    sheet
-        .cell(CellIndex.indexByColumnRow(columnIndex: column, rowIndex: row))
-        .value
-        .toString();
-
+String _summaryCell(Sheet sheet, int column, int row) => sheet
+    .cell(CellIndex.indexByColumnRow(columnIndex: column, rowIndex: row))
+    .value
+    .toString();

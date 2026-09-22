@@ -60,7 +60,8 @@ class SizeProfileScreen extends StatelessWidget {
           backgroundColor: const Color(0xFFF7F5FB),
           appBar: AppBar(
             title: Text(context.loc.t('내_사이즈_관리', '내 사이즈 관리'),
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
             backgroundColor: _purple,
             foregroundColor: Colors.white,
             elevation: 0,
@@ -79,14 +80,14 @@ class SizeProfileScreen extends StatelessWidget {
                 onPressed: canAdd
                     ? () => _openEditSheet(ctx, user, null)
                     : () => ScaffoldMessenger.of(ctx).showSnackBar(
-                          SnackBar(
+                          const SnackBar(
                               content: Text(
                                   '최대 ${SizeProfileService.maxProfiles}개까지 저장 가능합니다.')),
                         ),
                 backgroundColor: canAdd ? _purple : Colors.grey,
                 icon: const Icon(Icons.add, color: Colors.white),
                 label: Text(context.loc.t('새_사이즈_추가', '새 사이즈 추가'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: Colors.white, fontWeight: FontWeight.w700)),
               );
             },
@@ -248,13 +249,13 @@ class _ProfileCard extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(context.loc.t('프로필_삭제', '프로필 삭제'),
-            style: TextStyle(fontWeight: FontWeight.w800)),
+            style: const TextStyle(fontWeight: FontWeight.w800)),
         content: Text('"${profile.profileName}" 프로필을 삭제할까요?'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx),
               child: Text(context.loc.t('취소', '취소'),
-                  style: TextStyle(color: Colors.grey))),
+                  style: const TextStyle(color: Colors.grey))),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
@@ -267,7 +268,7 @@ class _ProfileCard extends StatelessWidget {
               }
             },
             child: Text(context.loc.t('삭제', '삭제'),
-                style: TextStyle(
+                style: const TextStyle(
                     color: AppColors.error, fontWeight: FontWeight.w700)),
           ),
         ],
@@ -491,7 +492,7 @@ class _EditSheetState extends State<_EditSheet> {
                         child: CircularProgressIndicator(
                             color: Colors.white, strokeWidth: 2))
                     : Text(context.loc.t('저장하기', '저장하기'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 15, fontWeight: FontWeight.w800)),
               ),
             ),

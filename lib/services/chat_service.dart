@@ -50,16 +50,16 @@ class ChatServiceMessage {
   }
 
   Map<String, dynamic> toMap() => {
-    'senderId': senderId,
-    'senderName': senderName,
-    'message': text,
-    'text': text,
-    'originalText': originalText,
-    'isAdmin': isAdmin,
-    'isSystem': isSystem,
-    'createdAt': FieldValue.serverTimestamp(),
-    'isRead': isRead,
-  };
+        'senderId': senderId,
+        'senderName': senderName,
+        'message': text,
+        'text': text,
+        'originalText': originalText,
+        'isAdmin': isAdmin,
+        'isSystem': isSystem,
+        'createdAt': FieldValue.serverTimestamp(),
+        'isRead': isRead,
+      };
 }
 
 class ChatRoom {
@@ -90,7 +90,8 @@ class ChatRoom {
   }) : lastTime = lastTime ?? lastMessageAt;
 
   factory ChatRoom.fromMap(String id, Map<String, dynamic> data) {
-    final lastAt = (data['lastMessageAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+    final lastAt =
+        (data['lastMessageAt'] as Timestamp?)?.toDate() ?? DateTime.now();
     return ChatRoom(
       id: id,
       userId: data['userId'] as String? ?? '',
@@ -146,29 +147,28 @@ class ChatService {
         // orderBy 제거 → 인덱스 불필요, 메모리에서 정렬
         .snapshots()
         .map((snap) {
-          final msgs = snap.docs
-              .map((d) => ChatServiceMessage.fromMap(d.id, d.data()))
-              .toList();
-          // 메모리에서 시간순 정렬
-          msgs.sort((a, b) => a.time.compareTo(b.time));
-          return msgs;
-        })
-        .handleError((e) {
-          if (kDebugMode) debugPrint('client_operation_failed');
-          return <ChatServiceMessage>[];
-        });
+      final msgs = snap.docs
+          .map((d) => ChatServiceMessage.fromMap(d.id, d.data()))
+          .toList();
+      // 메모리에서 시간순 정렬
+      msgs.sort((a, b) => a.time.compareTo(b.time));
+      return msgs;
+    }).handleError((e) {
+      if (kDebugMode) debugPrint('client_operation_failed');
+      return <ChatServiceMessage>[];
+    });
   }
 
   /// 메시지 전송 (roomId 방식)
   static Future<void> sendMessage({
     String? roomId,
     String? userId,
-    String? senderId,     // chat_screen 호환
+    String? senderId, // chat_screen 호환
     required String senderName,
     String? message,
-    String? text,         // chat_screen 호환 (text 파라미터)
+    String? text, // chat_screen 호환 (text 파라미터)
     bool isAdmin = false,
-    bool? isUser,         // chat_screen 호환 (isUser → isAdmin 역)
+    bool? isUser, // chat_screen 호환 (isUser → isAdmin 역)
     String? originalText,
   }) async {
     final msg = message ?? text ?? '';
@@ -176,11 +176,8 @@ class ChatService {
     final targetId = roomId ?? userId ?? senderId ?? '';
     try {
       final batch = _db.batch();
-      final msgRef = _db
-          .collection('chats')
-          .doc(targetId)
-          .collection('messages')
-          .doc();
+      final msgRef =
+          _db.collection('chats').doc(targetId).collection('messages').doc();
       batch.set(msgRef, {
         'senderId': admin ? 'admin' : targetId,
         'senderName': admin ? '2FIT 고객센터' : senderName,
@@ -252,20 +249,15 @@ class ChatService {
   }
 
   static Stream<List<ChatRoom>> watchAllRooms() {
-    return _db
-        .collection('chat_rooms')
-        .snapshots()
-        .map((snap) {
-          final rooms = snap.docs
-              .map((d) => ChatRoom.fromMap(d.id, d.data()))
-              .toList();
-          rooms.sort((a, b) => b.lastMessageAt.compareTo(a.lastMessageAt));
-          return rooms;
-        })
-        .handleError((e) {
-          if (kDebugMode) debugPrint('client_operation_failed');
-          return <ChatRoom>[];
-        });
+    return _db.collection('chat_rooms').snapshots().map((snap) {
+      final rooms =
+          snap.docs.map((d) => ChatRoom.fromMap(d.id, d.data())).toList();
+      rooms.sort((a, b) => b.lastMessageAt.compareTo(a.lastMessageAt));
+      return rooms;
+    }).handleError((e) {
+      if (kDebugMode) debugPrint('client_operation_failed');
+      return <ChatRoom>[];
+    });
   }
 
   static Stream<List<ChatRoom>> watchAllChatRooms() => watchAllRooms();
@@ -283,7 +275,8 @@ class ChatService {
       for (final doc in snap.docs) {
         batch.update(doc.reference, {'isRead': true});
       }
-      batch.update(_db.collection('chat_rooms').doc(userId), {'unreadCount': 0});
+      batch
+          .update(_db.collection('chat_rooms').doc(userId), {'unreadCount': 0});
       await batch.commit();
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
@@ -293,7 +286,8 @@ class ChatService {
   static Future<void> markMessagesAsRead(String userId) => markAsRead(userId);
 
   /// 채팅 상담 완료 처리
-  static Future<void> completeRoom(String roomId, {String completedBy = 'user'}) async {
+  static Future<void> completeRoom(String roomId,
+      {String completedBy = 'user'}) async {
     try {
       await _db.collection('chat_rooms').doc(roomId).update({
         'isActive': false,
@@ -305,9 +299,12 @@ class ChatService {
       await _db.collection('chats').doc(roomId).collection('messages').add({
         'senderId': 'system',
         'senderName': '시스템',
-        'message': completedBy == 'user' ? '상담이 종료되었습니다. 감사합니다!' : '관리자가 상담을 종료했습니다.',
-        'text': completedBy == 'user' ? '상담이 종료되었습니다. 감사합니다!' : '관리자가 상담을 종료했습니다.',
-        'originalText': completedBy == 'user' ? '상담이 종료되었습니다. 감사합니다!' : '관리자가 상담을 종료했습니다.',
+        'message':
+            completedBy == 'user' ? '상담이 종료되었습니다. 감사합니다!' : '관리자가 상담을 종료했습니다.',
+        'text':
+            completedBy == 'user' ? '상담이 종료되었습니다. 감사합니다!' : '관리자가 상담을 종료했습니다.',
+        'originalText':
+            completedBy == 'user' ? '상담이 종료되었습니다. 감사합니다!' : '관리자가 상담을 종료했습니다.',
         'isAdmin': false,
         'isSystem': true,
         'createdAt': FieldValue.serverTimestamp(),
@@ -354,7 +351,11 @@ class ChatService {
   static Future<void> deleteRoom(String roomId) async {
     try {
       // 메시지 일괄 삭제
-      final msgs = await _db.collection('chats').doc(roomId).collection('messages').get();
+      final msgs = await _db
+          .collection('chats')
+          .doc(roomId)
+          .collection('messages')
+          .get();
       final batch = _db.batch();
       for (final doc in msgs.docs) {
         batch.delete(doc.reference);

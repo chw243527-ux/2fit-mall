@@ -551,7 +551,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     return Container(
       height: 44,
       color: _bg,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: _divider, width: 1)),
       ),
       child: Row(
@@ -649,7 +649,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                         setState(() {});
                       },
                       child: Text(context.loc.t('초기화', '초기화'),
-                          style: TextStyle(fontSize: 12, color: _greyDim)),
+                          style:
+                              const TextStyle(fontSize: 12, color: _greyDim)),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close_rounded,
@@ -1120,7 +1121,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                 _onlyFreeShipping = false;
               }),
               child: Text(context.loc.t('초기화', '초기화'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 12,
                       color: _greyDim,
                       decoration: TextDecoration.underline)),

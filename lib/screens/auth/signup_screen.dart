@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 // signup_screen.dart — 보안 강화 v2
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -283,17 +284,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
     // 한국 번호 자동 하이픈
     if (digits.startsWith('02')) {
       if (digits.length <= 2) return digits;
-      if (digits.length <= 5)
+      if (digits.length <= 5) {
         return '${digits.substring(0, 2)}-${digits.substring(2)}';
-      if (digits.length <= 9)
+      }
+      if (digits.length <= 9) {
         return '${digits.substring(0, 2)}-${digits.substring(2, 5)}-${digits.substring(5)}';
+      }
       return '${digits.substring(0, 2)}-${digits.substring(2, 6)}-${digits.substring(6, 10)}';
     } else {
       if (digits.length <= 3) return digits;
-      if (digits.length <= 6)
+      if (digits.length <= 6) {
         return '${digits.substring(0, 3)}-${digits.substring(3)}';
-      if (digits.length <= 10)
+      }
+      if (digits.length <= 10) {
         return '${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}';
+      }
       return '${digits.substring(0, 3)}-${digits.substring(3, 7)}-${digits.substring(7, 11)}';
     }
   }
@@ -524,9 +529,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     color: Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(2))),
             Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Text(context.loc.t('개인정보처리방침', '개인정보처리방침'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w800,
                       color: AppColors.primary)),
@@ -707,7 +712,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         onTimeout: () =>
             AuthResult(success: false, error: loc.signupTimeoutError),
       );
-        } catch (_) {
+    } catch (_) {
       result = const AuthResult(
         success: false,
         error: '회원가입 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
@@ -867,8 +872,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       // inputFormatters 제거: 웹 한글 IME 조합 입력 차단 문제 방지
                       // 대신 validator에서만 검증
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty)
+                        if (v == null || v.trim().isEmpty) {
                           return loc.signupNameEmptyError;
+                        }
                         if (v.trim().length < 2) return loc.signupNameError;
                         if (v.trim().length > 20) return loc.signupNameTooLong;
                         // 한글/영문/공백만 허용 (숫자·특수문자·이모지 차단)
@@ -891,93 +897,94 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                          SizedBox(
-                            width: double.infinity,
-                            child: TextFormField(
-                              controller: _emailCtrl,
-                              keyboardType: TextInputType.emailAddress,
-                              style: const TextStyle(
-                                  fontSize: 14, color: AppColors.primary),
-                              decoration: InputDecoration(
-                                hintText: 'example@email.com',
-                                hintStyle: TextStyle(
-                                    fontSize: 13, color: Colors.grey.shade600),
-                                prefixIcon: Icon(Icons.email_outlined,
-                                    size: 18, color: AppColors.primary.withValues(alpha: 0.55)),
-                                suffixIcon: _emailAvailable == true
-                                    ? const Icon(Icons.check_circle,
-                                        color: AppColors.success, size: 20)
-                                    : _emailAvailable == false
-                                        ? const Icon(Icons.cancel,
-                                            color: AppColors.error, size: 20)
-                                        : null,
-                                filled: true,
-                                fillColor: const Color(0xFFF2F3F7),
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(color: Color(0xFFD7D9E2))),
-                                enabledBorder: OutlineInputBorder(
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextFormField(
+                            controller: _emailCtrl,
+                            keyboardType: TextInputType.emailAddress,
+                            style: const TextStyle(
+                                fontSize: 14, color: AppColors.primary),
+                            decoration: InputDecoration(
+                              hintText: 'example@email.com',
+                              hintStyle: TextStyle(
+                                  fontSize: 13, color: Colors.grey.shade600),
+                              prefixIcon: Icon(Icons.email_outlined,
+                                  size: 18,
+                                  color: AppColors.primary
+                                      .withValues(alpha: 0.55)),
+                              suffixIcon: _emailAvailable == true
+                                  ? const Icon(Icons.check_circle,
+                                      color: AppColors.success, size: 20)
+                                  : _emailAvailable == false
+                                      ? const Icon(Icons.cancel,
+                                          color: AppColors.error, size: 20)
+                                      : null,
+                              filled: true,
+                              fillColor: const Color(0xFFF2F3F7),
+                              border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(14),
-                                  borderSide: _emailAvailable == true
-                                      ? const BorderSide(
-                                          color: AppColors.success, width: 1.5)
-                                      : _emailAvailable == false
-                                          ? const BorderSide(
-                                              color: AppColors.error,
-                                              width: 1.5)
-                                          : BorderSide.none,
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.primary, width: 1.5)),
-                                errorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.error, width: 1)),
-                                focusedErrorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.error, width: 1.5)),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 14),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFFD7D9E2))),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: _emailAvailable == true
+                                    ? const BorderSide(
+                                        color: AppColors.success, width: 1.5)
+                                    : _emailAvailable == false
+                                        ? const BorderSide(
+                                            color: AppColors.error, width: 1.5)
+                                        : BorderSide.none,
                               ),
-                              validator: (v) {
-                                if (v == null ||
-                                    !RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,}$')
-                                        .hasMatch(v.trim())) {
-                                  return loc.signupEmailError;
-                                }
-                                return null;
-                              },
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(
+                                      color: AppColors.primary, width: 1.5)),
+                              errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(
+                                      color: AppColors.error, width: 1)),
+                              focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(
+                                      color: AppColors.error, width: 1.5)),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 14),
                             ),
+                            validator: (v) {
+                              if (v == null ||
+                                  !RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,}$')
+                                      .hasMatch(v.trim())) {
+                                return loc.signupEmailError;
+                              }
+                              return null;
+                            },
                           ),
-                          const SizedBox(width: 8),
-                          SizedBox(
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed:
-                                  _emailChecking ? null : _checkEmailDuplicate,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
-                                elevation: 0,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 14),
-                              ),
-                              child: _emailChecking
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                          color: Colors.white, strokeWidth: 2))
-                                  : Text(context.loc.t('중복확인', '중복확인'),
-                                      style: TextStyle(
-                                          fontSize: 12, color: Colors.white)),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed:
+                                _emailChecking ? null : _checkEmailDuplicate,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 14),
                             ),
+                            child: _emailChecking
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white, strokeWidth: 2))
+                                : Text(context.loc.t('중복확인', '중복확인'),
+                                    style: const TextStyle(
+                                        fontSize: 12, color: Colors.white)),
                           ),
-
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -1001,183 +1008,178 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-
-                          // 국가 코드 선택
-                          GestureDetector(
-                            onTap: _phoneVerified
-                                ? null
-                                : () async {
-                                    await _showCountryPicker();
-                                    _phoneCtrl.clear();
-                                    setState(() {
-                                      _otpSent = false;
-                                      _phoneVerified = false;
-                                    });
-                                  },
-                            child: Container(
-                              height: 50,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
-                              decoration: BoxDecoration(
-                                color: _phoneVerified
-                                    ? Colors.grey.shade100
-                                    : AppColors.surfaceGray,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: Colors.grey.shade200),
-                              ),
-                              child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(_selectedCountry.flag,
-                                        style: const TextStyle(fontSize: 20)),
-                                    const SizedBox(width: 4),
-                                    Text(_selectedCountry.code,
-                                        style: const TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.primary)),
-                                    const SizedBox(width: 2),
-                                    Icon(Icons.arrow_drop_down,
-                                        color: Colors.grey.shade500, size: 18),
-                                  ]),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            child: TextFormField(
-                              controller: _phoneCtrl,
-                              focusNode: _phoneFocusNode,
-                              keyboardType: TextInputType.phone,
-                              // 인증번호 발송 후에는 휴대폰 필드를 잠가 숫자가
-                              // 휴대폰 번호 뒤에 붙는 오입력을 방지합니다.
-                              enabled: !_phoneVerified && !_otpSent,
-                              onChanged: (v) {
-                                _onPhoneChanged(v);
-                                if (_otpSent || _phoneVerified) {
+                        // 국가 코드 선택
+                        GestureDetector(
+                          onTap: _phoneVerified
+                              ? null
+                              : () async {
+                                  await _showCountryPicker();
+                                  _phoneCtrl.clear();
                                   setState(() {
                                     _otpSent = false;
                                     _phoneVerified = false;
-                                    _otpCtrl.clear();
                                   });
-                                }
-                              },
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                    RegExp(r'[0-9\-]'))
-                              ],
-                              style: const TextStyle(
-                                  fontSize: 14, color: AppColors.primary),
-                              decoration: InputDecoration(
-                                hintText: _selectedCountry.code == '+82'
-                                    ? '010-0000-0000'
-                                    : _selectedCountry.code == '+1'
-                                        ? '555-123-4567'
-                                        : _selectedCountry.code == '+81'
-                                            ? '90-0000-0000'
-                                            : 'Phone number',
-                                hintStyle: TextStyle(
-                                    fontSize: 13, color: Colors.grey.shade600),
-                                suffixIcon: _phoneVerified
-                                    ? const Icon(Icons.check_circle,
-                                        color: AppColors.success, size: 20)
-                                    : null,
-                                filled: true,
-                                fillColor: _phoneVerified
-                                    ? AppColors.success.withValues(alpha: 0.05)
-                                    : const Color(0xFFF2F3F7),
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(color: Color(0xFFD7D9E2))),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: _phoneVerified
-                                      ? const BorderSide(
-                                          color: AppColors.success, width: 1.5)
-                                      : BorderSide.none,
-                                ),
-                                disabledBorder: OutlineInputBorder(
+                                },
+                          child: Container(
+                            height: 50,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: _phoneVerified
+                                  ? Colors.grey.shade100
+                                  : AppColors.surfaceGray,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.grey.shade200),
+                            ),
+                            child:
+                                Row(mainAxisSize: MainAxisSize.min, children: [
+                              Text(_selectedCountry.flag,
+                                  style: const TextStyle(fontSize: 20)),
+                              const SizedBox(width: 4),
+                              Text(_selectedCountry.code,
+                                  style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primary)),
+                              const SizedBox(width: 2),
+                              Icon(Icons.arrow_drop_down,
+                                  color: Colors.grey.shade500, size: 18),
+                            ]),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextFormField(
+                            controller: _phoneCtrl,
+                            focusNode: _phoneFocusNode,
+                            keyboardType: TextInputType.phone,
+                            // 인증번호 발송 후에는 휴대폰 필드를 잠가 숫자가
+                            // 휴대폰 번호 뒤에 붙는 오입력을 방지합니다.
+                            enabled: !_phoneVerified && !_otpSent,
+                            onChanged: (v) {
+                              _onPhoneChanged(v);
+                              if (_otpSent || _phoneVerified) {
+                                setState(() {
+                                  _otpSent = false;
+                                  _phoneVerified = false;
+                                  _otpCtrl.clear();
+                                });
+                              }
+                            },
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                  RegExp(r'[0-9\-]'))
+                            ],
+                            style: const TextStyle(
+                                fontSize: 14, color: AppColors.primary),
+                            decoration: InputDecoration(
+                              hintText: _selectedCountry.code == '+82'
+                                  ? '010-0000-0000'
+                                  : _selectedCountry.code == '+1'
+                                      ? '555-123-4567'
+                                      : _selectedCountry.code == '+81'
+                                          ? '90-0000-0000'
+                                          : 'Phone number',
+                              hintStyle: TextStyle(
+                                  fontSize: 13, color: Colors.grey.shade600),
+                              suffixIcon: _phoneVerified
+                                  ? const Icon(Icons.check_circle,
+                                      color: AppColors.success, size: 20)
+                                  : null,
+                              filled: true,
+                              fillColor: _phoneVerified
+                                  ? AppColors.success.withValues(alpha: 0.05)
+                                  : const Color(0xFFF2F3F7),
+                              border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(14),
                                   borderSide: const BorderSide(
-                                      color: AppColors.success, width: 1.5),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.primary, width: 1.5)),
-                                errorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.error, width: 1)),
-                                focusedErrorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.error, width: 1.5)),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 14),
+                                      color: Color(0xFFD7D9E2))),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: _phoneVerified
+                                    ? const BorderSide(
+                                        color: AppColors.success, width: 1.5)
+                                    : BorderSide.none,
                               ),
-                              validator: (v) {
-                                if (v == null || v.trim().isEmpty)
-                                  return context.loc
-                                      .t('휴대폰_번호는_필수입니다', '휴대폰 번호는 필수입니다.');
-                                final digits =
-                                    v.replaceAll(RegExp(r'[^0-9]'), '');
-                                if (_selectedCountry.code == '+82') {
-                                  if (digits.length < 9 || digits.length > 11) {
-                                    return context.loc.t(
-                                        '올바른_한국_휴대폰_번호를_입력해주세요',
-                                        '올바른 한국 휴대폰 번호를 입력해주세요.');
-                                  }
-                                } else {
-                                  if (digits.length < 6 || digits.length > 15) {
-                                    return context.loc.t(
-                                        '올바른_전화번호를_입력해주세요_615자리',
-                                        '올바른 전화번호를 입력해주세요. (6~15자리)');
-                                  }
+                              disabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: const BorderSide(
+                                    color: AppColors.success, width: 1.5),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(
+                                      color: AppColors.primary, width: 1.5)),
+                              errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(
+                                      color: AppColors.error, width: 1)),
+                              focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(
+                                      color: AppColors.error, width: 1.5)),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 14),
+                            ),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) {
+                                return context.loc
+                                    .t('휴대폰_번호는_필수입니다', '휴대폰 번호는 필수입니다.');
+                              }
+                              final digits =
+                                  v.replaceAll(RegExp(r'[^0-9]'), '');
+                              if (_selectedCountry.code == '+82') {
+                                if (digits.length < 9 || digits.length > 11) {
+                                  return context.loc.t('올바른_한국_휴대폰_번호를_입력해주세요',
+                                      '올바른 한국 휴대폰 번호를 입력해주세요.');
                                 }
-                                return null;
-                              },
-                            ),
+                              } else {
+                                if (digits.length < 6 || digits.length > 15) {
+                                  return context.loc.t('올바른_전화번호를_입력해주세요_615자리',
+                                      '올바른 전화번호를 입력해주세요. (6~15자리)');
+                                }
+                              }
+                              return null;
+                            },
                           ),
-                          const SizedBox(width: 8),
-                          // 인증번호 받기 버튼
-                          SizedBox(
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed: (_phoneSending || _phoneVerified)
-                                  ? null
-                                  : _sendOtp,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _phoneVerified
-                                    ? AppColors.success
-                                    : AppColors.primary,
-                                disabledBackgroundColor: Colors.grey.shade300,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
-                                elevation: 0,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                              ),
-                              child: _phoneSending
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                          color: Colors.white, strokeWidth: 2))
-                                  : _phoneVerified
-                                      ? const Icon(Icons.check,
-                                          color: Colors.white, size: 18)
-                                      : Text(
-                                          _otpSent
-                                              ? context.loc.t('재발송', '재발송')
-                                              : context.loc.t('인증받기', '인증받기'),
-                                          style: const TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.white),
-                                        ),
+                        ),
+                        const SizedBox(width: 8),
+                        // 인증번호 받기 버튼
+                        SizedBox(
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: (_phoneSending || _phoneVerified)
+                                ? null
+                                : _sendOtp,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _phoneVerified
+                                  ? AppColors.success
+                                  : AppColors.primary,
+                              disabledBackgroundColor: Colors.grey.shade300,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
                             ),
+                            child: _phoneSending
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white, strokeWidth: 2))
+                                : _phoneVerified
+                                    ? const Icon(Icons.check,
+                                        color: Colors.white, size: 18)
+                                    : Text(
+                                        _otpSent
+                                            ? context.loc.t('재발송', '재발송')
+                                            : context.loc.t('인증받기', '인증받기'),
+                                        style: const TextStyle(
+                                            fontSize: 12, color: Colors.white),
+                                      ),
                           ),
-
+                        ),
                       ],
                     ),
 
@@ -1203,7 +1205,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   child: Text(
                                       context.loc.t('문자로_발송된_6자리_인증번호를_입력하세요',
                                           '문자로 발송된 6자리 인증번호를 입력하세요.'),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           fontSize: 12,
                                           color: AppColors.primary,
                                           fontWeight: FontWeight.w600)),
@@ -1237,9 +1239,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               Row(children: [
                                 Expanded(
                                   child: TextFormField(
-                                    key: const ValueKey<String>('signup-otp-field'),
+                                    key: const ValueKey<String>(
+                                        'signup-otp-field'),
                                     controller: _otpCtrl,
-                                    scrollPadding: const EdgeInsets.only(bottom: 180),
+                                    scrollPadding:
+                                        const EdgeInsets.only(bottom: 180),
                                     focusNode: _otpFocusNode,
                                     // 카운트다운 rebuild와 무관하게 IME 입력을 유지합니다.
                                     // 수동 onTap 포커스 재요청은 모바일 키보드 재부착을 유발할 수 있어 사용하지 않습니다.
@@ -1251,9 +1255,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     autocorrect: false,
                                     enableSuggestions: false,
                                     textCapitalization: TextCapitalization.none,
-                                    autofillHints: const [AutofillHints.oneTimeCode],
-                                    keyboardType: const TextInputType.numberWithOptions(
-                                        decimal: false, signed: false),
+                                    autofillHints: const [
+                                      AutofillHints.oneTimeCode
+                                    ],
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                            decimal: false, signed: false),
                                     textInputAction: TextInputAction.done,
                                     maxLength: 6,
                                     onFieldSubmitted: (_) => _verifyOtp(),
@@ -1316,7 +1323,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                 color: Colors.white,
                                                 strokeWidth: 2))
                                         : Text(context.loc.t('확인', '확인'),
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w700,
                                                 color: Colors.white)),
@@ -1364,11 +1371,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             setState(() => _obscurePass = !_obscurePass),
                       ),
                       validator: (v) {
-                        if (v == null || v.isEmpty)
+                        if (v == null || v.isEmpty) {
                           return context.loc.t('비밀번호를_입력해주세요', '비밀번호를 입력해주세요.');
-                        if (v.length < 8)
+                        }
+                        if (v.length < 8) {
                           return context.loc
                               .t('비밀번호는_8자_이상이어야_합니다', '비밀번호는 8자 이상이어야 합니다.');
+                        }
                         if (_passwordChecks.where((c) => c).length < 3) {
                           return context.loc
                               .t('비밀번호_강도가_부족합니다', '비밀번호 강도가 부족합니다.');
@@ -1401,8 +1410,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             setState(() => _obscureConfirm = !_obscureConfirm),
                       ),
                       validator: (v) {
-                        if (v != _passwordCtrl.text)
+                        if (v != _passwordCtrl.text) {
                           return loc.signupConfirmPasswordError;
+                        }
                         return null;
                       },
                     ),
@@ -1672,7 +1682,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           decoration: BoxDecoration(
               color: AppColors.primary, borderRadius: BorderRadius.circular(4)),
           child: Text(context.loc.t('필수', '필수'),
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 10,
                   color: Colors.white,
                   fontWeight: FontWeight.w700)),
@@ -1688,7 +1698,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       GestureDetector(
         onTap: onViewTap,
         child: Text(context.loc.t('전문보기', '전문보기'),
-            style: TextStyle(
+            style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.primary,
                 fontWeight: FontWeight.w600,
@@ -1729,7 +1739,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 color: AppColors.primary,
                 borderRadius: BorderRadius.circular(4)),
             child: Text(context.loc.t('필수', '필수'),
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 10,
                     color: Colors.white,
                     fontWeight: FontWeight.w700)),
@@ -1742,7 +1752,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 color: Colors.grey.shade400,
                 borderRadius: BorderRadius.circular(4)),
             child: Text(context.loc.t('선택', '선택'),
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 10,
                     color: Colors.white,
                     fontWeight: FontWeight.w700)),

@@ -507,7 +507,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
   }
 
   Widget _buildColorSection() {
-    final freeColors = AppConstants.freeColors;
+    const freeColors = AppConstants.freeColors;
     final hasColor = _selectedColor != null && _selectedColorValue != null;
     final isFree = freeColors.contains(_selectedColor);
     final hexStr = hasColor ? _colorToHex(_selectedColorValue!) : '';
@@ -634,11 +634,11 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.palette_rounded,
+                      const Icon(Icons.palette_rounded,
                           size: 14, color: Colors.white),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 4),
                       Text(context.loc.t('색상_선택', '색상 선택'),
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 12,
                               color: Colors.white,
                               fontWeight: FontWeight.w700)),
@@ -653,7 +653,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
 
         // ── 골지 19색 빠른 선택 그리드 ──
         Text(context.loc.t('골지_기본_19색', '골지 기본 19색'),
-            style: TextStyle(
+            style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textSecondary)),
@@ -739,19 +739,19 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.color_lens_rounded,
+                const Icon(Icons.color_lens_rounded,
                     size: 16, color: AppColors.primary),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Text(
                   context.loc
                       .t('더_많은_색상_보기_HEX_코드_입력', '더 많은 색상 보기 · HEX 코드 직접 입력'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.primary,
                       fontWeight: FontWeight.w700),
                 ),
-                SizedBox(width: 4),
-                Icon(Icons.chevron_right_rounded,
+                const SizedBox(width: 4),
+                const Icon(Icons.chevron_right_rounded,
                     size: 16, color: AppColors.primary),
               ],
             ),
@@ -1313,7 +1313,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
               Text(
                 context.loc
                     .t('상품_디자인_참고_이미지입니다', '상품 디자인 참고 이미지입니다. 이미지를 탭하면 확대됩니다.'),
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 12, color: AppColors.textSecondary, height: 1.5),
               ),
               const SizedBox(height: 12),
@@ -1606,7 +1606,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                           const SizedBox(width: 6),
                           Text(
                             context.loc.t('사이즈_입력_안내', '사이즈 입력 안내'),
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF7A5000)),
@@ -1617,7 +1617,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                       Text(
                         context.loc
                             .t('성인_사이즈_목록', '• 성인: S, M, L, XL, 2XL, 3XL'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 11,
                             color: Color(0xFF7A5000),
                             height: 1.5),
@@ -1625,7 +1625,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                       Text(
                         context.loc.t('주니어_사이즈_목록',
                             '• 주니어: J-S, J-M, J-L, J-XL (앞에 J- 를 붙여주세요)'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 11,
                             color: Color(0xFF7A5000),
                             height: 1.5),

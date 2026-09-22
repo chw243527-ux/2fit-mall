@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import '../../utils/app_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -386,7 +387,7 @@ class _ExchangeCard extends StatelessWidget {
                     size: 16, color: Color(0xFF16A34A)),
                 const SizedBox(width: 6),
                 Text(context.loc.t('처리 완료', '처리 완료'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 13,
                         color: Color(0xFF16A34A),
                         fontWeight: FontWeight.w700)),

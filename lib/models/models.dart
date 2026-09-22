@@ -1,3 +1,4 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/app_localizations.dart';
@@ -14,25 +15,31 @@ class ProductModel {
   final List<String> images;
   final List<String> sizes;
   final List<String> colors;
+
   /// 색상별 추가 가격 (색상명 → 추가 금액)
   final Map<String, double> colorPrices;
+
   /// 상품에 실제 선택된 색상별 HEX 값 (관리자 커스텀 색상 지원)
   final Map<String, int> colorHexes;
   final String material;
+
   /// 신상품 여부 (저장값) — 실제 노출은 [isNewActive] getter 사용
   final bool isNew;
+
   /// 신상품 자동 만료일 (null이면 무기한)
   final DateTime? newExpiresAt;
   final bool isSale;
   final bool isFreeShipping;
-  final bool isGroupOnly;  // 단체주문 전용 상품
-  final bool isGroup;      // 홈 단체주문 영역 노출 상품
-  final bool isReadyMade;  // 기성품 (단체주문에서 기성품 선택 가능)
+  final bool isGroupOnly; // 단체주문 전용 상품
+  final bool isGroup; // 홈 단체주문 영역 노출 상품
+  final bool isReadyMade; // 기성품 (단체주문에서 기성품 선택 가능)
   final double rating;
   final int reviewCount;
   final int stockCount;
+
   /// 사이즈별 품절 목록 (예: ['XL', '2XL']) — 해당 사이즈는 선택 불가
   final List<String> soldOutSizes;
+
   /// 실제 구매 완료된 누적 판매 수량 (confirmed 이상 주문 기준)
   final int salesCount;
   final bool isActive;
@@ -47,6 +54,7 @@ class ProductModel {
   final Map<String, String> descriptionTranslations;
   // 관리자 직접 입력 하의길이 (비어있으면 카테고리 기본값 자동 적용)
   final String bottomLength;
+
   /// 사이즈별 재고 수량 (예: {'S': 10, 'M': 20, 'L': 15})
   /// 비어있으면 stockCount를 전체 재고로 사용
   final Map<String, int> sizeStocks;
@@ -114,13 +122,21 @@ class ProductModel {
   String localizedName(AppLanguage lang) {
     switch (lang) {
       case AppLanguage.english:
-        return nameTranslations['en']?.isNotEmpty == true ? nameTranslations['en']! : name;
+        return nameTranslations['en']?.isNotEmpty == true
+            ? nameTranslations['en']!
+            : name;
       case AppLanguage.japanese:
-        return nameTranslations['ja']?.isNotEmpty == true ? nameTranslations['ja']! : name;
+        return nameTranslations['ja']?.isNotEmpty == true
+            ? nameTranslations['ja']!
+            : name;
       case AppLanguage.chinese:
-        return nameTranslations['zh']?.isNotEmpty == true ? nameTranslations['zh']! : name;
+        return nameTranslations['zh']?.isNotEmpty == true
+            ? nameTranslations['zh']!
+            : name;
       case AppLanguage.mongolian:
-        return nameTranslations['mn']?.isNotEmpty == true ? nameTranslations['mn']! : name;
+        return nameTranslations['mn']?.isNotEmpty == true
+            ? nameTranslations['mn']!
+            : name;
       default:
         return name;
     }
@@ -226,7 +242,8 @@ class ProductModel {
       productCode: productCode ?? this.productCode,
       sectionImages: sectionImages ?? this.sectionImages,
       nameTranslations: nameTranslations ?? this.nameTranslations,
-      descriptionTranslations: descriptionTranslations ?? this.descriptionTranslations,
+      descriptionTranslations:
+          descriptionTranslations ?? this.descriptionTranslations,
       bottomLength: bottomLength ?? this.bottomLength,
       sizeStocks: sizeStocks ?? this.sizeStocks,
       stockData: stockData ?? this.stockData,
@@ -235,7 +252,8 @@ class ProductModel {
       editorialAccent: editorialAccent ?? this.editorialAccent,
       editorialSubtitle: editorialSubtitle ?? this.editorialSubtitle,
       editorialMaterialKey: editorialMaterialKey ?? this.editorialMaterialKey,
-      editorialMaterialText: editorialMaterialText ?? this.editorialMaterialText,
+      editorialMaterialText:
+          editorialMaterialText ?? this.editorialMaterialText,
       editorialSource: editorialSource ?? this.editorialSource,
       editorialLocked: editorialLocked ?? this.editorialLocked,
     );
@@ -247,21 +265,37 @@ class ProductModel {
     Map<String, String>? descriptionTranslations,
   }) {
     return ProductModel(
-      id: id, name: name, category: category, subCategory: subCategory,
-      price: price, originalPrice: originalPrice, description: description,
-      images: images, sizes: sizes, colors: colors, colorPrices: colorPrices,
-      colorHexes: this.colorHexes,
+      id: id,
+      name: name,
+      category: category,
+      subCategory: subCategory,
+      price: price,
+      originalPrice: originalPrice,
+      description: description,
+      images: images,
+      sizes: sizes,
+      colors: colors,
+      colorPrices: colorPrices,
+      colorHexes: colorHexes,
       material: material,
-      isNew: isNew, newExpiresAt: newExpiresAt,
-      isSale: isSale, isFreeShipping: isFreeShipping,
-      isGroupOnly: isGroupOnly, isReadyMade: isReadyMade,
-      rating: rating, reviewCount: reviewCount,
-      stockCount: stockCount, soldOutSizes: soldOutSizes,
-      salesCount: salesCount, isActive: isActive, createdAt: createdAt,
+      isNew: isNew,
+      newExpiresAt: newExpiresAt,
+      isSale: isSale,
+      isFreeShipping: isFreeShipping,
+      isGroupOnly: isGroupOnly,
+      isReadyMade: isReadyMade,
+      rating: rating,
+      reviewCount: reviewCount,
+      stockCount: stockCount,
+      soldOutSizes: soldOutSizes,
+      salesCount: salesCount,
+      isActive: isActive,
+      createdAt: createdAt,
       productCode: productCode,
       sectionImages: sectionImages,
       nameTranslations: nameTranslations ?? this.nameTranslations,
-      descriptionTranslations: descriptionTranslations ?? this.descriptionTranslations,
+      descriptionTranslations:
+          descriptionTranslations ?? this.descriptionTranslations,
       bottomLength: bottomLength,
       sizeStocks: sizeStocks,
       stockData: stockData,
@@ -323,18 +357,28 @@ class ProductModel {
       if (raw is num) return raw != 0;
       if (raw is String) {
         final v = raw.trim().toLowerCase();
-        if (const {'true', '1', 'yes', 'y', 'on', '단체', '단체전용', '기성품', '선택'}.contains(v)) return true;
-        if (const {'false', '0', 'no', 'n', 'off', '', '없음', '미선택'}.contains(v)) return false;
+        if (const {'true', '1', 'yes', 'y', 'on', '단체', '단체전용', '기성품', '선택'}
+            .contains(v)) return true;
+        if (const {'false', '0', 'no', 'n', 'off', '', '없음', '미선택'}.contains(v))
+          return false;
       }
       return fallback;
     }
 
     List<String> parseStrings(dynamic raw) {
       if (raw is List) {
-        return raw.where((e) => e != null).map((e) => e.toString()).where((e) => e.trim().isNotEmpty).toList();
+        return raw
+            .where((e) => e != null)
+            .map((e) => e.toString())
+            .where((e) => e.trim().isNotEmpty)
+            .toList();
       }
       if (raw is String && raw.trim().isNotEmpty) {
-        return raw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+        return raw
+            .split(',')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
       }
       return const [];
     }
@@ -342,7 +386,8 @@ class ProductModel {
     Map<String, int> parseIntMap(dynamic raw) {
       if (raw is! Map) return const {};
       return raw.map((key, value) {
-        final parsed = value is num ? value.toInt() : int.tryParse(value.toString()) ?? 0;
+        final parsed =
+            value is num ? value.toInt() : int.tryParse(value.toString()) ?? 0;
         return MapEntry(key.toString(), parsed);
       });
     }
@@ -374,8 +419,8 @@ class ProductModel {
       sizes: parseStrings(json['sizes']),
       colors: normalizedColors,
       colorPrices: (json['colorPrices'] is Map)
-          ? (json['colorPrices'] as Map).map((k, v) => MapEntry(
-              k.toString(), v is num ? v.toDouble() : double.tryParse(v.toString()) ?? 0.0))
+          ? (json['colorPrices'] as Map).map((k, v) => MapEntry(k.toString(),
+              v is num ? v.toDouble() : double.tryParse(v.toString()) ?? 0.0))
           : const {},
       colorHexes: parsedColorHexes,
       material: json['material'] as String? ?? '78% Nylon, 22% Spandex',
@@ -400,7 +445,10 @@ class ProductModel {
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviewCount: json['reviewCount'] as int? ?? 0,
       stockCount: json['stockCount'] as int? ?? 100,
-      soldOutSizes: (json['soldOutSizes'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const [],
+      soldOutSizes: (json['soldOutSizes'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
       sizeStocks: (json['sizeStocks'] as Map<String, dynamic>?)
               ?.map((k, v) => MapEntry(k, (v as num).toInt())) ??
           const {},
@@ -476,22 +524,38 @@ class ProductModel {
   }
 
   /// 섹션 이미지만 변경한 새 ProductModel 반환
-  ProductModel copyWithSectionImages(Map<String, List<String>> newSectionImages) {
+  ProductModel copyWithSectionImages(
+      Map<String, List<String>> newSectionImages) {
     return ProductModel(
-      id: id, name: name, category: category, subCategory: subCategory,
-      price: price, originalPrice: originalPrice, description: description,
-      images: images, sizes: sizes, colors: colors, colorPrices: colorPrices,
-      colorHexes: this.colorHexes,
+      id: id,
+      name: name,
+      category: category,
+      subCategory: subCategory,
+      price: price,
+      originalPrice: originalPrice,
+      description: description,
+      images: images,
+      sizes: sizes,
+      colors: colors,
+      colorPrices: colorPrices,
+      colorHexes: colorHexes,
       material: material,
-      isNew: isNew, newExpiresAt: newExpiresAt,
-      isSale: isSale, isFreeShipping: isFreeShipping,
-      isGroupOnly: isGroupOnly, isGroup: isGroup, isReadyMade: isReadyMade,
-      rating: rating, reviewCount: reviewCount, stockCount: stockCount,
+      isNew: isNew,
+      newExpiresAt: newExpiresAt,
+      isSale: isSale,
+      isFreeShipping: isFreeShipping,
+      isGroupOnly: isGroupOnly,
+      isGroup: isGroup,
+      isReadyMade: isReadyMade,
+      rating: rating,
+      reviewCount: reviewCount,
+      stockCount: stockCount,
       soldOutSizes: soldOutSizes,
       sizeStocks: sizeStocks,
       stockData: stockData,
       salesCount: salesCount,
-      isActive: isActive, createdAt: createdAt,
+      isActive: isActive,
+      createdAt: createdAt,
       productCode: productCode,
       sectionImages: newSectionImages,
       nameTranslations: nameTranslations,
@@ -515,7 +579,7 @@ class CartItem {
   String selectedSize;
   String selectedColor;
   int quantity;
-  double extraPrice;          // 색상/옵션 추가금액
+  double extraPrice; // 색상/옵션 추가금액
   Map<String, dynamic>? customOptions;
 
   CartItem({
@@ -528,8 +592,8 @@ class CartItem {
     this.customOptions,
   });
 
-  double get unitPrice  => product.price + extraPrice;   // 단품 가격
-  double get totalPrice => unitPrice * quantity;          // 합계
+  double get unitPrice => product.price + extraPrice; // 단품 가격
+  double get totalPrice => unitPrice * quantity; // 합계
 }
 
 class OrderModel {
@@ -540,14 +604,17 @@ class OrderModel {
   final String userPhone;
   final String userAddress;
   final List<OrderItem> items;
+
   /// 쿠폰·포인트 적용 후 실제 결제 금액
   final double totalAmount;
   final double shippingFee;
+
   /// 적용한 쿠폰 식별자와 할인 금액
   final String? couponId;
   final List<String> couponIds;
   final double couponDiscount;
   final List<double> couponDiscounts;
+
   /// 사용한 포인트와 포인트 할인 금액 (1P = 1원)
   final int usedPoints;
   final double pointDiscount;
@@ -559,24 +626,35 @@ class OrderModel {
   final int? groupCount;
   final DateTime createdAt;
   final String? memo;
+
   /// 추가제작 신청 횟수 (무제한)
   final int additionalOrderCount;
+
   /// 컬러+단체명 수정요청 사용 횟수 (최대 2회)
   final int colorEditCount;
+
   /// 디자인 수정 요청 횟수 (최대 2회)
   final int designRevisionCount;
+
   /// 디자인 수정 요청 마감일 저장 필드 (신규 계산은 단계별 activeDesignRevisionDeadline 사용)
   final DateTime? designRevisionDeadline;
+
   /// 배송완료 날짜 (자동 구매확정 기준)
   final DateTime? deliveredAt;
+
   /// 결제 키 (토스페이먼츠 paymentKey — 영수증 조회용)
   final String? paymentKey;
+
   /// 현금영수증 번호 (전화번호 or 사업자번호)
   final String? cashReceiptNum;
+
   /// 추가제작 가능 마감일 (주문완료 후 7일)
-  DateTime get additionalOrderDeadline => createdAt.add(const Duration(days: 7));
+  DateTime get additionalOrderDeadline =>
+      createdAt.add(const Duration(days: 7));
+
   /// 추가제작 무료 가능 여부
-  bool get canOrderAdditionalFree => DateTime.now().isBefore(additionalOrderDeadline);
+  bool get canOrderAdditionalFree =>
+      DateTime.now().isBefore(additionalOrderDeadline);
 
   OrderModel({
     required this.id,
@@ -627,10 +705,13 @@ class OrderModel {
 
   /// 컬러+단체명 수정 가능 여부 (총 2회)
   bool get canEditColor => colorEditCount < 2;
+
   /// 남은 컬러+단체명 수정 횟수
   int get remainingColorEdits => 2 - colorEditCount;
+
   /// 디자인 수정 가능 여부 (총 2회, 마감일 이내)
   bool get canDesignRevision => designRevisionCount < 2;
+
   /// 남은 디자인 수정 횟수
   int get remainingDesignRevisions => 2 - designRevisionCount;
 
@@ -653,7 +734,8 @@ class OrderModel {
   DateTime? get secondDesignRevisionDeadline {
     final respondedAt = firstRevisionRespondedAt;
     if (respondedAt == null) return null;
-    return respondedAt.add(const Duration(days: AppConstants.customOrderModifyDays));
+    return respondedAt
+        .add(const Duration(days: AppConstants.customOrderModifyDays));
   }
 
   /// 현재 단계에서 적용되는 디자인 수정 마감일.
@@ -667,7 +749,8 @@ class OrderModel {
   bool get isDesignRevisionPeriodActive {
     final deadline = activeDesignRevisionDeadline;
     if (deadline == null) return false;
-    if (designRevisionCount == 1 && firstRevisionRespondedAt == null) return false;
+    if (designRevisionCount == 1 && firstRevisionRespondedAt == null)
+      return false;
     return DateTime.now().isBefore(deadline);
   }
 
@@ -694,10 +777,10 @@ class OrderModel {
         .toString()
         .trim();
     final normalizedId = id.trim().toUpperCase();
-    final explicitId = RegExp(r'^(?:ADD|ADDITIONAL)(?:[_-]|$)')
-            .hasMatch(normalizedId) ||
-        RegExp(r'^(?:GRP|GROUP)[_-].*(?:[_-](?:ADD|ADDITIONAL))(?:[_-]|$)')
-            .hasMatch(normalizedId);
+    final explicitId =
+        RegExp(r'^(?:ADD|ADDITIONAL)(?:[_-]|$)').hasMatch(normalizedId) ||
+            RegExp(r'^(?:GRP|GROUP)[_-].*(?:[_-](?:ADD|ADDITIONAL))(?:[_-]|$)')
+                .hasMatch(normalizedId);
 
     return normalizedType == 'additional' ||
         optionType == 'additional' ||
@@ -729,8 +812,8 @@ class OrderModel {
   bool get canRequestDesignRevision =>
       isGroupOrder &&
       (status == OrderStatus.pending ||
-       status == OrderStatus.confirmed ||
-       status == OrderStatus.processing) &&
+          status == OrderStatus.confirmed ||
+          status == OrderStatus.processing) &&
       canDesignRevision &&
       isDesignRevisionPeriodActive;
 
@@ -739,11 +822,13 @@ class OrderModel {
   bool get isDesignConfirmed {
     if (designRevisionCount >= 2) return true;
     final deadline = activeDesignRevisionDeadline;
-    final stageExpired = deadline != null && !DateTime.now().isBefore(deadline) &&
+    final stageExpired = deadline != null &&
+        !DateTime.now().isBefore(deadline) &&
         (designRevisionCount == 0 || firstRevisionRespondedAt != null);
     return stageExpired ||
-        (status == OrderStatus.shipped || status == OrderStatus.delivered ||
-         status == OrderStatus.purchaseConfirmed);
+        (status == OrderStatus.shipped ||
+            status == OrderStatus.delivered ||
+            status == OrderStatus.purchaseConfirmed);
   }
 
   /// 관리자가 업로드한 수정 완료 디자인 이미지 URL
@@ -761,8 +846,7 @@ class OrderModel {
 
   /// 사용자가 수정 완료 디자인을 확정했는지 여부
   /// customOptions['userDesignApproved'] == true 일 때 제작 시작 상태
-  bool get userDesignApproved =>
-      customOptions?['userDesignApproved'] == true;
+  bool get userDesignApproved => customOptions?['userDesignApproved'] == true;
 
   OrderModel copyWith({
     OrderStatus? status,
@@ -807,7 +891,8 @@ class OrderModel {
       additionalOrderCount: additionalOrderCount ?? this.additionalOrderCount,
       colorEditCount: colorEditCount ?? this.colorEditCount,
       designRevisionCount: designRevisionCount ?? this.designRevisionCount,
-      designRevisionDeadline: designRevisionDeadline ?? this.designRevisionDeadline,
+      designRevisionDeadline:
+          designRevisionDeadline ?? this.designRevisionDeadline,
       deliveredAt: deliveredAt ?? this.deliveredAt,
       paymentKey: paymentKey ?? this.paymentKey,
       cashReceiptNum: cashReceiptNum ?? this.cashReceiptNum,
@@ -958,17 +1043,17 @@ class CouponModel {
   final String code;
   final String name;
   final CouponType type;
-  final double value;           // 고정 금액 or 퍼센트
-  final double minOrderAmount;  // 최소 주문금액 (0 = 제한 없음)
+  final double value; // 고정 금액 or 퍼센트
+  final double minOrderAmount; // 최소 주문금액 (0 = 제한 없음)
   final double? maxDiscountAmount; // 최대 할인 금액 (percent 전용)
-  final DateTime? startsAt;     // 쿠폰 시작일 (null = 즉시 유효)
+  final DateTime? startsAt; // 쿠폰 시작일 (null = 즉시 유효)
   final DateTime expiresAt;
   bool isUsed;
-  final bool isDownloadable;    // 사용자가 팝업/배너에서 다운로드 가능한 공개 쿠폰
+  final bool isDownloadable; // 사용자가 팝업/배너에서 다운로드 가능한 공개 쿠폰
   /// 다른 쿠폰과 함께 사용할 수 있도록 관리자가 허용한 쿠폰
   final bool isStackable;
-  final int? downloadLimit;     // 최대 다운로드 수 (null = 무제한)
-  final int downloadCount;      // 현재 다운로드 수
+  final int? downloadLimit; // 최대 다운로드 수 (null = 무제한)
+  final int downloadCount; // 현재 다운로드 수
 
   CouponModel({
     required this.id,
@@ -995,7 +1080,8 @@ class CouponModel {
   }
 
   bool get canDownload =>
-      isDownloadable && isValid &&
+      isDownloadable &&
+      isValid &&
       (downloadLimit == null || downloadCount < downloadLimit!);
 
   double calculateDiscount(double orderAmount) =>
@@ -1020,8 +1106,9 @@ class CouponModel {
     return list.length <= 1 || list.every((coupon) => coupon.isStackable);
   }
 
-  String get typeLabel =>
-      type == CouponType.fixed ? '${value.toInt()}원 할인' : '${value.toInt()}% 할인';
+  String get typeLabel => type == CouponType.fixed
+      ? '${value.toInt()}원 할인'
+      : '${value.toInt()}% 할인';
 }
 
 // ── 리뷰 작성 요청 모델 ──────────────────────────────
@@ -1050,12 +1137,12 @@ class ReviewWriteRequest {
 // 배송지 모델
 class AddressModel {
   final String id;
-  String label;       // 예: '집', '회사', '기타'
-  String recipient;   // 수령인
+  String label; // 예: '집', '회사', '기타'
+  String recipient; // 수령인
   String phone;
-  String zipCode;     // 우편번호
-  String address1;    // 도로명/지번 주소
-  String address2;    // 상세 주소
+  String zipCode; // 우편번호
+  String address1; // 도로명/지번 주소
+  String address2; // 상세 주소
   bool isDefault;
 
   AddressModel({
@@ -1070,21 +1157,26 @@ class AddressModel {
   });
 
   factory AddressModel.fromJson(Map<String, dynamic> json) => AddressModel(
-    id: json['id'] as String,
-    label: json['label'] as String? ?? '집',
-    recipient: json['recipient'] as String? ?? '',
-    phone: json['phone'] as String? ?? '',
-    zipCode: json['zipCode'] as String? ?? '',
-    address1: json['address1'] as String? ?? '',
-    address2: json['address2'] as String? ?? '',
-    isDefault: json['isDefault'] as bool? ?? false,
-  );
+        id: json['id'] as String,
+        label: json['label'] as String? ?? '집',
+        recipient: json['recipient'] as String? ?? '',
+        phone: json['phone'] as String? ?? '',
+        zipCode: json['zipCode'] as String? ?? '',
+        address1: json['address1'] as String? ?? '',
+        address2: json['address2'] as String? ?? '',
+        isDefault: json['isDefault'] as bool? ?? false,
+      );
 
   Map<String, dynamic> toJson() => {
-    'id': id, 'label': label, 'recipient': recipient, 'phone': phone,
-    'zipCode': zipCode, 'address1': address1, 'address2': address2,
-    'isDefault': isDefault,
-  };
+        'id': id,
+        'label': label,
+        'recipient': recipient,
+        'phone': phone,
+        'zipCode': zipCode,
+        'address1': address1,
+        'address2': address2,
+        'isDefault': isDefault,
+      };
 }
 
 class UserModel {
@@ -1098,7 +1190,7 @@ class UserModel {
   bool isAdmin;
   List<String> wishlist;
   String memberTier; // bronze, silver, gold, vip
-  String grade;      // memberTier 별칭 (하위 호환)
+  String grade; // memberTier 별칭 (하위 호환)
   DateTime createdAt;
   List<AddressModel> addresses; // 배송지 목록
   String loginProvider; // email, google, kakao, naver
@@ -1129,7 +1221,8 @@ class UserModel {
   }) : grade = grade ?? memberTier;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    final tier = json['memberTier'] as String? ?? json['grade'] as String? ?? 'bronze';
+    final tier =
+        json['memberTier'] as String? ?? json['grade'] as String? ?? 'bronze';
     return UserModel(
       id: json['id'] as String? ?? '',
       name: json['name'] as String? ?? '',
@@ -1147,13 +1240,17 @@ class UserModel {
               ? DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now()
               : DateTime.now())
           : DateTime.now(),
-      addresses: (json['addresses'] as List? ?? []).map((a) =>
-        AddressModel.fromJson(Map<String, dynamic>.from(a as Map))).toList(),
+      addresses: (json['addresses'] as List? ?? [])
+          .map(
+              (a) => AddressModel.fromJson(Map<String, dynamic>.from(a as Map)))
+          .toList(),
       loginProvider: json['loginProvider'] as String? ?? 'email',
       cashReceiptNum: json['cashReceiptNum'] as String?,
       points: (json['points'] as num?)?.toInt() ?? 0,
-      orderNotificationsEnabled: json['orderNotificationsEnabled'] as bool? ?? true,
-      marketingNotificationsEnabled: json['marketingNotificationsEnabled'] as bool? ?? false,
+      orderNotificationsEnabled:
+          json['orderNotificationsEnabled'] as bool? ?? true,
+      marketingNotificationsEnabled:
+          json['marketingNotificationsEnabled'] as bool? ?? false,
     );
   }
 
@@ -1180,39 +1277,47 @@ class UserModel {
         'cashReceiptNum': cashReceiptNum,
     };
   }
-  
+
   String get tierLabel {
     switch (memberTier) {
-      case 'silver': return '실버';
-      case 'gold': return '골드';
-      case 'vip': return 'VIP';
-      default: return '브론즈';
+      case 'silver':
+        return '실버';
+      case 'gold':
+        return '골드';
+      case 'vip':
+        return 'VIP';
+      default:
+        return '브론즈';
     }
   }
-  
+
   Color get tierColor {
     switch (memberTier) {
-      case 'silver': return const Color(0xFF9E9E9E);
-      case 'gold': return const Color(0xFFFFB300);
-      case 'vip': return const Color(0xFF6A1B9A);
-      default: return const Color(0xFF795548);
+      case 'silver':
+        return const Color(0xFF9E9E9E);
+      case 'gold':
+        return const Color(0xFFFFB300);
+      case 'vip':
+        return const Color(0xFF6A1B9A);
+      default:
+        return const Color(0xFF795548);
     }
   }
 }
 
 // ── 사이즈 프로필 ────────────────────────────────────────
 class SizeProfile {
-  final String id;          // Firestore 문서 ID
-  final String userId;      // 소유 유저 ID
-  String profileName;       // 프로필 이름 (예: "내 기본 사이즈", "겨울 오버핏")
-  String gender;            // 'male' | 'female'
-  String sizeType;          // '성인' | '주니어'
-  String topSize;           // 상의 사이즈
-  String bottomSize;        // 하의 사이즈
-  String height;            // 키
-  String weight;            // 몸무게
-  String waist;             // 허리
-  String thigh;             // 허벅지
+  final String id; // Firestore 문서 ID
+  final String userId; // 소유 유저 ID
+  String profileName; // 프로필 이름 (예: "내 기본 사이즈", "겨울 오버핏")
+  String gender; // 'male' | 'female'
+  String sizeType; // '성인' | '주니어'
+  String topSize; // 상의 사이즈
+  String bottomSize; // 하의 사이즈
+  String height; // 키
+  String weight; // 몸무게
+  String waist; // 허리
+  String thigh; // 허벅지
   DateTime updatedAt;
 
   SizeProfile({
@@ -1248,18 +1353,18 @@ class SizeProfile {
   }
 
   Map<String, dynamic> toJson() => {
-    'userId': userId,
-    'profileName': profileName,
-    'gender': gender,
-    'sizeType': sizeType,
-    'topSize': topSize,
-    'bottomSize': bottomSize,
-    'height': height,
-    'weight': weight,
-    'waist': waist,
-    'thigh': thigh,
-    'updatedAt': updatedAt.toIso8601String(),
-  };
+        'userId': userId,
+        'profileName': profileName,
+        'gender': gender,
+        'sizeType': sizeType,
+        'topSize': topSize,
+        'bottomSize': bottomSize,
+        'height': height,
+        'weight': weight,
+        'waist': waist,
+        'thigh': thigh,
+        'updatedAt': updatedAt.toIso8601String(),
+      };
 
   String get genderLabel => gender == 'male' ? '남성' : '여성';
 }
@@ -1280,21 +1385,21 @@ DateTime _parseDateTime(dynamic value) {
 /// Firestore /banners/{id} 문서 구조
 class BannerModel {
   final String id;
-  final int order;          // 표시 순서 (0부터)
-  final bool active;        // 노출 여부
-  final String title;       // 배너 제목 (관리자 표시용)
-  final String tag;         // 태그 뱃지 텍스트
-  final String titleKo;     // 슬라이드 메인 타이틀 (한국어)
-  final String titleEn;     // 슬라이드 메인 타이틀 (영어)
-  final String ctaKo;       // CTA 버튼 텍스트 (한국어)
-  final String ctaEn;       // CTA 버튼 텍스트 (영어)
-  final String imageUrl;    // 배경 이미지 URL (Firebase Storage)
-  final String? videoUrl;   // 동영상 URL (설정된 배너에서 사용, null이면 이미지)
-  final int accentColor;    // accent 색상 (ARGB int)
-  final int btnAction;      // 0=신상, 1=베스트, 2=단체주문, 3=쿠폰다운로드, 4=엘리트 안내
+  final int order; // 표시 순서 (0부터)
+  final bool active; // 노출 여부
+  final String title; // 배너 제목 (관리자 표시용)
+  final String tag; // 태그 뱃지 텍스트
+  final String titleKo; // 슬라이드 메인 타이틀 (한국어)
+  final String titleEn; // 슬라이드 메인 타이틀 (영어)
+  final String ctaKo; // CTA 버튼 텍스트 (한국어)
+  final String ctaEn; // CTA 버튼 텍스트 (영어)
+  final String imageUrl; // 배경 이미지 URL (Firebase Storage)
+  final String? videoUrl; // 동영상 URL (설정된 배너에서 사용, null이면 이미지)
+  final int accentColor; // accent 색상 (ARGB int)
+  final int btnAction; // 0=신상, 1=베스트, 2=단체주문, 3=쿠폰다운로드, 4=엘리트 안내
   final DateTime? startDate; // 노출 시작일 (null=제한없음)
-  final DateTime? endDate;   // 노출 종료일 (null=제한없음)
-  final String? couponId;   // btnAction==3 일 때 연결할 쿠폰 ID
+  final DateTime? endDate; // 노출 종료일 (null=제한없음)
+  final String? couponId; // btnAction==3 일 때 연결할 쿠폰 ID
 
   const BannerModel({
     required this.id,
@@ -1319,17 +1424,18 @@ class BannerModel {
   bool get isInSchedule {
     final now = DateTime.now();
     if (startDate != null && now.isBefore(startDate!)) return false;
-    if (endDate   != null && now.isAfter(endDate!))    return false;
+    if (endDate != null && now.isAfter(endDate!)) return false;
     return true;
   }
 
   factory BannerModel.fromFirestore(Map<String, dynamic> d, String id) {
-    DateTime? _parseDate(dynamic v) {
+    DateTime? parseDate(dynamic v) {
       if (v == null) return null;
       if (v is Timestamp) return v.toDate();
       if (v is String) return DateTime.tryParse(v);
       return null;
     }
+
     return BannerModel(
       id: id,
       order: (d['order'] as num?)?.toInt() ?? 99,
@@ -1344,56 +1450,73 @@ class BannerModel {
       videoUrl: d['videoUrl'] as String?,
       accentColor: (d['accentColor'] as num?)?.toInt() ?? 0xFFE53935,
       btnAction: (d['btnAction'] as num?)?.toInt() ?? 0,
-      startDate: _parseDate(d['startDate']),
-      endDate:   _parseDate(d['endDate']),
+      startDate: parseDate(d['startDate']),
+      endDate: parseDate(d['endDate']),
       couponId: d['couponId'] as String?,
     );
   }
 
   Map<String, dynamic> toFirestore() => {
-    'order': order,
-    'active': active,
-    'title': title,
-    'tag': tag,
-    'titleKo': titleKo,
-    'titleEn': titleEn,
-    'ctaKo': ctaKo,
-    'ctaEn': ctaEn,
-    'imageUrl': imageUrl,
-    if (videoUrl != null && videoUrl!.isNotEmpty) 'videoUrl': videoUrl,
-    'accentColor': accentColor,
-    'btnAction': btnAction,
-    if (startDate != null) 'startDate': Timestamp.fromDate(startDate!)
-    else 'startDate': null,
-    if (endDate != null)   'endDate':   Timestamp.fromDate(endDate!)
-    else 'endDate': null,
-    'couponId': couponId,
-  };
+        'order': order,
+        'active': active,
+        'title': title,
+        'tag': tag,
+        'titleKo': titleKo,
+        'titleEn': titleEn,
+        'ctaKo': ctaKo,
+        'ctaEn': ctaEn,
+        'imageUrl': imageUrl,
+        if (videoUrl != null && videoUrl!.isNotEmpty) 'videoUrl': videoUrl,
+        'accentColor': accentColor,
+        'btnAction': btnAction,
+        if (startDate != null)
+          'startDate': Timestamp.fromDate(startDate!)
+        else
+          'startDate': null,
+        if (endDate != null)
+          'endDate': Timestamp.fromDate(endDate!)
+        else
+          'endDate': null,
+        'couponId': couponId,
+      };
 
   BannerModel copyWith({
-    String? id, int? order, bool? active, String? title, String? tag,
-    String? titleKo, String? titleEn, String? ctaKo, String? ctaEn,
-    String? imageUrl, String? videoUrl, int? accentColor, int? btnAction,
-    Object? startDate = _sentinel, Object? endDate = _sentinel,
+    String? id,
+    int? order,
+    bool? active,
+    String? title,
+    String? tag,
+    String? titleKo,
+    String? titleEn,
+    String? ctaKo,
+    String? ctaEn,
+    String? imageUrl,
+    String? videoUrl,
+    int? accentColor,
+    int? btnAction,
+    Object? startDate = _sentinel,
+    Object? endDate = _sentinel,
     Object? couponId = _sentinel,
-  }) => BannerModel(
-    id: id ?? this.id,
-    order: order ?? this.order,
-    active: active ?? this.active,
-    title: title ?? this.title,
-    tag: tag ?? this.tag,
-    titleKo: titleKo ?? this.titleKo,
-    titleEn: titleEn ?? this.titleEn,
-    ctaKo: ctaKo ?? this.ctaKo,
-    ctaEn: ctaEn ?? this.ctaEn,
-    imageUrl: imageUrl ?? this.imageUrl,
-    videoUrl: videoUrl ?? this.videoUrl,
-    accentColor: accentColor ?? this.accentColor,
-    btnAction: btnAction ?? this.btnAction,
-    startDate: startDate == _sentinel ? this.startDate : startDate as DateTime?,
-    endDate:   endDate   == _sentinel ? this.endDate   : endDate   as DateTime?,
-    couponId: couponId == _sentinel ? this.couponId : couponId as String?,
-  );
+  }) =>
+      BannerModel(
+        id: id ?? this.id,
+        order: order ?? this.order,
+        active: active ?? this.active,
+        title: title ?? this.title,
+        tag: tag ?? this.tag,
+        titleKo: titleKo ?? this.titleKo,
+        titleEn: titleEn ?? this.titleEn,
+        ctaKo: ctaKo ?? this.ctaKo,
+        ctaEn: ctaEn ?? this.ctaEn,
+        imageUrl: imageUrl ?? this.imageUrl,
+        videoUrl: videoUrl ?? this.videoUrl,
+        accentColor: accentColor ?? this.accentColor,
+        btnAction: btnAction ?? this.btnAction,
+        startDate:
+            startDate == _sentinel ? this.startDate : startDate as DateTime?,
+        endDate: endDate == _sentinel ? this.endDate : endDate as DateTime?,
+        couponId: couponId == _sentinel ? this.couponId : couponId as String?,
+      );
 }
 
 const Object _sentinel = Object();
@@ -1432,36 +1555,51 @@ class AuthResult {
 
 /// 입출고 유형
 enum InventoryLogType {
-  incoming,   // 입고
-  outgoing,   // 출고
+  incoming, // 입고
+  outgoing, // 출고
   adjustment, // 재고조정
-  reorder,    // 발주
+  reorder, // 발주
 }
 
 extension InventoryLogTypeExt on InventoryLogType {
   String get label {
     switch (this) {
-      case InventoryLogType.incoming:   return '입고';
-      case InventoryLogType.outgoing:   return '출고';
-      case InventoryLogType.adjustment: return '재고조정';
-      case InventoryLogType.reorder:    return '발주';
+      case InventoryLogType.incoming:
+        return '입고';
+      case InventoryLogType.outgoing:
+        return '출고';
+      case InventoryLogType.adjustment:
+        return '재고조정';
+      case InventoryLogType.reorder:
+        return '발주';
     }
   }
+
   String get value {
     switch (this) {
-      case InventoryLogType.incoming:   return 'incoming';
-      case InventoryLogType.outgoing:   return 'outgoing';
-      case InventoryLogType.adjustment: return 'adjustment';
-      case InventoryLogType.reorder:    return 'reorder';
+      case InventoryLogType.incoming:
+        return 'incoming';
+      case InventoryLogType.outgoing:
+        return 'outgoing';
+      case InventoryLogType.adjustment:
+        return 'adjustment';
+      case InventoryLogType.reorder:
+        return 'reorder';
     }
   }
+
   static InventoryLogType fromString(String v) {
     switch (v) {
-      case 'incoming':   return InventoryLogType.incoming;
-      case 'outgoing':   return InventoryLogType.outgoing;
-      case 'adjustment': return InventoryLogType.adjustment;
-      case 'reorder':    return InventoryLogType.reorder;
-      default:           return InventoryLogType.incoming;
+      case 'incoming':
+        return InventoryLogType.incoming;
+      case 'outgoing':
+        return InventoryLogType.outgoing;
+      case 'adjustment':
+        return InventoryLogType.adjustment;
+      case 'reorder':
+        return InventoryLogType.reorder;
+      default:
+        return InventoryLogType.incoming;
     }
   }
 }
@@ -1471,10 +1609,10 @@ class InventoryModel {
   final String productId;
   final String productName;
   final String productCode; // 바코드용 코드
-  final String imageUrl;    // 대표 이미지 URL
+  final String imageUrl; // 대표 이미지 URL
   /// 사이즈 → 색상 → 수량  예: {'S': {'블랙': 10, '화이트': 5}}
   final Map<String, Map<String, int>> stock;
-  final int reorderPoint;   // 발주 기준 수량 (이하이면 경고)
+  final int reorderPoint; // 발주 기준 수량 (이하이면 경고)
   final DateTime updatedAt;
 
   const InventoryModel({
@@ -1490,15 +1628,14 @@ class InventoryModel {
   /// 전체 재고 합산
   int get totalStock => stock.values
       .expand((colorMap) => colorMap.values)
-      .fold(0, (sum, qty) => sum + qty);
+      .fold(0, (total, qty) => total + qty);
 
   /// 특정 사이즈 전체 재고
   int stockForSize(String size) =>
       (stock[size] ?? {}).values.fold(0, (s, v) => s + v);
 
   /// 특정 사이즈+색상 재고
-  int stockForSizeColor(String size, String color) =>
-      stock[size]?[color] ?? 0;
+  int stockForSizeColor(String size, String color) => stock[size]?[color] ?? 0;
 
   bool get needsReorder => totalStock <= reorderPoint;
 
@@ -1507,15 +1644,16 @@ class InventoryModel {
     int? reorderPoint,
     DateTime? updatedAt,
     String? imageUrl,
-  }) => InventoryModel(
-    productId:   productId,
-    productName: productName,
-    productCode: productCode,
-    imageUrl:    imageUrl    ?? this.imageUrl,
-    stock:        stock        ?? this.stock,
-    reorderPoint: reorderPoint ?? this.reorderPoint,
-    updatedAt:    updatedAt    ?? this.updatedAt,
-  );
+  }) =>
+      InventoryModel(
+        productId: productId,
+        productName: productName,
+        productCode: productCode,
+        imageUrl: imageUrl ?? this.imageUrl,
+        stock: stock ?? this.stock,
+        reorderPoint: reorderPoint ?? this.reorderPoint,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
 
   factory InventoryModel.fromJson(String id, Map<String, dynamic> json) {
     final rawStock = json['stock'] as Map<String, dynamic>? ?? {};
@@ -1526,25 +1664,25 @@ class InventoryModel {
       return MapEntry(size, colorMap);
     });
     return InventoryModel(
-      productId:   id,
+      productId: id,
       productName: json['productName'] as String? ?? '',
       productCode: json['productCode'] as String? ?? '',
-      stock:        stock,
+      stock: stock,
       reorderPoint: json['reorderPoint'] as int? ?? 5,
-      updatedAt:    (json['updatedAt'] != null)
+      updatedAt: (json['updatedAt'] != null)
           ? DateTime.parse(json['updatedAt'] as String)
           : DateTime.now(),
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'productName': productName,
-    'productCode': productCode,
-    'stock': stock.map((size, colorMap) =>
-        MapEntry(size, colorMap.map((c, q) => MapEntry(c, q)))),
-    'reorderPoint': reorderPoint,
-    'updatedAt': updatedAt.toIso8601String(),
-  };
+        'productName': productName,
+        'productCode': productCode,
+        'stock': stock.map((size, colorMap) =>
+            MapEntry(size, colorMap.map((c, q) => MapEntry(c, q)))),
+        'reorderPoint': reorderPoint,
+        'updatedAt': updatedAt.toIso8601String(),
+      };
 }
 
 /// 입출고 이력 (Firestore: inventory_logs/)
@@ -1556,9 +1694,9 @@ class InventoryLog {
   final String size;
   final String color;
   final InventoryLogType type;
-  final int quantity;       // 변경 수량 (항상 양수)
-  final int beforeQty;      // 변경 전 재고
-  final int afterQty;       // 변경 후 재고
+  final int quantity; // 변경 수량 (항상 양수)
+  final int beforeQty; // 변경 전 재고
+  final int afterQty; // 변경 후 재고
   final String memo;
   final String adminId;
   final DateTime createdAt;
@@ -1581,35 +1719,35 @@ class InventoryLog {
 
   factory InventoryLog.fromJson(String id, Map<String, dynamic> json) =>
       InventoryLog(
-        id:          id,
-        productId:   json['productId']   as String? ?? '',
+        id: id,
+        productId: json['productId'] as String? ?? '',
         productName: json['productName'] as String? ?? '',
         productCode: json['productCode'] as String? ?? '',
-        size:        json['size']        as String? ?? '',
-        color:       json['color']       as String? ?? '',
-        type:        InventoryLogTypeExt.fromString(json['type'] as String? ?? ''),
-        quantity:    json['quantity']    as int? ?? 0,
-        beforeQty:   json['beforeQty']   as int? ?? 0,
-        afterQty:    json['afterQty']    as int? ?? 0,
-        memo:        json['memo']        as String? ?? '',
-        adminId:     json['adminId']     as String? ?? '',
-        createdAt:   (json['createdAt'] != null)
+        size: json['size'] as String? ?? '',
+        color: json['color'] as String? ?? '',
+        type: InventoryLogTypeExt.fromString(json['type'] as String? ?? ''),
+        quantity: json['quantity'] as int? ?? 0,
+        beforeQty: json['beforeQty'] as int? ?? 0,
+        afterQty: json['afterQty'] as int? ?? 0,
+        memo: json['memo'] as String? ?? '',
+        adminId: json['adminId'] as String? ?? '',
+        createdAt: (json['createdAt'] != null)
             ? DateTime.parse(json['createdAt'] as String)
             : DateTime.now(),
       );
 
   Map<String, dynamic> toJson() => {
-    'productId':   productId,
-    'productName': productName,
-    'productCode': productCode,
-    'size':        size,
-    'color':       color,
-    'type':        type.value,
-    'quantity':    quantity,
-    'beforeQty':   beforeQty,
-    'afterQty':    afterQty,
-    'memo':        memo,
-    'adminId':     adminId,
-    'createdAt':   createdAt.toIso8601String(),
-  };
+        'productId': productId,
+        'productName': productName,
+        'productCode': productCode,
+        'size': size,
+        'color': color,
+        'type': type.value,
+        'quantity': quantity,
+        'beforeQty': beforeQty,
+        'afterQty': afterQty,
+        'memo': memo,
+        'adminId': adminId,
+        'createdAt': createdAt.toIso8601String(),
+      };
 }

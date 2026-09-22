@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -8,7 +9,6 @@ import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
-import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import '../../utils/constants.dart';
 import '../../utils/app_localizations.dart';
@@ -184,8 +184,10 @@ class _MyPageScreenState extends State<MyPageScreen>
           )
         : false;
     if (!mounted) return;
-    if (isEmailAccount && (currentPassword == null || currentPassword.isEmpty))
+    if (isEmailAccount &&
+        (currentPassword == null || currentPassword.isEmpty)) {
       return;
+    }
     if (!isEmailAccount && socialReauthenticated != true) return;
     await showModalBottomSheet<void>(
       context: ctx,
@@ -235,7 +237,8 @@ class _MyPageScreenState extends State<MyPageScreen>
                   const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
         ]),
         content: Text(context.loc.t('로그아웃_하시겠습니까', '로그아웃 하시겠습니까?'),
-            style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+            style:
+                const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -292,10 +295,11 @@ class _MyPageScreenState extends State<MyPageScreen>
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(children: [
-            Icon(Icons.lock_rounded, color: AppColors.primary, size: 22),
-            SizedBox(width: 8),
+            const Icon(Icons.lock_rounded, color: AppColors.primary, size: 22),
+            const SizedBox(width: 8),
             Text(context.loc.t('비밀번호_변경', '비밀번호 변경'),
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
           ]),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -423,7 +427,7 @@ class _MyPageScreenState extends State<MyPageScreen>
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(children: [
-            Icon(Icons.warning_rounded, color: AppColors.error, size: 22),
+            const Icon(Icons.warning_rounded, color: AppColors.error, size: 22),
             const SizedBox(width: 8),
             Text(context.loc.t('회원_탈퇴', '회원 탈퇴'),
                 style: const TextStyle(
@@ -747,11 +751,11 @@ class _PcMyPage extends StatelessWidget {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.admin_panel_settings_rounded,
+                                  const Icon(Icons.admin_panel_settings_rounded,
                                       size: 18, color: AppColors.error),
-                                  SizedBox(width: 8),
+                                  const SizedBox(width: 8),
                                   Text(context.loc.t('관리자_페이지', '관리자 페이지'),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           fontSize: 13,
                                           color: AppColors.error,
                                           fontWeight: FontWeight.w600)),
@@ -1018,7 +1022,7 @@ class _PcQuickStats extends StatelessWidget {
     final couponCount = context.watch<CouponProvider>().validCoupons.length;
     final pointBalance = context.watch<PointProvider>().balance;
 
-    String _fmtNum(int n) => n.toString().replaceAllMapped(
+    String fmtNum(int n) => n.toString().replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
 
     return Container(
@@ -1053,7 +1057,7 @@ class _PcQuickStats extends StatelessWidget {
           _Divider(),
           _StatItem(
             label: context.loc.t('포인트', '포인트'),
-            countLabel: '${_fmtNum(pointBalance)}P',
+            countLabel: '${fmtNum(pointBalance)}P',
             onTap: () => tabController.animateTo(3),
           ),
         ],
@@ -1370,7 +1374,7 @@ class _PcOrderHistoryTabState extends State<_PcOrderHistoryTab> {
                       message: widget.loc.mypageNoOrders,
                       subtitle: widget.loc.mypageFirstOrder)
                   : filteredOrders.isEmpty
-                      ? _PcEmptyState(
+                      ? const _PcEmptyState(
                           icon: Icons.filter_alt_off_rounded,
                           message: '선택한 주문 구분의 주문이 없습니다.',
                           subtitle: '다른 필터를 선택해 보세요.')
@@ -1659,7 +1663,7 @@ class _PcOrderCard extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
                     title: Text(context.loc.t('주문_취소', '주문 취소'),
-                        style: TextStyle(fontWeight: FontWeight.w800)),
+                        style: const TextStyle(fontWeight: FontWeight.w800)),
                     content: Text(isGroup
                         ? context.loc.t(
                             '단체주문을 취소하시겠습니까 디자인 수정 전에만 취소 가능합니다 결제 취소는 _6ab23e',
@@ -1676,7 +1680,7 @@ class _PcOrderCard extends StatelessWidget {
                             backgroundColor: AppColors.error),
                         onPressed: () => Navigator.pop(btnCtx, true),
                         child: Text(context.loc.t('취소하기', '취소하기'),
-                            style: TextStyle(color: Colors.white)),
+                            style: const TextStyle(color: Colors.white)),
                       ),
                     ],
                   ),
@@ -1786,12 +1790,13 @@ class _PcOrderCard extends StatelessWidget {
                               child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text('💬', style: TextStyle(fontSize: 20)),
-                                    SizedBox(width: 8),
+                                    const Text('💬',
+                                        style: TextStyle(fontSize: 20)),
+                                    const SizedBox(width: 8),
                                     Text(
                                         context.loc
                                             .t('카카오톡_채널_문의', '카카오톡 채널 문의'),
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.w800,
                                             color: Color(0xFF3A1D1D))),
@@ -1813,13 +1818,13 @@ class _PcOrderCard extends StatelessWidget {
                               child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.phone_outlined,
+                                    const Icon(Icons.phone_outlined,
                                         size: 20, color: AppColors.textPrimary),
-                                    SizedBox(width: 8),
+                                    const SizedBox(width: 8),
                                     Text(
                                         context.loc.t('전화_문의__010_7227_140b47',
                                             '전화 문의  ${AppConstants.customerServicePhone}'),
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w700,
                                             color: AppColors.textPrimary)),
@@ -1886,14 +1891,15 @@ class _PcOrderCard extends StatelessWidget {
                         ),
               ));
 
-              if (canCancel)
+              if (canCancel) {
                 btns.add(_ActionBtn(
                     icon: Icons.cancel_outlined,
                     label:
                         isGroup ? context.loc.t('취소디자인전', '취소(디자인전)') : '주문취소',
                     color: AppColors.error,
                     onTap: doCancel));
-              if (cancelBlockedByDesign)
+              }
+              if (cancelBlockedByDesign) {
                 btns.add(_ActionBtn(
                     icon: Icons.lock_outline_rounded,
                     label: context.loc.t('취소불가', '취소불가'),
@@ -1902,20 +1908,23 @@ class _PcOrderCard extends StatelessWidget {
                         content: Text(context.loc.t(
                             '디자인 수정이 시작된 이후에는 취소가 불가합니다 고객센터로 문의해 주세요',
                             '디자인 수정이 시작된 이후에는 취소가 불가합니다.\n고객센터로 문의해 주세요.'))))));
-              if (canConfirmPurchase)
+              }
+              if (canConfirmPurchase) {
                 btns.add(_ActionBtn(
                   icon: Icons.check_circle_rounded,
                   label: context.loc.t('구매확정', '구매확정'),
                   color: AppColors.success,
                   onTap: () => _showConfirmPurchaseDialog(btnCtx, order),
                 ));
-              if (isPurchaseConfirmed)
+              }
+              if (isPurchaseConfirmed) {
                 btns.add(_ActionBtn(
                   icon: Icons.verified_rounded,
                   label: context.loc.t('구매확정_완료', '구매확정 완료'),
                   color: Colors.grey,
                   onTap: null,
                 ));
+              }
               if (canExchangeReturn) {
                 btns.add(_ActionBtn(
                     icon: Icons.swap_horiz_rounded,
@@ -1928,17 +1937,18 @@ class _PcOrderCard extends StatelessWidget {
                     color: AppColors.warning,
                     onTap: () => _showReturnRequestDialog(btnCtx, order)));
               }
-              if (canWriteReview)
+              if (canWriteReview) {
                 btns.add(_ActionBtn(
                   icon: Icons.rate_review_rounded,
                   label: context.loc.t('리뷰쓰기', '리뷰쓰기'),
                   color: const Color(0xFFFF8F00),
                   onTap: () => _showWriteReviewFromOrder(btnCtx, order),
                 ));
+              }
               // 단체주문 디자인수정요청 (단계별 7일 이내, 최대 2회 + 사용자 미확정)
               if (isGroup &&
                   order.canRequestDesignRevision &&
-                  !order.userDesignApproved)
+                  !order.userDesignApproved) {
                 btns.add(_ActionBtn(
                   icon: Icons.edit_note_rounded,
                   label: context.loc.t('디자인수정', '디자인수정'),
@@ -1946,32 +1956,36 @@ class _PcOrderCard extends StatelessWidget {
                   badge: '${order.remainingDesignRevisions}회',
                   onTap: () => onDesignRevision?.call(order),
                 ));
+              }
               // 사용자가 디자인 확정 → 제작시작 표시
-              if (isGroup && order.userDesignApproved)
+              if (isGroup && order.userDesignApproved) {
                 btns.add(_ActionBtn(
                   icon: Icons.precision_manufacturing_rounded,
                   label: context.loc.t('제작시작', '제작시작'),
                   color: AppColors.success,
                   onTap: null,
                 ));
+              }
               // 단체주문 디자인 확인 버튼 (단체주문이면 항상 표시)
-              if (isGroup && !order.userDesignApproved)
+              if (isGroup && !order.userDesignApproved) {
                 btns.add(_ActionBtn(
                   icon: Icons.image_search_rounded,
                   label: context.loc.t('디자인확인', '디자인확인'),
                   color: const Color(0xFF0277BD),
                   onTap: () => onDesignConfirm?.call(order),
                 ));
+              }
               // 단체주문 디자인 확정 표시 (현재 단계 7일 경과 또는 배송 이상)
               if (isGroup &&
                   order.isDesignConfirmed &&
-                  !order.canRequestDesignRevision)
+                  !order.canRequestDesignRevision) {
                 btns.add(_ActionBtn(
                   icon: Icons.check_circle_outline_rounded,
                   label: context.loc.t('디자인확정', '디자인확정'),
                   color: Colors.grey,
                   onTap: null,
                 ));
+              }
 
               return Row(
                 children: btns.asMap().entries.map((e) {
@@ -2696,7 +2710,7 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
           ? (orderOptions['totalCount'] as num).toInt()
           : null) ??
       (isGroupOrder
-          ? o.items.fold<int>(0, (sum, item) => sum + item.quantity)
+          ? o.items.fold<int>(0, (total, item) => total + item.quantity)
           : null);
 
   // 상품명 (여러 개면 첫 번째 + 외 N건)
@@ -2727,7 +2741,7 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(context.loc.t('거래_확인서', '거래 확인서'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: Colors.white,
                         fontSize: 15,
                         fontWeight: FontWeight.w700)),
@@ -2756,11 +2770,11 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                   border: Border.all(color: const Color(0xFFA5D6A7)),
                 ),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(Icons.check_circle_rounded,
+                  const Icon(Icons.check_circle_rounded,
                       color: AppColors.success, size: 14),
-                  SizedBox(width: 5),
+                  const SizedBox(width: 5),
                   Text(context.loc.t('거래명세서', '거래명세서'),
-                      style: TextStyle(
+                      style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.success,
                           fontWeight: FontWeight.w700)),
@@ -2788,7 +2802,7 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                   ],
                   if (isGroupOrder && groupQuantity != null) ...[
                     divider(),
-                    row(context.loc.t('단체 수량', '단체 수량'), '${groupQuantity}개'),
+                    row(context.loc.t('단체 수량', '단체 수량'), '$groupQuantity개'),
                   ],
                 ]),
               ),
@@ -2940,15 +2954,15 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                   Text(
                     context.loc.t('본_거래명세서는_세금계산서_대용으로_사용할_수_없습니다',
                         '본 거래명세서는 세금계산서 대용으로 사용할 수 없습니다.'),
-                    style:
-                        TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                        fontSize: 10, color: AppColors.textSecondary),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     context.loc.t('현금영수증_문의_126_1_1', '현금영수증 문의: 126-1-1'),
-                    style:
-                        TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                        fontSize: 10, color: AppColors.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                 ]),
@@ -2974,8 +2988,8 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                   },
                   icon: const Icon(Icons.receipt_outlined, size: 16),
                   label: Text(context.loc.t('현금영수증_보기', '현금영수증 보기'),
-                      style:
-                          TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w600)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary,
                     side:
@@ -3001,8 +3015,8 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                         borderRadius: BorderRadius.circular(10)),
                   ),
                   child: Text(context.loc.t('닫기', '닫기'),
-                      style:
-                          TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w700)),
                 ),
               ),
             ]),
@@ -3074,7 +3088,7 @@ void _showCashReceiptDetailDialog(
               const SizedBox(width: 8),
               Expanded(
                 child: Text(context.loc.t('현금영수증_정보', '현금영수증 정보'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: Colors.white,
                         fontSize: 15,
                         fontWeight: FontWeight.w700)),
@@ -3130,15 +3144,15 @@ void _showCashReceiptDetailDialog(
                               context.loc.t(
                                   '현금영수증_승인번호는_국세청에서_n익일_13시_이후_확인됩니다',
                                   '현금영수증 승인번호는 국세청에서\n익일 13시 이후 확인됩니다.'),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 11, color: AppColors.textSecondary),
                               textAlign: TextAlign.center,
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
                               context.loc
                                   .t('현금영수증_문의_126_1_1', '현금영수증 문의: 126-1-1'),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 11, color: AppColors.textSecondary),
                               textAlign: TextAlign.center,
                             ),
@@ -3156,7 +3170,7 @@ void _showCashReceiptDetailDialog(
                       Text(
                         context.loc
                             .t('현금영수증_번호가_등록되지_않았습니다', '현금영수증 번호가 등록되지 않았습니다.'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textSecondary),
@@ -3166,7 +3180,7 @@ void _showCashReceiptDetailDialog(
                       Text(
                         context.loc.t('마이페이지_현금영수증_번호_등록_후_n결제하시면_자동으로_발급됩니다',
                             '마이페이지 → 현금영수증 번호 등록 후\n결제하시면 자동으로 발급됩니다.'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 12, color: AppColors.textSecondary),
                         textAlign: TextAlign.center,
                       ),
@@ -3191,8 +3205,8 @@ void _showCashReceiptDetailDialog(
                       borderRadius: BorderRadius.circular(10)),
                 ),
                 child: Text(context.loc.t('확인', '확인'),
-                    style:
-                        TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w700)),
               ),
             ),
           ),
@@ -3214,12 +3228,12 @@ void _showCashReceiptDialog(BuildContext context, UserProvider userProvider) {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
               title: Row(children: [
-                Icon(Icons.receipt_long_rounded,
+                const Icon(Icons.receipt_long_rounded,
                     color: AppColors.primary, size: 20),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(context.loc.t('현금영수증_번호', '현금영수증 번호'),
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w700)),
               ]),
               content: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -3228,7 +3242,7 @@ void _showCashReceiptDialog(BuildContext context, UserProvider userProvider) {
                     Text(
                         context.loc.t('결제_시_자동으로_현금영수증_1854d3',
                             '결제 시 자동으로 현금영수증이 발행됩니다.\n전화번호 또는 사업자번호를 입력하세요.'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 12, color: Colors.grey, height: 1.5)),
                     const SizedBox(height: 14),
                     TextField(
@@ -3249,7 +3263,7 @@ void _showCashReceiptDialog(BuildContext context, UserProvider userProvider) {
                     Text(
                         context.loc.t('소득공제용__전화번호_n___f4833f',
                             '· 소득공제용: 전화번호\n· 지출증빙용: 사업자번호'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 11,
                             color: AppColors.textSecondary,
                             height: 1.6)),
@@ -3269,7 +3283,7 @@ void _showCashReceiptDialog(BuildContext context, UserProvider userProvider) {
                             if (ctx.mounted) Navigator.pop(ctx);
                           },
                     child: Text(context.loc.t('삭제', '삭제'),
-                        style: TextStyle(color: AppColors.error)),
+                        style: const TextStyle(color: AppColors.error)),
                   ),
                 ElevatedButton(
                   onPressed: saving
@@ -3298,7 +3312,7 @@ void _showCashReceiptDialog(BuildContext context, UserProvider userProvider) {
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white),
                   child: saving
-                      ? SizedBox(
+                      ? const SizedBox(
                           width: 16,
                           height: 16,
                           child: CircularProgressIndicator(
@@ -3477,7 +3491,7 @@ class _MobileMyPage extends StatelessWidget {
             ),
             automaticallyImplyLeading: false,
             title: Text(context.loc.t('마이페이지', '마이페이지'),
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary)),
@@ -3743,7 +3757,7 @@ class _MobileQuickStats extends StatelessWidget {
     final couponCount = context.watch<CouponProvider>().validCoupons.length;
     final pointBalance = context.watch<PointProvider>().balance;
 
-    String _fmtNum(int n) => n.toString().replaceAllMapped(
+    String fmtNum(int n) => n.toString().replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
 
     return Container(
@@ -3772,7 +3786,7 @@ class _MobileQuickStats extends StatelessWidget {
           _VertDiv(),
           _MobileStatItem(
             label: context.loc.t('포인트', '포인트'),
-            countLabel: '${_fmtNum(pointBalance)}P',
+            countLabel: '${fmtNum(pointBalance)}P',
             onTap: () => tabController.animateTo(3),
           ),
         ],
@@ -3872,9 +3886,10 @@ class _MobileOrderHistoryTabState extends State<_MobileOrderHistoryTab> {
   @override
   Widget build(BuildContext context) {
     final user = widget.userProvider.user;
-    if (user == null)
+    if (user == null) {
       return _MobileEmptyState(
           icon: Icons.login_rounded, message: widget.loc.mypageLoginPrompt);
+    }
 
     final orderProvider = context.watch<OrderProvider>();
     final orders = orderProvider.getUserOrders(user.id);
@@ -3902,7 +3917,7 @@ class _MobileOrderHistoryTabState extends State<_MobileOrderHistoryTab> {
         ),
         Expanded(
           child: filteredOrders.isEmpty
-              ? _MobileEmptyState(
+              ? const _MobileEmptyState(
                   icon: Icons.filter_alt_off_rounded,
                   message: '선택한 주문 구분의 주문이 없습니다.',
                   subtitle: '다른 필터를 선택해 보세요.')
@@ -4094,9 +4109,10 @@ class _MobileOrderCard extends StatelessWidget {
                     ),
                     clipBehavior: Clip.hardEdge,
                     child: () {
-                      if (order.items.isEmpty)
+                      if (order.items.isEmpty) {
                         return const Icon(Icons.checkroom_rounded,
                             color: Colors.grey, size: 30);
+                      }
                       final item = order.items.first;
                       final url = item.imageUrl?.isNotEmpty == true
                           ? item.imageUrl!
@@ -4178,7 +4194,7 @@ class _MobileOrderCard extends StatelessWidget {
                           fontSize: 15,
                           fontWeight: FontWeight.w900,
                           color: AppColors.primary)),
-                  Text('${order.paymentMethod}',
+                  Text(order.paymentMethod,
                       style: TextStyle(fontSize: 11, color: Colors.grey[500])),
                 ],
               ),
@@ -4208,7 +4224,7 @@ class _MobileOrderCard extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
                     title: Text(context.loc.t('주문_취소', '주문 취소'),
-                        style: TextStyle(fontWeight: FontWeight.w800)),
+                        style: const TextStyle(fontWeight: FontWeight.w800)),
                     content: Text(isGroup
                         ? context.loc.t(
                             '단체주문을 취소하시겠습니까 디자인 수정 전에만 취소 가능합니다 결제 취소는 _6ab23e',
@@ -4225,7 +4241,7 @@ class _MobileOrderCard extends StatelessWidget {
                             backgroundColor: AppColors.error),
                         onPressed: () => Navigator.pop(btnCtx, true),
                         child: Text(context.loc.t('취소하기', '취소하기'),
-                            style: TextStyle(color: Colors.white)),
+                            style: const TextStyle(color: Colors.white)),
                       ),
                     ],
                   ),
@@ -4335,12 +4351,13 @@ class _MobileOrderCard extends StatelessWidget {
                               child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text('💬', style: TextStyle(fontSize: 20)),
-                                    SizedBox(width: 8),
+                                    const Text('💬',
+                                        style: TextStyle(fontSize: 20)),
+                                    const SizedBox(width: 8),
                                     Text(
                                         context.loc
                                             .t('카카오톡_채널_문의', '카카오톡 채널 문의'),
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.w800,
                                             color: Color(0xFF3A1D1D))),
@@ -4362,13 +4379,13 @@ class _MobileOrderCard extends StatelessWidget {
                               child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.phone_outlined,
+                                    const Icon(Icons.phone_outlined,
                                         size: 20, color: AppColors.textPrimary),
-                                    SizedBox(width: 8),
+                                    const SizedBox(width: 8),
                                     Text(
                                         context.loc.t('전화_문의__010_7227_140b47',
                                             '전화 문의  ${AppConstants.customerServicePhone}'),
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w700,
                                             color: AppColors.textPrimary)),
@@ -4517,7 +4534,7 @@ class _MobileOrderCard extends StatelessWidget {
               // 디자인수정요청 (3일 이내, 2회 미만 + 사용자 미확정)
               if (isGroup &&
                   order.canRequestDesignRevision &&
-                  !order.userDesignApproved)
+                  !order.userDesignApproved) {
                 row2.add(_ActionBtn(
                   icon: Icons.edit_note_rounded,
                   label: context.loc.t('디자인수정', '디자인수정'),
@@ -4525,32 +4542,36 @@ class _MobileOrderCard extends StatelessWidget {
                   badge: '${order.remainingDesignRevisions}회',
                   onTap: () => onDesignRevision?.call(order),
                 ));
+              }
               // 사용자가 디자인 확정 → 제작시작 표시
-              if (isGroup && order.userDesignApproved)
+              if (isGroup && order.userDesignApproved) {
                 row2.add(_ActionBtn(
                   icon: Icons.precision_manufacturing_rounded,
                   label: context.loc.t('제작시작', '제작시작'),
                   color: AppColors.success,
                   onTap: null,
                 ));
+              }
               // 디자인 확인 버튼 (단체주문이면 항상 표시)
-              if (isGroup && !order.userDesignApproved)
+              if (isGroup && !order.userDesignApproved) {
                 row2.add(_ActionBtn(
                   icon: Icons.image_search_rounded,
                   label: context.loc.t('디자인확인', '디자인확인'),
                   color: const Color(0xFF0277BD),
                   onTap: () => onDesignConfirm?.call(order),
                 ));
+              }
               // 디자인 확정 표시 (3일 경과 or 배송 이상)
               if (isGroup &&
                   order.isDesignConfirmed &&
-                  !order.canRequestDesignRevision)
+                  !order.canRequestDesignRevision) {
                 row2.add(_ActionBtn(
                   icon: Icons.check_circle_outline_rounded,
                   label: context.loc.t('디자인확정', '디자인확정'),
                   color: Colors.grey,
                   onTap: null,
                 ));
+              }
 
               Widget buildRow(List<Widget> items) {
                 final List<Widget> cells = [];
@@ -4771,9 +4792,10 @@ class _MobilePaymentHistoryTab extends StatelessWidget {
     final orders =
         user != null ? orderProvider.getUserOrders(user.id) : <OrderModel>[];
 
-    if (orders.isEmpty)
+    if (orders.isEmpty) {
       return _MobileEmptyState(
           icon: Icons.payment_outlined, message: loc.mypageNoPayment);
+    }
 
     return ListView.builder(
       padding: const EdgeInsets.all(12),
@@ -5136,7 +5158,7 @@ class _MobileSettingsTab extends StatelessWidget {
 
   Future<void> _createTestOrder(BuildContext context, UserModel user) async {
     final now = DateTime.now();
-    final pad2 = (int v) => v.toString().padLeft(2, '0');
+    pad2(int v) => v.toString().padLeft(2, '0');
     final orderId =
         'ORD-TEST-${now.year}${pad2(now.month)}${pad2(now.day)}-SHIP';
 
@@ -5550,7 +5572,7 @@ class _SocialProfileAuthGateState extends State<_SocialProfileAuthGate> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
-              color: Color(0xFFF1F5FF),
+              color: const Color(0xFFF1F5FF),
               child: const Text(
                 '인증 화면에서 로그인을 완료하면 프로필 수정 화면으로 이동합니다. 인증에 실패하거나 취소하면 이 화면의 다시 인증 버튼으로 재시도할 수 있습니다.',
                 style: TextStyle(fontSize: 13, height: 1.45),
@@ -5762,7 +5784,7 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
                 controller: _nameCtrl,
                 decoration: InputDecoration(
                     labelText: context.loc.t('이름', '이름'),
-                    border: OutlineInputBorder())),
+                    border: const OutlineInputBorder())),
             const SizedBox(height: 14),
             TextField(
               controller: _nicknameCtrl,
@@ -5770,7 +5792,7 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
               decoration: InputDecoration(
                   labelText: context.loc.t('닉네임', '닉네임'),
                   hintText: context.loc.t('닉네임을 입력해주세요', '닉네임을 입력해주세요'),
-                  border: OutlineInputBorder()),
+                  border: const OutlineInputBorder()),
             ),
             const SizedBox(height: 4),
             TextField(
@@ -5790,7 +5812,7 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
               },
               decoration: InputDecoration(
                   labelText: context.loc.t('연락처', '연락처'),
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   suffixIcon: _normalizePhone(_phoneCtrl.text) ==
                           _normalizePhone(widget.user.phone)
                       ? const Icon(Icons.verified, color: Colors.green)
@@ -6999,7 +7021,7 @@ Future<void> _showUserOrderDetail(
 
                     // 주문 상품
                     Text(context.loc.t('주문_상품', '주문 상품'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
                             color: AppColors.primary)),
@@ -7013,7 +7035,7 @@ Future<void> _showUserOrderDetail(
                         ),
                         child: Center(
                           child: Text(context.loc.t('상품_정보_없음', '상품 정보 없음'),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 13,
                                   color: AppColors.textSecondary)),
                         ),
@@ -7198,7 +7220,7 @@ Future<void> _showUserOrderDetail(
                                       children: [
                                         Text(
                                             context.loc.t('수정된_디자인', '수정된 디자인'),
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w900,
                                                 color: AppColors.primaryLight)),
@@ -7206,7 +7228,7 @@ Future<void> _showUserOrderDetail(
                                             context.loc.t(
                                                 '관리자가_수정_반영한_최신__549655',
                                                 '관리자가 수정 반영한 최신 디자인입니다'),
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                                 fontSize: 10,
                                                 color: Color(0xFF7B1FA2))),
                                       ]),
@@ -7219,7 +7241,7 @@ Future<void> _showUserOrderDetail(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(context.loc.t('수정_완료', '수정 완료'),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.w800,
                                           color: Colors.white)),
@@ -7315,14 +7337,14 @@ Future<void> _showUserOrderDetail(
                                         child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              Icon(Icons.zoom_in_rounded,
+                                              const Icon(Icons.zoom_in_rounded,
                                                   size: 12,
                                                   color: Colors.white),
-                                              SizedBox(width: 3),
+                                              const SizedBox(width: 3),
                                               Text(
                                                   context.loc
                                                       .t('탭하여_확대', '탭하여 확대'),
-                                                  style: TextStyle(
+                                                  style: const TextStyle(
                                                       fontSize: 10,
                                                       color: Colors.white)),
                                             ]),
@@ -7392,14 +7414,14 @@ Future<void> _showUserOrderDetail(
                                   Text(
                                       context.loc.t(
                                           '디자인_수정_요청_검토_중', '디자인 수정 요청 검토 중'),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w800,
                                           color: AppColors.accent)),
                                   Text(
                                       context.loc.t('관리자가_요청을_확인하고_수_87c10f',
                                           '관리자가 요청을 확인하고 수정된 디자인을 업로드하면 여기에 표시됩니다.'),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           fontSize: 10,
                                           color: Color(0xFFBF360C),
                                           height: 1.4)),
@@ -7457,11 +7479,11 @@ Future<void> _showUserOrderDetail(
                         child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.receipt_long_rounded,
+                              const Icon(Icons.receipt_long_rounded,
                                   size: 15, color: AppColors.primary),
-                              SizedBox(width: 6),
+                              const SizedBox(width: 6),
                               Text(context.loc.t('거래명세서_보기', '거래명세서 보기'),
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
                                       color: AppColors.primary)),
@@ -7489,8 +7511,8 @@ Future<void> _showUserOrderDetail(
                         borderRadius: BorderRadius.circular(10)),
                   ),
                   child: Text(context.loc.t('닫기', '닫기'),
-                      style:
-                          TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w700)),
                 ),
               ),
             ),
@@ -7616,17 +7638,18 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.check_circle_rounded,
+            const Icon(Icons.check_circle_rounded,
                 color: AppColors.success, size: 22),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(context.loc.t('디자인_확정', '디자인 확정'),
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                style:
+                    const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
           ],
         ),
         content: Text(
           context.loc.t('수정_완료_디자인을_확정하시겠습니까_n_n확정_후에는_디자인__cf9296',
               '수정 완료 디자인을 확정하시겠습니까?\n\n확정 후에는 디자인 수정 요청이 불가하며, 즉시 제작이 시작됩니다.'),
-          style: TextStyle(fontSize: 14, height: 1.6),
+          style: const TextStyle(fontSize: 14, height: 1.6),
         ),
         actions: [
           TextButton(
@@ -7644,7 +7667,7 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
               elevation: 0,
             ),
             child: Text(context.loc.t('확정하기', '확정하기'),
-                style: TextStyle(fontWeight: FontWeight.w700)),
+                style: const TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -7698,24 +7721,30 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
 
     // 변경 항목 목록 구성
     final changeItems = <Map<String, String>>[];
-    if (colorName?.isNotEmpty == true)
+    if (colorName?.isNotEmpty == true) {
       changeItems
           .add({'label': context.loc.t('색상', '색상'), 'value': colorName!});
-    if (teamName?.isNotEmpty == true)
+    }
+    if (teamName?.isNotEmpty == true) {
       changeItems
           .add({'label': context.loc.t('단체명', '단체명'), 'value': teamName!});
-    if (fabricName?.isNotEmpty == true)
+    }
+    if (fabricName?.isNotEmpty == true) {
       changeItems
           .add({'label': context.loc.t('원단', '원단'), 'value': fabricName!});
-    if (printType?.isNotEmpty == true)
+    }
+    if (printType?.isNotEmpty == true) {
       changeItems
           .add({'label': context.loc.t('인쇄_방식', '인쇄 방식'), 'value': printType!});
-    if (personChanges.isNotEmpty)
+    }
+    if (personChanges.isNotEmpty) {
       changeItems
           .add({'label': '사이즈 변경', 'value': '${personChanges.length}명 변경'});
-    if (memo?.isNotEmpty == true)
+    }
+    if (memo?.isNotEmpty == true) {
       changeItems
           .add({'label': context.loc.t('추가_메모', '추가 메모'), 'value': memo!});
+    }
 
     // ScaffoldMessenger로 감싸 SnackBar가 시트 내부에만 표시되도록
     return ScaffoldMessenger(
@@ -7761,7 +7790,7 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                       Expanded(
                         child: Text(
                             context.loc.t('수정_완료_디자인_확인', '수정 완료 디자인 확인'),
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white)),
@@ -7823,7 +7852,7 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
 
                         // ② 수정 완료 디자인 이미지 (먼저 크게)
                         Text(context.loc.t('수정_완료_디자인', '수정 완료 디자인'),
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF37474F))),
@@ -7937,14 +7966,14 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                                         child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              Icon(Icons.zoom_in_rounded,
+                                              const Icon(Icons.zoom_in_rounded,
                                                   color: Colors.white,
                                                   size: 15),
-                                              SizedBox(width: 4),
+                                              const SizedBox(width: 4),
                                               Text(
                                                   context.loc
                                                       .t('탭하여_확대', '탭하여 확대'),
-                                                  style: TextStyle(
+                                                  style: const TextStyle(
                                                       fontSize: 11,
                                                       color: Colors.white,
                                                       fontWeight:
@@ -7960,7 +7989,7 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                         // ③ 수정 변경 내용 (항목이 있을 때)
                         if (changeItems.isNotEmpty) ...[
                           Text(context.loc.t('수정_요청_내용', '수정 요청 내용'),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFF37474F))),
@@ -8103,23 +8132,23 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                                   Border.all(color: const Color(0xFFA5D6A7)),
                             ),
                             child: Row(children: [
-                              Icon(Icons.check_circle_rounded,
+                              const Icon(Icons.check_circle_rounded,
                                   color: AppColors.success, size: 22),
-                              SizedBox(width: 10),
+                              const SizedBox(width: 10),
                               Expanded(
                                   child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(context.loc.t('디자인_확정_완료', '디자인 확정 완료'),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w800,
                                           color: Color(0xFF1B5E20))),
-                                  SizedBox(height: 2),
+                                  const SizedBox(height: 2),
                                   Text(
                                       context.loc.t('제작이_시작되었습니다__완성_2af32d',
                                           '제작이 시작되었습니다. 완성까지 조금만 기다려 주세요!'),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           fontSize: 12,
                                           color: Color(0xFF388E3C),
                                           height: 1.5)),
@@ -8137,15 +8166,15 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(Icons.info_outline_rounded,
+                                const Icon(Icons.info_outline_rounded,
                                     color: Color(0xFF0277BD), size: 16),
-                                SizedBox(width: 6),
+                                const SizedBox(width: 6),
                                 Expanded(
                                     child: Text(
                                   context.loc.t(
                                       '이미지를_탭하면_핀치줌으로_확대확인할_수_있습니다_이상이_없으_e9c46b',
                                       '이미지를 탭하면 핀치줌으로 확대확인할 수 있습니다. 이상이 없으면 아래 디자인 확정하기를 눌러 제작을 시작해 주세요.'),
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       fontSize: 12,
                                       color: Color(0xFF01579B),
                                       height: 1.5),
@@ -8170,7 +8199,7 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                                 elevation: 0,
                               ),
                               child: Text(context.loc.t('닫기', '닫기'),
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w700)),
                             ),
@@ -8190,7 +8219,7 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                                             BorderRadius.circular(12)),
                                   ),
                                   child: Text(context.loc.t('닫기', '닫기'),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w600)),
                                 ),
@@ -8268,7 +8297,7 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
             foregroundColor: Colors.white,
             title: Text(
               context.loc.t('수정_완료_디자인', '수정 완료 디자인'),
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded),
@@ -8303,7 +8332,8 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                         size: 64, color: Colors.white54),
                     const SizedBox(height: 12),
                     Text(context.loc.t('이미지를_불러올_수_없습니다', '이미지를 불러올 수 없습니다.'),
-                        style: TextStyle(color: Colors.white60, fontSize: 14)),
+                        style: const TextStyle(
+                            color: Colors.white60, fontSize: 14)),
                   ],
                 ),
               ),
@@ -8629,7 +8659,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                     Text(context.loc.t('디자인_수정_요청', '디자인 수정 요청'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 17, fontWeight: FontWeight.w900)),
                     Text('주문번호: ${widget.order.id}',
                         style: const TextStyle(
@@ -8814,7 +8844,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                                 children: [
                                                   Text(
                                                       context.loc.t('농도', '농도'),
-                                                      style: TextStyle(
+                                                      style: const TextStyle(
                                                           fontSize: 11,
                                                           fontWeight:
                                                               FontWeight.w700,
@@ -8843,7 +8873,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                             const SizedBox(height: 4),
                                             Row(children: [
                                               Text(context.loc.t('진하게', '진하게'),
-                                                  style: TextStyle(
+                                                  style: const TextStyle(
                                                       fontSize: 9,
                                                       color: AppColors
                                                           .textSecondary)),
@@ -8875,7 +8905,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                                 ),
                                               ),
                                               Text(context.loc.t('밝게', '밝게'),
-                                                  style: TextStyle(
+                                                  style: const TextStyle(
                                                       fontSize: 9,
                                                       color: AppColors
                                                           .textSecondary)),
@@ -9256,7 +9286,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                             ),
                                             child: Text(
                                                 context.loc.t('적용', '적용'),
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                     fontWeight:
                                                         FontWeight.w800)),
                                           ),
@@ -9274,16 +9304,16 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                                     .withValues(alpha: 0.20)),
                                           ),
                                           child: Row(children: [
-                                            Icon(Icons.info_outline,
+                                            const Icon(Icons.info_outline,
                                                 size: 13,
                                                 color: AppColors.warning),
-                                            SizedBox(width: 6),
+                                            const SizedBox(width: 6),
                                             Expanded(
                                               child: Text(
                                                 context.loc.t(
                                                     '원하시는_색상의_HEX_코드를_6자리로_입력하세요_n예_빨강__bc66fc',
                                                     '원하시는 색상의 HEX 코드를 6자리로 입력하세요.\n예) 빨강: FF0000 / 파랑: 0000FF / 노랑: FFFF00'),
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                     fontSize: 10,
                                                     color: AppColors.warning,
                                                     height: 1.4),
@@ -9295,7 +9325,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                         Text(
                                             context.loc
                                                 .t('자주_쓰는_색상', '자주 쓰는 색상'),
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                                 fontSize: 11,
                                                 fontWeight: FontWeight.w700,
                                                 color: Colors.black54)),
@@ -9429,7 +9459,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                         _sectionLabel(
                                             Icons.texture_rounded,
                                             context.loc.t('원단', '원단'),
-                                            Color(0xFF757575)),
+                                            const Color(0xFF757575)),
                                         const SizedBox(height: 6),
                                         Container(
                                           padding: const EdgeInsets.symmetric(
@@ -9472,7 +9502,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                           ),
                                           child: Text(
                                               context.loc.t('변경_불가', '변경 불가'),
-                                              style: TextStyle(
+                                              style: const TextStyle(
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.w700,
                                                   color: Color(0xFF757575))),
@@ -9489,7 +9519,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                         _sectionLabel(
                                             Icons.print_rounded,
                                             context.loc.t('인쇄타입', '인쇄타입'),
-                                            Color(0xFF757575)),
+                                            const Color(0xFF757575)),
                                         const SizedBox(height: 6),
                                         Container(
                                           padding: const EdgeInsets.symmetric(
@@ -9538,7 +9568,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                           ),
                                           child: Text(
                                               context.loc.t('변경_불가', '변경 불가'),
-                                              style: TextStyle(
+                                              style: const TextStyle(
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.w700,
                                                   color: Color(0xFF757575))),
@@ -9587,12 +9617,12 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                             _sectionLabel(
                                 Icons.straighten_rounded,
                                 context.loc.t('인원별_사이즈', '인원별 사이즈'),
-                                Color(0xFF00695C)),
+                                const Color(0xFF00695C)),
                             const SizedBox(height: 4),
                             Text(
                                 context.loc.t('변경할_사이즈를_직접_수정해_e9e851',
                                     '변경할 사이즈를 직접 수정해주세요.'),
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 11,
                                     color: AppColors.textSecondary)),
                             const SizedBox(height: 8),
@@ -9712,7 +9742,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                           _sectionLabel(
                               Icons.chat_bubble_outline_rounded,
                               context.loc.t('추가_요청사항', '추가 요청사항'),
-                              Color(0xFF616161)),
+                              const Color(0xFF616161)),
                           const SizedBox(height: 8),
                           TextField(
                             controller: _memoCtrl,
@@ -9747,12 +9777,12 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(children: [
-                                    Icon(Icons.info_outline_rounded,
+                                    const Icon(Icons.info_outline_rounded,
                                         size: 14,
                                         color: AppColors.textSecondary),
-                                    SizedBox(width: 6),
+                                    const SizedBox(width: 6),
                                     Text(context.loc.t('안내사항', '안내사항'),
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w700,
                                             color: AppColors.textSecondary)),
@@ -9791,7 +9821,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                       child: CircularProgressIndicator(
                                           strokeWidth: 2, color: Colors.white))
                                   : Text(context.loc.t('수정_요청_제출', '수정 요청 제출'),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w800,
                                           color: Colors.white)),
@@ -9813,7 +9843,8 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                 size: 64, color: Color(0xFF7B1FA2)),
             const SizedBox(height: 16),
             Text(context.loc.t('수정_요청_완료', '수정 요청 완료!'),
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
             const SizedBox(height: 8),
             Text(
                 '주문번호 ${widget.order.id}\n관리자가 수정본을 확인하면 다음 수정 단계가 열립니다.\n각 단계의 1주일 기한이 지나면 현재 디자인으로 자동 확정됩니다.',
@@ -9829,7 +9860,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                     borderRadius: BorderRadius.circular(10)),
               ),
               child: Text(context.loc.t('닫기', '닫기'),
-                  style: TextStyle(color: Colors.white)),
+                  style: const TextStyle(color: Colors.white)),
             ),
           ]),
         ),
@@ -9917,7 +9948,7 @@ void _showWriteReviewFromOrder(BuildContext context, OrderModel order) async {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(context.loc.t('리뷰_작성할_상품_선택', '리뷰 작성할 상품 선택'),
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
         content: SizedBox(
           width: 320,
           child: Column(
@@ -10014,21 +10045,22 @@ void _showConfirmPurchaseDialog(BuildContext context, OrderModel order) {
     builder: (ctx) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(children: [
-        Icon(Icons.check_circle_rounded, color: AppColors.success, size: 22),
-        SizedBox(width: 8),
+        const Icon(Icons.check_circle_rounded,
+            color: AppColors.success, size: 22),
+        const SizedBox(width: 8),
         Text(context.loc.t('구매_확정', '구매 확정'),
-            style: TextStyle(fontWeight: FontWeight.w800)),
+            style: const TextStyle(fontWeight: FontWeight.w800)),
       ]),
       content: Text(
         context.loc.t('구매를_확정하시겠습니까_n_n확정_후에는_교환_반품_신청이_어_7ea6e9',
             '구매를 확정하시겠습니까?\n\n확정 후에는 교환/반품 신청이 어려울 수 있습니다.'),
-        style: TextStyle(fontSize: 14, height: 1.6),
+        style: const TextStyle(fontSize: 14, height: 1.6),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx),
           child: Text(context.loc.t('취소', '취소'),
-              style: TextStyle(color: Colors.grey)),
+              style: const TextStyle(color: Colors.grey)),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -10148,7 +10180,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
         SnackBar(
             content: Text(context.loc
                 .t('사진은 최대 3장까지 첨부할 수 있어요', '사진은 최대 3장까지 첨부할 수 있어요.')),
-            duration: Duration(seconds: 2)),
+            duration: const Duration(seconds: 2)),
       );
       return;
     }
@@ -10192,7 +10224,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
           SnackBar(
               content: Text(context.loc
                   .t('사진 선택 중 오류가 발생했어요 _', '사진 선택 중 오류가 발생했어요: $e')),
-              duration: Duration(seconds: 2)),
+              duration: const Duration(seconds: 2)),
         );
       }
     }
@@ -10375,7 +10407,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
             Text(
               context.loc.t('이유를_자세히_알려주면_더_빠르게_교환할_수_있어요_n_사진은_0ecbe2',
                   '· 이유를 자세히 알려주면 더 빠르게 교환할 수 있어요.\n· 사진은 3장까지 올릴 수 있어요. (각 10MB 이하)'),
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 12, color: AppColors.textSecondary, height: 1.6),
             ),
             const SizedBox(height: 12),
@@ -10582,7 +10614,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
             Text(
               context.loc.t('교환_요청이_확인되면_2_5일_이내_택배사가_방문할_예정이에요_54912a',
                   '교환 요청이 확인되면 2~5일 이내 택배사가 방문할 예정이에요.\n아래 주소가 맞는지 확인해주세요.'),
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 12, color: AppColors.textSecondary, height: 1.6),
             ),
             const SizedBox(height: 10),
@@ -10599,7 +10631,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
             GestureDetector(
               onTap: () => Navigator.pop(context),
               child: Text(context.loc.t('주소변경', '주소변경 >'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600)),
@@ -10629,11 +10661,10 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
           ),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              const Icon(Icons.location_on_rounded,
-                  size: 14, color: AppColors.info),
-              const SizedBox(width: 6),
-              const Text('반품·교환 반송 주소',
+            const Row(children: [
+              Icon(Icons.location_on_rounded, size: 14, color: AppColors.info),
+              SizedBox(width: 6),
+              Text('반품·교환 반송 주소',
                   style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -10663,7 +10694,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(context.loc.t('운송장_정보를_입력해주세요', '운송장 정보를 입력해주세요'),
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textSecondary)),
@@ -10672,7 +10703,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
             DropdownButtonFormField<String>(
               value: _trackingCompany,
               hint: Text(context.loc.t('택배사_선택', '택배사 선택'),
-                  style: TextStyle(fontSize: 13)),
+                  style: const TextStyle(fontSize: 13)),
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.white,
@@ -10779,13 +10810,13 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
   Widget _buildPaymentStep() {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(context.loc.t('결제수단_선택', '결제수단 선택'),
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
       const SizedBox(height: 6),
       Text(context.loc.t('교환배송비', '교환배송비'),
-          style: TextStyle(fontSize: 13, color: Colors.grey)),
+          style: const TextStyle(fontSize: 13, color: Colors.grey)),
       const SizedBox(height: 4),
       Text(context.loc.t('6_000원', '6,000원'),
-          style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
+          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
       const SizedBox(height: 4),
       Text(context.loc.t('교환비용을_결제하면_교환_요_0376b7', '교환비용을 결제하면 교환 요청이 완료돼요.'),
           style: TextStyle(fontSize: 13, color: Colors.grey[600])),
@@ -10895,7 +10926,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
   Widget _buildConfirmStep(UserModel? user) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(context.loc.t('신청_내용_확인', '신청 내용 확인'),
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
       const SizedBox(height: 16),
 
       // 사유 확인
@@ -10922,7 +10953,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
               color: Color(0xFF16A34A), size: 18),
           const SizedBox(width: 8),
           Text(context.loc.t('판매자_귀책_사유___배송비_86912c', '판매자 귀책 사유 — 배송비 무료'),
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF16A34A))),
@@ -11182,7 +11213,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
           SnackBar(
               content:
                   Text(context.loc.t('요청 중 오류가 발생했어요 _', '요청 중 오류가 발생했어요: $e')),
-              duration: Duration(seconds: 3)),
+              duration: const Duration(seconds: 3)),
         );
       }
       return;
@@ -11236,8 +11267,9 @@ String _carrierIdFromName(String name) {
   if (n.contains('롯데') || n.contains('lotte')) return 'kr.lotte';
   if (n.contains('우체국') || n.contains('epost')) return 'kr.epost';
   if (n.contains('gs') || n.contains('편의점')) return 'kr.gspostbox';
-  if (n.contains('td') || n.contains('logi') || n.contains('로지'))
+  if (n.contains('td') || n.contains('logi') || n.contains('로지')) {
     return 'kr.tdlogi';
+  }
   if (n.contains('대신')) return 'kr.daesin';
   if (n.contains('경동')) return 'kr.kdexp';
   if (n.contains('일양')) return 'kr.ilyanglogis';
@@ -11443,7 +11475,7 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(context.loc.t('배송조회', '배송조회'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w800,
                             fontSize: 16)),
@@ -11498,7 +11530,7 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
                         SnackBar(
                             content: Text(
                                 context.loc.t('운송장번호가 복사됐어요', '운송장번호가 복사됐어요.')),
-                            duration: Duration(seconds: 1)),
+                            duration: const Duration(seconds: 1)),
                       );
                     },
                   ),
@@ -11519,12 +11551,14 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
               child: _loading
                   ? Center(
                       child: Padding(
-                      padding: EdgeInsets.all(32),
+                      padding: const EdgeInsets.all(32),
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
-                        CircularProgressIndicator(color: Color(0xFF00838F)),
-                        SizedBox(height: 16),
+                        const CircularProgressIndicator(
+                            color: Color(0xFF00838F)),
+                        const SizedBox(height: 16),
                         Text(context.loc.t('배송_정보를_불러오는_중', '배송 정보를 불러오는 중...'),
-                            style: TextStyle(fontSize: 13, color: Colors.grey)),
+                            style: const TextStyle(
+                                fontSize: 13, color: Colors.grey)),
                       ]),
                     ))
                   : _error != null
@@ -11536,18 +11570,18 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
                       : _events.isEmpty
                           ? Center(
                               child: Padding(
-                              padding: EdgeInsets.all(32),
+                              padding: const EdgeInsets.all(32),
                               child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Icons.inbox_outlined,
+                                    const Icon(Icons.inbox_outlined,
                                         size: 48, color: Colors.grey),
-                                    SizedBox(height: 12),
+                                    const SizedBox(height: 12),
                                     Text(
                                         context.loc.t('아직_배송_정보가_없습니다__0afdab',
                                             '아직 배송 정보가 없습니다.\n운송장 등록 직후에는 잠시 후 다시 확인해주세요.'),
                                         textAlign: TextAlign.center,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontSize: 13, color: Colors.grey)),
                                   ]),
                             ))
@@ -11616,7 +11650,7 @@ class _TrackingTimeline extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: isFirst
                               ? info.color
-                              : info.color.withOpacity(0.12),
+                              : info.color.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                           border: Border.all(
                               color: info.color, width: isFirst ? 2.5 : 1.5),
@@ -11714,7 +11748,7 @@ class _ErrorFallback extends StatelessWidget {
               context.loc
                   .t('택배사_앱_또는_사이트에서__8c75c7', '택배사 앱 또는 사이트에서 직접 조회하실 수 있어요.'),
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.grey)),
+              style: const TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 16),
           OutlinedButton.icon(
             icon: const Icon(Icons.refresh_rounded, size: 16),
@@ -12100,14 +12134,14 @@ class _PointHistoryPanelState extends State<_PointHistoryPanel> {
           final history = _filtered(pp.history);
           final earned = pp.history
               .where((item) => item.amount > 0)
-              .fold<int>(0, (sum, item) => sum + item.amount);
+              .fold<int>(0, (total, item) => total + item.amount);
           final used = pp.history
               .where((item) => item.amount < 0)
-              .fold<int>(0, (sum, item) => sum + item.amount.abs());
-          final number = (int value) => value.toString().replaceAllMapped(
+              .fold<int>(0, (total, item) => total + item.amount.abs());
+          number(int value) => value.toString().replaceAllMapped(
               RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
           final horizontal = widget.isMobile ? 16.0 : 24.0;
-          final minPoints = PointService.minUsePoints;
+          const minPoints = PointService.minUsePoints;
           final canUse = pp.balance >= minPoints;
           final now = DateTime.now();
           final expiringSoon = pp.history.where((item) {
@@ -12115,7 +12149,7 @@ class _PointHistoryPanelState extends State<_PointHistoryPanel> {
             if (item.amount <= 0 || expires == null) return false;
             final days = expires.difference(now).inDays;
             return days >= 0 && days <= 30;
-          }).fold<int>(0, (sum, item) => sum + item.amount);
+          }).fold<int>(0, (total, item) => total + item.amount);
           final nearestExpiry = pp.history
               .where((item) =>
                   item.amount > 0 &&

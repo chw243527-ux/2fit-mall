@@ -1368,7 +1368,7 @@ class _InlineColorChartState extends State<InlineColorChart>
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(context.loc.t('적용', '적용'),
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: Colors.white,
                           fontSize: 11,
                           fontWeight: FontWeight.w700)),
@@ -1584,12 +1584,10 @@ class _SliderRow extends StatelessWidget {
                 ),
               ),
               SliderTheme(
-                data: SliderThemeData(
+                data: const SliderThemeData(
                   trackHeight: 10,
-                  thumbShape:
-                      const RoundSliderThumbShape(enabledThumbRadius: 7),
-                  overlayShape:
-                      const RoundSliderOverlayShape(overlayRadius: 12),
+                  thumbShape: RoundSliderThumbShape(enabledThumbRadius: 7),
+                  overlayShape: RoundSliderOverlayShape(overlayRadius: 12),
                   activeTrackColor: Colors.transparent,
                   inactiveTrackColor: Colors.transparent,
                   thumbColor: Colors.white,

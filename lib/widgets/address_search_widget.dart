@@ -52,68 +52,66 @@ class _AddressSearchDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: SizedBox(
         height: h * 0.82,
-        child: Container(
-          child: Column(
-            children: [
-          // 핸들바
-          Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 4),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.border,
-              borderRadius: BorderRadius.circular(2),
+        child: Column(
+          children: [
+            // 핸들바
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 4),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
-          // 헤더
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                const Icon(Icons.location_on_rounded,
-                    color: AppColors.primary, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(context.loc.t('주소 검색', '주소 검색'),
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 22),
-                  onPressed: () => Navigator.pop(context),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: AppColors.border),
-          // 안내 텍스트
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: const Color(0xFFF3E5F5),
-            child: Text(
-              context.loc.t('도로명·지번·건물명으로 검색 후 선택하면 자동 입력됩니다',
-                  '도로명·지번·건물명으로 검색 후 선택하면 자동 입력됩니다.'),
-              style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w500),
-            ),
-          ),
-          // 바디 (웹 or 모바일)
-          Expanded(
-            child: kIsWeb
-                ? _AddressWebBody(
-                    onResult: (r) => Navigator.pop(context, r),
-                  )
-                : _AddressMobileBody(
-                    onResult: (r) => Navigator.pop(context, r),
+            // 헤더
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  const Icon(Icons.location_on_rounded,
+                      color: AppColors.primary, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(context.loc.t('주소 검색', '주소 검색'),
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w800)),
                   ),
-          ),
-            ],
-          ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 22),
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1, color: AppColors.border),
+            // 안내 텍스트
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: const Color(0xFFF3E5F5),
+              child: Text(
+                context.loc.t('도로명·지번·건물명으로 검색 후 선택하면 자동 입력됩니다',
+                    '도로명·지번·건물명으로 검색 후 선택하면 자동 입력됩니다.'),
+                style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500),
+              ),
+            ),
+            // 바디 (웹 or 모바일)
+            Expanded(
+              child: kIsWeb
+                  ? _AddressWebBody(
+                      onResult: (r) => Navigator.pop(context, r),
+                    )
+                  : _AddressMobileBody(
+                      onResult: (r) => Navigator.pop(context, r),
+                    ),
+            ),
+          ],
         ),
       ),
     );
@@ -236,9 +234,10 @@ class _AddressMobileBodyState extends State<_AddressMobileBody> {
           final data = jsonDecode(msg.message) as Map<String, dynamic>;
           final road = data['roadAddress']?.toString().trim() ?? '';
           final jibun = data['jibunAddress']?.toString().trim() ?? '';
-          final address = (data['address']?.toString().trim().isNotEmpty == true)
-              ? data['address'].toString().trim()
-              : (road.isNotEmpty ? road : jibun);
+          final address =
+              (data['address']?.toString().trim().isNotEmpty == true)
+                  ? data['address'].toString().trim()
+                  : (road.isNotEmpty ? road : jibun);
           final result = AddressResult(
             zonecode: data['zonecode']?.toString().trim() ?? '',
             address: address,

@@ -44,13 +44,15 @@ class AnalyticsService {
     _logEvent('view_item', {
       'currency': 'KRW',
       'value': price,
-      'items': [{
-        'item_id': itemId,
-        'item_name': itemName,
-        'price': price,
-        'item_category': category ?? '',
-        'quantity': 1,
-      }],
+      'items': [
+        {
+          'item_id': itemId,
+          'item_name': itemName,
+          'price': price,
+          'item_category': category ?? '',
+          'quantity': 1,
+        }
+      ],
     });
     if (kDebugMode) debugPrint('[GA4] view_item: $itemName');
   }
@@ -66,13 +68,15 @@ class AnalyticsService {
     _logEvent('add_to_cart', {
       'currency': 'KRW',
       'value': price * quantity,
-      'items': [{
-        'item_id': itemId,
-        'item_name': itemName,
-        'price': price,
-        'item_category': category ?? '',
-        'quantity': quantity,
-      }],
+      'items': [
+        {
+          'item_id': itemId,
+          'item_name': itemName,
+          'price': price,
+          'item_category': category ?? '',
+          'quantity': quantity,
+        }
+      ],
     });
     if (kDebugMode) debugPrint('[GA4] add_to_cart: $itemName x$quantity');
   }
@@ -116,12 +120,14 @@ class AnalyticsService {
     _logEvent('add_to_wishlist', {
       'currency': 'KRW',
       'value': price,
-      'items': [{
-        'item_id': itemId,
-        'item_name': itemName,
-        'price': price,
-        'quantity': 1,
-      }],
+      'items': [
+        {
+          'item_id': itemId,
+          'item_name': itemName,
+          'price': price,
+          'quantity': 1,
+        }
+      ],
     });
     if (kDebugMode) debugPrint('[GA4] add_to_wishlist: $itemName');
   }
@@ -168,7 +174,7 @@ class AnalyticsService {
 void _gtagEventWeb(String eventName, Map<String, dynamic> params) {
   // Web 플랫폼: index.html의 gtag 함수를 JavaScript eval로 호출
   if (!kIsWeb) return;
-  
+
   try {
     // Flutter Web에서 JavaScript 인터페이스 호출
     // window.gtag가 로드된 경우 이벤트 전송

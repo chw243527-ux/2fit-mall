@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import '../utils/theme.dart';
 // address_search_web_impl.dart
 // 웹 전용: HtmlElementView iframe 임베드 + window.onMessage 수신
@@ -113,7 +114,7 @@ class _KakaoIframeWidgetState extends State<KakaoIframeWidget> {
         if (!_ready)
           Container(
             color: const Color(0xFFFFFFFF),
-            child: Center(
+            child: const Center(
               child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)),
             ),

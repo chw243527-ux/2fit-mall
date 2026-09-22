@@ -54,7 +54,7 @@ jobs:
         run: flutter pub get
 
       - name: Analyze Flutter project
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        run: bash tool/ci_dart_analyze.sh
 
       - name: Run Flutter tests
         run: flutter test

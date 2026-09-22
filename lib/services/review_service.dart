@@ -24,7 +24,8 @@ class ReviewService {
           images: List<String>.from(data['images'] ?? []),
           size: data['size'] as String? ?? '',
           color: data['color'] as String? ?? '',
-          createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          createdAt:
+              (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
           isBest: data['isBest'] as bool? ?? false,
           adminReply: data['adminReply'] as String? ?? '',
           adminReplyAt: (data['adminReplyAt'] as Timestamp?)?.toDate(),
@@ -56,7 +57,8 @@ class ReviewService {
           images: List<String>.from(data['images'] ?? []),
           size: data['size'] as String? ?? '',
           color: data['color'] as String? ?? '',
-          createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          createdAt:
+              (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
           isBest: data['isBest'] as bool? ?? false,
           adminReply: data['adminReply'] as String? ?? '',
           adminReplyAt: (data['adminReplyAt'] as Timestamp?)?.toDate(),
@@ -76,31 +78,31 @@ class ReviewService {
         .where('productId', isEqualTo: productId)
         .snapshots()
         .map((snap) {
-          final list = snap.docs.map((d) {
-            final data = d.data();
-            return ReviewModel(
-              id: d.id,
-              userId: data['userId'] as String? ?? '',
-              userName: data['userName'] as String? ?? '회원',
-              productId: data['productId'] as String? ?? productId,
-              rating: (data['rating'] as num?)?.toDouble() ?? 0.0,
-              content: data['content'] as String? ?? '',
-              images: List<String>.from(data['images'] ?? []),
-              size: data['size'] as String? ?? '',
-              color: data['color'] as String? ?? '',
-              createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      final list = snap.docs.map((d) {
+        final data = d.data();
+        return ReviewModel(
+          id: d.id,
+          userId: data['userId'] as String? ?? '',
+          userName: data['userName'] as String? ?? '회원',
+          productId: data['productId'] as String? ?? productId,
+          rating: (data['rating'] as num?)?.toDouble() ?? 0.0,
+          content: data['content'] as String? ?? '',
+          images: List<String>.from(data['images'] ?? []),
+          size: data['size'] as String? ?? '',
+          color: data['color'] as String? ?? '',
+          createdAt:
+              (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
           isBest: data['isBest'] as bool? ?? false,
           adminReply: data['adminReply'] as String? ?? '',
           adminReplyAt: (data['adminReplyAt'] as Timestamp?)?.toDate(),
-            );
-          }).toList();
-          list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          return list;
-        })
-        .handleError((e) {
-          if (kDebugMode) debugPrint('client_operation_failed');
-          return <ReviewModel>[];
-        });
+        );
+      }).toList();
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return list;
+    }).handleError((e) {
+      if (kDebugMode) debugPrint('client_operation_failed');
+      return <ReviewModel>[];
+    });
   }
 
   static Stream<List<ReviewModel>> watchUserReviews(String userId) {
@@ -109,31 +111,31 @@ class ReviewService {
         .where('userId', isEqualTo: userId)
         .snapshots()
         .map((snap) {
-          final list = snap.docs.map((d) {
-            final data = d.data();
-            return ReviewModel(
-              id: d.id,
-              userId: data['userId'] as String? ?? userId,
-              userName: data['userName'] as String? ?? '회원',
-              productId: data['productId'] as String? ?? '',
-              rating: (data['rating'] as num?)?.toDouble() ?? 0.0,
-              content: data['content'] as String? ?? '',
-              images: List<String>.from(data['images'] ?? []),
-              size: data['size'] as String? ?? '',
-              color: data['color'] as String? ?? '',
-              createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      final list = snap.docs.map((d) {
+        final data = d.data();
+        return ReviewModel(
+          id: d.id,
+          userId: data['userId'] as String? ?? userId,
+          userName: data['userName'] as String? ?? '회원',
+          productId: data['productId'] as String? ?? '',
+          rating: (data['rating'] as num?)?.toDouble() ?? 0.0,
+          content: data['content'] as String? ?? '',
+          images: List<String>.from(data['images'] ?? []),
+          size: data['size'] as String? ?? '',
+          color: data['color'] as String? ?? '',
+          createdAt:
+              (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
           isBest: data['isBest'] as bool? ?? false,
           adminReply: data['adminReply'] as String? ?? '',
           adminReplyAt: (data['adminReplyAt'] as Timestamp?)?.toDate(),
-            );
-          }).toList();
-          list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          return list;
-        })
-        .handleError((e) {
-          if (kDebugMode) debugPrint('client_operation_failed');
-          return <ReviewModel>[];
-        });
+        );
+      }).toList();
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return list;
+    }).handleError((e) {
+      if (kDebugMode) debugPrint('client_operation_failed');
+      return <ReviewModel>[];
+    });
   }
 
   static Future<bool> addReview(ReviewModel review) async {
@@ -296,7 +298,8 @@ class ReviewService {
           images: List<String>.from(data['images'] ?? []),
           size: data['size'] as String? ?? '',
           color: data['color'] as String? ?? '',
-          createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          createdAt:
+              (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
           isBest: data['isBest'] as bool? ?? false,
           adminReply: data['adminReply'] as String? ?? '',
           adminReplyAt: (data['adminReplyAt'] as Timestamp?)?.toDate(),

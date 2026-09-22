@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import '../../utils/theme.dart';
 // admin_delivery_tab.dart — 배송관리 탭
 // 기능: 배송 현황 요약 / 배송중 주문 목록 / 운송장 일괄 입력 / 배송 상태 변경 / 배송 추적 링크
@@ -276,9 +277,7 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
             adminMemo: memo.isEmpty ? null : memo,
           );
           if (!mounted) return;
-          // ignore: use_build_context_synchronously
           context.read<OrderProvider>().updateOrderStatus(order.id, status);
-          // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(context.loc.t('배송 정보 저장  운송장 _  미입력  trackingNum',
                 '배송 정보 저장 ✅ 운송장: ${trackingNum.isEmpty ? "미입력" : trackingNum}')),
@@ -315,7 +314,7 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
             style: ElevatedButton.styleFrom(backgroundColor: _kPrimary),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(context.loc.t('변경', '변경'),
-                style: TextStyle(color: Colors.white)),
+                style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -325,8 +324,9 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
     for (final o in targets) {
       await OrderService.updateOrderStatusWithTracking(
           orderId: o.id, status: newStatus);
-      if (mounted)
+      if (mounted) {
         context.read<OrderProvider>().updateOrderStatus(o.id, newStatus);
+      }
     }
     setState(() {
       _selected.clear();
@@ -358,7 +358,6 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
                 shippingCompany: entry.company,
               );
               if (mounted) {
-                // ignore: use_build_context_synchronously
                 context
                     .read<OrderProvider>()
                     .updateOrderStatus(entry.orderId, OrderStatus.shipped);
@@ -371,7 +370,6 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
             _selected.clear();
             _selectMode = false;
           });
-          // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('$count건 운송장 등록 및 배송중 처리 완료'),
             backgroundColor: _kPrimary,
@@ -763,7 +761,8 @@ class _DeliveryCard extends StatelessWidget {
                                           SnackBar(
                                               content: Text(context.loc
                                                   .t('주문번호 복사됨', '주문번호 복사됨')),
-                                              duration: Duration(seconds: 1)),
+                                              duration:
+                                                  const Duration(seconds: 1)),
                                         );
                                       },
                                       child: Text(
@@ -823,7 +822,8 @@ class _DeliveryCard extends StatelessWidget {
                     // ── 상품 요약
                     const SizedBox(height: 6),
                     _itemSummary(order),
-                    if (order.isGroupOrder && order.activeDesignRevisionDeadline != null) ...[
+                    if (order.isGroupOrder &&
+                        order.activeDesignRevisionDeadline != null) ...[
                       const SizedBox(height: 8),
                       DesignRevisionCountdown(
                         deadline: order.activeDesignRevisionDeadline,
@@ -844,7 +844,7 @@ class _DeliveryCard extends StatelessWidget {
                             SnackBar(
                                 content: Text(
                                     context.loc.t('운송장 번호 복사됨', '운송장 번호 복사됨')),
-                                duration: Duration(seconds: 1)),
+                                duration: const Duration(seconds: 1)),
                           );
                         },
                         onTrack: () => _launchTracking(
@@ -1038,8 +1038,9 @@ class _DeliveryCard extends StatelessWidget {
       '${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
 
   static String _fmtPhone(String p) {
-    if (p.length == 11)
+    if (p.length == 11) {
       return '${p.substring(0, 3)}-${p.substring(3, 7)}-${p.substring(7)}';
+    }
     return p;
   }
 
@@ -1121,7 +1122,7 @@ class _TrackingInfo extends StatelessWidget {
                 borderRadius: BorderRadius.circular(5),
               ),
               child: Text(context.loc.t('조회', '조회'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 11,
                       color: Colors.white,
                       fontWeight: FontWeight.w700)),
@@ -1185,8 +1186,8 @@ class _TrackingDialogState extends State<_TrackingDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(context.loc.t('배송 정보 입력', '배송 정보 입력'),
-                    style:
-                        TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w800, fontSize: 16)),
                 Text(
                   '${widget.order.userName} · ${widget.order.id}',
                   style: TextStyle(
@@ -1208,7 +1209,7 @@ class _TrackingDialogState extends State<_TrackingDialog> {
 
             // 택배사 선택
             Text(context.loc.t('택배사', '택배사'),
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: _kPrimary)),
@@ -1282,7 +1283,7 @@ class _TrackingDialogState extends State<_TrackingDialog> {
 
             // 배송 상태 선택
             Text(context.loc.t('배송 상태', '배송 상태'),
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: _kPrimary)),
@@ -1355,7 +1356,7 @@ class _TrackingDialogState extends State<_TrackingDialog> {
                   padding: const EdgeInsets.symmetric(vertical: 10),
                 ),
                 child: Text(context.loc.t('취소', '취소'),
-                    style: TextStyle(color: Colors.grey)),
+                    style: const TextStyle(color: Colors.grey)),
               ),
             ),
             const SizedBox(width: 10),
@@ -1367,7 +1368,6 @@ class _TrackingDialogState extends State<_TrackingDialog> {
                         setState(() => _saving = true);
                         await widget.onSave(_selectedStatus);
                         if (!mounted) return;
-                        // ignore: use_build_context_synchronously
                         Navigator.pop(context);
                       },
                 style: ElevatedButton.styleFrom(
@@ -1383,7 +1383,7 @@ class _TrackingDialogState extends State<_TrackingDialog> {
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: Colors.white))
                     : Text(context.loc.t('저장', '저장'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             color: Colors.white, fontWeight: FontWeight.w700)),
               ),
             ),
@@ -1482,26 +1482,32 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
       final entry = _entries[i];
       final normalized = entry.trackingNumber.replaceAll(RegExp(r'[- ]'), '');
       if (!RegExp(r'^\d{8,16}$').hasMatch(normalized)) {
-        _validationMessages[i] = context.loc.t(
-            '운송장번호_형식오류', '송장번호는 숫자 8~16자리여야 합니다.');
+        _validationMessages[i] =
+            context.loc.t('운송장번호_형식오류', '송장번호는 숫자 8~16자리여야 합니다.');
         _validatedRows.add(i);
         continue;
       }
       entry.trackingNumber = normalized;
       final carrierId = _adminCarrierIdFromName(entry.company);
       try {
-        final response = await http.post(
-          Uri.parse('https://apis.tracker.delivery/graphql'),
-          headers: const {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'query': r'''query Track($carrierId: ID!, $trackingNumber: String!) {
+        final response = await http
+            .post(
+              Uri.parse('https://apis.tracker.delivery/graphql'),
+              headers: const {'Content-Type': 'application/json'},
+              body: jsonEncode({
+                'query':
+                    r'''query Track($carrierId: ID!, $trackingNumber: String!) {
               track(carrierId: $carrierId, trackingNumber: $trackingNumber) {
                 lastEvent { time description status { code text } }
               }
             }''',
-            'variables': {'carrierId': carrierId, 'trackingNumber': normalized},
-          }),
-        ).timeout(const Duration(seconds: 10));
+                'variables': {
+                  'carrierId': carrierId,
+                  'trackingNumber': normalized
+                },
+              }),
+            )
+            .timeout(const Duration(seconds: 10));
         final body = jsonDecode(response.body) as Map<String, dynamic>;
         final track = body['data']?['track'];
         _validationMessages[i] = response.statusCode == 200 && track != null
@@ -1509,8 +1515,8 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
             : context.loc.t('운송장번호_형식정상_배송대기',
                 '형식은 정상입니다. 택배사 등록 전이거나 배송정보를 기다리는 중일 수 있습니다.');
       } catch (_) {
-        _validationMessages[i] = context.loc.t('운송장번호_형식정상_API확인불가',
-            '형식은 정상입니다. 배송조회 서버 확인은 잠시 후 다시 시도할 수 있습니다.');
+        _validationMessages[i] = context.loc.t(
+            '운송장번호_형식정상_API확인불가', '형식은 정상입니다. 배송조회 서버 확인은 잠시 후 다시 시도할 수 있습니다.');
       }
       _validatedRows.add(i);
       if (mounted) setState(() {});
@@ -1527,7 +1533,8 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
           const Icon(Icons.local_shipping_rounded, color: _kShipping, size: 22),
           const SizedBox(width: 8),
           Text(context.loc.t('운송장 일괄 입력 _건', '운송장 일괄 입력 (${_entries.length}건)'),
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+              style:
+                  const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
         ],
       ),
       content: SizedBox(
@@ -1539,8 +1546,8 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
             Row(
               children: [
                 Text(context.loc.t('일괄 택배사', '일괄 택배사:'),
-                    style:
-                        TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w600)),
                 const SizedBox(width: 8),
                 ...[
                   context.loc.t('한진택배', '한진택배'),
@@ -1661,7 +1668,7 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(context.loc.t('취소', '취소'),
-                    style: TextStyle(color: Colors.grey)),
+                    style: const TextStyle(color: Colors.grey)),
               ),
             ),
             const SizedBox(width: 10),
@@ -1675,22 +1682,24 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
                         }
                         if (_validatedRows.length != _entries.length) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(context.loc.t(
-                                '일괄검증먼저', '모든 송장번호를 먼저 일괄 검증해 주세요.'))),
+                            SnackBar(
+                                content: Text(context.loc
+                                    .t('일괄검증먼저', '모든 송장번호를 먼저 일괄 검증해 주세요.'))),
                           );
                           return;
                         }
-                        if (_validationMessages.values.any((m) => m.contains('오류'))) {
+                        if (_validationMessages.values
+                            .any((m) => m.contains('오류'))) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(context.loc.t(
-                                '송장번호수정필요', '오류가 있는 송장번호를 수정해 주세요.'))),
+                            SnackBar(
+                                content: Text(context.loc
+                                    .t('송장번호수정필요', '오류가 있는 송장번호를 수정해 주세요.'))),
                           );
                           return;
                         }
                         setState(() => _saving = true);
                         await widget.onSave(_entries);
                         if (!mounted) return;
-                        // ignore: use_build_context_synchronously
                         Navigator.pop(context);
                       },
                 style: ElevatedButton.styleFrom(
@@ -1705,7 +1714,7 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: Colors.white))
                     : Text(context.loc.t('일괄 저장', '일괄 저장'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             color: Colors.white, fontWeight: FontWeight.w700)),
               ),
             ),

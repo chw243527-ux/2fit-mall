@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 // notification_web_impl.dart
 // ─────────────────────────────────────────────────────────────
 // 웹 플랫폼 브라우저 Notification API — dart:js_util 기반 구현
@@ -28,7 +29,8 @@ Future<void> ensureServiceWorkerReady() async {
 Future<void> showBrowserNotification(String title, [String body = '']) async {
   try {
     final permission = js_util.getProperty(
-        js_util.getProperty(js.context, 'Notification'), 'permission') as String?;
+            js_util.getProperty(js.context, 'Notification'), 'permission')
+        as String?;
     if (permission != 'granted') return;
 
     // options 객체 생성
@@ -47,8 +49,8 @@ Future<void> showBrowserNotification(String title, [String body = '']) async {
     final serviceWorker = js_util.getProperty(navigator, 'serviceWorker');
     final ready = js_util.getProperty(serviceWorker, 'ready');
     final registration = await js_util.promiseToFuture<Object>(ready as Object);
-    final result = js_util.callMethod(
-        registration, 'showNotification', [title, options]);
+    final result =
+        js_util.callMethod(registration, 'showNotification', [title, options]);
     if (result != null) {
       await js_util.promiseToFuture<Object>(result as Object);
     }

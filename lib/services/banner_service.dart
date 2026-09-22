@@ -9,37 +9,30 @@ class BannerService {
   // ── 실시간 스트림 (active + 기간 조건 만족) ──────────────────
   // active=true이고, 현재 시각이 startDate~endDate 범위 내인 배너만 반환
   static Stream<List<BannerModel>> watchActiveBanners() {
-    return _col
-        .where('active', isEqualTo: true)
-        .snapshots()
-        .map((snap) {
+    return _col.where('active', isEqualTo: true).snapshots().map((snap) {
 // ignore: unused_local_variable
-          final now = DateTime.now();
-          final list = snap.docs
-              .map((d) => BannerModel.fromFirestore(
-                  d.data(), d.id))
-              .where((b) => b.isInSchedule)   // 기간 필터
-              .toList();
-          list.sort((a, b) => a.order.compareTo(b.order));
-          return list;
-        });
+      final now = DateTime.now();
+      final list = snap.docs
+          .map((d) => BannerModel.fromFirestore(d.data(), d.id))
+          .where((b) => b.isInSchedule) // 기간 필터
+          .toList();
+      list.sort((a, b) => a.order.compareTo(b.order));
+      return list;
+    });
   }
 
   // ── 전체 스트림 (관리자용) ────────────────────────────────
   // NOTE: orderBy는 단일 필드 정렬이어도 복합 where와 함께 쓰면 인덱스 필요
   //       → 전체 가져와서 클라이언트 정렬로 대체
   static Stream<List<BannerModel>> watchAllBanners() {
-    return _col
-        .snapshots()
-        .map((snap) {
-          final list = snap.docs
-              .map((d) => BannerModel.fromFirestore(
-                  d.data(), d.id))
-              .toList();
-          // 클라이언트 측 order 정렬
-          list.sort((a, b) => a.order.compareTo(b.order));
-          return list;
-        });
+    return _col.snapshots().map((snap) {
+      final list = snap.docs
+          .map((d) => BannerModel.fromFirestore(d.data(), d.id))
+          .toList();
+      // 클라이언트 측 order 정렬
+      list.sort((a, b) => a.order.compareTo(b.order));
+      return list;
+    });
   }
 
   // ── 단건 조회 ────────────────────────────────────────────
@@ -67,7 +60,8 @@ class BannerService {
   }
 
   // ── 수정 (부분 업데이트) ──────────────────────────────────
-  static Future<bool> updateBanner(String id, Map<String, dynamic> fields) async {
+  static Future<bool> updateBanner(
+      String id, Map<String, dynamic> fields) async {
     try {
       await _col.doc(id).update(fields);
       return true;
@@ -115,7 +109,7 @@ class BannerService {
       if (snap.docs.isNotEmpty) return; // 이미 데이터 있음
 
       final defaults = [
-        BannerModel(
+        const BannerModel(
           id: 'banner_1',
           order: 0,
           title: '2025 S/S 신상품',
@@ -124,12 +118,14 @@ class BannerService {
           titleEn: 'NEW SEASON\nSTARTS',
           ctaKo: '신상품 보러가기',
           ctaEn: 'VIEW NEW ARRIVALS',
-          imageUrl: 'https://www.genspark.ai/api/files/s/0A333RJO?cache_control=3600',
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+          imageUrl:
+              'https://www.genspark.ai/api/files/s/0A333RJO?cache_control=3600',
+          videoUrl:
+              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
           accentColor: 0xFFE53935,
           btnAction: 0,
         ),
-        BannerModel(
+        const BannerModel(
           id: 'banner_2',
           order: 1,
           title: '베스트셀러',
@@ -138,11 +134,12 @@ class BannerService {
           titleEn: 'MOST\nLOVED 2FIT',
           ctaKo: '베스트 상품 보기',
           ctaEn: 'SHOP BEST',
-          imageUrl: 'https://www.genspark.ai/api/files/s/wc91nP9e?cache_control=3600',
+          imageUrl:
+              'https://www.genspark.ai/api/files/s/wc91nP9e?cache_control=3600',
           accentColor: 0xFFFF6B35,
           btnAction: 1,
         ),
-        BannerModel(
+        const BannerModel(
           id: 'banner_3',
           order: 2,
           title: '단체주문 전문',
@@ -151,7 +148,8 @@ class BannerService {
           titleEn: 'CUSTOM\nTEAM UNIFORM',
           ctaKo: '단체주문 알아보기',
           ctaEn: 'GROUP ORDER',
-          imageUrl: 'https://www.genspark.ai/api/files/s/8ed64BLu?cache_control=3600',
+          imageUrl:
+              'https://www.genspark.ai/api/files/s/8ed64BLu?cache_control=3600',
           accentColor: 0xFF1565C0,
           btnAction: 2,
         ),

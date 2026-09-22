@@ -4,7 +4,6 @@ import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -260,10 +259,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   String get _waistbandOptionLabel {
     if (_waistbandOptions.isEmpty) return context.loc.t('기본_변경없음', '기본 (변경없음)');
     final labels = <String>[];
-    if (_waistbandOptions.contains(1))
+    if (_waistbandOptions.contains(1)) {
       labels.add(context.loc.t('디자인_변경', '디자인 변경'));
-    if (_waistbandOptions.contains(2))
+    }
+    if (_waistbandOptions.contains(2)) {
       labels.add(context.loc.t('색상_변경', '색상 변경'));
+    }
     return labels.join(' + ');
   }
 
@@ -564,6 +565,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   Future<void> _loadSavedImages() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
+    // 장바구니 옵션 확인/재주문으로 들어온 경우에는 해당 주문에 저장된
+    // 첨부 이미지를 우선합니다. 이전 상품의 로컬 이미지가 현재 상품으로
+    // 덮어써지지 않도록 합니다.
+    if (widget.initialCartOptions != null) {
+      return;
+    }
     setState(() {
       _refBase64 = prefs.getString(_refKey);
     });
@@ -681,7 +688,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               ),
             ),
             Text(context.loc.t('사이즈_프로필_선택', '사이즈 프로필 선택'),
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     color: AppColors.primary)),
@@ -714,8 +721,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     }
                   });
                   Navigator.pop(context);
-                  _showSnack('"${profile.profileName}" ' +
-                      context.loc.t('사이즈가_적용되었습니다', '사이즈가 적용되었습니다.'));
+                  _showSnack(
+                      '"${profile.profileName}" ${context.loc.t('사이즈가_적용되었습니다', '사이즈가 적용되었습니다.')}');
                 },
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 8),
@@ -758,10 +765,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                                     color: AppColors.primary)),
                             const SizedBox(height: 2),
                             Text(
-                              context.loc.t('상의', '상의') +
-                                  ' ${profile.topSize} · ' +
-                                  context.loc.t('하의', '하의') +
-                                  ' ${profile.bottomSize}${profile.height.isNotEmpty ? " · " + context.loc.t('키', '키') + " ${profile.height}cm" : ""}',
+                              '${context.loc.t('상의', '상의')} ${profile.topSize} · ${context.loc.t('하의', '하의')} ${profile.bottomSize}${profile.height.isNotEmpty ? " · ${context.loc.t('키', '키')} ${profile.height}cm" : ""}',
                               style: TextStyle(
                                   fontSize: 11, color: Colors.grey.shade600),
                             ),
@@ -797,10 +801,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(children: [
-            Icon(Icons.save_outlined, color: _purple, size: 22),
-            SizedBox(width: 8),
+            const Icon(Icons.save_outlined, color: _purple, size: 22),
+            const SizedBox(width: 8),
             Text(context.loc.t('내_사이즈_저장', '내 사이즈 저장'),
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
           ]),
           content: Column(mainAxisSize: MainAxisSize.min, children: [
             Text(
@@ -872,7 +877,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 elevation: 0,
               ),
               child: Text(context.loc.t('저장하기', '저장하기'),
-                  style: TextStyle(fontWeight: FontWeight.w700)),
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
             ),
           ],
         );
@@ -1067,7 +1072,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       return;
     }
     if (!_isAdditional && _totalCount < _groupMinimumQuantity) {
-      _showSnack('단체주문은 최소 ${_groupMinimumQuantity}명부터 가능합니다.');
+      _showSnack('단체주문은 최소 $_groupMinimumQuantity명부터 가능합니다.');
       return;
     }
     final userProvider = context.read<UserProvider>();
@@ -1080,6 +1085,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     }
     if (!_validate()) return;
     final user = userProvider.user;
+    final cart = context.read<CartProvider>();
     // product.price 를 반드시 _unitPrice(기본가+심리스+9부+주머니 포함 인원당 단가)로 고정
     // CartItem.unitPrice = product.price + extraPrice 이므로 extraPrice: 0 과 함께 사용해야 정확
     final src = widget.product;
@@ -1385,7 +1391,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           user.cashReceiptNum?.isNotEmpty == true ? user.cashReceiptNum : null,
     );
 
-    final cart = context.read<CartProvider>();
     if (isBuyNow) {
       cart.clearCart();
       // product.price = _unitPrice (모든 추가비용 포함) → extraPrice: 0 으로 이중계산 방지
@@ -1514,7 +1519,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         const SizedBox(height: 4),
         Text(
           context.loc.t('아래_폼을_작성하여_주문을_완료', '아래 폼을 작성하여 주문을 완료해 주세요.'),
-          style: TextStyle(color: Colors.white60, fontSize: 12),
+          style: const TextStyle(color: Colors.white60, fontSize: 12),
         ),
 
         // ── 추가제작: 기존 주문번호 필수 표시 ──
@@ -1538,7 +1543,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(context.loc.t('기존_주문번호__필수', '기존 주문번호 (필수)'),
-                          style: TextStyle(
+                          style: const TextStyle(
                               color: Colors.white54,
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
@@ -1562,7 +1567,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(context.loc.t('연결됨', '연결됨'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: Colors.white,
                         fontSize: 10,
                         fontWeight: FontWeight.w800)),
@@ -1596,10 +1601,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Icon(Icons.swap_horiz_rounded, color: Colors.white70, size: 13),
-              SizedBox(width: 6),
+              const Icon(Icons.swap_horiz_rounded,
+                  color: Colors.white70, size: 13),
+              const SizedBox(width: 6),
               Text(context.loc.t('교환_환불_안내', '교환·환불 안내'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.white,
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -1609,12 +1615,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             Text(
                 context.loc
                     .t('기성품__수령_후_3일_이내_fb7638', '▶  기성품: 수령 후 7일 이내 교환·환불 가능'),
-                style: TextStyle(
+                style: const TextStyle(
                     color: Colors.white60, fontSize: 11, height: 1.5)),
             Text(
                 context.loc.t('커스텀_단체__주문__의류__390058',
                     '▶  커스텀(단체) 주문: 의류 자체 불량 외 교환·환불 불가'),
-                style: TextStyle(
+                style: const TextStyle(
                     color: Colors.white54, fontSize: 11, height: 1.5)),
           ]),
         ),
@@ -1671,7 +1677,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           Container(
             width: 80,
             alignment: Alignment.center,
-            child: Text('$_count' + context.loc.t('명', '명'),
+            child: Text('$_count${context.loc.t('명', '명')}',
                 style: const TextStyle(
                     fontSize: 22, fontWeight: FontWeight.w900, color: _purple)),
           ),
@@ -1696,11 +1702,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               context.loc
                   .t('최소_5명_이상_주문_가능합_5c1358',
                       '최소 $_groupMinimumQuantity명 이상 주문 가능합니다.')
-                  .replaceFirst('5명', '${_groupMinimumQuantity}명'),
-              style: TextStyle(fontSize: 11, color: Colors.grey))
+                  .replaceFirst('5명', '$_groupMinimumQuantity명'),
+              style: const TextStyle(fontSize: 11, color: Colors.grey))
         else
           Text(context.loc.t('1장부터_추가제작_가능합니다', '1장부터 추가제작 가능합니다.'),
-              style: TextStyle(fontSize: 11, color: Colors.grey)),
+              style: const TextStyle(fontSize: 11, color: Colors.grey)),
         const SizedBox(height: 12),
         if (!_countFixed)
           SizedBox(
@@ -1716,7 +1722,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 elevation: 0,
               ),
               child: Text(
-                  '$_count' + context.loc.t('명으로_주문서_작성하기', '명으로 주문서 작성하기'),
+                  '$_count${context.loc.t('명으로_주문서_작성하기', '명으로 주문서 작성하기')}',
                   style: const TextStyle(
                       fontSize: 15, fontWeight: FontWeight.w800)),
             ),
@@ -1731,7 +1737,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               const Icon(Icons.check_circle_rounded, color: _purple, size: 18),
               const SizedBox(width: 8),
-              Text('$_totalCount' + context.loc.t('명_확정', '명 확정'),
+              Text('$_totalCount${context.loc.t('명_확정', '명 확정')}',
                   style: const TextStyle(
                       color: _purple,
                       fontWeight: FontWeight.w800,
@@ -2032,7 +2038,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(context.loc.t('2FIT_로고_자동_적용', '2FIT 로고 자동 적용'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: Colors.white)),
@@ -2054,7 +2060,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(context.loc.t('기본', '기본'),
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: Colors.white)),
@@ -2136,15 +2142,15 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 5, vertical: 2),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: _purple,
-                            borderRadius: const BorderRadius.only(
+                            borderRadius: BorderRadius.only(
                               bottomLeft: Radius.circular(10),
                               topRight: Radius.circular(6),
                             ),
                           ),
                           child: Text(context.loc.t('디자인', '디자인'),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 8,
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800)),
@@ -2170,7 +2176,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             fontSize: 12, color: Colors.grey.shade500)),
                     const SizedBox(height: 4),
                     Row(children: [
-                      Text('${_fmt(p.price)}' + context.loc.t('원', '원'),
+                      Text('${_fmt(p.price)}${context.loc.t('원', '원')}',
                           style: const TextStyle(
                               fontWeight: FontWeight.w900,
                               color: _purple,
@@ -2212,7 +2218,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   color: _purple.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text('${designImgs.length}' + context.loc.t('장', '장'),
+                child: Text('${designImgs.length}${context.loc.t('장', '장')}',
                     style: const TextStyle(
                         fontSize: 10,
                         color: _purple,
@@ -2279,7 +2285,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(context.loc.t('대표', '대표'),
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       fontSize: 9,
                                       color: Colors.white,
                                       fontWeight: FontWeight.w800)),
@@ -2353,7 +2359,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // 재봉방법 선택 섹션
   // ══════════════════════════════════════════════
   Widget _buildFabricSection() {
-    final types = AppConstants.fabricTypes;
+    const types = AppConstants.fabricTypes;
     return _card(
       title: context.loc.t('재봉방법_선택', '재봉방법 선택'),
       icon: Icons.content_cut_outlined,
@@ -2430,7 +2436,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         ]),
                         if (extra > 0) ...[
                           const SizedBox(height: 2),
-                          Text('+${_fmt(extra)}' + context.loc.t('원', '원'),
+                          Text('+${_fmt(extra)}${context.loc.t('원', '원')}',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: isSel
@@ -2647,15 +2653,15 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               border: Border.all(color: _purple.withValues(alpha: 0.2)),
             ),
             child: Row(children: [
-              Icon(Icons.receipt_long_rounded, size: 14, color: _purple),
+              const Icon(Icons.receipt_long_rounded, size: 14, color: _purple),
               const SizedBox(width: 6),
               Text(context.loc.t('선택', '선택: ') + _waistbandOptionLabel,
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 12,
                       color: _purple,
                       fontWeight: FontWeight.w600)),
               const Spacer(),
-              Text('+${_fmt(_waistbandExtra)}' + context.loc.t('원', '원'),
+              Text('+${_fmt(_waistbandExtra)}${context.loc.t('원', '원')}',
                   style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.accent,
@@ -2668,7 +2674,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         if (needsColor) ...[
           const SizedBox(height: 14),
           Text(context.loc.t('허리밴드_색상_HEX_코드', '허리밴드 색상 HEX 코드'),
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: Colors.black54)),
@@ -2704,7 +2710,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       borderRadius: BorderRadius.circular(8)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: _purple, width: 1.5),
+                    borderSide: const BorderSide(color: _purple, width: 1.5),
                   ),
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -2729,7 +2735,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
           const SizedBox(height: 10),
           Text(context.loc.t('빠른_선택__2FIT_팔레트', '빠른 선택 (2FIT 팔레트)'),
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: Colors.black54)),
@@ -2863,10 +2869,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             // 헤더
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.background,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(11)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(11)),
               ),
               child: Row(children: [
                 const Icon(Icons.info_outline_rounded,
@@ -2903,7 +2908,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(context.loc.t('상의', '상의'),
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 9,
                                     fontWeight: FontWeight.w900,
                                     color: Colors.white)),
@@ -2913,7 +2918,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             child: Text(
                               context.loc.t('포인트_색상_또는_전체_색상이_선택한_색상으로_변경됩니다',
                                   '포인트 색상 또는 전체 색상이 선택한 색상으로 변경됩니다.'),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 11,
                                   color: AppColors.textPrimary,
                                   height: 1.5),
@@ -2934,7 +2939,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(context.loc.t('하의', '하의'),
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 9,
                                     fontWeight: FontWeight.w900,
                                     color: Colors.white)),
@@ -2944,7 +2949,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             child: Text(
                               context.loc.t('골지_느낌의_선택한_색상으로_제작됩니다',
                                   '골지 느낌의 선택한 색상으로 제작됩니다.'),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 11,
                                   color: AppColors.textPrimary,
                                   height: 1.5),
@@ -3213,7 +3218,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   // 탭1: 기성품 19색
   Widget _buildRegisteredColors() {
-    final colors = AppColorPalette.registeredColors;
+    const colors = AppColorPalette.registeredColors;
     return SingleChildScrollView(
       physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.only(bottom: 4),
@@ -3297,9 +3302,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         // 하단: 선택 안내
         Center(
           child: Text(
-            context.loc.t('총_색상_탭선택', '총 ') +
-                '\${colors.length}' +
-                context.loc.t('가지_기성_색상_탭하여_선택', '가지 기성 색상 • 탭하여 선택'),
+            '${context.loc.t('총_색상_탭선택', '총 ')}\${colors.length}${context.loc.t('가지_기성_색상_탭하여_선택', '가지 기성 색상 • 탭하여 선택')}',
             style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
           ),
         ),
@@ -3315,9 +3318,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Text(
-          '${extended.length}' +
-              context.loc.t(
-                  '가지_확장_색상_팔레트_원하는_색상을_탭하세요', '가지 확장 색상 팔레트 • 원하는 색상을 탭하세요'),
+          '${extended.length}${context.loc.t('가지_확장_색상_팔레트_원하는_색상을_탭하세요', '가지 확장 색상 팔레트 • 원하는 색상을 탭하세요')}',
           style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
         ),
       ),
@@ -3344,7 +3345,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             final isLight = color.computeLuminance() > 0.6;
             return GestureDetector(
               onTap: () => setState(() {
-                _mainColorName = context.loc.t('확장_색상', '확장') + ' ($hexStr)';
+                _mainColorName = '${context.loc.t('확장_색상', '확장')} ($hexStr)';
                 _mainColor = color;
                 _colorLightness =
                     HSLColor.fromColor(color).lightness.clamp(0.05, 0.95);
@@ -3485,7 +3486,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 elevation: 0,
               ),
               child: Text(context.loc.t('적용', '적용'),
-                  style: TextStyle(fontWeight: FontWeight.w800)),
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
             ),
           ]),
           const SizedBox(height: 12),
@@ -3499,13 +3500,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   Border.all(color: AppColors.warning.withValues(alpha: 0.20)),
             ),
             child: Row(children: [
-              Icon(Icons.info_outline, size: 14, color: AppColors.warning),
-              SizedBox(width: 6),
+              const Icon(Icons.info_outline,
+                  size: 14, color: AppColors.warning),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   context.loc.t('원하시는_색상의_HEX_코드를_6자리로_입력하세요_n예_빨강__bc66fc',
                       '원하시는 색상의 HEX 코드를 6자리로 입력하세요.\n예) 빨강: FF0000 / 파랑: 0000FF / 노랑: FFFF00'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 11, color: AppColors.warning, height: 1.5),
                 ),
               ),
@@ -3514,7 +3516,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           const SizedBox(height: 10),
           // 자주 쓰는 커스텀 색상 예시
           Text(context.loc.t('자주_쓰는_색상', '자주 쓰는 색상'),
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   color: Colors.black54)),
@@ -3590,7 +3592,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       setState(() {
         _hexPreview = color;
         _mainColorName =
-            context.loc.t('커스텀_색상', '커스텀') + ' (#${v.toUpperCase()})';
+            '${context.loc.t('커스텀_색상', '커스텀')} (#${v.toUpperCase()})';
         _mainColor = color;
         _colorLightness = HSLColor.fromColor(color).lightness.clamp(0.05, 0.95);
         _hexError = null;
@@ -3609,7 +3611,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     final maleLengths = AppConstants.bottomLengths
         .where((l) => ['9부', '5부', '4부', '3부'].contains(l['label']))
         .toList();
-    final femaleLengths = AppConstants.bottomLengths; // 전체 (숏쇼츠 포함)
+    const femaleLengths = AppConstants.bottomLengths; // 전체 (숏쇼츠 포함)
 
     return _card(
       title: context.loc.t('하의_기본_길이', '하의 기본 길이'),
@@ -3632,7 +3634,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               child: Text(
                 context.loc
                     .t('선택한_길이는_성별에_따라_전원', '선택한 길이는 성별에 따라 전원에게 동일하게 적용됩니다.'),
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                style: const TextStyle(
+                    fontSize: 11, color: AppColors.textSecondary),
               ),
             ),
           ]),
@@ -3684,7 +3687,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 child: Text(
                   context.loc.t('숏사각_숏쇼츠_선택_시_주머니_추가가_불가합니다',
                       '숏사각(숏쇼츠) 선택 시 주머니 추가가 불가합니다.'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 11,
                       color: Color(0xFFBF360C),
                       fontWeight: FontWeight.w600),
@@ -3712,7 +3715,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 child: Text(
                   context.loc.t('타이즈_9부_선택_시_인당_20_000원이_추가됩니다',
                       '타이즈 9부 선택 시 인당 +20,000원이 추가됩니다.'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 11,
                       color: Color(0xFFBF360C),
                       fontWeight: FontWeight.w600),
@@ -3843,7 +3846,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 child: Text(
                   context.loc.t('여성_숏사각_숏쇼츠_선택_시_주머니_추가가_불가합니다',
                       '여성 숏사각(숏쇼츠) 선택 시 주머니 추가가 불가합니다.'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 11,
                       color: Color(0xFFBF360C),
                       fontWeight: FontWeight.w600),
@@ -4268,16 +4271,17 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         color: Colors.black54,
                         borderRadius: BorderRadius.circular(4)),
                     child: Text(context.loc.t('탭하여_재선택', '탭하여 재선택'),
-                        style: TextStyle(color: Colors.white, fontSize: 10)),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 10)),
                   ),
                 ),
               ])
             : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(Icons.add_photo_alternate_outlined,
+                const Icon(Icons.add_photo_alternate_outlined,
                     color: _purple, size: 36),
                 const SizedBox(height: 6),
                 Text(context.loc.t('디자인_참고_이미지_선택', '디자인 참고 이미지 선택'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: _purple,
                         fontSize: 13,
                         fontWeight: FontWeight.w600)),
@@ -4302,6 +4306,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       setState(() => _refBase64 = b64);
       await _saveImage(base64: b64);
     } catch (e) {
+      if (!mounted) return;
       _showSnack(context.loc.t('이미지_선택_오류', '이미지 선택 중 오류가 발생했습니다.'));
     }
   }
@@ -4343,10 +4348,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         // ── 1) 참고 이미지 소제목
         Row(children: [
-          Icon(Icons.photo_library_outlined, size: 14, color: _purple),
+          const Icon(Icons.photo_library_outlined, size: 14, color: _purple),
           const SizedBox(width: 6),
           Text(context.loc.t('디자인_참고_이미지__최대__f82772', '디자인 참고 이미지 (최대 3장)'),
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 12, fontWeight: FontWeight.w700, color: _purple)),
         ]),
         const SizedBox(height: 8),
@@ -4368,7 +4373,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   size: 13, color: AppColors.primary),
               const SizedBox(width: 5),
               Text(context.loc.t('업로드_안내', '업로드 안내'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: AppColors.primary)),
@@ -4377,17 +4382,17 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             Text(
                 context.loc.t('원하는_문구_텍스트__또는__ef24c2',
                     '• 원하는 문구(텍스트) 또는 무늬(패턴)가 담긴 이미지를 업로드해 주세요.'),
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 11, color: AppColors.textSecondary, height: 1.5)),
             Text(
                 context.loc.t('로고__팀명__숫자__그래픽_d10d57',
                     '• 로고, 팀명, 숫자, 그래픽 무늬 등 허리밴드에 넣고 싶은 디자인 참고 이미지도 가능합니다.'),
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 11, color: AppColors.textSecondary, height: 1.5)),
             Text(
                 context.loc.t(
                     '선택사항이며_최대_3장까지__660c66', '• 선택사항이며 최대 3장까지 업로드할 수 있습니다.'),
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 11, color: AppColors.textSecondary, height: 1.5)),
           ]),
         ),
@@ -4448,11 +4453,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.add_photo_alternate_outlined,
+                        const Icon(Icons.add_photo_alternate_outlined,
                             color: _purple, size: 26),
                         const SizedBox(height: 4),
                         Text(context.loc.t('이미지_추가', '이미지 추가'),
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 10,
                                 color: _purple,
                                 fontWeight: FontWeight.w600)),
@@ -4806,12 +4811,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     size: 13, color: AppColors.primary),
                 const SizedBox(width: 5),
                 Text(context.loc.t('업로드_안내', '업로드 안내'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         color: AppColors.primary)),
               ]),
-              SizedBox(height: 5),
+              const SizedBox(height: 5),
               Text(
                   context.loc.t('원하는_문구_텍스트__또는__ef24c2',
                       '• 원하는 문구(텍스트) 또는 무늬(패턴)가 담긴 이미지를 업로드해 주세요.'),
@@ -4833,16 +4838,16 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       fontSize: 11,
                       color: AppColors.textSecondary,
                       height: 1.5)),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Icon(Icons.warning_amber_rounded,
+                const Icon(Icons.warning_amber_rounded,
                     size: 13, color: AppColors.accent),
-                SizedBox(width: 5),
+                const SizedBox(width: 5),
                 Expanded(
                   child: Text(
                     context.loc.t('로고를_첨부하실_경우_AI_원본_파일_벡터_파일_이_필요합니다_917818',
                         '로고를 첨부하실 경우 AI 원본 파일(벡터 파일)이 필요합니다.\n(JPG·PNG 등 래스터 이미지로는 로고 인쇄 품질 보장이 어렵습니다.)'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.accent,
                         height: 1.5,
@@ -4912,11 +4917,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.add_photo_alternate_outlined,
+                        const Icon(Icons.add_photo_alternate_outlined,
                             color: _purple, size: 26),
                         const SizedBox(height: 4),
                         Text(context.loc.t('이미지_추가', '이미지 추가'),
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 10,
                                 color: _purple,
                                 fontWeight: FontWeight.w600)),
@@ -4937,7 +4942,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   Widget _buildPersonListSection() {
     return _card(
       title:
-          '${context.loc.t('인원별_사이즈', '인원별 사이즈')} (${context.loc.t('총', '총')} ${_totalCount}${context.loc.t('명', '명')})',
+          '${context.loc.t('인원별_사이즈', '인원별 사이즈')} (${context.loc.t('총', '총')} $_totalCount${context.loc.t('명', '명')})',
       icon: Icons.format_list_numbered_rounded,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         // ── 추가제작: 기존 주문 동일 디자인 안내 배너
@@ -4978,7 +4983,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       Text(
                           context.loc.t('기존_주문과_동일한_디자인으_7cbf6d',
                               '기존 주문과 동일한 디자인으로 제작됩니다'),
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
                               color: Color(0xFF795548))),
@@ -4987,14 +4992,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     Text(
                         context.loc.t('색상___원단___허리밴드__c79c9e',
                             '• 색상 · 원단 · 허리밴드 · 로고 등 모든 옵션은 기존 주문과 동일하게 적용됩니다.'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 11,
                             color: Color(0xFF795548),
                             height: 1.5)),
                     Text(
                         context.loc.t('인원별_사이즈와_주문자_정보_79f799',
                             '• 인원별 사이즈와 주문자 정보만 새로 입력해 주세요.'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 11,
                             color: Color(0xFF795548),
                             height: 1.5)),
@@ -5068,7 +5073,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             child: Text(
                                 context.loc
                                     .t('이미지를_불러올_수_없습니다', '이미지를 불러올 수 없습니다'),
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 11, color: Colors.grey)),
                           ),
                         ),
@@ -5078,7 +5083,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       Text(
                           context.loc.t('디자인_확정_이미지는_관리자_07ab20',
                               '• 디자인 확정 이미지는 관리자가 등록한 후 확인 가능합니다.'),
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 11,
                               color: Color(0xFF9E9E9E),
                               height: 1.5)),
@@ -5123,7 +5128,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                      '+${_fmt(_fabricExtra)}' + context.loc.t('원', '원'),
+                      '+${_fmt(_fabricExtra)}${context.loc.t('원', '원')}',
                       style: TextStyle(
                           fontSize: 10,
                           color: AppColors.warning.withValues(alpha: 0.90),
@@ -5159,7 +5164,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 ),
               ),
               const SizedBox(width: 3),
-              Icon(Icons.arrow_forward_rounded,
+              const Icon(Icons.arrow_forward_rounded,
                   size: 10, color: Colors.black38),
               const SizedBox(width: 3),
               // 조절 후 색상 원 (더 크게)
@@ -5203,7 +5208,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(width: 6),
-                      Text('· ' + _lightnessLabel,
+                      Text('· $_lightnessLabel',
                           style: const TextStyle(
                               fontSize: 10,
                               color: Colors.black38,
@@ -5300,7 +5305,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             icon:
                 const Icon(Icons.person_add_outlined, size: 18, color: _purple),
             label: Text(context.loc.t('인원_추가', '인원 추가'),
-                style: TextStyle(color: _purple, fontWeight: FontWeight.w700)),
+                style: const TextStyle(
+                    color: _purple, fontWeight: FontWeight.w700)),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: _purple, width: 1.5),
               shape: RoundedRectangleBorder(
@@ -5453,7 +5459,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(context.loc.t('성인', '성인'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 10,
                       color: Colors.white,
                       fontWeight: FontWeight.w800)),
@@ -5519,7 +5525,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(context.loc.t('주니어', '주니어'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 10,
                       color: Colors.white,
                       fontWeight: FontWeight.w800)),
@@ -5587,13 +5593,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 Border.all(color: AppColors.warning.withValues(alpha: 0.20)),
           ),
           child: Row(children: [
-            Icon(Icons.info_outline, size: 12, color: AppColors.warning),
-            SizedBox(width: 5),
+            const Icon(Icons.info_outline, size: 12, color: AppColors.warning),
+            const SizedBox(width: 5),
             Expanded(
                 child: Text(
               context.loc.t('위_사이즈에_해당하지_않으면_상세치수',
                   "위 사이즈에 해당하지 않으면 '상세치수 입력'을 선택해 주세요."),
-              style: TextStyle(fontSize: 10, color: AppColors.warning),
+              style: const TextStyle(fontSize: 10, color: AppColors.warning),
             )),
           ]),
         ),
@@ -5727,10 +5733,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   border: Border.all(color: _purple.withValues(alpha: 0.3)),
                 ),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(Icons.download_outlined, size: 13, color: _purple),
+                  const Icon(Icons.download_outlined, size: 13, color: _purple),
                   const SizedBox(width: 3),
                   Text(context.loc.t('불러오기', '불러오기'),
-                      style: TextStyle(
+                      style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: _purple)),
@@ -5799,7 +5805,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         size: 14, color: AppColors.primary),
                     const SizedBox(width: 5),
                     Text(context.loc.t('사이즈_구분', '사이즈 구분'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary)),
@@ -6335,7 +6341,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       children: [
                         TextSpan(
                           text: context.loc.t('인쇄_안내', '인쇄 안내: '),
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontWeight: FontWeight.w800,
                               color: Color(0xFFF57C00)),
                         ),
@@ -6365,7 +6371,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Text(context.loc.t('배송_주소', '배송 주소 *'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: Colors.black54)),
@@ -6373,8 +6379,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               // 저장 주소 선택 버튼
               Builder(builder: (ctx) {
                 final user = Provider.of<UserProvider>(ctx, listen: false).user;
-                if (user == null || user.addresses.isEmpty)
+                if (user == null || user.addresses.isEmpty) {
                   return const SizedBox.shrink();
+                }
                 return GestureDetector(
                   onTap: () => _showSavedAddressPicker(user.addresses),
                   child: Container(
@@ -6386,11 +6393,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       border: Border.all(color: _purple.withValues(alpha: 0.3)),
                     ),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(Icons.bookmark_outline_rounded,
+                      const Icon(Icons.bookmark_outline_rounded,
                           size: 12, color: _purple),
                       const SizedBox(width: 4),
                       Text(context.loc.t('저장_주소_선택', '저장 주소 선택'),
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 11,
                               color: _purple,
                               fontWeight: FontWeight.w700)),
@@ -6536,7 +6543,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         TextSpan(
                           text: context.loc.t('1년간_해당_디자인을_타인에게_배포하지_않습니다',
                               '· 1년간 해당 디자인을 타인에게 배포하지 않습니다.'),
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 11,
                               color: AppColors.textSecondary,
                               fontWeight: FontWeight.w400),
@@ -6545,7 +6552,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                           text: context.loc.t(
                               '별도_이야기_없으면_매년_2월_1일_홈페이지에_업로드_됩니다',
                               '· 별도 이야기 없으면 매년 2월 1일 홈페이지에 업로드 됩니다.'),
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 11,
                               color: AppColors.textSecondary,
                               fontWeight: FontWeight.w400),
@@ -6554,7 +6561,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                           text: context.loc.t(
                               '같은_디자인_희망_시_색상만_변경_가능_같은_색상_제작_불가',
                               '· 같은 디자인 희망 시 색상만 변경 가능 (같은 색상 제작 불가)'),
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 11,
                               color: Color(0xFF880E4F),
                               fontWeight: FontWeight.w600),
@@ -6628,8 +6635,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 const Icon(Icons.bookmark_rounded, size: 16, color: _purple),
                 const SizedBox(width: 8),
                 Text(context.loc.t('저장된_배송지_선택', '저장된 배송지 선택'),
-                    style:
-                        TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w800)),
                 const Spacer(),
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
@@ -6682,7 +6689,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(context.loc.t('기본', '기본'),
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 10,
                                     color: _purple,
                                     fontWeight: FontWeight.w700)),
@@ -6761,11 +6768,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               valueColor: AppColors.accent),
         _sumRow(context.loc.t('기본_단가', '기본 단가'), '${_fmt(_basePrice)}원/인'),
         if (_fabricExtra > 0)
-          _sumRow('  ↳ ' + context.loc.t('심리스무봉제_추가', '심리스(무봉제) 추가'),
+          _sumRow('  ↳ ${context.loc.t('심리스무봉제_추가', '심리스(무봉제) 추가')}',
               '+${_fmt(_fabricExtra)}원/인',
               valueColor: AppColors.accent),
         if (_isTights9)
-          _sumRow('  ↳ ' + context.loc.t('타이즈_9부_추가', '타이즈 9부 추가'),
+          _sumRow('  ↳ ${context.loc.t('타이즈_9부_추가', '타이즈 9부 추가')}',
               '+${_fmt(_tights9Price)}원/인',
               valueColor: AppColors.accent),
         _sumRow(
@@ -6774,10 +6781,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         const SizedBox(height: 4),
         // ── 인원수 곱하기 ──
         _sumRow(context.loc.t('총_인원', '총 인원'),
-            '$_totalCount' + context.loc.t('명', '명')),
+            '$_totalCount${context.loc.t('명', '명')}'),
         const Divider(height: 20),
         _sumRow(context.loc.t('상품_합계', '상품 합계'),
-            '${_fmt(_subTotal)}' + context.loc.t('원', '원')),
+            '${_fmt(_subTotal)}${context.loc.t('원', '원')}'),
         if (_discountAmount > 0)
           _sumRow('단체주문 할인 (${_groupDiscountRate.toStringAsFixed(1)}%)',
               '-${_fmt(_discountAmount)}원',
@@ -6786,14 +6793,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           context.loc.t('배송비', '배송비'),
           _totalCount >= AppConstants.groupMinFreeShipping
               ? context.loc.t('무료_5장_이상', '무료 (5장 이상)')
-              : '+${_fmt(_shipping)}' + context.loc.t('원_5장_미만', '원 (5장 미만)'),
+              : '+${_fmt(_shipping)}${context.loc.t('원_5장_미만', '원 (5장 미만)')}',
           valueColor: _totalCount >= AppConstants.groupMinFreeShipping
               ? AppColors.success
               : AppColors.warning,
         ),
         if (_waistbandExtra > 0)
           _sumRow(context.loc.t('허리밴드', '허리밴드 ') + _waistbandOptionLabel,
-              '+${_fmt(_waistbandExtra)}' + context.loc.t('원', '원'),
+              '+${_fmt(_waistbandExtra)}${context.loc.t('원', '원')}',
               valueColor: AppColors.accent),
         if (_exclusiveDesign)
           _sumRow(context.loc.t('1년_독점_디자인', '1년 독점 디자인'),
@@ -6801,7 +6808,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               valueColor: AppColors.success),
         const Divider(height: 20),
         _sumRow(context.loc.t('최종_결제금액', '최종 결제금액'),
-            '${_fmt(_finalPrice)}' + context.loc.t('원', '원'),
+            '${_fmt(_finalPrice)}${context.loc.t('원', '원')}',
             isTotal: true),
 
         const SizedBox(height: 20),
@@ -6825,7 +6832,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 child: Text(
                   context.loc
                       .t('주문_내용을_모두_확인하였으며', '주문 내용을 모두 확인하였으며 구매에 동의합니다.'),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primary,
@@ -6879,7 +6886,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             ),
             child: Text(
               context.loc.t('주문하기', '주문하기'),
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
             ),
           ),
         ),
@@ -6945,7 +6952,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(context.loc.t('기성품', '기성품'),
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.w700)),
@@ -6954,7 +6961,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 Expanded(
                   child: Text(
                     context.loc.t('수령_후_3일_이내_교환환불_가능', '수령 후 7일 이내 교환·환불 가능'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 13,
                         color: AppColors.primary,
                         fontWeight: FontWeight.w600,
@@ -6988,7 +6995,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(context.loc.t('커스텀_단체', '커스텀(단체)'),
-                          style: TextStyle(
+                          style: const TextStyle(
                               color: Colors.white,
                               fontSize: 10,
                               fontWeight: FontWeight.w700)),
@@ -6998,7 +7005,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       child: Text(
                         context.loc
                             .t('의류_자체_불량_외_교환환불_불가', '의류 자체 불량 외 교환·환불 불가'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 13,
                             color: AppColors.error,
                             fontWeight: FontWeight.w700,
@@ -7009,11 +7016,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 ),
                 const SizedBox(height: 6),
                 Padding(
-                  padding: EdgeInsets.only(left: 4),
+                  padding: const EdgeInsets.only(left: 4),
                   child: Text(
                     context.loc.t('커스텀_제작_특성상_옷_자체_하자',
                         '커스텀 제작 특성상 옷 자체의 하자가 아닌 경우\n교환·환불이 불가합니다.'),
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 11, color: AppColors.error, height: 1.6),
                   ),
                 ),

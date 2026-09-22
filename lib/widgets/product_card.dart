@@ -268,7 +268,7 @@ class ProductCard extends StatelessWidget {
                     product.isGroupOnly
                         ? context.loc.t('단체주문_전용', '단체주문 전용')
                         : context.loc.t('단체주문', '단체주문'),
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 9,
                       fontWeight: FontWeight.w500,
@@ -287,7 +287,7 @@ class ProductCard extends StatelessWidget {
                   ),
                   child: Text(
                     context.loc.t('기성품', '기성품'),
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 9,
                       fontWeight: FontWeight.w500,
@@ -330,7 +330,7 @@ class ProductCard extends StatelessWidget {
             // 정가 (취소선)
             Text(
               '${_fmt(product.originalPrice!)}${loc.productWonUnit}',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 9,
                 color: AppColors.textHint,
                 decoration: TextDecoration.lineThrough,

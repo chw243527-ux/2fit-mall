@@ -112,8 +112,7 @@ jobs:
           echo "Building ${build_name}+${build_number}"
 
       - name: Static analysis report
-        continue-on-error: true
-        run: flutter analyze --no-fatal-infos
+        run: bash tool/ci_dart_analyze.sh
 
       - name: Validate Google Play credentials
         env:

@@ -13,10 +13,10 @@ import '../utils/constants.dart';
 class EmailService {
   // ── EmailJS 설정 ─────────────────────────────────────
   static const _serviceId = 'service_2fitmall';
-  static const _templateOrderId = 'template_order';   // 주문 확인
+  static const _templateOrderId = 'template_order'; // 주문 확인
   static const _templateStatusId = 'template_status'; // 상태 변경
   static const _publicKey = 'S7NAATfTC4cwKqgK7';
-  static const _origin = 'https://2fit-mall.co.kr';   // 실제 도메인
+  static const _origin = 'https://2fit-mall.co.kr'; // 실제 도메인
 
   static final _db = FirebaseFirestore.instance;
 
@@ -84,7 +84,8 @@ class EmailService {
     if (order.userEmail.isEmpty) return false;
 
     final itemList = order.items
-        .map((i) => '${i.productName} (${i.size}/${i.color}) × ${i.quantity}개 - ${_fmtPrice(i.price * i.quantity)}원')
+        .map((i) =>
+            '${i.productName} (${i.size}/${i.color}) × ${i.quantity}개 - ${_fmtPrice(i.price * i.quantity)}원')
         .join(', ');
 
     return _sendEmail(
@@ -93,10 +94,12 @@ class EmailService {
         'to_email': order.userEmail,
         'to_name': order.userName,
         'order_id': order.id,
-        'order_date': '${order.createdAt.year}.${order.createdAt.month.toString().padLeft(2,'0')}.${order.createdAt.day.toString().padLeft(2,'0')}',
+        'order_date':
+            '${order.createdAt.year}.${order.createdAt.month.toString().padLeft(2, '0')}.${order.createdAt.day.toString().padLeft(2, '0')}',
         'item_list': itemList,
         'total_amount': '${_fmtPrice(order.totalAmount)}원',
-        'shipping_fee': order.shippingFee > 0 ? '${_fmtPrice(order.shippingFee)}원' : '무료',
+        'shipping_fee':
+            order.shippingFee > 0 ? '${_fmtPrice(order.shippingFee)}원' : '무료',
         'shipping_address': order.userAddress,
         'payment_method': order.paymentMethod,
         'shop_name': AppConstants.companyName,
@@ -106,7 +109,8 @@ class EmailService {
         'business_address': AppConstants.companyAddress,
         'business_phone': AppConstants.customerServicePhone,
         'business_email': AppConstants.customerServiceEmail,
-        'business_contact': '카카오채널 문의: ${AppConstants.kakaoChannelUrl} · ${AppConstants.customerServiceEmail}',
+        'business_contact':
+            '카카오채널 문의: ${AppConstants.kakaoChannelUrl} · ${AppConstants.customerServiceEmail}',
         'business_channel_url': AppConstants.kakaoChannelUrl,
         'business_channel_label': '카카오채널 문의하기',
         'copyright': AppConstants.copyright,
@@ -175,7 +179,8 @@ class EmailService {
         'business_address': AppConstants.companyAddress,
         'business_phone': AppConstants.customerServicePhone,
         'business_email': AppConstants.customerServiceEmail,
-        'business_contact': '카카오채널 문의: ${AppConstants.kakaoChannelUrl} · ${AppConstants.customerServiceEmail}',
+        'business_contact':
+            '카카오채널 문의: ${AppConstants.kakaoChannelUrl} · ${AppConstants.customerServiceEmail}',
         'business_channel_url': AppConstants.kakaoChannelUrl,
         'business_channel_label': '카카오채널 문의하기',
         'copyright': AppConstants.copyright,
@@ -202,13 +207,13 @@ class EmailService {
     required String message,
     required String userId,
   }) async {
-    final adminEmail = AppConstants.customerServiceEmail;
-    const templateId = 'template_chat_alert';  // EmailJS 템플릿 ID
+    const adminEmail = AppConstants.customerServiceEmail;
+    const templateId = 'template_chat_alert'; // EmailJS 템플릿 ID
 
     final now = DateTime.now();
     final timeStr =
-        '${now.year}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')} '
-        '${now.hour.toString().padLeft(2,'0')}:${now.minute.toString().padLeft(2,'0')}';
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} '
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
     return _sendEmail(
       templateId: templateId,
@@ -232,13 +237,15 @@ class EmailService {
     required String subject,
     required String body,
   }) async {
-    final adminEmail = AppConstants.customerServiceEmail;return _sendEmail(
+    const adminEmail = AppConstants.customerServiceEmail;
+    return _sendEmail(
       templateId: _templateStatusId,
       templateParams: {
         'to_email': adminEmail,
         'to_name': '2FIT MALL 관리자',
         'order_id': subject,
-        'order_id_short': subject.length > 20 ? subject.substring(0, 20) : subject,
+        'order_id_short':
+            subject.length > 20 ? subject.substring(0, 20) : subject,
         'status': '관리자 알림',
         'status_message': subject,
         'action_message': body,
@@ -252,7 +259,7 @@ class EmailService {
 
   static Future<bool> sendBankTransferAdminAlert(OrderModel order) async {
     // 관리자 수신 이메일 (constants.dart의 CS 이메일로 발송)
-    final adminEmail = AppConstants.customerServiceEmail;
+    const adminEmail = AppConstants.customerServiceEmail;
 
     final itemList = order.items
         .map((i) => '${i.productName} (${i.size}/${i.color}) × ${i.quantity}개')
@@ -264,11 +271,11 @@ class EmailService {
         'to_email': adminEmail,
         'to_name': '2FIT MALL 관리자',
         'order_id': order.id,
-        'order_id_short': order.id.length > 8 ? order.id.substring(0, 8) : order.id,
+        'order_id_short':
+            order.id.length > 8 ? order.id.substring(0, 8) : order.id,
         'status': '무통장입금 대기',
         'status_message': '⚠️ 무통장입금 주문이 접수되었습니다. 입금 확인 후 처리해 주세요.',
-        'action_message':
-            '주문자: ${order.userName} | 연락처: ${order.userPhone}\n'
+        'action_message': '주문자: ${order.userName} | 연락처: ${order.userPhone}\n'
             '주문금액: ${_fmtPrice(order.totalAmount)}원\n'
             '주문상품:\n$itemList\n'
             '배송지: ${order.userAddress}',

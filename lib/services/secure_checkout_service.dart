@@ -72,8 +72,8 @@ class SecureCheckoutService {
     );
   }
 
-  static Future<PaymentCancellationResult> cancelPaymentIntent(
-      String orderId, {String cancelReason = '고객 요청'}) async {
+  static Future<PaymentCancellationResult> cancelPaymentIntent(String orderId,
+      {String cancelReason = '고객 요청'}) async {
     return _post<PaymentCancellationResult>(
       path: 'cancelSecurePayment',
       body: {'orderId': orderId, 'cancelReason': cancelReason},
