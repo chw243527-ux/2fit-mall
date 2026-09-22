@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/models.dart';
+import 'fcm_service.dart';
 
 /// 재고 관리 서비스
 ///
@@ -259,11 +260,15 @@ class InventoryService {
   }) async {
     final safeQuantity = quantity.clamp(0, 999999).toInt();
     final productRef = _products.doc(productId);
+    var wasOutOfStock = false;
+    var productName = productId;
     await _db.runTransaction((tx) async {
       final snap = await tx.get(productRef);
       if (!snap.exists) throw Exception('상품 문서 없음: $productId');
       final data = snap.data()!;
       final inv = _toInventory(snap.id, data);
+      wasOutOfStock = inv.totalStock <= 0;
+      productName = inv.productName;
       final nextStockData = <String, dynamic>{};
       final nextSizeStocks = <String, int>{};
       for (final entry in inv.stock.entries) {
@@ -303,6 +308,12 @@ class InventoryService {
         'createdAt': DateTime.now().toIso8601String(),
       });
     });
+    if (wasOutOfStock && safeQuantity > 0) {
+      await FcmService.sendRestockNotification(
+        productId: productId,
+        productName: productName,
+      );
+    }
     await _syncRelatedDesignStock(productId);
   }
 
@@ -319,6 +330,7 @@ class InventoryService {
     required String adminId,
   }) async {
     final prodDoc = _products.doc(productId);
+    var wasOutOfStock = false;
     var totalStockAfter = 0;
     final logRef = prodDoc.collection('stockLogs').doc();
 
@@ -328,6 +340,7 @@ class InventoryService {
 
       final data = snap.data()!;
       final inv = _toInventory(snap.id, data);
+      wasOutOfStock = inv.totalStock <= 0;
       final before = inv.stockForSizeColor(size, color);
       final after = (before + delta).clamp(0, 999999).toInt();
 
@@ -405,6 +418,13 @@ class InventoryService {
             createdAt: DateTime.now(),
           ).toJson());
     });
+    if (wasOutOfStock && totalStockAfter > 0) {
+      final product = await fetchOne(productId);
+      await FcmService.sendRestockNotification(
+        productId: productId,
+        productName: product?.productName ?? productId,
+      );
+    }
 
     // 같은 디자인(productCode)의 다른 색상 상품은 동일한 재고표를 사용합니다.
     await _syncRelatedDesignStock(productId);
