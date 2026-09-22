@@ -40,7 +40,7 @@ for i in 1 2 3; do
     -H "Accept: application/vnd.github+json" \
     -H "Content-Type: application/json" \
     "https://api.github.com/repos/${REPO}/pages" \
-    -d "{\"cname\":\"${CNAME_DOMAIN}\",\"https_enforced\":false}" 2>&1)
+    -d "{\"cname\":\"${CNAME_DOMAIN}\",\"https_enforced\":true}" 2>&1)
   
   if echo "$RESULT" | grep -q "certificate does not exist"; then
     echo "  ⏳ 인증서 대기 중... ($i/3)"

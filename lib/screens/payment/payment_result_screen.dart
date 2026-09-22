@@ -7,6 +7,7 @@ import '../../utils/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
+import '../../services/auth_service.dart';
 import '../../services/secure_checkout_service.dart';
 import '../mypage/mypage_screen.dart';
 
@@ -32,6 +33,17 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
 
   Future<void> _processSuccess() async {
     try {
+      final firebaseReady = await AuthService.waitForFirebaseInitialization(
+        timeout: const Duration(seconds: 12),
+      );
+      if (!firebaseReady) {
+        if (!mounted) return;
+        setState(() {
+          _isProcessing = false;
+          _errorMsg = '로그인 정보를 확인하는 중입니다. 잠시 후 다시 시도해 주세요.';
+        });
+        return;
+      }
       // URL 파라미터 파싱
       final uri = Uri.parse(Uri.base.toString());
       // 모바일 브라우저·웹뷰는 콜백을 /#/payment/success?... 형태로

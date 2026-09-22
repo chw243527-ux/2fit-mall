@@ -1327,6 +1327,7 @@ exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAY
       const orderRef = db.collection('orders').doc(orderId);
       const existingOrder = await tx.get(orderRef);
       if (!existingOrder.exists) {
+        await _reserveOrderStock(tx, latestData.order);
         tx.set(orderRef, {
           ...latestData.order,
           status: 'confirmed',
@@ -1707,6 +1708,7 @@ async function _finalizeRecoveredPayment(intentId, intent, toss) {
     const orderRef = db.collection('orders').doc(intentId);
     const existingOrder = await tx.get(orderRef);
     if (!existingOrder.exists) {
+      await _reserveOrderStock(tx, latestData.order);
       tx.set(orderRef, {
         ...latestData.order,
         status: 'confirmed',
@@ -2224,6 +2226,53 @@ async function _reserveBenefits(tx, uid, prepared, orderId, user) {
     if (balance < prepared.usedPoints) throw new Error('Insufficient points');
     tx.update(db.collection('users').doc(uid), { points: balance - prepared.usedPoints });
     tx.set(db.collection('users').doc(uid).collection('point_history').doc(`reserve_${orderId}`), { action: 'use', amount: -prepared.usedPoints, desc: `주문 ${orderId} 포인트 사용`, orderId, createdAt: FieldValue.serverTimestamp() });
+  }
+}
+
+async function _reserveOrderStock(tx, order) {
+  const rows = Array.isArray(order?.items) ? order.items : [];
+  const demand = new Map();
+  for (const row of rows) {
+    const options = row?.customOptions || {};
+    const isGroup = order?.orderType === 'group' || options.orderType === 'group';
+    if (isGroup) continue;
+    const productId = String(row?.productId || row?.id || '').trim();
+    const size = String(row?.selectedSize || row?.size || '').trim();
+    const color = String(row?.selectedColor || row?.color || '').trim();
+    const quantity = Number(row?.quantity || row?.qty || 0);
+    if (!productId || !size || !color || !Number.isInteger(quantity) || quantity <= 0) continue;
+    const key = `${productId}\u0000${size}\u0000${color}`;
+    demand.set(key, (demand.get(key) || 0) + quantity);
+  }
+  const byProduct = new Map();
+  for (const [key, quantity] of demand) {
+    const [productId, size, color] = key.split('\u0000');
+    if (!byProduct.has(productId)) byProduct.set(productId, []);
+    byProduct.get(productId).push({ size, color, quantity });
+  }
+  const snapshots = new Map();
+  for (const productId of byProduct.keys()) {
+    const ref = db.collection('products').doc(productId);
+    snapshots.set(productId, { ref, snap: await tx.get(ref) });
+  }
+  for (const [productId, entries] of byProduct) {
+    const { ref, snap } = snapshots.get(productId);
+    if (!snap.exists) throw new Error('PRODUCT_NOT_FOUND');
+    const data = snap.data() || {};
+    const stockData = data.stockData && typeof data.stockData === 'object' ? data.stockData : null;
+    if (!stockData) continue;
+    const next = JSON.parse(JSON.stringify(stockData));
+    for (const { size, color, quantity } of entries) {
+      const available = Number(next?.[size]?.[color]);
+      if (!Number.isFinite(available) || available < quantity) throw new Error('INSUFFICIENT_STOCK');
+      next[size][color] = available - quantity;
+    }
+    const stockCount = Object.values(next).reduce((sum, colors) =>
+      sum + Object.values(colors || {}).reduce((inner, value) => inner + Number(value || 0), 0), 0);
+    const soldOutSizes = Object.entries(next)
+      .filter(([, colors]) => Object.values(colors || {}).every((value) => Number(value || 0) <= 0))
+      .map(([size]) => size);
+    tx.update(ref, { stockData: next, stockCount, soldOutSizes, updatedAt: FieldValue.serverTimestamp() });
   }
 }
 

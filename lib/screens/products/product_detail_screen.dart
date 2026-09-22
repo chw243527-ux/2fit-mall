@@ -9037,8 +9037,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   Future<void> _showCartRecommendationDialog(
       BuildContext host, ProductModel addedProduct) async {
     final provider = host.read<ProductProvider>();
-    final source =
-        provider.products.where((p) => p.id != addedProduct.id && p.isActive);
+    final source = provider.products
+        .where((p) => p.id != addedProduct.id && p.isActive && !p.isSoldOut);
     final isGroup = addedProduct.isGroup || addedProduct.isGroupOnly;
     final text =
         '${addedProduct.category} ${addedProduct.subCategory} ${addedProduct.name}';
@@ -9180,6 +9180,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
         item['color'] as String,
         quantity: item['qty'] as int,
         extraPrice: (item['extra'] as num).toDouble(),
+        customOptions: _cartOptions(item),
       );
     }
     widget.onCartUpdated();
@@ -9200,11 +9201,26 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
         item['color'] as String,
         quantity: item['qty'] as int,
         extraPrice: (item['extra'] as num).toDouble(),
+        customOptions: _cartOptions(item),
       );
     }
     widget.onCartUpdated();
     Navigator.pop(context);
     Navigator.pushNamed(context, '/checkout');
+  }
+
+  Map<String, dynamic>? _cartOptions(Map<String, dynamic> item) {
+    final options = <String, dynamic>{
+      if (item['topSize'] != null) 'topSize': item['topSize'],
+      if (item['bottomSize'] != null) 'bottomSize': item['bottomSize'],
+      if (item['singleSize'] != null) 'singleSize': item['singleSize'],
+      if (item['length'] != null && item['length'] != '-')
+        'length': item['length'],
+      if (item['gender'] != null && item['gender'] != '-')
+        'gender': item['gender'],
+      if (item['removePocket'] == true) 'removePocket': true,
+    };
+    return options.isEmpty ? null : options;
   }
 
   // ─────────────────────────────────────────────
@@ -12532,7 +12548,8 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                                     builder: (_) => GroupOrderFormScreen(
                                           product: widget.product,
                                           initialCount: 5,
-                                          isBottomOrder: widget.product.category ==
+                                          isBottomOrder: widget
+                                                      .product.category ==
                                                   context.loc.t('하의', '하의') ||
                                               (widget.product.subCategory
                                                       .contains(context.loc
@@ -12549,12 +12566,9 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                                                           '여성 25부', '여성 2.5부')) ??
 // ignore: dead_null_aware_expression
                                                   false) ||
-// ignore: dead_null_aware_expression
-                                              (widget.product.name.contains(
-                                                      context.loc.t('타이즈', '타이즈')) ??
-                                                  false) ||
-// ignore: dead_null_aware_expression
-                                              (widget.product.name.contains(context.loc.t('하의', '하의')) ?? false),
+                                              widget.product.name.contains(
+                                                  context.loc.t('타이즈', '타이즈')) ||
+                                              widget.product.name.contains(context.loc.t('하의', '하의')),
                                         )),
                               );
                             }

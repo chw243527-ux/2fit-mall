@@ -164,9 +164,19 @@
       const target = rp.get('_target');
       if (!target) return;
 
+      let targetUrl;
+      try {
+        targetUrl = new URL(decodeURIComponent(target), location.origin);
+      } catch (_) {
+        return;
+      }
+      const allowedPaths = new Set(['/payment/success', '/payment/fail', '/#/payment/success', '/#/payment/fail']);
+      if (targetUrl.origin !== location.origin || !allowedPaths.has(targetUrl.pathname)) {
+        return;
+      }
+
       // 토스가 붙여준 나머지 파라미터(paymentKey, orderId, amount, code, message 등)를
       // target URL에 합쳐서 top으로 이동
-      const targetUrl = new URL(decodeURIComponent(target));
       rp.forEach((v, k) => {
         if (k !== '_redirect' && k !== '_target') {
           targetUrl.searchParams.set(k, v);

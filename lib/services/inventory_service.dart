@@ -155,27 +155,30 @@ class InventoryService {
         updates['productCode'] = code;
       }
 
-      // stockData 생성: sizeStocks 기반으로 실제 재고 반영
-      final Map<String, Map<String, int>> stockData = {};
-      for (final size in sizes) {
-        stockData[size] = {};
-        // 해당 사이즈 재고: sizeStocks에 있으면 사용, 없으면 stockCount ÷ 사이즈수
-        final sizeQty = p.sizeStocks.containsKey(size)
-            ? p.sizeStocks[size]!
-            : (p.stockCount / sizes.length).floor();
-        // 색상별로 균등 분배 (나머지는 첫 번째 색상에 추가)
-        final perColor =
-            colors.isNotEmpty ? (sizeQty / colors.length).floor() : 0;
-        final remainder =
-            colors.isNotEmpty ? sizeQty - perColor * colors.length : 0;
-        for (int i = 0; i < colors.length; i++) {
-          stockData[size]![colors[i]] = perColor + (i == 0 ? remainder : 0);
+      // 이미 색상별 재고가 있으면 운영 재고를 파괴하지 않습니다.
+      // 비어 있는 상품에만 초기 균등 분배를 적용합니다.
+      final hasStockData =
+          data['stockData'] is Map && (data['stockData'] as Map).isNotEmpty;
+      if (!hasStockData) {
+        final Map<String, Map<String, int>> stockData = {};
+        for (final size in sizes) {
+          stockData[size] = {};
+          final sizeQty = p.sizeStocks.containsKey(size)
+              ? p.sizeStocks[size]!
+              : (p.stockCount / sizes.length).floor();
+          final perColor =
+              colors.isNotEmpty ? (sizeQty / colors.length).floor() : 0;
+          final remainder =
+              colors.isNotEmpty ? sizeQty - perColor * colors.length : 0;
+          for (int i = 0; i < colors.length; i++) {
+            stockData[size]![colors[i]] = perColor + (i == 0 ? remainder : 0);
+          }
         }
+        updates['stockData'] = stockData;
+        updates['stockCount'] = stockData.values
+            .expand((colorMap) => colorMap.values)
+            .fold<int>(0, (sum, qty) => sum + qty);
       }
-      updates['stockData'] = stockData;
-      updates['stockCount'] = stockData.values
-          .expand((colorMap) => colorMap.values)
-          .fold<int>(0, (sum, qty) => sum + qty);
       synced++;
 
       await doc.update(updates);
@@ -342,7 +345,11 @@ class InventoryService {
       final inv = _toInventory(snap.id, data);
       wasOutOfStock = inv.totalStock <= 0;
       final before = inv.stockForSizeColor(size, color);
-      final after = (before + delta).clamp(0, 999999).toInt();
+      final requestedAfter = before + delta;
+      if (requestedAfter < 0) {
+        throw StateError('출고 수량이 현재 재고보다 많습니다.');
+      }
+      final after = requestedAfter.clamp(0, 999999).toInt();
 
       // 재고 조정은 stockData만 변경하면 sizeStocks를 읽는 상품 목록·상세 화면이
       // 오래된 값을 계속 표시할 수 있습니다. 기존 모든 셀을 보존한 뒤 변경 셀,
@@ -396,6 +403,10 @@ class InventoryService {
         'stockData': nextStockData,
         'sizeStocks': nextSizeStocks,
         'stockCount': totalStockAfter,
+        'soldOutSizes': [
+          for (final entry in nextSizeStocks.entries)
+            if (entry.value <= 0) entry.key,
+        ],
         'updatedAt': DateTime.now().toIso8601String(),
       });
 
@@ -410,7 +421,7 @@ class InventoryService {
             size: size,
             color: color,
             type: type,
-            quantity: delta.abs(),
+            quantity: (after - before).abs(),
             beforeQty: before,
             afterQty: after,
             memo: memo,

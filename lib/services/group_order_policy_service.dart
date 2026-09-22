@@ -15,14 +15,22 @@ class GroupOrderPolicy {
 
   double get discountMultiplier => (1 - discountRate / 100).clamp(0.0, 1.0);
 
-  bool allowsProduct({required String category, required String name, String subCategory = ''}) {
-    final haystack = '$name $subCategory'.toLowerCase();
-    final isSinglet = haystack.contains('싱글렛') || haystack.contains('singlet');
-    if (!isSinglet) return false;
-    // 과거 정책에 저장된 싱글렛 제외값은 무시하고, 다른 별도 제외 키워드만 적용한다.
+  bool allowsProduct(
+      {required String category,
+      required String name,
+      String subCategory = ''}) {
+    final haystack = '$category $subCategory $name'.toLowerCase();
+    final categories = allowedCategories
+        .map((value) => value.trim().toLowerCase())
+        .where((value) => value.isNotEmpty)
+        .toList();
+    final categoryAllowed = categories.isEmpty ||
+        categories.any(
+          (value) => haystack.contains(value),
+        );
+    if (!categoryAllowed) return false;
     final hasOtherExcludedKeyword = excludedKeywords.any((keyword) {
       final normalized = keyword.toLowerCase();
-      if (normalized == '싱글렛' || normalized == 'singlet') return false;
       return haystack.contains(normalized);
     });
     return !hasOtherExcludedKeyword;
@@ -33,8 +41,10 @@ class GroupOrderPolicy {
     final rawCategories = map['allowedCategories'];
     final rawExcluded = map['excludedKeywords'];
     return GroupOrderPolicy(
-      minimumQuantity: ((map['minimumQuantity'] as num?)?.toInt() ?? 5).clamp(1, 9999),
-      discountRate: ((map['discountRate'] as num?)?.toDouble() ?? 0).clamp(0, 90),
+      minimumQuantity:
+          ((map['minimumQuantity'] as num?)?.toInt() ?? 5).clamp(1, 9999),
+      discountRate:
+          ((map['discountRate'] as num?)?.toDouble() ?? 0).clamp(0, 90),
       allowedCategories: rawCategories is List && rawCategories.isNotEmpty
           ? rawCategories.map((e) => e.toString()).toList()
           : const ['싱글렛'],

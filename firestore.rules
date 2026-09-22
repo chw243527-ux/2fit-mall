@@ -255,6 +255,10 @@ service cloud.firestore {
       // 생성: 로그인 + 본인 userId + 내용 검증
       allow create: if isSignedIn()
           && request.resource.data.userId == request.auth.uid
+          && request.resource.data.keys().hasOnly([
+            'id', 'userId', 'userName', 'productId', 'orderId', 'rating',
+            'content', 'images', 'size', 'color', 'createdAt'
+          ])
           && isValidReview(request.resource.data);
 
       // 고객은 본인 리뷰의 원문 필드만 수정하고, 베스트·관리자 답변은 관리자만 변경

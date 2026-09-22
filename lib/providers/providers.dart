@@ -261,7 +261,10 @@ class CartProvider extends ChangeNotifier {
     if (removeIds.isNotEmpty) {
       _items.removeWhere((item) => removeIds.contains(item.id));
     }
-    if (changed) notifyListeners();
+    if (changed) {
+      _persistCart();
+      notifyListeners();
+    }
   }
 
   List<CartItem> get items => List.unmodifiable(_items);
@@ -300,7 +303,9 @@ class CartProvider extends ChangeNotifier {
             item.product.id == product.id &&
             item.selectedSize == size &&
             item.selectedColor == color &&
-            item.extraPrice == extraPrice,
+            item.extraPrice == extraPrice &&
+            _canonicalOptions(item.customOptions) ==
+                _canonicalOptions(customOptions),
       );
       if (existingIndex >= 0) {
         _items[existingIndex].quantity += quantity;
@@ -320,6 +325,12 @@ class CartProvider extends ChangeNotifier {
     ));
     _persistCart();
     notifyListeners();
+  }
+
+  String _canonicalOptions(Map<String, dynamic>? options) {
+    if (options == null || options.isEmpty) return '';
+    final keys = options.keys.map((key) => key.toString()).toList()..sort();
+    return jsonEncode({for (final key in keys) key: options[key]});
   }
 
   void removeItem(String itemId) {

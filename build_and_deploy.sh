@@ -27,9 +27,11 @@ print('✅ Service Worker 비활성화 완료')
 
 echo "🚀 Netlify 배포 중..."
 export PATH=\$PATH:/home/user/.npm-global/bin
-export NETLIFY_AUTH_TOKEN=nfp_h3vGi6yJAG3HVsYqJ5vDGHX164hoZwZ7aaba
-export NETLIFY_SITE_ID=13020fb8-6e95-4ab0-b387-644cb5401473
-netlify deploy --prod --dir=build/web --site=\$NETLIFY_SITE_ID
+if [ -z "${NETLIFY_AUTH_TOKEN:-}" ] || [ -z "${NETLIFY_SITE_ID:-}" ]; then
+  echo "❌ NETLIFY_AUTH_TOKEN과 NETLIFY_SITE_ID 환경변수가 필요합니다."
+  exit 1
+fi
+netlify deploy --prod --dir=build/web --site="$NETLIFY_SITE_ID"
 
 echo ""
 echo "✅ 배포 완료! https://2fit-mall.netlify.app"
