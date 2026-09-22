@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/models.dart';
-import 'fcm_service.dart';
 
 /// 재고 관리 서비스
 ///
@@ -22,10 +21,14 @@ class InventoryService {
   static InventoryModel _toInventory(String docId, Map<String, dynamic> data) {
     final name = data['name'] as String? ?? '';
     final code = data['productCode'] as String? ?? _generateCode(docId);
-    final rawSizes  = data['sizes']  as List<dynamic>? ?? [];
+    final rawSizes = data['sizes'] as List<dynamic>? ?? [];
     final rawColors = data['colors'] as List<dynamic>? ?? [];
-    final sizes  = rawSizes.isNotEmpty  ? rawSizes.map((e) => e.toString()).toList()  : ['FREE'];
-    final colors = rawColors.isNotEmpty ? rawColors.map((e) => e.toString()).toList() : ['기본'];
+    final sizes = rawSizes.isNotEmpty
+        ? rawSizes.map((e) => e.toString()).toList()
+        : ['FREE'];
+    final colors = rawColors.isNotEmpty
+        ? rawColors.map((e) => e.toString()).toList()
+        : ['기본'];
 
     // stockData 읽기 (없으면 0으로 초기화)
     final rawStock = data['stockData'] as Map<String, dynamic>? ?? {};
@@ -43,16 +46,16 @@ class InventoryService {
 
     // 대표 이미지 (첫 번째 이미지 URL)
     final rawImages = data['images'] as List<dynamic>? ?? [];
-    final imageUrl  = rawImages.isNotEmpty ? rawImages.first.toString() : '';
+    final imageUrl = rawImages.isNotEmpty ? rawImages.first.toString() : '';
 
     return InventoryModel(
-      productId:    docId,
-      productName:  name,
-      productCode:  code,
-      imageUrl:     imageUrl,
-      stock:        stock,
+      productId: docId,
+      productName: name,
+      productCode: code,
+      imageUrl: imageUrl,
+      stock: stock,
       reorderPoint: reorderPoint,
-      updatedAt:    DateTime.now(),
+      updatedAt: DateTime.now(),
     );
   }
 
@@ -68,12 +71,8 @@ class InventoryService {
   /// 전체 상품 재고 목록 (products 컬렉션 직접 읽기)
   /// orderBy 없이 where만 사용 → 복합 인덱스 불필요, 정렬은 클라이언트에서 처리
   static Future<List<InventoryModel>> fetchAll() async {
-    final snap = await _products
-        .where('isActive', isEqualTo: true)
-        .get();
-    final list = snap.docs
-        .map((d) => _toInventory(d.id, d.data()))
-        .toList()
+    final snap = await _products.where('isActive', isEqualTo: true).get();
+    final list = snap.docs.map((d) => _toInventory(d.id, d.data())).toList()
       ..sort((a, b) => a.productName.compareTo(b.productName));
     return list;
   }
@@ -90,10 +89,8 @@ class InventoryService {
 
   /// 바코드(productCode)로 재고 조회
   static Future<InventoryModel?> fetchByBarcode(String barcode) async {
-    final snap = await _products
-        .where('productCode', isEqualTo: barcode)
-        .limit(1)
-        .get();
+    final snap =
+        await _products.where('productCode', isEqualTo: barcode).limit(1).get();
     if (snap.docs.isEmpty) return null;
     return _toInventory(snap.docs.first.id, snap.docs.first.data());
   }
@@ -104,7 +101,7 @@ class InventoryService {
 
   /// 상품 등록/수정 시 stockData 초기화 (없을 때만)
   static Future<void> initProduct(ProductModel product) async {
-    final doc  = _products.doc(product.id);
+    final doc = _products.doc(product.id);
     final snap = await doc.get();
     if (!snap.exists) return;
     final data = snap.data()!;
@@ -113,7 +110,7 @@ class InventoryService {
     final rawStock = data['stockData'];
     if (rawStock is Map && rawStock.isNotEmpty) return;
 
-    final sizes  = product.sizes.isNotEmpty  ? product.sizes  : ['FREE'];
+    final sizes = product.sizes.isNotEmpty ? product.sizes : ['FREE'];
     final colors = product.colors.isNotEmpty ? product.colors : ['기본'];
     final Map<String, Map<String, int>> stockData = {
       for (final s in sizes) s: {for (final c in colors) c: 0},
@@ -125,7 +122,7 @@ class InventoryService {
         : _generateCode(product.id);
 
     await doc.update({
-      'stockData':   stockData,
+      'stockData': stockData,
       'productCode': code,
     });
   }
@@ -139,17 +136,16 @@ class InventoryService {
   static Future<int> syncAllProducts(List<ProductModel> products) async {
     int synced = 0;
     for (final p in products) {
-      final code = p.productCode.isNotEmpty
-          ? p.productCode
-          : _generateCode(p.id);
+      final code =
+          p.productCode.isNotEmpty ? p.productCode : _generateCode(p.id);
 
-      final doc  = _products.doc(p.id);
+      final doc = _products.doc(p.id);
       final snap = await doc.get();
       if (!snap.exists) continue;
 
-      final data     = snap.data()!;
-      final sizes    = p.sizes.isNotEmpty  ? p.sizes  : ['FREE'];
-      final colors   = p.colors.isNotEmpty ? p.colors : ['기본'];
+      final data = snap.data()!;
+      final sizes = p.sizes.isNotEmpty ? p.sizes : ['FREE'];
+      final colors = p.colors.isNotEmpty ? p.colors : ['기본'];
       final Map<String, dynamic> updates = {};
 
       // productCode 없으면 저장
@@ -167,8 +163,10 @@ class InventoryService {
             ? p.sizeStocks[size]!
             : (p.stockCount / sizes.length).floor();
         // 색상별로 균등 분배 (나머지는 첫 번째 색상에 추가)
-        final perColor = colors.isNotEmpty ? (sizeQty / colors.length).floor() : 0;
-        final remainder = colors.isNotEmpty ? sizeQty - perColor * colors.length : 0;
+        final perColor =
+            colors.isNotEmpty ? (sizeQty / colors.length).floor() : 0;
+        final remainder =
+            colors.isNotEmpty ? sizeQty - perColor * colors.length : 0;
         for (int i = 0; i < colors.length; i++) {
           stockData[size]![colors[i]] = perColor + (i == 0 ? remainder : 0);
         }
@@ -194,15 +192,16 @@ class InventoryService {
     required int quantity,
     String memo = '',
     required String adminId,
-  }) => _changeStock(
-    productId: productId,
-    size: size,
-    color: color,
-    delta: quantity,
-    type: InventoryLogType.incoming,
-    memo: memo,
-    adminId: adminId,
-  );
+  }) =>
+      _changeStock(
+        productId: productId,
+        size: size,
+        color: color,
+        delta: quantity,
+        type: InventoryLogType.incoming,
+        memo: memo,
+        adminId: adminId,
+      );
 
   // ─────────────────────────────────────────────
   //  출고
@@ -214,15 +213,16 @@ class InventoryService {
     required int quantity,
     String memo = '',
     required String adminId,
-  }) => _changeStock(
-    productId: productId,
-    size: size,
-    color: color,
-    delta: -quantity,
-    type: InventoryLogType.outgoing,
-    memo: memo,
-    adminId: adminId,
-  );
+  }) =>
+      _changeStock(
+        productId: productId,
+        size: size,
+        color: color,
+        delta: -quantity,
+        type: InventoryLogType.outgoing,
+        memo: memo,
+        adminId: adminId,
+      );
 
   // ─────────────────────────────────────────────
   //  재고조정 (절대값 설정)
@@ -238,7 +238,7 @@ class InventoryService {
     final inv = await fetchOne(productId);
     if (inv == null) return;
     final before = inv.stockForSizeColor(size, color);
-    final delta  = newQty - before;
+    final delta = newQty - before;
     await _changeStock(
       productId: productId,
       size: size,
@@ -250,6 +250,62 @@ class InventoryService {
     );
   }
 
+  /// 선택 상품의 모든 사이즈×색상 조합에 동일 수량을 적용합니다.
+  /// 재고관리 화면에서만 호출되며, 한 트랜잭션으로 전체 조합을 저장합니다.
+  static Future<void> setAllStock({
+    required String productId,
+    required int quantity,
+    required String adminId,
+  }) async {
+    final safeQuantity = quantity.clamp(0, 999999).toInt();
+    final productRef = _products.doc(productId);
+    await _db.runTransaction((tx) async {
+      final snap = await tx.get(productRef);
+      if (!snap.exists) throw Exception('상품 문서 없음: $productId');
+      final data = snap.data()!;
+      final inv = _toInventory(snap.id, data);
+      final nextStockData = <String, dynamic>{};
+      final nextSizeStocks = <String, int>{};
+      for (final entry in inv.stock.entries) {
+        final colorMap = <String, dynamic>{};
+        for (final color in entry.value.keys) {
+          colorMap[color] = safeQuantity;
+        }
+        nextStockData[entry.key] = colorMap;
+        nextSizeStocks[entry.key] = safeQuantity * colorMap.length;
+      }
+      final total =
+          nextSizeStocks.values.fold<int>(0, (sum, value) => sum + value);
+      tx.update(productRef, {
+        'stockData': nextStockData,
+        'sizeStocks': nextSizeStocks,
+        'stockCount': total,
+        'soldOutSizes': [
+          for (final entry in nextSizeStocks.entries)
+            if (entry.value <= 0) entry.key,
+        ],
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+      final logRef = productRef.collection('stockLogs').doc();
+      tx.set(logRef, {
+        'id': logRef.id,
+        'productId': productId,
+        'productName': inv.productName,
+        'productCode': inv.productCode,
+        'size': '*',
+        'color': '*',
+        'type': InventoryLogType.adjustment.name,
+        'quantity': safeQuantity,
+        'beforeQty': inv.totalStock,
+        'afterQty': total,
+        'memo': '전체 사이즈·색상 일괄 적용',
+        'adminId': adminId,
+        'createdAt': DateTime.now().toIso8601String(),
+      });
+    });
+    await _syncRelatedDesignStock(productId);
+  }
+
   // ─────────────────────────────────────────────
   //  공통 재고 변경 (products 문서 트랜잭션)
   // ─────────────────────────────────────────────
@@ -257,27 +313,23 @@ class InventoryService {
     required String productId,
     required String size,
     required String color,
-    required int delta,           // 양수=증가, 음수=감소
+    required int delta, // 양수=증가, 음수=감소
     required InventoryLogType type,
     required String memo,
     required String adminId,
   }) async {
     final prodDoc = _products.doc(productId);
-    var wasOutOfStock = false;
     var totalStockAfter = 0;
-    var productName = '';
-    final logRef  = prodDoc.collection('stockLogs').doc();
+    final logRef = prodDoc.collection('stockLogs').doc();
 
     await _db.runTransaction((tx) async {
       final snap = await tx.get(prodDoc);
       if (!snap.exists) throw Exception('상품 문서 없음: $productId');
 
       final data = snap.data()!;
-      final inv  = _toInventory(snap.id, data);
+      final inv = _toInventory(snap.id, data);
       final before = inv.stockForSizeColor(size, color);
-      wasOutOfStock = inv.totalStock <= 0;
-      productName = data['name']?.toString() ?? inv.productName;
-      final after  = (before + delta).clamp(0, 999999).toInt();
+      final after = (before + delta).clamp(0, 999999).toInt();
 
       // 재고 조정은 stockData만 변경하면 sizeStocks를 읽는 상품 목록·상세 화면이
       // 오래된 값을 계속 표시할 수 있습니다. 기존 모든 셀을 보존한 뒤 변경 셀,
@@ -318,12 +370,14 @@ class InventoryService {
         var sizeTotal = 0;
         if (colors is Map) {
           for (final value in colors.values) {
-            sizeTotal += value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+            sizeTotal +=
+                value is num ? value.toInt() : int.tryParse('$value') ?? 0;
           }
         }
         nextSizeStocks[entry.key] = sizeTotal;
       }
-      totalStockAfter = nextSizeStocks.values.fold(0, (sum, value) => sum + value);
+      totalStockAfter =
+          nextSizeStocks.values.fold(0, (sum, value) => sum + value);
 
       tx.update(prodDoc, {
         'stockData': nextStockData,
@@ -333,29 +387,24 @@ class InventoryService {
       });
 
       // 이력 기록 (서브컬렉션 stockLogs)
-      tx.set(logRef, InventoryLog(
-        id:          logRef.id,
-        productId:   productId,
-        productName: inv.productName,
-        productCode: inv.productCode,
-        size:        size,
-        color:       color,
-        type:        type,
-        quantity:    delta.abs(),
-        beforeQty:   before,
-        afterQty:    after,
-        memo:        memo,
-        adminId:     adminId,
-        createdAt:   DateTime.now(),
-      ).toJson());
+      tx.set(
+          logRef,
+          InventoryLog(
+            id: logRef.id,
+            productId: productId,
+            productName: inv.productName,
+            productCode: inv.productCode,
+            size: size,
+            color: color,
+            type: type,
+            quantity: delta.abs(),
+            beforeQty: before,
+            afterQty: after,
+            memo: memo,
+            adminId: adminId,
+            createdAt: DateTime.now(),
+          ).toJson());
     });
-
-    if (wasOutOfStock && totalStockAfter > 0) {
-      await FcmService.sendRestockNotification(
-        productId: productId,
-        productName: productName,
-      );
-    }
 
     // 같은 디자인(productCode)의 다른 색상 상품은 동일한 재고표를 사용합니다.
     await _syncRelatedDesignStock(productId);
@@ -371,7 +420,8 @@ class InventoryService {
     final rawStock = sourceData['stockData'];
     if (rawStock is! Map) return;
 
-    final siblings = await _products.where('productCode', isEqualTo: code).get();
+    final siblings =
+        await _products.where('productCode', isEqualTo: code).get();
     final sizeStocks = <String, int>{};
     for (final entry in rawStock.entries) {
       var sizeTotal = 0;
@@ -420,17 +470,15 @@ class InventoryService {
   }
 
   /// 특정 상품 이력
-  static Future<List<InventoryLog>> fetchLogsByProduct(
-      String productId, {int limit = 50}) async {
+  static Future<List<InventoryLog>> fetchLogsByProduct(String productId,
+      {int limit = 50}) async {
     final snap = await _products
         .doc(productId)
         .collection('stockLogs')
         .orderBy('createdAt', descending: true)
         .limit(limit)
         .get();
-    return snap.docs
-        .map((d) => InventoryLog.fromJson(d.id, d.data()))
-        .toList();
+    return snap.docs.map((d) => InventoryLog.fromJson(d.id, d.data())).toList();
   }
 
   /// 날짜 범위 이력 (특정 상품 기준)

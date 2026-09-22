@@ -1,4 +1,5 @@
-import 'dart:js_interop' if (dart.library.io) '../../utils/js_interop_stub.dart';
+import 'dart:js_interop'
+    if (dart.library.io) '../../utils/js_interop_stub.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:barcode_widget/barcode_widget.dart';
@@ -798,6 +799,59 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
     );
   }
 
+  Future<void> _showBulkStockDialog(InventoryModel inv) async {
+    final ctrl = TextEditingController();
+    final quantity = await showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('${inv.productName} 전체 수량 일괄 적용'),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: '사이즈·색상별 적용 수량',
+            suffixText: '개',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = int.tryParse(ctrl.text.trim());
+              if (value == null || value < 0) return;
+              Navigator.pop(ctx, value);
+            },
+            child: const Text('적용'),
+          ),
+        ],
+      ),
+    );
+    ctrl.dispose();
+    if (quantity == null || !mounted) return;
+    try {
+      await InventoryService.setAllStock(
+        productId: inv.productId,
+        quantity: quantity,
+        adminId: widget.adminId,
+      );
+      await _load();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('${inv.productName} 재고를 $quantity개로 일괄 적용했습니다.')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('재고 일괄 적용에 실패했습니다. 다시 시도해 주세요.')),
+      );
+    }
+  }
+
   Widget _stockTable(InventoryModel inv) {
     final sizes = inv.stock.keys.toList();
     if (sizes.isEmpty)
@@ -809,50 +863,64 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
     for (final cm in inv.stock.values) allColors.addAll(cm.keys);
     final colors = allColors.toList();
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        headingRowHeight: 32,
-        dataRowMinHeight: 28,
-        dataRowMaxHeight: 36,
-        columnSpacing: 20,
-        columns: [
-          DataColumn(
-              label: Text(context.loc.t('사이즈', '사이즈'),
-                  style: TextStyle(fontSize: 12))),
-          ...colors.map((c) =>
-              DataColumn(label: Text(c, style: const TextStyle(fontSize: 12)))),
-          DataColumn(
-              label: Text(context.loc.t('합계', '합계'),
-                  style: TextStyle(fontSize: 12))),
-        ],
-        rows: sizes.map((size) {
-          final total = inv.stockForSize(size);
-          return DataRow(cells: [
-            DataCell(Text(size,
-                style: const TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w600))),
-            ...colors.map((c) {
-              final qty = inv.stockForSizeColor(size, c);
-              return DataCell(Text(qty.toString(),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: qty == 0
-                        ? AppColors.error
-                        : (qty <= inv.reorderPoint
-                            ? AppColors.warning
-                            : Colors.black87),
-                  )));
-            }),
-            DataCell(Text(total.toString(),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: total == 0 ? AppColors.error : AppColors.primary,
-                ))),
-          ]);
-        }).toList(),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: OutlinedButton.icon(
+            onPressed: () => _showBulkStockDialog(inv),
+            icon: const Icon(Icons.done_all, size: 16),
+            label: const Text('전체 조합 일괄 적용'),
+          ),
+        ),
+        const SizedBox(height: 6),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            headingRowHeight: 32,
+            dataRowMinHeight: 28,
+            dataRowMaxHeight: 36,
+            columnSpacing: 20,
+            columns: [
+              DataColumn(
+                  label: Text(context.loc.t('사이즈', '사이즈'),
+                      style: TextStyle(fontSize: 12))),
+              ...colors.map((c) => DataColumn(
+                  label: Text(c, style: const TextStyle(fontSize: 12)))),
+              DataColumn(
+                  label: Text(context.loc.t('합계', '합계'),
+                      style: TextStyle(fontSize: 12))),
+            ],
+            rows: sizes.map((size) {
+              final total = inv.stockForSize(size);
+              return DataRow(cells: [
+                DataCell(Text(size,
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w600))),
+                ...colors.map((c) {
+                  final qty = inv.stockForSizeColor(size, c);
+                  return DataCell(Text(qty.toString(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: qty == 0
+                            ? AppColors.error
+                            : (qty <= inv.reorderPoint
+                                ? AppColors.warning
+                                : Colors.black87),
+                      )));
+                }),
+                DataCell(Text(total.toString(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: total == 0 ? AppColors.error : AppColors.primary,
+                    ))),
+              ]);
+            }).toList(),
+          ),
+        ),
+      ],
     );
   }
 }

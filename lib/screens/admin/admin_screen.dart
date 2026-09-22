@@ -16466,11 +16466,6 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     ]),
                     const SizedBox(height: 14),
 
-                    // ── 재고
-                    _lbl('재고 수량'),
-                    _field(_stockCtrl, '100', type: TextInputType.number),
-                    const SizedBox(height: 14),
-
                     // ── 상품 설명
                     _lbl('상품 설명'),
                     TextField(
@@ -16786,14 +16781,6 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     _buildSizeSelector(),
                     const SizedBox(height: 10),
 
-                    // ── 품절 사이즈 설정
-                    _buildSoldOutSizeSelector(),
-                    const SizedBox(height: 14),
-
-                    // ── 사이즈별 재고 입력
-                    _buildSizeStockEditor(),
-                    const SizedBox(height: 14),
-
                     // ── 소재 직접 입력
                     _lbl('소재 정보 (직접 입력 시 카테고리 기본값 덮어씀)'),
                     TextField(
@@ -17035,11 +17022,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     ),
                     const SizedBox(height: 14),
 
-                    // ── 색상별 옵션 가격·재고
+                    // ── 색상별 옵션 가격
                     _buildColorPriceEditor(),
                     if (_selectedColors.isNotEmpty) const SizedBox(height: 14),
-                    _buildColorStockEditor(),
-                    const SizedBox(height: 14),
 
                     // ── 토글 칩
                     Wrap(spacing: 8, runSpacing: 6, children: [
@@ -17507,6 +17492,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   }
 
   /// 품절 사이즈 설정 UI — 선택된 사이즈 중 품절로 표시할 항목 토글
+  // ignore: unused_element
   Widget _buildSoldOutSizeSelector() {
     // 선택된 사이즈가 없으면 표시하지 않음
     if (_selectedSizes.isEmpty) return const SizedBox.shrink();
@@ -17793,6 +17779,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   }
 
   // ── 색상별 재고 입력 위젯
+  // ignore: unused_element
   Widget _buildColorStockEditor() {
     if (_selectedSizes.isEmpty || _selectedColors.isEmpty) {
       return const SizedBox.shrink();
@@ -17859,6 +17846,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   }
 
   // ── 사이즈별 재고 입력 위젯
+  // ignore: unused_element
   Widget _buildSizeStockEditor() {
     if (_selectedSizes.isEmpty) return const SizedBox.shrink();
     final knownAll = [..._adultSizeOptions, ..._juniorSizeOptions];
