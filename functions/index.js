@@ -226,7 +226,7 @@ function _totalProductStock(data) {
 
 // 재고가 전체 품절(0)에서 양수로 바뀌는 순간 서버에서 신청자에게 발송합니다.
 // 관리자 브라우저가 열려 있지 않아도 앱 알림 문서와 FCM 푸시가 생성됩니다.
-exports.onProductStockRestocked = onDocumentUpdated(
+exports.inventoryRestockWatcherV20260922 = onDocumentUpdated(
   { document: 'products/{productId}', secrets: [RESEND_API_KEY] },
   async (event) => {
     const before = event.data?.before?.data();
@@ -294,7 +294,7 @@ exports.onProductStockRestocked = onDocumentUpdated(
         });
       }
     } catch (error) {
-      console.error('onProductStockRestocked failed', {
+      console.error('inventoryRestockWatcherV20260922 failed', {
         code: _errorCode(error, 'restock-trigger-failed'), productId,
       });
     }
