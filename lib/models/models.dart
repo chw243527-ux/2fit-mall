@@ -297,6 +297,19 @@ class ProductModel {
     return DateTime.now().isBefore(expiry);
   }
 
+  /// 사이즈별 재고와 수동 품절 목록을 포함한 전체 품절 여부입니다.
+  bool get isSoldOut {
+    if (sizes.isNotEmpty &&
+        (sizeStocks.isNotEmpty || soldOutSizes.isNotEmpty)) {
+      return sizes.every((size) =>
+          soldOutSizes.contains(size) || (sizeStocks[size] ?? 0) <= 0);
+    }
+    if (sizeStocks.isNotEmpty) {
+      return sizeStocks.values.every((stock) => stock <= 0);
+    }
+    return stockCount <= 0;
+  }
+
   int get discountPercent {
     if (originalPrice != null && originalPrice! > price) {
       return (((originalPrice! - price) / originalPrice!) * 100).round();

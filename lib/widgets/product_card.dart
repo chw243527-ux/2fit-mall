@@ -194,7 +194,7 @@ class ProductCard extends StatelessWidget {
             ),
 
           // ── 품절 오버레이 ──
-          if (product.stockCount <= 0)
+          if (product.isSoldOut)
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(

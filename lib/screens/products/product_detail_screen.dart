@@ -6610,7 +6610,7 @@ $productUrl
                     onPressed: () => _showGroupOrderGuide(product),
                   ),
                 )
-              else if (product.stockCount <= 0)
+              else if (product.isSoldOut)
                 Consumer<UserProvider>(
                   builder: (_, up, __) => Column(
                     mainAxisSize: MainAxisSize.min,

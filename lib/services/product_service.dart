@@ -1151,6 +1151,7 @@ class ProductService {
       final idx = _products.indexWhere((p) => p.id == productId);
       final current = idx >= 0 ? _products[idx] : null;
       final previousTotal = current?.stockCount ?? 0;
+      final wasSoldOut = current?.isSoldOut ?? previousTotal <= 0;
       final sizes = current?.sizes.isNotEmpty == true
           ? current!.sizes
           : sizeStocks.keys.toList();
@@ -1161,8 +1162,10 @@ class ProductService {
       // 사이즈별 총량을 색상×사이즈 재고로 변환합니다.
       // 기존 색상별 분배 비율은 유지하고, 기존 데이터가 없으면 색상별 균등 분배합니다.
       final stockData = <String, Map<String, int>>{};
+      final soldOutSizes = <String>[];
       for (final size in sizes) {
         final target = sizeStocks[size] ?? 0;
+        if (target <= 0) soldOutSizes.add(size);
         final previous = current?.stockData[size] ?? const <String, int>{};
         final previousTotal = previous.values.fold<int>(0, (sum, qty) => sum + qty);
         final perColor = <String, int>{};
@@ -1191,6 +1194,7 @@ class ProductService {
         'stockCount': newStock,
         'sizeStocks': sizeStocks,
         'stockData': stockData,
+        'soldOutSizes': soldOutSizes,
         'updatedAt': DateTime.now().toIso8601String(),
       });
 
@@ -1199,6 +1203,7 @@ class ProductService {
         final p = _products[idx];
         _products[idx] = p.copyWith(
           stockCount: newStock,
+          soldOutSizes: soldOutSizes,
           sizeStocks: sizeStocks,
           stockData: stockData,
         );
@@ -1206,7 +1211,10 @@ class ProductService {
         await _persist();
       }
       // 상품등록/재고 수정 다이얼로그 경로에서도 품절 해제 시 동일한 재입고 알림을 보냅니다.
-      if (previousTotal <= 0 && newStock > 0) {
+      final hasAvailableSize = sizeStocks.isNotEmpty
+          ? sizeStocks.values.any((stock) => stock > 0)
+          : newStock > 0;
+      if (wasSoldOut && hasAvailableSize) {
         final productName = current?.name ?? productId;
         await FcmService.sendRestockNotification(
           productId: productId,
