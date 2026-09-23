@@ -65,6 +65,12 @@ jobs:
       - name: Check Dart formatting
         run: bash tool/ci_dart_format.sh
 
+      - name: Check dart fix suggestions
+        run: bash tool/ci_dart_fix.sh
+
+      - name: Run project custom lint
+        run: bash tool/ci_custom_lint.sh
+
       - name: Enforce zero Dart diagnostics
         run: bash tool/ci_dart_analyze.sh
 
