@@ -66,8 +66,11 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get
 
+      - name: Check Dart formatting
+        run: bash tool/ci_dart_format.sh
+
       - name: Analyze Flutter project
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        run: bash tool/ci_dart_analyze.sh
 
       - name: Build Flutter Web
         run: |

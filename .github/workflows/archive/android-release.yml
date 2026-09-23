@@ -29,6 +29,12 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get
 
+      - name: Check Dart formatting
+        run: bash tool/ci_dart_format.sh
+
+      - name: Enforce zero Dart diagnostics
+        run: bash tool/ci_dart_analyze.sh
+
       - name: Prepare release signing files
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}

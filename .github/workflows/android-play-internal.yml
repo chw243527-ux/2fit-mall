@@ -111,6 +111,9 @@ jobs:
           echo "build_number=$build_number" >> "$GITHUB_OUTPUT"
           echo "Building ${build_name}+${build_number}"
 
+      - name: Check Dart formatting
+        run: bash tool/ci_dart_format.sh
+
       - name: Static analysis report
         run: bash tool/ci_dart_analyze.sh
 
