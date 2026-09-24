@@ -123,6 +123,9 @@ jobs:
       - name: Static analysis report
         run: bash tool/ci_dart_analyze.sh
 
+      - name: Run Flutter tests
+        run: flutter test --no-pub
+
       - name: Validate Google Play credentials
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}

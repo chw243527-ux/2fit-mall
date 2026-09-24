@@ -61,6 +61,9 @@ jobs:
       - name: Verify Flutter project
         run: bash tool/ci_dart_analyze.sh
 
+      - name: Run Flutter tests
+        run: flutter test --no-pub
+
       - name: Install Firebase CLI and Functions dependencies
         run: |
           npx --yes firebase-tools@${FIREBASE_CLI_VERSION} --version

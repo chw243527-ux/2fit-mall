@@ -47,3 +47,6 @@ jobs:
 
       - name: Enforce zero Dart diagnostics
         run: bash tool/ci_dart_analyze.sh
+
+      - name: Run Flutter tests
+        run: flutter test --no-pub

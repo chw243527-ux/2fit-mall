@@ -78,6 +78,9 @@ jobs:
       - name: Analyze Flutter project
         run: bash tool/ci_dart_analyze.sh
 
+      - name: Run Flutter tests
+        run: flutter test --no-pub
+
       - name: Build Flutter Web
         run: |
           flutter build web \

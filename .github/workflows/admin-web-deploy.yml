@@ -53,6 +53,9 @@ jobs:
       - name: Verify Flutter project
         run: bash tool/ci_dart_analyze.sh
 
+      - name: Run Flutter tests
+        run: flutter test --no-pub
+
       - name: Build administrator-only Flutter Web
         run: |
           flutter build web \
