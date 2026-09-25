@@ -210,8 +210,9 @@ exports.onOrderStatusChanged = onDocumentUpdated(
 );
 
 // 주문 상태·결제·배송 변경 이력은 서버에서만 기록합니다.
-// 고객과 관리자는 주문 소유권에 따라 이력을 읽을 수 있지만 직접 위조할 수 없습니다.
-exports.onOrderAuditChanged = onDocumentUpdated(
+// 기존에 같은 이름의 HTTPS 함수가 배포되어 있어 운영 호출 경로를 보존하기 위해
+// 새 백그라운드 트리거는 별도 이름으로 등록합니다.
+exports.onOrderAuditChangedV2 = onDocumentUpdated(
   { document: 'orders/{orderId}' },
   async (event) => {
     const before = event.data?.before?.data();
