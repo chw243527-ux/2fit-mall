@@ -209,51 +209,6 @@ exports.onOrderStatusChanged = onDocumentUpdated(
   },
 );
 
-// 주문 상태·결제·배송 변경 이력은 서버에서만 기록합니다.
-// 기존에 같은 이름의 HTTPS 함수가 배포되어 있어 운영 호출 경로를 보존하기 위해
-// 새 백그라운드 트리거는 별도 이름으로 등록합니다.
-exports.onOrderAuditChangedV2 = onDocumentUpdated(
-  { document: 'orders/{orderId}' },
-  async (event) => {
-    const before = event.data?.before?.data();
-    const after = event.data?.after?.data();
-    if (!before || !after) return;
-
-    const trackedFields = [
-      'status',
-      'paymentStatus',
-      'trackingNumber',
-      'shippingCompany',
-      'cancelReason',
-      'refundAmount',
-    ];
-    const changes = {};
-    for (const field of trackedFields) {
-      const previous = before[field] ?? null;
-      const current = after[field] ?? null;
-      if (JSON.stringify(previous) !== JSON.stringify(current)) {
-        changes[field] = { before: previous, after: current };
-      }
-    }
-    if (Object.keys(changes).length === 0) return;
-
-    const rawEventId = String(event.id || 'order-update');
-    const eventId = rawEventId.replace(/[^A-Za-z0-9_-]/g, '_').slice(-120);
-    await db
-      .collection('orders')
-      .doc(event.params.orderId)
-      .collection('events')
-      .doc(`${Date.now()}_${eventId}`)
-      .set({
-        type: 'order_changed',
-        changes,
-        orderId: event.params.orderId,
-        userId: after.userId || null,
-        createdAt: FieldValue.serverTimestamp(),
-      });
-  },
-);
-
 // ══════════════════════════════════════════════════════
 // 2-1) 디자인 수정 요청·디자인 확인 알림
 // ══════════════════════════════════════════════════════
