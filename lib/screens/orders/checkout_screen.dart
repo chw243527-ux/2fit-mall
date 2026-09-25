@@ -2204,6 +2204,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             )
           else ...[
             if (_appliedCoupons.isNotEmpty) ...[
+              if (_appliedCoupons.any((coupon) => coupon.isEvent))
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF8E1),
+                    border: Border.all(color: const Color(0xFFFFCC80)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.info_outline_rounded,
+                          size: 17, color: Color(0xFFE65100)),
+                      SizedBox(width: 7),
+                      Expanded(
+                        child: Text(
+                          '이벤트성 쿠폰은 주문 취소 또는 환불 시 복구되지 않습니다.',
+                          style: TextStyle(
+                              fontSize: 12,
+                              height: 1.45,
+                              color: Color(0xFFE65100),
+                              fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ...List.generate(_appliedCoupons.length, (index) {
                 final coupon = _appliedCoupons[index];
                 final discount = _discountForCouponAt(index);

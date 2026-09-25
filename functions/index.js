@@ -209,6 +209,50 @@ exports.onOrderStatusChanged = onDocumentUpdated(
   },
 );
 
+// 주문 상태·결제·배송 변경 이력은 서버에서만 기록합니다.
+// 고객과 관리자는 주문 소유권에 따라 이력을 읽을 수 있지만 직접 위조할 수 없습니다.
+exports.onOrderAuditChanged = onDocumentUpdated(
+  { document: 'orders/{orderId}' },
+  async (event) => {
+    const before = event.data?.before?.data();
+    const after = event.data?.after?.data();
+    if (!before || !after) return;
+
+    const trackedFields = [
+      'status',
+      'paymentStatus',
+      'trackingNumber',
+      'shippingCompany',
+      'cancelReason',
+      'refundAmount',
+    ];
+    const changes = {};
+    for (const field of trackedFields) {
+      const previous = before[field] ?? null;
+      const current = after[field] ?? null;
+      if (JSON.stringify(previous) !== JSON.stringify(current)) {
+        changes[field] = { before: previous, after: current };
+      }
+    }
+    if (Object.keys(changes).length === 0) return;
+
+    const rawEventId = String(event.id || 'order-update');
+    const eventId = rawEventId.replace(/[^A-Za-z0-9_-]/g, '_').slice(-120);
+    await db
+      .collection('orders')
+      .doc(event.params.orderId)
+      .collection('events')
+      .doc(`${Date.now()}_${eventId}`)
+      .set({
+        type: 'order_changed',
+        changes,
+        orderId: event.params.orderId,
+        userId: after.userId || null,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+  },
+);
+
 // ══════════════════════════════════════════════════════
 // 2-1) 디자인 수정 요청·디자인 확인 알림
 // ══════════════════════════════════════════════════════
@@ -1332,6 +1376,7 @@ exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAY
           ...latestData.order,
           status: 'confirmed',
           paymentStatus: 'paid',
+          stockReserved: true,
           paymentKey,
           paymentMethod: toss.method || latestData.order.paymentMethod,
           // 가상계좌 DEPOSIT_CALLBACK의 secret과 대조하기 위해 승인 시 저장합니다.
@@ -1541,6 +1586,9 @@ exports.cancelSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYM
   // 일부 클라이언트가 prefix를 소문자로 전달하므로 문서 ID 형식으로 정규화합니다.
   const orderId = rawOrderId.replace(/^ord-/i, 'ORD-').replace(/^grp-/i, 'GRP-');
   const cancelReason = String(req.body?.cancelReason || '고객 요청').trim().slice(0, 200);
+  const cancelType = req.body?.cancelType === 'company_fault'
+    ? 'company_fault'
+    : 'customer_change';
   try {
     let orderRef = db.collection('orders').doc(orderId);
     let orderSnap = await orderRef.get();
@@ -1581,25 +1629,60 @@ exports.cancelSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYM
 
       // 무통장입금은 Toss 결제키가 없으므로 주문 상태와 예약 혜택만 취소합니다.
       if (!order.paymentKey) {
+        let benefitRestore = { restoredCouponIds: [], eventCouponIds: [] };
         await db.runTransaction(async (tx) => {
           const latest = await tx.get(orderRef);
           const latestOrder = latest.data() || {};
           if (!latest.exists || latestOrder.userId !== decoded.uid) throw new Error('Order unavailable');
-          await _restoreCommittedBenefits(tx, decoded.uid, orderId, latestOrder);
+          await _restoreOrderStock(tx, orderRef, latestOrder);
+          benefitRestore = await _restoreCommittedBenefits(
+            tx, decoded.uid, orderId, latestOrder,
+          );
           tx.update(orderRef, {
             status: 'cancelled',
             paymentStatus: 'cancelled',
+            cancelType,
+            refundShippingFee: cancelType === 'company_fault'
+              ? Math.max(0, Number(latestOrder.shippingFee || 0))
+              : 0,
+            refundAmount: cancelType === 'company_fault'
+              ? Math.max(0, Number(latestOrder.totalAmount || 0))
+              : Math.max(0, Number(latestOrder.totalAmount || 0) - Number(latestOrder.shippingFee || 0)),
+            restoredCouponIds: benefitRestore.restoredCouponIds,
+            eventCouponNotRestored: benefitRestore.eventCouponIds.length > 0,
+            eventCouponIds: benefitRestore.eventCouponIds,
+            couponRestoreNotice: benefitRestore.eventCouponIds.length > 0
+              ? '이벤트성 쿠폰은 주문 취소 후 복구되지 않습니다.'
+              : FieldValue.delete(),
             cancelReason,
             cancelledAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
           });
         });
-        res.status(200).json({ success: true, orderId, paymentStatus: 'cancelled' });
+        res.status(200).json({
+          success: true,
+          orderId,
+          paymentStatus: 'cancelled',
+          couponNotice: benefitRestore.eventCouponIds.length > 0
+            ? '이벤트성 쿠폰은 주문 취소 후 복구되지 않습니다.'
+            : null,
+        });
         return;
       }
 
       const secret = TOSS_SECRET_KEY.value();
       if (!secret) throw new Error('Payment service is not configured');
+      const shippingFee = Math.max(0, Math.floor(Number(order.shippingFee || 0)));
+      const totalAmount = Math.max(0, Math.floor(Number(order.totalAmount || 0)));
+      const refundShippingFee = cancelType === 'company_fault' ? shippingFee : 0;
+      const refundAmount = cancelType === 'company_fault'
+        ? totalAmount
+        : Math.max(0, totalAmount - shippingFee);
+      const cancelAmount = refundAmount < totalAmount ? refundAmount : null;
+      if (cancelAmount !== null && cancelAmount <= 0) {
+        res.status(400).json({ error: 'Refund amount is unavailable' });
+        return;
+      }
       const tossResponse = await fetch(
         `https://api.tosspayments.com/v1/payments/${encodeURIComponent(order.paymentKey)}/cancel`,
         {
@@ -1608,7 +1691,10 @@ exports.cancelSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYM
             Authorization: `Basic ${Buffer.from(`${secret}:`).toString('base64')}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ cancelReason }),
+          body: JSON.stringify({
+            cancelReason,
+            ...(cancelAmount !== null ? { cancelAmount } : {}),
+          }),
         },
       );
       const toss = await tossResponse.json().catch(() => ({}));
@@ -1618,23 +1704,46 @@ exports.cancelSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYM
         return;
       }
 
+      // 단순 변심은 상품 금액만 환불하고 배송비는 환불하지 않습니다.
+      // 회사 측 귀책은 전체 결제 금액을 환불합니다.
+
+      let benefitRestore = { restoredCouponIds: [], eventCouponIds: [] };
       await db.runTransaction(async (tx) => {
         const latest = await tx.get(orderRef);
         const latestOrder = latest.data() || {};
         if (!latest.exists || latestOrder.userId !== decoded.uid) throw new Error('Order unavailable');
         if (['cancelled', 'refunded'].includes(latestOrder.status) || latestOrder.paymentStatus === 'refunded') return;
-        await _restoreCommittedBenefits(tx, decoded.uid, orderId, latestOrder);
+        await _restoreOrderStock(tx, orderRef, latestOrder);
+        benefitRestore = await _restoreCommittedBenefits(
+          tx, decoded.uid, orderId, latestOrder,
+        );
         tx.update(orderRef, {
           status: 'cancelled',
-          paymentStatus: 'refunded',
-          refundStatus: 'completed',
+          paymentStatus: cancelAmount === null ? 'refunded' : 'partially_refunded',
+          refundStatus: cancelAmount === null ? 'completed' : 'partial_completed',
+          cancelType,
+          refundAmount,
+          refundShippingFee,
+          restoredCouponIds: benefitRestore.restoredCouponIds,
+          eventCouponNotRestored: benefitRestore.eventCouponIds.length > 0,
+          eventCouponIds: benefitRestore.eventCouponIds,
+          couponRestoreNotice: benefitRestore.eventCouponIds.length > 0
+            ? '이벤트성 쿠폰은 주문 취소 후 복구되지 않습니다.'
+            : FieldValue.delete(),
           cancelReason,
           cancelledAt: FieldValue.serverTimestamp(),
           refundedAt: FieldValue.serverTimestamp(),
           updatedAt: FieldValue.serverTimestamp(),
         });
       });
-      res.status(200).json({ success: true, orderId, paymentStatus: 'refunded' });
+      res.status(200).json({
+        success: true,
+        orderId,
+        paymentStatus: cancelAmount === null ? 'refunded' : 'partially_refunded',
+        couponNotice: benefitRestore.eventCouponIds.length > 0
+          ? '이벤트성 쿠폰은 주문 취소 후 복구되지 않습니다.'
+          : null,
+      });
       return;
     }
 
@@ -1652,10 +1761,17 @@ exports.cancelSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYM
   }
 });
 
+function _isEventCoupon(coupon) {
+  return coupon?.isEvent === true
+    || coupon?.eventCoupon === true
+    || coupon?.couponType === 'event'
+    || coupon?.category === 'event';
+}
+
 async function _restoreCommittedBenefits(tx, uid, orderId, order) {
   const refundRef = db.collection('users').doc(uid).collection('point_history').doc(`refund_${orderId}`);
   const refundSnap = await tx.get(refundRef);
-  if (refundSnap.exists) return;
+  if (refundSnap.exists) return { restoredCouponIds: [], eventCouponIds: [] };
 
   const usedPoints = Math.max(0, Number(order.usedPoints || 0));
   if (usedPoints > 0) {
@@ -1672,8 +1788,20 @@ async function _restoreCommittedBenefits(tx, uid, orderId, order) {
   const couponIds = Array.isArray(order.couponIds)
     ? order.couponIds
     : (order.couponId ? [order.couponId] : []);
-  for (const couponId of couponIds) {
-    tx.update(db.collection('user_coupons').doc(uid).collection('coupons').doc(couponId), {
+  const couponRefs = couponIds.map((couponId) =>
+    db.collection('user_coupons').doc(uid).collection('coupons').doc(couponId));
+  const couponSnaps = [];
+  for (const couponRef of couponRefs) couponSnaps.push(await tx.get(couponRef));
+  const restoredCouponIds = [];
+  const eventCouponIds = [];
+  for (let i = 0; i < couponIds.length; i += 1) {
+    const couponId = couponIds[i];
+    if (_isEventCoupon(couponSnaps[i].data() || {})) {
+      eventCouponIds.push(couponId);
+      continue;
+    }
+    restoredCouponIds.push(couponId);
+    tx.update(couponRefs[i], {
       isUsed: false,
       isReserved: false,
       usedOrderId: FieldValue.delete(),
@@ -1682,6 +1810,54 @@ async function _restoreCommittedBenefits(tx, uid, orderId, order) {
       reservedAt: FieldValue.delete(),
     });
   }
+  return { restoredCouponIds, eventCouponIds };
+}
+
+// 결제 승인 시 차감한 기성품 재고를 주문 취소 시 한 번만 복원합니다.
+// 단체주문은 재고를 예약하지 않으므로 대상에서 제외합니다.
+async function _restoreOrderStock(tx, orderRef, order) {
+  if (!order?.stockReserved || order.stockRestoredAt) return;
+  const demand = new Map();
+  for (const row of Array.isArray(order.items) ? order.items : []) {
+    const options = row?.customOptions || {};
+    if (order.orderType === 'group' || options.orderType === 'group') continue;
+    const productId = String(row?.productId || row?.id || '').trim();
+    const size = String(row?.selectedSize || row?.size || '').trim();
+    const color = String(row?.selectedColor || row?.color || '').trim();
+    const quantity = Number(row?.quantity || row?.qty || 0);
+    if (!productId || !size || !color || !Number.isInteger(quantity) || quantity <= 0) continue;
+    const key = `${productId}\u0000${size}\u0000${color}`;
+    demand.set(key, (demand.get(key) || 0) + quantity);
+  }
+  const byProduct = new Map();
+  for (const [key, quantity] of demand) {
+    const [productId, size, color] = key.split('\u0000');
+    if (!byProduct.has(productId)) byProduct.set(productId, []);
+    byProduct.get(productId).push({ size, color, quantity });
+  }
+  const snapshots = new Map();
+  for (const productId of byProduct.keys()) {
+    const ref = db.collection('products').doc(productId);
+    snapshots.set(productId, { ref, snap: await tx.get(ref) });
+  }
+  for (const [productId, entries] of byProduct) {
+    const { ref, snap } = snapshots.get(productId);
+    if (!snap.exists) continue;
+    const data = snap.data() || {};
+    if (!data.stockData || typeof data.stockData !== 'object') continue;
+    const next = JSON.parse(JSON.stringify(data.stockData));
+    for (const { size, color, quantity } of entries) {
+      if (!next[size] || typeof next[size] !== 'object') next[size] = {};
+      next[size][color] = Number(next[size][color] || 0) + quantity;
+    }
+    const stockCount = Object.values(next).reduce((sum, colors) =>
+      sum + Object.values(colors || {}).reduce((inner, value) => inner + Number(value || 0), 0), 0);
+    const soldOutSizes = Object.entries(next)
+      .filter(([, colors]) => Object.values(colors || {}).every((value) => Number(value || 0) <= 0))
+      .map(([size]) => size);
+    tx.update(ref, { stockData: next, stockCount, soldOutSizes, updatedAt: FieldValue.serverTimestamp() });
+  }
+  tx.update(orderRef, { stockRestoredAt: FieldValue.serverTimestamp() });
 }
 
 async function _fetchTossPayment(paymentKey) {
@@ -1713,6 +1889,7 @@ async function _finalizeRecoveredPayment(intentId, intent, toss) {
         ...latestData.order,
         status: 'confirmed',
         paymentStatus: 'paid',
+        stockReserved: true,
         paymentKey: latestData.paymentKey,
         paymentMethod: toss.method || latestData.order?.paymentMethod,
         tossPaymentSecret: typeof toss.secret === 'string' ? toss.secret : null,
@@ -2480,7 +2657,7 @@ exports.downloadSecureCoupon = onRequest({ cors: PAYMENT_CORS }, async (req, res
       const limit = Number.isFinite(Number(coupon.downloadLimit)) ? Number(coupon.downloadLimit) : null;
       const count = Math.floor(Number(coupon.downloadCount || 0));
       if (limit !== null && count >= limit) return 'limit_exceeded';
-      tx.set(targetRef, { couponId, code: String(coupon.code || ''), name: String(coupon.name || ''), type: coupon.type === 'percent' ? 'percent' : 'fixed', value: Math.max(0, Number(coupon.value || 0)), minOrderAmount: Math.max(0, Number(coupon.minOrderAmount || 0)), ...(coupon.maxDiscountAmount != null ? { maxDiscountAmount: Number(coupon.maxDiscountAmount) } : {}), ...(coupon.startsAt ? { startsAt: coupon.startsAt } : {}), ...(coupon.expiresAt ? { expiresAt: coupon.expiresAt } : {}), isUsed: false, isStackable: coupon.isStackable === true, downloadedAt: FieldValue.serverTimestamp() });
+      tx.set(targetRef, { couponId, code: String(coupon.code || ''), name: String(coupon.name || ''), type: coupon.type === 'percent' ? 'percent' : 'fixed', value: Math.max(0, Number(coupon.value || 0)), minOrderAmount: Math.max(0, Number(coupon.minOrderAmount || 0)), ...(coupon.maxDiscountAmount != null ? { maxDiscountAmount: Number(coupon.maxDiscountAmount) } : {}), ...(coupon.startsAt ? { startsAt: coupon.startsAt } : {}), ...(coupon.expiresAt ? { expiresAt: coupon.expiresAt } : {}), isUsed: false, isEvent: coupon.isEvent === true || coupon.eventCoupon === true || coupon.couponType === 'event' || coupon.category === 'event', isStackable: coupon.isStackable === true, downloadedAt: FieldValue.serverTimestamp() });
       tx.update(sourceRef, { downloadCount: FieldValue.increment(1) });
       tx.set(publicRef, {
         id: couponId,

@@ -1686,10 +1686,40 @@ class _PcOrderCard extends StatelessWidget {
                   ),
                 );
                 if (confirm == true && btnCtx.mounted) {
+                  final cancelType = await showDialog<String>(
+                    context: btnCtx,
+                    builder: (reasonContext) => AlertDialog(
+                      title: const Text('취소 사유 선택'),
+                      content: const Text('회사 측 귀책이면 배송비까지 환불됩니다.\n'
+                          '단순 변심이면 배송비는 환불되지 않습니다.\n\n'
+                          '이벤트성 쿠폰은 주문 취소 또는 환불 시 복구되지 않습니다.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(reasonContext),
+                          child: const Text('닫기'),
+                        ),
+                        OutlinedButton(
+                          onPressed: () =>
+                              Navigator.pop(reasonContext, 'customer_change'),
+                          child: const Text('단순 변심'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () =>
+                              Navigator.pop(reasonContext, 'company_fault'),
+                          child: const Text('회사 측 귀책'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (cancelType == null || !btnCtx.mounted) return;
+                  final cancelReason = cancelType == 'company_fault'
+                      ? '회사 측 귀책(오배송·파손·상품 하자)'
+                      : '단순 변심';
                   final cancellation =
                       await SecureCheckoutService.cancelPaymentIntent(
                     order.id,
-                    cancelReason: context.loc.t('고객 직접 취소', '고객 직접 취소'),
+                    cancelReason: cancelReason,
+                    cancelType: cancelType,
                   );
                   if (!cancellation.success) {
                     if (btnCtx.mounted) {
@@ -1704,8 +1734,7 @@ class _PcOrderCard extends StatelessWidget {
                     return;
                   }
                   NotificationService.sendCancelled(
-                          order: order,
-                          reason: context.loc.t('고객 직접 취소', '고객 직접 취소'))
+                          order: order, reason: cancelReason)
                       .catchError((_) {});
                   FcmService.sendOrderStatusNotification(
                           order: order, newStatus: OrderStatus.cancelled)
@@ -1716,8 +1745,11 @@ class _PcOrderCard extends StatelessWidget {
                   if (btnCtx.mounted) {
                     ScaffoldMessenger.of(btnCtx).showSnackBar(
                       SnackBar(
-                          content: Text(
-                              context.loc.t('주문이 취소되었습니다', '주문이 취소되었습니다.')),
+                          content: Text([
+                            context.loc.t('주문이 취소되었습니다', '주문이 취소되었습니다.'),
+                            if (cancellation.couponNotice != null)
+                              cancellation.couponNotice!,
+                          ].join('\n')),
                           backgroundColor: AppColors.primary),
                     );
                   }
@@ -4247,10 +4279,40 @@ class _MobileOrderCard extends StatelessWidget {
                   ),
                 );
                 if (confirm == true && btnCtx.mounted) {
+                  final cancelType = await showDialog<String>(
+                    context: btnCtx,
+                    builder: (reasonContext) => AlertDialog(
+                      title: const Text('취소 사유 선택'),
+                      content: const Text('회사 측 귀책이면 배송비까지 환불됩니다.\n'
+                          '단순 변심이면 배송비는 환불되지 않습니다.\n\n'
+                          '이벤트성 쿠폰은 주문 취소 또는 환불 시 복구되지 않습니다.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(reasonContext),
+                          child: const Text('닫기'),
+                        ),
+                        OutlinedButton(
+                          onPressed: () =>
+                              Navigator.pop(reasonContext, 'customer_change'),
+                          child: const Text('단순 변심'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () =>
+                              Navigator.pop(reasonContext, 'company_fault'),
+                          child: const Text('회사 측 귀책'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (cancelType == null || !btnCtx.mounted) return;
+                  final cancelReason = cancelType == 'company_fault'
+                      ? '회사 측 귀책(오배송·파손·상품 하자)'
+                      : '단순 변심';
                   final cancellation =
                       await SecureCheckoutService.cancelPaymentIntent(
                     order.id,
-                    cancelReason: context.loc.t('고객 직접 취소', '고객 직접 취소'),
+                    cancelReason: cancelReason,
+                    cancelType: cancelType,
                   );
                   if (!cancellation.success) {
                     if (btnCtx.mounted) {
@@ -4265,8 +4327,7 @@ class _MobileOrderCard extends StatelessWidget {
                     return;
                   }
                   NotificationService.sendCancelled(
-                          order: order,
-                          reason: context.loc.t('고객 직접 취소', '고객 직접 취소'))
+                          order: order, reason: cancelReason)
                       .catchError((_) {});
                   FcmService.sendOrderStatusNotification(
                           order: order, newStatus: OrderStatus.cancelled)
@@ -4277,8 +4338,11 @@ class _MobileOrderCard extends StatelessWidget {
                   if (btnCtx.mounted) {
                     ScaffoldMessenger.of(btnCtx).showSnackBar(
                       SnackBar(
-                          content: Text(
-                              context.loc.t('주문이 취소되었습니다', '주문이 취소되었습니다.')),
+                          content: Text([
+                            context.loc.t('주문이 취소되었습니다', '주문이 취소되었습니다.'),
+                            if (cancellation.couponNotice != null)
+                              cancellation.couponNotice!,
+                          ].join('\n')),
                           backgroundColor: AppColors.primary),
                     );
                   }
@@ -10952,7 +11016,12 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
           const Icon(Icons.check_circle_outline,
               color: Color(0xFF16A34A), size: 18),
           const SizedBox(width: 8),
-          Text(context.loc.t('판매자_귀책_사유___배송비_86912c', '판매자 귀책 사유 — 배송비 무료'),
+          Text(
+              _shippingBySelf
+                  ? context.loc
+                      .t('고객_귀책_사유___배송비_고객_부담', '단순 변심 — 반품·교환 배송비 고객 부담')
+                  : context.loc
+                      .t('판매자_귀책_사유___배송비_86912c', '회사 측 귀책 — 배송비 무료·환불'),
               style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,

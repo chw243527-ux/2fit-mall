@@ -21,7 +21,8 @@ android {
     namespace = "com.twofit.twofit"
     // Google Play API 36 target requirement
     compileSdk = 36
-    ndkVersion = flutter.ndkVersion
+    // Firebase and Android plugins require this backward-compatible NDK version.
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         // ✅ core library desugaring 활성화 (flutter_local_notifications 필요)
@@ -45,7 +46,8 @@ android {
 
     defaultConfig {
         applicationId = "com.twofit.twofit"
-        minSdk = 23
+        // Google Play automatic protection requires API 24 or higher.
+        minSdk = 24
         // Google Play API 36 target requirement
         targetSdk = 36
         versionCode = flutter.versionCode
@@ -69,5 +71,3 @@ dependencies {
 flutter {
     source = "../.."
 }
-
-

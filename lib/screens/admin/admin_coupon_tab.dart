@@ -364,6 +364,30 @@ class _CouponCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                         ],
+                        if (coupon.isEvent) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF3E0),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.event_rounded,
+                                    size: 10, color: Color(0xFFE65100)),
+                                SizedBox(width: 3),
+                                Text('이벤트',
+                                    style: TextStyle(
+                                        fontSize: 10,
+                                        color: Color(0xFFE65100),
+                                        fontWeight: FontWeight.w700)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                        ],
                         // 다운로드 쿠폰 배지
                         if (coupon.isDownloadable) ...[
                           Container(
@@ -542,6 +566,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
   late DateTime _expiresAt;
   bool _saving = false;
   bool _isDownloadable = true;
+  bool _isEvent = false;
   bool _isStackable = false;
 
   bool get isEdit => widget.existing != null;
@@ -566,6 +591,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
     _startsAt = e?.startsAt;
     _expiresAt = e?.expiresAt ?? DateTime.now().add(const Duration(days: 30));
     _isDownloadable = e?.isDownloadable ?? true;
+    _isEvent = e?.isEvent ?? false;
     _isStackable = e?.isStackable ?? false;
     _limitCtrl = TextEditingController(
         text: e?.downloadLimit != null ? e!.downloadLimit.toString() : '');
@@ -638,6 +664,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
         startsAt: _startsAt,
         expiresAt: _expiresAt,
         isDownloadable: _isDownloadable,
+        isEvent: _isEvent,
         isStackable: _isStackable,
         downloadLimit: limit,
       );
@@ -652,6 +679,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
         startsAt: _startsAt,
         expiresAt: _expiresAt,
         isDownloadable: _isDownloadable,
+        isEvent: _isEvent,
         isStackable: _isStackable,
         downloadLimit: limit,
       );
@@ -943,6 +971,48 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
                           value: _isDownloadable,
                           activeColor: const Color(0xFF9C27B0),
                           onChanged: (v) => setState(() => _isDownloadable = v),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: _isEvent
+                              ? const Color(0xFFFFF3E0)
+                              : AppColors.background,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: _isEvent
+                                ? const Color(0xFFEF6C00)
+                                : AppColors.border,
+                          ),
+                        ),
+                        child: SwitchListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 2),
+                          title: Row(
+                            children: [
+                              Icon(Icons.event_rounded,
+                                  size: 16,
+                                  color: _isEvent
+                                      ? const Color(0xFFEF6C00)
+                                      : Colors.grey),
+                              const SizedBox(width: 6),
+                              Text('이벤트성 쿠폰',
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: _isEvent
+                                          ? const Color(0xFFE65100)
+                                          : Colors.black87)),
+                            ],
+                          ),
+                          subtitle: const Text(
+                              '주문 취소·환불 시 쿠폰이 복구되지 않음을 결제 전에 안내',
+                              style:
+                                  TextStyle(fontSize: 11, color: Colors.grey)),
+                          value: _isEvent,
+                          activeColor: const Color(0xFFEF6C00),
+                          onChanged: (v) => setState(() => _isEvent = v),
                         ),
                       ),
                       // 다운로드 수 제한

@@ -73,13 +73,19 @@ class SecureCheckoutService {
   }
 
   static Future<PaymentCancellationResult> cancelPaymentIntent(String orderId,
-      {String cancelReason = '고객 요청'}) async {
+      {String cancelReason = '고객 요청',
+      String cancelType = 'customer_change'}) async {
     return _post<PaymentCancellationResult>(
       path: 'cancelSecurePayment',
-      body: {'orderId': orderId, 'cancelReason': cancelReason},
+      body: {
+        'orderId': orderId,
+        'cancelReason': cancelReason,
+        'cancelType': cancelType,
+      },
       parser: (data) => PaymentCancellationResult(
         success: data['success'] == true,
         alreadyCancelled: data['alreadyCancelled'] == true,
+        couponNotice: data['couponNotice'] as String?,
         error: data['error'] as String?,
       ),
       onFailure: (message) => PaymentCancellationResult(
@@ -180,11 +186,13 @@ class SecurePaymentResult {
 class PaymentCancellationResult {
   final bool success;
   final bool alreadyCancelled;
+  final String? couponNotice;
   final String? error;
 
   const PaymentCancellationResult({
     required this.success,
     this.alreadyCancelled = false,
+    this.couponNotice,
     this.error,
   });
 }

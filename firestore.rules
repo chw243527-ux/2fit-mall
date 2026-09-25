@@ -218,6 +218,7 @@ service cloud.firestore {
           resource.data.userId == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'status', 'cancelReason', 'cancelledAt', 'updatedAt',
+            'stockRestoredAt',
             'colorEditRequested', 'colorEditRequestedAt',
             'requestedColorName', 'requestedTeamName', 'colorEditMemo',
             'colorEditCount'
@@ -243,6 +244,15 @@ service cloud.firestore {
 
       // 삭제: 관리자만
       allow delete: if isAdmin();
+
+      // 주문 변경 이력은 서버 트리거만 생성하며 주문자·관리자만 읽습니다.
+      match /events/{eventId} {
+        allow read: if isSignedIn() && (
+          get(/databases/$(database)/documents/orders/$(orderId)).data.userId == request.auth.uid
+          || isAdmin()
+        );
+        allow create, update, delete: if false;
+      }
     }
 
 

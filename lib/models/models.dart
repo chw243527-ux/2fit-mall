@@ -1050,6 +1050,7 @@ class CouponModel {
   final DateTime expiresAt;
   bool isUsed;
   final bool isDownloadable; // 사용자가 팝업/배너에서 다운로드 가능한 공개 쿠폰
+  final bool isEvent; // 주문 취소 시 복구되지 않는 이벤트성 쿠폰
   /// 다른 쿠폰과 함께 사용할 수 있도록 관리자가 허용한 쿠폰
   final bool isStackable;
   final int? downloadLimit; // 최대 다운로드 수 (null = 무제한)
@@ -1067,6 +1068,7 @@ class CouponModel {
     required this.expiresAt,
     this.isUsed = false,
     this.isDownloadable = false,
+    this.isEvent = false,
     this.isStackable = false,
     this.downloadLimit,
     this.downloadCount = 0,

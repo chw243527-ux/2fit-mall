@@ -74,6 +74,7 @@ class CouponService {
     DateTime? startsAt,
     required DateTime expiresAt,
     bool isDownloadable = true,
+    bool isEvent = false,
     bool isStackable = false,
     int? downloadLimit,
   }) async {
@@ -98,6 +99,7 @@ class CouponService {
         'expiresAt': Timestamp.fromDate(expiresAt),
         'isUsed': false,
         'isDownloadable': isDownloadable,
+        'isEvent': isEvent,
         'isStackable': isStackable,
         if (downloadLimit != null) 'downloadLimit': downloadLimit,
         'downloadCount': 0,
@@ -114,6 +116,7 @@ class CouponService {
         if (startsAt != null) 'startsAt': Timestamp.fromDate(startsAt),
         'expiresAt': Timestamp.fromDate(expiresAt),
         'isDownloadable': isDownloadable,
+        'isEvent': isEvent,
         'isStackable': isStackable,
         if (downloadLimit != null) 'downloadLimit': downloadLimit,
         'downloadCount': 0,
@@ -137,6 +140,7 @@ class CouponService {
     DateTime? startsAt,
     required DateTime expiresAt,
     bool isDownloadable = false,
+    bool isEvent = false,
     bool isStackable = false,
     int? downloadLimit,
   }) async {
@@ -153,6 +157,7 @@ class CouponService {
             : FieldValue.delete(),
         'expiresAt': Timestamp.fromDate(expiresAt),
         'isDownloadable': isDownloadable,
+        'isEvent': isEvent,
         'isStackable': isStackable,
         'downloadLimit': downloadLimit ?? FieldValue.delete(),
         'updatedAt': FieldValue.serverTimestamp(),
@@ -166,6 +171,7 @@ class CouponService {
         'startsAt': startsAt != null ? Timestamp.fromDate(startsAt) : null,
         'expiresAt': Timestamp.fromDate(expiresAt),
         'isDownloadable': isDownloadable,
+        'isEvent': isEvent,
         'isStackable': isStackable,
         'downloadLimit': downloadLimit,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -333,6 +339,10 @@ class CouponService {
           DateTime.now().add(const Duration(days: 30)),
       isUsed: data['isUsed'] as bool? ?? false,
       isDownloadable: data['isDownloadable'] as bool? ?? false,
+      isEvent: data['isEvent'] == true ||
+          data['eventCoupon'] == true ||
+          data['couponType'] == 'event' ||
+          data['category'] == 'event',
       isStackable: data['isStackable'] as bool? ?? false,
       downloadLimit: data['downloadLimit'] as int?,
       downloadCount: (data['downloadCount'] as num?)?.toInt() ?? 0,
