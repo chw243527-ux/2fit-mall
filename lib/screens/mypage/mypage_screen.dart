@@ -31,7 +31,6 @@ import '../../widgets/pc_layout.dart';
 import '../../services/order_service.dart';
 import '../../services/in_app_update_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import '../../services/notification_service.dart';
 import '../../services/fcm_service.dart';
 import '../../services/secure_checkout_service.dart';
 import '../../widgets/address_search_widget.dart';
@@ -1946,9 +1945,6 @@ class _PcOrderCard extends StatelessWidget {
                     }
                     return;
                   }
-                  NotificationService.sendCancelled(
-                          order: order, reason: cancelReason)
-                      .catchError((_) {});
                   FcmService.sendOrderStatusNotification(
                           order: order, newStatus: OrderStatus.cancelled)
                       .catchError((_) {});
@@ -4514,9 +4510,6 @@ class _MobileOrderCard extends StatelessWidget {
                     }
                     return;
                   }
-                  NotificationService.sendCancelled(
-                          order: order, reason: cancelReason)
-                      .catchError((_) {});
                   FcmService.sendOrderStatusNotification(
                           order: order, newStatus: OrderStatus.cancelled)
                       .catchError((_) {});

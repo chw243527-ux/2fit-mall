@@ -34,6 +34,9 @@ const TOSS_SECRET_KEY = defineSecret('TOSS_SECRET_KEY');
 // 카카오 알림톡 식별자는 비밀키가 아니지만, 클라이언트에 노출하지 않고 서버에서만 관리합니다.
 const KAKAO_CHANNEL_ID = 'KA01PF2606170642574857w8Hjn9Czz4';
 const KAKAO_ORDER_CONFIRMED_TEMPLATE_ID = 'KA01TP260617070446140hAHwuGcxCxF';
+// 주문 취소 알림톡은 카카오 검수 승인 후 환경설정에 등록합니다.
+// 미등록 상태에서는 안전하게 SMS로 대체 발송합니다.
+const KAKAO_CANCEL_TEMPLATE_ID = defineString('KAKAO_CANCEL_TEMPLATE_ID', { default: '' });
 const KAKAO_CHAT_ALERT_TEMPLATE_ID = 'KA01TP260620035956868dCYREOJSYWF';
 const KAKAO_CUSTOMER_CHAT_REPLY_TEMPLATE_ID = 'KA01TP260828143138157dXaG933iQOm';
 // 관리자 알림 수신번호. 현재 등록된 SOLAPI 발신번호를 관리자 번호로 사용합니다.
@@ -119,7 +122,7 @@ exports.onNewOrder = onDocumentCreated(
 // 2) 주문 상태 변경 알림 (기존)
 // ══════════════════════════════════════════════════════
 exports.onOrderStatusChanged = onDocumentUpdated(
-  { document: 'orders/{orderId}', secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET] },
+  { document: 'orders/{orderId}', secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET, RESEND_API_KEY] },
   async (event) => {
   const before = event.data?.before?.data();
   const after  = event.data?.after?.data();
@@ -129,11 +132,14 @@ exports.onOrderStatusChanged = onDocumentUpdated(
     const userId = after.userId || '';
     if (!userId) return;
     const notifRef = db.collection('notifications').doc();
+    const inAppBody = after.status === 'cancelled' || after.status === 'refunded'
+      ? `취소 사유: ${String(after.cancelReason || '고객 요청').slice(0, 120)}\n환불 금액: ${Number(after.refundAmount || after.totalAmount || 0).toLocaleString()}원\n배송비 환불: ${Number(after.refundShippingFee || 0).toLocaleString()}원`
+      : `주문이 "${after.status}" 상태로 변경되었습니다`;
     await notifRef.set({
       id: notifRef.id,
       userId,
       title: '📦 주문 상태 변경',
-      body: `주문이 "${after.status}" 상태로 변경되었습니다`,
+      body: inAppBody,
       type: 'order_status',
       orderId: event.params.orderId,
       isRead: false,
@@ -180,7 +186,10 @@ exports.onOrderStatusChanged = onDocumentUpdated(
         if (after.status === 'confirmed') {
           text += ` 상품: ${itemSummary}, 결제금액: ${Number(after.totalAmount || 0).toLocaleString()}원`;
         } else if (after.status === 'cancelled' || after.status === 'refunded') {
-          text += ` 환불 상태를 결제수단에서 확인해 주세요.`;
+          const refundAmount = Number(after.refundAmount || after.totalAmount || 0).toLocaleString();
+          const refundShippingFee = Number(after.refundShippingFee || 0).toLocaleString();
+          text += ` 상세 사유: ${String(after.cancelReason || '고객 요청').slice(0, 120)}. 환불금액 ${refundAmount}원`;
+          text += `, 배송비 환불 ${refundShippingFee}원. 결제수단에 따라 3~5영업일 내 반영됩니다.`;
         }
         try {
           if (after.status === 'confirmed') {
@@ -197,11 +206,50 @@ exports.onOrderStatusChanged = onDocumentUpdated(
               },
             });
             if (!alimtalk.ok) await _sendSolapiSms(phone, text);
+          } else if (after.status === 'cancelled' || after.status === 'refunded') {
+            const templateId = KAKAO_CANCEL_TEMPLATE_ID.value().trim();
+            if (templateId) {
+              const alimtalk = await _sendSolapiAlimtalk({
+                phone,
+                templateId,
+                variables: {
+                  '#{고객명}': name,
+                  '#{주문번호}': orderNumber,
+                  '#{취소사유}': String(after.cancelReason || '고객 요청').slice(0, 120),
+                  '#{환불금액}': Number(after.refundAmount || after.totalAmount || 0).toLocaleString(),
+                  '#{배송비환불}': Number(after.refundShippingFee || 0).toLocaleString(),
+                  '#{환불안내}': '결제수단에 따라 3~5영업일 내 반영됩니다.',
+                },
+              });
+              if (!alimtalk.ok) await _sendSolapiSms(phone, text);
+            } else {
+              await _sendSolapiSms(phone, text);
+            }
           } else {
             await _sendSolapiSms(phone, text);
           }
         } catch (deliveryError) {
           console.error('order status customer notification failed:', deliveryError?.message || deliveryError);
+        }
+      }
+    }
+    if (after.status === 'cancelled' || after.status === 'refunded') {
+      const email = String(after.userEmail || '').trim().toLowerCase();
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        try {
+          const emailResult = await _sendCancellationEmail({
+            to: email,
+            name: String(after.userName || '고객').slice(0, 80),
+            orderId: event.params.orderId,
+            reason: String(after.cancelReason || '고객 요청').slice(0, 200),
+            refundAmount: Number(after.refundAmount || after.totalAmount || 0),
+            refundShippingFee: Number(after.refundShippingFee || 0),
+            eventCouponNotRestored: after.eventCouponNotRestored === true,
+            items: Array.isArray(after.items) ? after.items : [],
+          });
+          if (!emailResult.ok) console.warn('cancellation email delivery rejected', { orderId: event.params.orderId });
+        } catch (emailError) {
+          console.error('cancellation email delivery failed', { code: _errorCode(emailError, 'cancellation-email-failed') });
         }
       }
     }
@@ -2839,6 +2887,51 @@ function _groupOrderReceiptEmailHtml({ name, orderNumber, teamName, itemSummary,
   <div style="background:#f6f5f2;border-radius:12px;padding:18px;margin:22px 0;line-height:1.9;"><div><b>주문번호</b> ${_escapeHtml(orderNumber)}</div><div><b>팀명</b> ${_escapeHtml(teamName)}</div><div><b>상품</b> ${_escapeHtml(itemSummary)}</div><div><b>수량</b> ${_escapeHtml(quantity)}</div><div><b>예상 금액</b> ${_escapeHtml(amount)}원</div></div>
   <p style="font-size:14px;line-height:1.7;color:#5d6675;">담당자가 주문 내용을 확인한 뒤 디자인·견적 및 진행 일정을 안내드리겠습니다. 문의사항은 쇼핑몰 문의 채널을 이용해 주세요.</p>
   <p style="margin-top:28px;font-size:12px;color:#9299a5;">본 메일은 2FIT MALL 단체주문 접수 안내입니다.</p></div></div></body></html>`;
+}
+
+async function _sendCancellationEmail({
+  to, name, orderId, reason, refundAmount, refundShippingFee,
+  eventCouponNotRestored, items,
+}) {
+  const orderNumber = String(orderId).slice(0, 80);
+  const itemSummary = (items.length
+    ? items.map((item) => String(item.productName || '상품')).join(', ')
+    : '상품').slice(0, 180);
+  const refundText = _fmt(refundAmount);
+  const shippingText = _fmt(refundShippingFee);
+  const couponNotice = eventCouponNotRestored
+    ? '\n※ 이벤트성 쿠폰은 주문 취소 또는 환불 시 복구되지 않습니다.'
+    : '';
+  const subject = `[2FIT MALL] 주문 취소 및 환불 안내 (${orderNumber})`;
+  const text = `[2FIT MALL] ${name}님, 주문 취소가 완료되었습니다.\n`
+    + `주문번호: ${orderNumber}\n상품: ${itemSummary}\n취소 사유: ${reason}\n`
+    + `환불 금액: ${refundText}원\n배송비 환불: ${shippingText}원\n`
+    + `환불 금액은 결제수단에 따라 3~5영업일 내 반영됩니다.${couponNotice}`;
+  const safeName = _escapeHtml(name);
+  const safeReason = _escapeHtml(reason);
+  const safeItems = _escapeHtml(itemSummary);
+  const html = `<!doctype html><html lang="ko"><body style="margin:0;background:#f6f5f2;font-family:Arial,'Apple SD Gothic Neo',sans-serif;color:#172033;">
+  <div style="max-width:600px;margin:0 auto;padding:28px 16px;">
+    <div style="background:#172033;color:#fff;padding:24px 26px;border-radius:16px 16px 0 0;">
+      <div style="font-size:12px;letter-spacing:1.5px;opacity:.75;">2FIT MALL</div>
+      <h1 style="font-size:22px;margin:10px 0 0;">주문 취소가 완료되었습니다</h1>
+    </div>
+    <div style="background:#fff;padding:26px;border-radius:0 0 16px 16px;">
+      <p style="font-size:16px;line-height:1.7;"><strong>${safeName}님</strong>, 요청하신 주문 취소가 정상적으로 처리되었습니다.</p>
+      <div style="background:#f6f5f2;border-radius:12px;padding:18px;margin:20px 0;line-height:1.9;">
+        <div><b>주문번호</b> ${_escapeHtml(orderNumber)}</div>
+        <div><b>상품</b> ${safeItems}</div>
+        <div><b>취소 사유</b> ${safeReason}</div>
+        <div><b>환불 금액</b> ${refundText}원</div>
+        <div><b>배송비 환불</b> ${shippingText}원</div>
+      </div>
+      <p style="font-size:14px;line-height:1.8;color:#4b5563;">환불 금액은 결제수단에 따라 3~5영업일 내 반영됩니다. 카드사·은행 사정에 따라 실제 반영일은 달라질 수 있습니다.</p>
+      ${eventCouponNotRestored ? '<p style="padding:12px;background:#fff8e8;border-radius:10px;font-size:13px;color:#765b1a;">이벤트성 쿠폰은 주문 취소 또는 환불 시 복구되지 않습니다.</p>' : ''}
+      <a href="https://2fit-mall.co.kr/#/mypage" style="display:inline-block;margin-top:14px;padding:13px 18px;background:#172033;color:#fff;text-decoration:none;border-radius:10px;">주문 내역 확인하기</a>
+      <p style="margin-top:26px;font-size:12px;color:#9299a5;">문의사항은 2FIT MALL 고객센터 또는 카카오채널로 문의해 주세요.</p>
+    </div>
+  </div></body></html>`;
+  return _sendResendEmail({ to, subject, text, html });
 }
 
 async function _sendResendEmail({ to, subject, text, html }) {
