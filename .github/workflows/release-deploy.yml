@@ -181,7 +181,7 @@ jobs:
           test -n "${KAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID}" || { echo "KAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID Secret이 없습니다."; exit 1; }
           test -n "${RESEND_FROM_EMAIL}" || { echo "RESEND_FROM_EMAIL Secret이 없습니다."; exit 1; }
           umask 077
-          printf 'KAKAO_GROUP_ORDER_TEMPLATE_ID=%s\nKAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID=%s\nRESEND_FROM_EMAIL=%s\n' \
+          printf 'KAKAO_GROUP_ORDER_TEMPLATE_ID=%s\nKAKAO_CANCEL_TEMPLATE_ID=\nKAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID=%s\nRESEND_FROM_EMAIL=%s\n' \
             "${KAKAO_GROUP_ORDER_TEMPLATE_ID}" "${KAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID}" "${RESEND_FROM_EMAIL}" > functions/.env
           trap 'rm -f functions/.env' EXIT
           DEPLOY_LOG="${RUNNER_TEMP}/firebase-deploy.log"
