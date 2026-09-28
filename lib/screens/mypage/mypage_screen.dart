@@ -40,6 +40,244 @@ import '../../utils/navigation_helper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
+Future<Map<String, String>?> _showCancelReasonPicker(BuildContext context) {
+  const customerReasons = <String>[
+    '색상을 잘못 선택했어요',
+    '사이즈를 잘못 선택했어요',
+    '옵션을 잘못 선택했어요',
+    '배송 전 단순 변심이에요',
+    '기타',
+  ];
+  const companyReasons = <String>[
+    '재봉 오류가 있어요',
+    '인쇄·디자인 오류가 있어요',
+    '상품을 잘못 배송받았어요',
+    '상품에 불량·파손이 있어요',
+    '상품 설명과 달라요',
+    '기타',
+  ];
+  var cancelType = 'customer_change';
+  var selectedReason = customerReasons.first;
+  final detailController = TextEditingController();
+
+  return showDialog<Map<String, String>>(
+    context: context,
+    barrierDismissible: false,
+    builder: (dialogContext) => StatefulBuilder(
+      builder: (context, setDialogState) {
+        final reasons =
+            cancelType == 'company_fault' ? companyReasons : customerReasons;
+        if (!reasons.contains(selectedReason)) selectedReason = reasons.first;
+        final isOther = selectedReason == '기타';
+        final canSubmit = !isOther || detailController.text.trim().isNotEmpty;
+
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 460),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: const [
+                  BoxShadow(
+                      color: Color(0x26000000),
+                      blurRadius: 24,
+                      offset: Offset(0, 10)),
+                ],
+              ),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.assignment_outlined,
+                            color: AppColors.primary, size: 21),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text('취소 사유를 선택해 주세요',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.w800)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  const Text('어떤 문제인지 선택하면 더 정확하게 처리할 수 있어요.',
+                      style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _CancelTypeChoice(
+                          label: '단순 변심',
+                          selected: cancelType == 'customer_change',
+                          onTap: () => setDialogState(() {
+                            cancelType = 'customer_change';
+                            selectedReason = customerReasons.first;
+                          }),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _CancelTypeChoice(
+                          label: '회사 측 귀책',
+                          selected: cancelType == 'company_fault',
+                          onTap: () => setDialogState(() {
+                            cancelType = 'company_fault';
+                            selectedReason = companyReasons.first;
+                          }),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: selectedReason,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: '상세 사유',
+                      prefixIcon: const Icon(Icons.expand_more_rounded),
+                      filled: true,
+                      fillColor: const Color(0xFFF7F7F9),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none),
+                    ),
+                    items: reasons
+                        .map((reason) => DropdownMenuItem(
+                            value: reason, child: Text(reason)))
+                        .toList(),
+                    onChanged: (value) => setDialogState(() {
+                      selectedReason = value ?? reasons.first;
+                    }),
+                  ),
+                  if (isOther) ...[
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: detailController,
+                      maxLength: 200,
+                      onChanged: (_) => setDialogState(() {}),
+                      decoration: InputDecoration(
+                        labelText: '상세 내용을 입력해 주세요',
+                        filled: true,
+                        fillColor: const Color(0xFFF7F7F9),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF8E8),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      cancelType == 'company_fault'
+                          ? '회사 측 귀책 사유는 배송비까지 환불됩니다.'
+                          : '단순 변심은 상품 금액만 환불되고 배송비는 환불되지 않습니다.',
+                      style: const TextStyle(
+                          fontSize: 12, color: Color(0xFF765B1A)),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('이벤트성 쿠폰은 주문 취소 또는 환불 시 복구되지 않습니다.',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF8A8F98))),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(dialogContext),
+                          style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(48),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12))),
+                          child: const Text('닫기'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: canSubmit
+                              ? () {
+                                  final reason = isOther
+                                      ? detailController.text.trim()
+                                      : selectedReason;
+                                  Navigator.pop(dialogContext, {
+                                    'type': cancelType,
+                                    'reason': reason,
+                                  });
+                                }
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: const Text('취소 진행'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    ),
+  ).whenComplete(detailController.dispose);
+}
+
+class _CancelTypeChoice extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _CancelTypeChoice(
+      {required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.primary : const Color(0xFFF7F7F9),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+                color: selected ? AppColors.primary : const Color(0xFFE5E7EB)),
+          ),
+          child: Center(
+            child: Text(label,
+                style: TextStyle(
+                    color: selected ? Colors.white : const Color(0xFF343744),
+                    fontWeight: FontWeight.w700)),
+          ),
+        ),
+      );
+}
+
 class MyPageScreen extends StatefulWidget {
   final VoidCallback? onBack; // 홈(탭0)으로 돌아가는 콜백
   const MyPageScreen({super.key, this.onBack});
@@ -1686,35 +1924,10 @@ class _PcOrderCard extends StatelessWidget {
                   ),
                 );
                 if (confirm == true && btnCtx.mounted) {
-                  final cancelType = await showDialog<String>(
-                    context: btnCtx,
-                    builder: (reasonContext) => AlertDialog(
-                      title: const Text('취소 사유 선택'),
-                      content: const Text('회사 측 귀책이면 배송비까지 환불됩니다.\n'
-                          '단순 변심이면 배송비는 환불되지 않습니다.\n\n'
-                          '이벤트성 쿠폰은 주문 취소 또는 환불 시 복구되지 않습니다.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(reasonContext),
-                          child: const Text('닫기'),
-                        ),
-                        OutlinedButton(
-                          onPressed: () =>
-                              Navigator.pop(reasonContext, 'customer_change'),
-                          child: const Text('단순 변심'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () =>
-                              Navigator.pop(reasonContext, 'company_fault'),
-                          child: const Text('회사 측 귀책'),
-                        ),
-                      ],
-                    ),
-                  );
-                  if (cancelType == null || !btnCtx.mounted) return;
-                  final cancelReason = cancelType == 'company_fault'
-                      ? '회사 측 귀책(오배송·파손·상품 하자)'
-                      : '단순 변심';
+                  final cancelSelection = await _showCancelReasonPicker(btnCtx);
+                  if (cancelSelection == null || !btnCtx.mounted) return;
+                  final cancelType = cancelSelection['type']!;
+                  final cancelReason = cancelSelection['reason']!;
                   final cancellation =
                       await SecureCheckoutService.cancelPaymentIntent(
                     order.id,
@@ -4279,35 +4492,10 @@ class _MobileOrderCard extends StatelessWidget {
                   ),
                 );
                 if (confirm == true && btnCtx.mounted) {
-                  final cancelType = await showDialog<String>(
-                    context: btnCtx,
-                    builder: (reasonContext) => AlertDialog(
-                      title: const Text('취소 사유 선택'),
-                      content: const Text('회사 측 귀책이면 배송비까지 환불됩니다.\n'
-                          '단순 변심이면 배송비는 환불되지 않습니다.\n\n'
-                          '이벤트성 쿠폰은 주문 취소 또는 환불 시 복구되지 않습니다.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(reasonContext),
-                          child: const Text('닫기'),
-                        ),
-                        OutlinedButton(
-                          onPressed: () =>
-                              Navigator.pop(reasonContext, 'customer_change'),
-                          child: const Text('단순 변심'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () =>
-                              Navigator.pop(reasonContext, 'company_fault'),
-                          child: const Text('회사 측 귀책'),
-                        ),
-                      ],
-                    ),
-                  );
-                  if (cancelType == null || !btnCtx.mounted) return;
-                  final cancelReason = cancelType == 'company_fault'
-                      ? '회사 측 귀책(오배송·파손·상품 하자)'
-                      : '단순 변심';
+                  final cancelSelection = await _showCancelReasonPicker(btnCtx);
+                  if (cancelSelection == null || !btnCtx.mounted) return;
+                  final cancelType = cancelSelection['type']!;
+                  final cancelReason = cancelSelection['reason']!;
                   final cancellation =
                       await SecureCheckoutService.cancelPaymentIntent(
                     order.id,

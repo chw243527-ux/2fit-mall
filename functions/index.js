@@ -1734,7 +1734,9 @@ async function _restoreCommittedBenefits(tx, uid, orderId, order) {
     const userRef = db.collection('users').doc(uid);
     const userSnap = await tx.get(userRef);
     const balance = Math.floor(Number(userSnap.data()?.points || 0));
-    tx.update(userRef, { points: balance + usedPoints });
+    // 탈퇴·마이그레이션 등으로 사용자 문서가 없더라도 결제 취소 전체가
+    // 실패하지 않도록 병합 저장합니다. 포인트 이력은 아래 멱등 문서로 남깁니다.
+    tx.set(userRef, { points: balance + usedPoints }, { merge: true });
     tx.set(refundRef, {
       action: 'refund', amount: usedPoints, desc: `주문 ${orderId} 취소 포인트 복구`,
       orderId, createdAt: FieldValue.serverTimestamp(),
@@ -1757,14 +1759,16 @@ async function _restoreCommittedBenefits(tx, uid, orderId, order) {
       continue;
     }
     restoredCouponIds.push(couponId);
-    tx.update(couponRefs[i], {
+    // 쿠폰이 관리자 정리·마이그레이션으로 이미 삭제된 경우에도
+    // Toss 환불 자체를 실패시키지 않도록 문서를 병합 복원합니다.
+    tx.set(couponRefs[i], {
       isUsed: false,
       isReserved: false,
       usedOrderId: FieldValue.delete(),
       usedAt: FieldValue.delete(),
       reservedOrderId: FieldValue.delete(),
       reservedAt: FieldValue.delete(),
-    });
+    }, { merge: true });
   }
   return { restoredCouponIds, eventCouponIds };
 }
