@@ -1196,6 +1196,29 @@ class ProductService {
       final current = idx >= 0 ? _products[idx] : null;
       final previousTotal = current?.stockCount ?? 0;
       final wasSoldOut = current?.isSoldOut ?? previousTotal <= 0;
+
+      // 사이즈별 재고가 없는 상품은 전체 재고만 갱신합니다.
+      // sizeStocks가 비어 있는데 current.sizes를 기준으로 0을 생성하면
+      // 일반 상품의 재고 구조를 잘못된 사이즈별 0 재고로 덮어씁니다.
+      if (sizeStocks.isEmpty) {
+        await _db.collection('products').doc(productId).set({
+          'stockCount': newStock,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        if (idx >= 0) {
+          _products[idx] = current!.copyWith(stockCount: newStock);
+          _cache = List.from(_products);
+          await _persist();
+        }
+        if (wasSoldOut && newStock > 0) {
+          await FcmService.sendRestockNotification(
+            productId: productId,
+            productName: current?.name ?? productId,
+          );
+        }
+        return true;
+      }
+
       final sizes = current?.sizes.isNotEmpty == true
           ? current!.sizes
           : sizeStocks.keys.toList();

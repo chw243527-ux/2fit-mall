@@ -86,6 +86,8 @@ class SecureCheckoutService {
         success: data['success'] == true,
         alreadyCancelled: data['alreadyCancelled'] == true,
         couponNotice: data['couponNotice'] as String?,
+        noRefund: data['noRefund'] == true,
+        noRefundNotice: data['noRefundNotice'] as String?,
         error: data['error'] as String?,
       ),
       onFailure: (message) => PaymentCancellationResult(
@@ -187,12 +189,16 @@ class PaymentCancellationResult {
   final bool success;
   final bool alreadyCancelled;
   final String? couponNotice;
+  final bool noRefund;
+  final String? noRefundNotice;
   final String? error;
 
   const PaymentCancellationResult({
     required this.success,
     this.alreadyCancelled = false,
     this.couponNotice,
+    this.noRefund = false,
+    this.noRefundNotice,
     this.error,
   });
 }

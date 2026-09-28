@@ -10151,7 +10151,9 @@ class _AdminScreenState extends State<AdminScreen>
                             controller: sizeCtrls[s],
                             keyboardType: TextInputType.number,
                             textAlign: TextAlign.center,
-                            enabled: !isSoldOut,
+                            // 품절 사이즈도 양수 재고를 다시 입력할 수 있어야
+                            // 재입고 상태로 전환할 수 있습니다.
+                            enabled: true,
                             style: const TextStyle(
                                 fontSize: 13, fontWeight: FontWeight.w700),
                             decoration: const InputDecoration(
@@ -10180,7 +10182,7 @@ class _AdminScreenState extends State<AdminScreen>
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '총 재고: ${sizeCtrls.entries.where((e) => !p.soldOutSizes.contains(e.key)).fold(0, (total, e) => total + (int.tryParse(e.value.text) ?? 0))}개',
+                    '총 재고: ${sizeCtrls.values.fold(0, (total, controller) => total + (int.tryParse(controller.text) ?? 0))}개',
                     style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -10224,9 +10226,10 @@ class _AdminScreenState extends State<AdminScreen>
                     for (final e in sizeCtrls.entries)
                       e.key: int.tryParse(e.value.text) ?? 0
                   };
-                  newStock = newSizeStocks.entries
-                      .where((e) => !p.soldOutSizes.contains(e.key))
-                      .fold(0, (s, e) => s + e.value);
+                  // 기존 soldOutSizes 때문에 양수로 복구한 사이즈가
+                  // 합계에서 제외되지 않도록 필터링하지 않습니다.
+                  newStock =
+                      newSizeStocks.values.fold(0, (s, value) => s + value);
                 } else {
                   newStock = int.tryParse(totalCtrl.text) ?? p.stockCount;
                 }

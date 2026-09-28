@@ -2824,11 +2824,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         _waistbandLogoBytes =
             file.bytes != null ? List<int>.from(file.bytes!) : null;
       });
-    } catch (e) {
-      _showSnack(context.loc.t('파일_선택_오류', '파일 선택 오류: ') +
-          e.toString() +
-          context.loc
-              .t('_AI_SVG_PDF_EPS_파일만_첨부', '\nAI·SVG·PDF·EPS 파일만 첨부 가능합니다.'));
+    } catch (_) {
+      _showSnack(context.loc
+          .t('파일_선택_오류', '파일 선택 중 오류가 발생했습니다. AI·SVG·PDF·EPS 파일만 첨부 가능합니다.'));
     }
   }
 
@@ -4328,11 +4326,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         _designLogoBytes =
             file.bytes != null ? List<int>.from(file.bytes!) : null;
       });
-    } catch (e) {
-      _showSnack(context.loc.t('파일_선택_오류', '파일 선택 오류: ') +
-          e.toString() +
-          context.loc
-              .t('_AI_SVG_PDF_EPS_파일만_첨부', '\nAI·SVG·PDF·EPS 파일만 첨부 가능합니다.'));
+    } catch (_) {
+      _showSnack(context.loc
+          .t('파일_선택_오류', '파일 선택 중 오류가 발생했습니다. AI·SVG·PDF·EPS 파일만 첨부 가능합니다.'));
     }
   }
 

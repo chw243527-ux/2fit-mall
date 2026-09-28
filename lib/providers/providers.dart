@@ -1913,8 +1913,8 @@ class SizeProfileProvider extends ChangeNotifier {
         _error = null;
         notifyListeners();
       },
-      onError: (e) {
-        _error = e.toString();
+      onError: (_) {
+        _error = '사이즈 프로필을 불러오지 못했습니다.';
         _loading = false;
         notifyListeners();
       },
@@ -1930,8 +1930,8 @@ class SizeProfileProvider extends ChangeNotifier {
       }
       await SizeProfileService.saveProfile(userId, profile);
       return null; // 성공
-    } catch (e) {
-      return e.toString();
+    } catch (_) {
+      return '사이즈 프로필을 저장하지 못했습니다.';
     }
   }
 
@@ -1940,8 +1940,8 @@ class SizeProfileProvider extends ChangeNotifier {
     try {
       await SizeProfileService.deleteProfile(userId, profileId);
       return null;
-    } catch (e) {
-      return e.toString();
+    } catch (_) {
+      return '사이즈 프로필을 삭제하지 못했습니다.';
     }
   }
 
@@ -1996,9 +1996,9 @@ class BannerProvider extends ChangeNotifier {
         _error = null;
         notifyListeners();
       },
-      onError: (e) {
+      onError: (_) {
         if (kDebugMode) debugPrint('client_operation_failed');
-        _error = e.toString();
+        _error = '배너를 불러오지 못했습니다.';
         _loading = false;
         notifyListeners();
         // 에러 발생 시 3초 후 재시도
@@ -2019,9 +2019,9 @@ class BannerProvider extends ChangeNotifier {
         _error = null;
         notifyListeners();
       },
-      onError: (e) {
+      onError: (_) {
         if (kDebugMode) debugPrint('client_operation_failed');
-        _error = e.toString();
+        _error = '배너를 불러오지 못했습니다.';
         _loading = false;
         notifyListeners();
       },

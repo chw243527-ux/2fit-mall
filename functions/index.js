@@ -133,7 +133,7 @@ exports.onOrderStatusChanged = onDocumentUpdated(
     if (!userId) return;
     const notifRef = db.collection('notifications').doc();
     const inAppBody = after.status === 'cancelled' || after.status === 'refunded'
-      ? `취소 사유: ${String(after.cancelReason || '고객 요청').slice(0, 120)}\n환불 금액: ${Number(after.refundAmount || after.totalAmount || 0).toLocaleString()}원\n배송비 환불: ${Number(after.refundShippingFee || 0).toLocaleString()}원`
+      ? `취소 사유: ${String(after.cancelReason || '고객 요청').slice(0, 120)}\n환불 금액: ${Number(after.refundAmount ?? 0).toLocaleString()}원\n배송비 환불: ${Number(after.refundShippingFee ?? 0).toLocaleString()}원${after.noRefundReason ? `\n${String(after.noRefundReason).slice(0, 160)}` : ''}`
       : `주문이 "${after.status}" 상태로 변경되었습니다`;
     await notifRef.set({
       id: notifRef.id,
@@ -168,7 +168,10 @@ exports.onOrderStatusChanged = onDocumentUpdated(
           },
         });
       } catch (pushError) {
-        console.error('order status FCM delivery failed:', pushError?.message || pushError);
+        console.error('order status FCM delivery failed', {
+          orderId: event.params.orderId,
+          code: _errorCode(pushError, 'fcm-delivery-failed'),
+        });
       }
     }
     // 결제 완료·배송·취소는 FCM 권한이 없어도 전화번호로 안내합니다.
@@ -186,10 +189,13 @@ exports.onOrderStatusChanged = onDocumentUpdated(
         if (after.status === 'confirmed') {
           text += ` 상품: ${itemSummary}, 결제금액: ${Number(after.totalAmount || 0).toLocaleString()}원`;
         } else if (after.status === 'cancelled' || after.status === 'refunded') {
-          const refundAmount = Number(after.refundAmount || after.totalAmount || 0).toLocaleString();
-          const refundShippingFee = Number(after.refundShippingFee || 0).toLocaleString();
+          const refundAmount = Number(after.refundAmount ?? 0).toLocaleString();
+          const refundShippingFee = Number(after.refundShippingFee ?? 0).toLocaleString();
           text += ` 상세 사유: ${String(after.cancelReason || '고객 요청').slice(0, 120)}. 환불금액 ${refundAmount}원`;
-          text += `, 배송비 환불 ${refundShippingFee}원. 결제수단에 따라 3~5영업일 내 반영됩니다.`;
+          text += `, 배송비 환불 ${refundShippingFee}원.`;
+          text += after.noRefundReason
+            ? ` ${String(after.noRefundReason).slice(0, 160)}`
+            : ' 결제수단에 따라 3~5영업일 내 반영됩니다.';
         }
         try {
           if (after.status === 'confirmed') {
@@ -216,9 +222,11 @@ exports.onOrderStatusChanged = onDocumentUpdated(
                   '#{고객명}': name,
                   '#{주문번호}': orderNumber,
                   '#{취소사유}': String(after.cancelReason || '고객 요청').slice(0, 120),
-                  '#{환불금액}': Number(after.refundAmount || after.totalAmount || 0).toLocaleString(),
-                  '#{배송비환불}': Number(after.refundShippingFee || 0).toLocaleString(),
-                  '#{환불안내}': '결제수단에 따라 3~5영업일 내 반영됩니다.',
+                  '#{환불금액}': Number(after.refundAmount ?? 0).toLocaleString(),
+                  '#{배송비환불}': Number(after.refundShippingFee ?? 0).toLocaleString(),
+                  '#{환불안내}': after.noRefundReason
+                    ? String(after.noRefundReason).slice(0, 160)
+                    : '결제수단에 따라 3~5영업일 내 반영됩니다.',
                 },
               });
               if (!alimtalk.ok) await _sendSolapiSms(phone, text);
@@ -229,7 +237,10 @@ exports.onOrderStatusChanged = onDocumentUpdated(
             await _sendSolapiSms(phone, text);
           }
         } catch (deliveryError) {
-          console.error('order status customer notification failed:', deliveryError?.message || deliveryError);
+          console.error('order status customer notification failed', {
+            orderId: event.params.orderId,
+            code: _errorCode(deliveryError, 'customer-notification-failed'),
+          });
         }
       }
     }
@@ -242,8 +253,10 @@ exports.onOrderStatusChanged = onDocumentUpdated(
             name: String(after.userName || '고객').slice(0, 80),
             orderId: event.params.orderId,
             reason: String(after.cancelReason || '고객 요청').slice(0, 200),
-            refundAmount: Number(after.refundAmount || after.totalAmount || 0),
+            refundAmount: Number(after.refundAmount ?? 0),
             refundShippingFee: Number(after.refundShippingFee || 0),
+            noRefund: after.noRefund === true || after.refundStatus === 'no_refund',
+            noRefundReason: String(after.noRefundReason || '').slice(0, 160),
             eventCouponNotRestored: after.eventCouponNotRestored === true,
             items: Array.isArray(after.items) ? after.items : [],
           });
@@ -352,7 +365,7 @@ exports.sendPromoNotification = onRequest(async (req, res) => {
     });
     res.json({ success: true });
   } catch (e) {
-    console.error('sendPromoNotification error:', e?.message || 'unknown');
+    console.error('sendPromoNotification error', { code: _errorCode(e, 'promo-notification-failed') });
     res.status(500).json({ error: 'Notification could not be sent' });
   }
 });
@@ -396,7 +409,7 @@ exports.sendTestNotification = onRequest(
     });
     res.json({ success: true, sentAt, serverDurationMs: Date.now() - startedAt });
     } catch (e) {
-      console.error('sendTestNotification error:', e?.message || 'unknown');
+      console.error('sendTestNotification error', { code: _errorCode(e, 'test-notification-failed') });
       res.status(500).json({ error: 'Test notification could not be sent' });
     }
   }
@@ -700,7 +713,7 @@ async function requireAdmin(req, res) {
     req.adminEmail = String(decoded.email || '').trim().toLowerCase();
     return true;
   } catch (error) {
-    console.error('HTTP admin authentication failed:', error);
+    console.error('HTTP admin authentication failed', { code: _errorCode(error, 'admin-authentication-failed') });
     res.status(401).json({ error: 'Invalid or expired Firebase ID token' });
     return false;
   }
@@ -796,7 +809,7 @@ exports.exchangeNaverCode = onRequest(
       );
       const token = await tokenResponse.json();
       if (!tokenResponse.ok || !token.access_token) {
-        console.error('Naver token exchange failed:', token.error || tokenResponse.status);
+        console.error('Naver token exchange failed', { status: tokenResponse.status, code: String(token.error || 'token-exchange-failed').slice(0, 80) });
         res.status(401).json({ error: 'Naver authorization failed' });
         return;
       }
@@ -823,7 +836,7 @@ exports.exchangeNaverCode = onRequest(
       });
       res.json({ customToken });
     } catch (error) {
-      console.error('exchangeNaverCode error:', error.message);
+      console.error('exchangeNaverCode error', { code: _errorCode(error, 'naver-token-exchange-failed') });
       res.status(500).json({ error: 'Naver login failed' });
     }
   }
@@ -878,10 +891,11 @@ exports.exchangeKakaoToken = onRequest(
       });
       res.json({ customToken, email, name, photoUrl, kakaoId });
     } catch (error) {
-      const errorCode = String(error?.code || error?.name || 'internal-error');
-      console.error('exchangeKakaoToken error:', errorCode, error?.message || error);
+      console.error('exchangeKakaoToken error', {
+        code: _errorCode(error, 'kakao-token-exchange-failed'),
+      });
       res.status(500).json({
-        error: `Kakao login failed (${errorCode})`,
+        error: 'Kakao login failed',
       });
     }
   }
@@ -904,7 +918,7 @@ async function requireSignedIn(req, res, { checkRevoked = false } = {}) {
   try {
     return await getAuth().verifyIdToken(match[1], checkRevoked);
   } catch (error) {
-    console.error('HTTP authentication failed:', error.message);
+    console.error('HTTP authentication failed', { code: _errorCode(error, 'authentication-failed') });
     res.status(401).json({ error: 'Invalid or expired Firebase ID token' });
     return null;
   }
@@ -1633,6 +1647,15 @@ exports.cancelSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYM
 
       // 무통장입금은 Toss 결제키가 없으므로 주문 상태와 예약 혜택만 취소합니다.
       if (!order.paymentKey) {
+        const bankTotalAmount = Math.max(0, Math.floor(Number(order.totalAmount || 0)));
+        const bankShippingFee = Math.max(0, Math.floor(Number(order.shippingFee || 0)));
+        const bankRefundAmount = cancelType === 'company_fault'
+          ? bankTotalAmount
+          : Math.max(0, bankTotalAmount - bankShippingFee);
+        const bankNoRefund = bankRefundAmount <= 0;
+        const bankNoRefundReason = cancelType === 'customer_change'
+          ? '단순 변심 환불액이 배송비 차감 후 0원입니다.'
+          : '쿠폰·포인트 적용으로 환불 금액이 0원입니다.';
         let benefitRestore = { restoredCouponIds: [], eventCouponIds: [] };
         await db.runTransaction(async (tx) => {
           const latest = await tx.get(orderRef);
@@ -1645,13 +1668,15 @@ exports.cancelSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYM
           tx.update(orderRef, {
             status: 'cancelled',
             paymentStatus: 'cancelled',
+            refundStatus: bankNoRefund ? 'no_refund' : 'not_applicable',
             cancelType,
-            refundShippingFee: cancelType === 'company_fault'
-              ? Math.max(0, Number(latestOrder.shippingFee || 0))
-              : 0,
-            refundAmount: cancelType === 'company_fault'
-              ? Math.max(0, Number(latestOrder.totalAmount || 0))
-              : Math.max(0, Number(latestOrder.totalAmount || 0) - Number(latestOrder.shippingFee || 0)),
+            refundShippingFee: cancelType === 'company_fault' ? bankShippingFee : 0,
+            refundAmount: bankRefundAmount,
+            refundTotalAmount: bankRefundAmount,
+            noRefund: bankNoRefund,
+            noRefundReason: bankNoRefund
+              ? bankNoRefundReason
+              : FieldValue.delete(),
             restoredCouponIds: benefitRestore.restoredCouponIds,
             eventCouponNotRestored: benefitRestore.eventCouponIds.length > 0,
             eventCouponIds: benefitRestore.eventCouponIds,
@@ -1667,6 +1692,10 @@ exports.cancelSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYM
           success: true,
           orderId,
           paymentStatus: 'cancelled',
+          noRefund: bankNoRefund,
+          noRefundNotice: bankNoRefund
+            ? `주문은 취소되었지만 ${bankNoRefundReason}`
+            : null,
           couponNotice: benefitRestore.eventCouponIds.length > 0
             ? '이벤트성 쿠폰은 주문 취소 후 복구되지 않습니다.'
             : null,
@@ -1674,8 +1703,6 @@ exports.cancelSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYM
         return;
       }
 
-      const secret = TOSS_SECRET_KEY.value();
-      if (!secret) throw new Error('Payment service is not configured');
       const shippingFee = Math.max(0, Math.floor(Number(order.shippingFee || 0)));
       const totalAmount = Math.max(0, Math.floor(Number(order.totalAmount || 0)));
       const refundShippingFee = cancelType === 'company_fault' ? shippingFee : 0;
@@ -1683,29 +1710,35 @@ exports.cancelSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYM
         ? totalAmount
         : Math.max(0, totalAmount - shippingFee);
       const cancelAmount = refundAmount < totalAmount ? refundAmount : null;
-      if (cancelAmount !== null && cancelAmount <= 0) {
-        res.status(400).json({ error: 'Refund amount is unavailable' });
-        return;
-      }
-      const tossResponse = await fetch(
-        `https://api.tosspayments.com/v1/payments/${encodeURIComponent(order.paymentKey)}/cancel`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Basic ${Buffer.from(`${secret}:`).toString('base64')}`,
-            'Content-Type': 'application/json',
+      // 쿠폰·포인트·배송비 차감으로 실제 환불액이 0원이면 Toss에 0원 취소를
+      // 요청하지 않고 주문 취소만 처리합니다. 회사 귀책도 동일하게 적용합니다.
+      const noRefundDueToShipping = refundAmount <= 0;
+      const noRefundReason = cancelType === 'customer_change'
+        ? '단순 변심 환불액이 배송비 차감 후 0원입니다.'
+        : '쿠폰·포인트 적용으로 환불 금액이 0원입니다.';
+      if (!noRefundDueToShipping) {
+        const secret = TOSS_SECRET_KEY.value();
+        if (!secret) throw new Error('Payment service is not configured');
+        const tossResponse = await fetch(
+          `https://api.tosspayments.com/v1/payments/${encodeURIComponent(order.paymentKey)}/cancel`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Basic ${Buffer.from(`${secret}:`).toString('base64')}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              cancelReason,
+              ...(cancelAmount !== null ? { cancelAmount } : {}),
+            }),
           },
-          body: JSON.stringify({
-            cancelReason,
-            ...(cancelAmount !== null ? { cancelAmount } : {}),
-          }),
-        },
-      );
-      const toss = await tossResponse.json().catch(() => ({}));
-      if (!tossResponse.ok || !['CANCELED', 'PARTIAL_CANCELED'].includes(toss.status)) {
-        console.warn('Toss cancellation rejected', { orderId, status: tossResponse.status, code: toss.code });
-        res.status(400).json({ error: toss.message || 'Payment cancellation was rejected' });
-        return;
+        );
+        const toss = await tossResponse.json().catch(() => ({}));
+        if (!tossResponse.ok || !['CANCELED', 'PARTIAL_CANCELED'].includes(toss.status)) {
+          console.warn('Toss cancellation rejected', { orderId, status: tossResponse.status, code: toss.code });
+          res.status(400).json({ error: toss.message || 'Payment cancellation was rejected' });
+          return;
+        }
       }
 
       // 단순 변심은 상품 금액만 환불하고 배송비는 환불하지 않습니다.
@@ -1723,11 +1756,20 @@ exports.cancelSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYM
         );
         tx.update(orderRef, {
           status: 'cancelled',
-          paymentStatus: cancelAmount === null ? 'refunded' : 'partially_refunded',
-          refundStatus: cancelAmount === null ? 'completed' : 'partial_completed',
+          paymentStatus: noRefundDueToShipping
+            ? 'cancelled_no_refund'
+            : (cancelAmount === null ? 'refunded' : 'partially_refunded'),
+          refundStatus: noRefundDueToShipping
+            ? 'no_refund'
+            : (cancelAmount === null ? 'completed' : 'partial_completed'),
           cancelType,
           refundAmount,
           refundShippingFee,
+          refundTotalAmount: refundAmount,
+          noRefund: noRefundDueToShipping,
+          noRefundReason: noRefundDueToShipping
+            ? noRefundReason
+            : FieldValue.delete(),
           restoredCouponIds: benefitRestore.restoredCouponIds,
           eventCouponNotRestored: benefitRestore.eventCouponIds.length > 0,
           eventCouponIds: benefitRestore.eventCouponIds,
@@ -1743,7 +1785,16 @@ exports.cancelSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYM
       res.status(200).json({
         success: true,
         orderId,
-        paymentStatus: cancelAmount === null ? 'refunded' : 'partially_refunded',
+        paymentStatus: noRefundDueToShipping
+          ? 'cancelled_no_refund'
+          : (cancelAmount === null ? 'refunded' : 'partially_refunded'),
+        noRefund: noRefundDueToShipping,
+        refundAmount,
+        refundShippingFee,
+        refundTotalAmount: refundAmount,
+        noRefundNotice: noRefundDueToShipping
+          ? `주문은 취소되었지만 ${noRefundReason}`
+          : null,
         couponNotice: benefitRestore.eventCouponIds.length > 0
           ? '이벤트성 쿠폰은 주문 취소 후 복구되지 않습니다.'
           : null,
@@ -1760,7 +1811,7 @@ exports.cancelSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYM
     await _releasePaymentIntent(decoded.uid, orderId);
     res.status(200).json({ success: true });
   } catch (error) {
-    console.error('cancelSecurePayment failed:', { orderId, code: error?.code || 'cancel-failed' });
+    console.error('cancelSecurePayment failed', { orderId, code: _errorCode(error, 'cancel-failed') });
     res.status(400).json({ error: 'Payment cancellation could not be processed' });
   }
 });
@@ -2891,7 +2942,7 @@ function _groupOrderReceiptEmailHtml({ name, orderNumber, teamName, itemSummary,
 
 async function _sendCancellationEmail({
   to, name, orderId, reason, refundAmount, refundShippingFee,
-  eventCouponNotRestored, items,
+  noRefund, noRefundReason, eventCouponNotRestored, items,
 }) {
   const orderNumber = String(orderId).slice(0, 80);
   const itemSummary = (items.length
@@ -2902,11 +2953,14 @@ async function _sendCancellationEmail({
   const couponNotice = eventCouponNotRestored
     ? '\n※ 이벤트성 쿠폰은 주문 취소 또는 환불 시 복구되지 않습니다.'
     : '';
+  const refundNotice = noRefund
+    ? (noRefundReason || '쿠폰·포인트 적용으로 환불 금액이 0원입니다.')
+    : '환불 금액은 결제수단에 따라 3~5영업일 내 반영됩니다.';
   const subject = `[2FIT MALL] 주문 취소 및 환불 안내 (${orderNumber})`;
   const text = `[2FIT MALL] ${name}님, 주문 취소가 완료되었습니다.\n`
     + `주문번호: ${orderNumber}\n상품: ${itemSummary}\n취소 사유: ${reason}\n`
     + `환불 금액: ${refundText}원\n배송비 환불: ${shippingText}원\n`
-    + `환불 금액은 결제수단에 따라 3~5영업일 내 반영됩니다.${couponNotice}`;
+    + `${refundNotice}${couponNotice}`;
   const safeName = _escapeHtml(name);
   const safeReason = _escapeHtml(reason);
   const safeItems = _escapeHtml(itemSummary);
@@ -2925,7 +2979,7 @@ async function _sendCancellationEmail({
         <div><b>환불 금액</b> ${refundText}원</div>
         <div><b>배송비 환불</b> ${shippingText}원</div>
       </div>
-      <p style="font-size:14px;line-height:1.8;color:#4b5563;">환불 금액은 결제수단에 따라 3~5영업일 내 반영됩니다. 카드사·은행 사정에 따라 실제 반영일은 달라질 수 있습니다.</p>
+      <p style="font-size:14px;line-height:1.8;color:#4b5563;">${refundNotice}${noRefund ? '' : ' 카드사·은행 사정에 따라 실제 반영일은 달라질 수 있습니다.'}</p>
       ${eventCouponNotRestored ? '<p style="padding:12px;background:#fff8e8;border-radius:10px;font-size:13px;color:#765b1a;">이벤트성 쿠폰은 주문 취소 또는 환불 시 복구되지 않습니다.</p>' : ''}
       <a href="https://2fit-mall.co.kr/#/mypage" style="display:inline-block;margin-top:14px;padding:13px 18px;background:#172033;color:#fff;text-decoration:none;border-radius:10px;">주문 내역 확인하기</a>
       <p style="margin-top:26px;font-size:12px;color:#9299a5;">문의사항은 2FIT MALL 고객센터 또는 카카오채널로 문의해 주세요.</p>
@@ -3241,7 +3295,9 @@ exports.requestAccountDeletion = onRequest(
       });
       return res.status(200).json({ ok: true, message: '계정 삭제 요청이 접수되었습니다. 본인 확인 후 처리 결과를 안내해 드립니다.' });
     } catch (error) {
-      console.error('requestAccountDeletion error:', error?.message || 'unknown');
+      console.error('requestAccountDeletion error', {
+        code: _errorCode(error, 'account-deletion-failed'),
+      });
       return res.status(500).json({ ok: false, message: '요청을 접수하지 못했습니다. 잠시 후 다시 시도해 주세요.' });
     }
   },

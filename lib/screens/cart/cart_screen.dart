@@ -1278,12 +1278,12 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
           selectedPayment: _selectedPayment!,
         ),
       );
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         setState(() => _isProcessing = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(loc.paymentError(e.toString())),
+            content: Text(loc.paymentError('결제 준비 중 오류가 발생했습니다.')),
             backgroundColor: AppColors.error,
           ),
         );

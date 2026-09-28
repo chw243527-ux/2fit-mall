@@ -600,16 +600,16 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('최신 주문 데이터로 $fileName 생성을 완료했습니다.')),
       );
-    } catch (error) {
+    } catch (_) {
       await _writePdfAuditLog(
         orderId: order.id,
         documentType: productionOnly ? 'production' : 'customer',
         outcome: 'failure',
-        error: error.toString(),
+        error: 'pdf-generation-failed',
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('최신 주문 데이터를 읽거나 PDF를 생성하지 못했습니다: $error')),
+        const SnackBar(content: Text('최신 주문 데이터를 읽거나 PDF를 생성하지 못했습니다.')),
       );
     } finally {
       if (mounted) setState(() => _isGeneratingPdf = false);

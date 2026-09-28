@@ -54,8 +54,7 @@ class AdminRefundHistoryTab extends StatelessWidget {
           final total = rows.fold<double>(
               0,
               (totalAmount, row) =>
-                  totalAmount +
-                  _number(row['refundAmount'] ?? row['totalAmount']));
+                  totalAmount + _number(row['refundAmount'] ?? 0));
           final shipping = rows.fold<double>(
               0,
               (totalAmount, row) =>
@@ -91,6 +90,7 @@ class AdminRefundHistoryTab extends StatelessWidget {
   bool _isRefund(Map<String, dynamic> row) {
     final status = row['paymentStatus']?.toString() ?? '';
     final orderStatus = row['status']?.toString() ?? '';
+    if (status == 'expired' || status == 'awaiting_deposit') return false;
     return row['cancelType'] != null ||
         row['refundAmount'] != null ||
         status == 'refunded' ||
@@ -158,8 +158,10 @@ class _RefundCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final company = row['cancelType'] == 'company_fault';
     final reason = company ? '회사 측 귀책' : '단순 변심';
-    final refund = row['refundAmount'] ?? row['totalAmount'] ?? 0;
+    final refund = row['refundAmount'] ?? 0;
     final shipping = row['refundShippingFee'] ?? 0;
+    final noRefund = row['noRefund'] == true ||
+        row['paymentStatus'] == 'cancelled_no_refund';
     final eventCoupon = row['eventCouponNotRestored'] == true;
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
@@ -189,9 +191,18 @@ class _RefundCard extends StatelessWidget {
           Text('${row['userName'] ?? '고객'} · ${row['userPhone'] ?? ''}',
               style: const TextStyle(fontSize: 12, color: Colors.black87)),
           const SizedBox(height: 6),
-          Text('환불 금액: ${money(refund)}원 · 배송비 환불: ${money(shipping)}원',
+          Text(
+              noRefund
+                  ? '환불 금액: 0원 · 배송비 환불: 0원'
+                  : '환불 금액: ${money(refund)}원 · 배송비 환불: ${money(shipping)}원',
               style:
                   const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+          if (noRefund)
+            const Padding(
+              padding: EdgeInsets.only(top: 6),
+              child: Text('배송비 차감 후 환불 금액이 0원인 취소 건',
+                  style: TextStyle(fontSize: 12, color: Colors.deepOrange)),
+            ),
           if ((row['cancelReason'] ?? '').toString().isNotEmpty)
             Text('상세 사유: ${row['cancelReason']}',
                 style: const TextStyle(fontSize: 12, color: Colors.grey)),

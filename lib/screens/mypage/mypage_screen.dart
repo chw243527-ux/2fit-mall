@@ -1956,6 +1956,8 @@ class _PcOrderCard extends StatelessWidget {
                       SnackBar(
                           content: Text([
                             context.loc.t('주문이 취소되었습니다', '주문이 취소되었습니다.'),
+                            if (cancellation.noRefundNotice != null)
+                              cancellation.noRefundNotice!,
                             if (cancellation.couponNotice != null)
                               cancellation.couponNotice!,
                           ].join('\n')),
@@ -4521,6 +4523,8 @@ class _MobileOrderCard extends StatelessWidget {
                       SnackBar(
                           content: Text([
                             context.loc.t('주문이 취소되었습니다', '주문이 취소되었습니다.'),
+                            if (cancellation.noRefundNotice != null)
+                              cancellation.noRefundNotice!,
                             if (cancellation.couponNotice != null)
                               cancellation.couponNotice!,
                           ].join('\n')),
