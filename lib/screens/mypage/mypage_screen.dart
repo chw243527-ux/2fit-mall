@@ -1945,12 +1945,19 @@ class _PcOrderCard extends StatelessWidget {
                     }
                     return;
                   }
-                  FcmService.sendOrderStatusNotification(
-                          order: order, newStatus: OrderStatus.cancelled)
-                      .catchError((_) {});
+                  if (!cancellation.alreadyCancelled) {
+                    FcmService.sendOrderStatusNotification(
+                            order: order, newStatus: OrderStatus.cancelled)
+                        .catchError((_) {});
+                  }
                   await context
                       .read<OrderProvider>()
                       .loadUserOrders(order.userId);
+                  // 서버가 이미 취소된 주문이라고 응답하거나 Firestore 재조회가
+                  // 지연되어도 현재 카드에는 즉시 취소 상태를 표시합니다.
+                  context
+                      .read<OrderProvider>()
+                      .updateOrderStatus(order.id, OrderStatus.cancelled);
                   if (btnCtx.mounted) {
                     ScaffoldMessenger.of(btnCtx).showSnackBar(
                       SnackBar(
@@ -4512,12 +4519,19 @@ class _MobileOrderCard extends StatelessWidget {
                     }
                     return;
                   }
-                  FcmService.sendOrderStatusNotification(
-                          order: order, newStatus: OrderStatus.cancelled)
-                      .catchError((_) {});
+                  if (!cancellation.alreadyCancelled) {
+                    FcmService.sendOrderStatusNotification(
+                            order: order, newStatus: OrderStatus.cancelled)
+                        .catchError((_) {});
+                  }
                   await context
                       .read<OrderProvider>()
                       .loadUserOrders(order.userId);
+                  // 서버가 이미 취소된 주문이라고 응답하거나 Firestore 재조회가
+                  // 지연되어도 현재 카드에는 즉시 취소 상태를 표시합니다.
+                  context
+                      .read<OrderProvider>()
+                      .updateOrderStatus(order.id, OrderStatus.cancelled);
                   if (btnCtx.mounted) {
                     ScaffoldMessenger.of(btnCtx).showSnackBar(
                       SnackBar(
