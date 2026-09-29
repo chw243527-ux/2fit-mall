@@ -1763,6 +1763,11 @@ $productUrl
   /// 상품명·분류·관리자 소재명에 따른 섬유 혼용률입니다.
   /// 관리자가 브라이트/에어로브라이트 원단명을 입력하면 해당 원단의 비율을 우선 적용합니다.
   String _materialTextForProduct(ProductModel product) {
+    // 상품별 에디토리얼 상세 본문이 저장되어 있으면 카테고리 기본 문구보다
+    // 우선 표시합니다. 줄바꿈은 상세페이지의 본문 단락으로 유지합니다.
+    if (product.editorialMaterialText.trim().isNotEmpty) {
+      return product.editorialMaterialText.trim();
+    }
     final label =
         '${product.category} ${product.subCategory} ${product.name} ${product.material}'
             .toLowerCase();
