@@ -721,7 +721,13 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
         crossAxisCount: columns,
         crossAxisSpacing: 10,
         mainAxisSpacing: 16,
-        childAspectRatio: columns >= 4 ? 0.68 : 0.62,
+        // 4:5 이미지 아래에 배지·상품명·색상·가격이 모두 들어가도록
+        // 카드 높이를 확보합니다. 기존 비율에서는 가격이 잘릴 수 있습니다.
+        childAspectRatio: columns >= 4
+            ? 0.60
+            : columns == 3
+                ? 0.56
+                : 0.54,
       ),
       itemCount: list.length,
       itemBuilder: (_, i) => ProductCard(
