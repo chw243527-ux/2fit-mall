@@ -85,7 +85,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
 
   List<ProductModel> _getProducts(String filter, {String? subName}) {
     final provider = context.watch<ProductProvider>();
-    final allCached = provider.products;
+    // provider.products는 다른 화면에서 선택한 카테고리로 이미 필터됐을 수
+    // 있으므로, 카테고리 화면에서는 항상 전체 활성 원본에서 다시 필터링합니다.
+    final allCached = provider.allActiveProducts;
     List<ProductModel> all;
     if (filter == loc.sortNewArrival) {
       // isNew 배지가 있는 상품만 표시 (폴백 없음)

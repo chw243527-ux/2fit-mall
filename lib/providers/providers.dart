@@ -1496,6 +1496,11 @@ class ProductProvider extends ChangeNotifier {
 
   List<ProductModel> get products => _products;
 
+  /// 카테고리 화면에서 교차 이동할 때 사용할 전체 활성 상품 원본입니다.
+  /// [products]는 현재 선택 카테고리로 이미 필터된 목록일 수 있습니다.
+  List<ProductModel> get allActiveProducts =>
+      ProductService.getAllProductsSync().where((p) => p.isActive).toList();
+
   /// 관리자 전용: isActive 무관 전체 상품 목록
   List<ProductModel> get adminProducts => _adminProducts;
 

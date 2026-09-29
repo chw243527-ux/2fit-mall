@@ -365,6 +365,13 @@ class ProductModel {
       return fallback;
     }
 
+    double parseDouble(dynamic raw, {double fallback = 0}) {
+      if (raw is num) return raw.toDouble();
+      return double.tryParse(
+              raw?.toString().replaceAll(',', '').trim() ?? '') ??
+          fallback;
+    }
+
     List<String> parseStrings(dynamic raw) {
       if (raw is List) {
         return raw
@@ -410,9 +417,9 @@ class ProductModel {
       name: json['name'] as String,
       category: json['category'] as String,
       subCategory: json['subCategory'] as String? ?? '',
-      price: (json['price'] as num).toDouble(),
+      price: parseDouble(json['price']),
       originalPrice: json['originalPrice'] != null
-          ? (json['originalPrice'] as num).toDouble()
+          ? parseDouble(json['originalPrice'])
           : null,
       description: json['description'] as String,
       images: parseStrings(json['images']),
