@@ -5035,6 +5035,58 @@ $productUrl
     );
   }
 
+  /// 상품별 에디토리얼 본문을 동일한 섹션 스타일로 렌더링합니다.
+  /// 각 단락의 첫 줄은 강조 제목, 나머지는 동일한 본문 스타일로 표시합니다.
+  Widget _buildEditorialMaterialSections(String material, Responsive r) {
+    final blocks = material
+        .split(RegExp(r'\n\s*\n'))
+        .map((block) => block.trim())
+        .where((block) => block.isNotEmpty)
+        .toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < blocks.length; i++) ...[
+          if (i > 0) SizedBox(height: r.h(20)),
+          Builder(
+            builder: (context) {
+              final lines = blocks[i].split('\n');
+              final heading = lines.first.trim();
+              final body = lines.skip(1).join('\n').trim();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    heading,
+                    style: TextStyle(
+                      fontSize: r.sp(12),
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.8,
+                      height: 1.25,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  if (body.isNotEmpty) ...[
+                    SizedBox(height: r.h(7)),
+                    Text(
+                      body,
+                      style: TextStyle(
+                        fontSize: r.sp(14),
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.textSecondary,
+                        height: 1.65,
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildGeneralEditorialProductDetail(
       ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
@@ -5187,15 +5239,7 @@ $productUrl
               SizedBox(height: r.h(22)),
               const Divider(height: 1, color: AppColors.border),
               SizedBox(height: r.h(13)),
-              Text(
-                material,
-                style: TextStyle(
-                  fontSize: r.sp(18),
-                  fontWeight: FontWeight.w800,
-                  height: 1.45,
-                  color: AppColors.textPrimary,
-                ),
-              ),
+              _buildEditorialMaterialSections(material, r),
             ],
           ),
         ),
