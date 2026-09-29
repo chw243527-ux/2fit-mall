@@ -69,6 +69,7 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
   void _onTabChanged(int i) {
     setState(() {
       _statusFilter = switch (i) {
+        // 결제 확인(confirmed)과 제작 중(processing)을 함께 표시합니다.
         1 => OrderStatus.processing,
         2 => OrderStatus.shipped,
         3 => OrderStatus.delivered,
@@ -86,12 +87,12 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
       builder: (ctx, snap) {
         final allOrders = snap.data ?? [];
 
-        // 배송 관련 주문만 (취소/환불 제외)
+        // 배송 관련 주문만 (접수 대기·취소·환불 제외)
+        // 결제 확인 주문도 포함해야 관리자가 제작을 시작할 수 있습니다.
         final deliveryOrders = allOrders
             .where(
               (o) =>
                   o.status != OrderStatus.pending &&
-                  o.status != OrderStatus.confirmed &&
                   o.status != OrderStatus.cancelled &&
                   o.status != OrderStatus.refunded,
             )
@@ -106,15 +107,20 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
               o.userName.toLowerCase().contains(q) ||
               o.userPhone.contains(q) ||
               (o.customOptions?['trackingNumber'] as String? ?? '').contains(q);
-          final matchStatus =
-              _statusFilter == null || o.status == _statusFilter;
+          final matchStatus = _statusFilter == null ||
+              (_statusFilter == OrderStatus.processing &&
+                  (o.status == OrderStatus.confirmed ||
+                      o.status == OrderStatus.processing)) ||
+              o.status == _statusFilter;
           return matchSearch && matchStatus;
         }).toList();
 
         // 탭별 카운트
         final cntAll = deliveryOrders.length;
         final cntReady = deliveryOrders
-            .where((o) => o.status == OrderStatus.processing)
+            .where((o) =>
+                o.status == OrderStatus.confirmed ||
+                o.status == OrderStatus.processing)
             .length;
         final cntShipping =
             deliveryOrders.where((o) => o.status == OrderStatus.shipped).length;
@@ -903,6 +909,13 @@ class _DeliveryCard extends StatelessWidget {
 
                     // 상태 변경 버튼
                     if (!isDelivered) ...[
+                      if (order.status == OrderStatus.confirmed)
+                        _cardBtn(
+                            context.loc.t('제작 시작', '제작 시작'),
+                            Icons.play_circle_outline_rounded,
+                            _kReady,
+                            () =>
+                                onStatusChanged(order, OrderStatus.processing)),
                       if (order.status == OrderStatus.processing)
                         _cardBtn(
                             context.loc.t('배송중 처리', '배송중 처리'),
