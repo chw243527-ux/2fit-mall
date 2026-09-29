@@ -10334,14 +10334,27 @@ void _showConfirmPurchaseDialog(BuildContext context, OrderModel order) {
           ),
           onPressed: () async {
             Navigator.pop(ctx);
-            await OrderService.updateOrderStatus(
-                order.id, OrderStatus.purchaseConfirmed);
-            if (context.mounted) {
+            try {
+              await OrderService.updateOrderStatusStrict(
+                  order.id, OrderStatus.purchaseConfirmed);
+              if (!context.mounted) return;
+              context
+                  .read<OrderProvider>()
+                  .updateOrderStatus(order.id, OrderStatus.purchaseConfirmed);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(context.loc
                       .t('구매가 확정되었습니다 감사합니다', '구매가 확정되었습니다. 감사합니다!')),
                   backgroundColor: AppColors.success,
+                ),
+              );
+            } catch (_) {
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(context.loc
+                      .t('구매확정에_실패했습니다', '구매 확정에 실패했습니다. 다시 시도해 주세요.')),
+                  backgroundColor: AppColors.error,
                 ),
               );
             }

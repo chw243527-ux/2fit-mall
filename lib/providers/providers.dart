@@ -641,36 +641,8 @@ class OrderProvider extends ChangeNotifier {
   void updateOrderStatus(String orderId, OrderStatus status) {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index >= 0) {
-      final old = _orders[index];
-      _orders[index] = OrderModel(
-        id: old.id,
-        userId: old.userId,
-        userName: old.userName,
-        userEmail: old.userEmail,
-        userPhone: old.userPhone,
-        userAddress: old.userAddress,
-        items: old.items,
-        totalAmount: old.totalAmount,
-        shippingFee: old.shippingFee,
-        couponId: old.couponId,
-        couponIds: old.couponIds,
-        couponDiscount: old.couponDiscount,
-        couponDiscounts: old.couponDiscounts,
-        usedPoints: old.usedPoints,
-        pointDiscount: old.pointDiscount,
-        paymentMethod: old.paymentMethod,
-        status: status,
-        orderType: old.orderType,
-        customOptions: old.customOptions,
-        groupName: old.groupName,
-        groupCount: old.groupCount,
-        createdAt: old.createdAt,
-        memo: old.memo,
-        additionalOrderCount: old.additionalOrderCount,
-        colorEditCount: old.colorEditCount,
-        designRevisionCount: old.designRevisionCount,
-        designRevisionDeadline: old.designRevisionDeadline,
-      );
+      // 상태만 바꾸고 배송완료 시각·결제키·배송정보 등 나머지 필드는 보존합니다.
+      _orders[index] = _orders[index].copyWith(status: status);
       notifyListeners();
     }
   }

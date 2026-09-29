@@ -729,6 +729,15 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
       if (mgr != null && mgr.isNotEmpty) customOptions['manager'] = mgr;
     }
 
+    // 배송관리에서 저장하는 운송장 정보는 최상위 필드이므로
+    // 마이페이지가 읽는 customOptions에도 최신 값을 반영합니다.
+    for (final key in ['trackingNumber', 'shippingCompany', 'adminMemo']) {
+      final value = data[key];
+      if (value is String && value.trim().isNotEmpty) {
+        customOptions[key] = value;
+      }
+    }
+
     // ── 최상위 designRevisionRequest → customOptions에 병합 ──
     // 디자인수정 요청은 최상위 필드로 저장, customOptions getter는 customOptions 안에서 읽음
     final topDrReq = data['designRevisionRequest'];
