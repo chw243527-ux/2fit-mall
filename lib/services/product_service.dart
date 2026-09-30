@@ -1297,52 +1297,40 @@ class ProductService {
 
   static Future<bool> updateSectionImages(
       String productId, String sectionKey, List<String> urls) async {
-    final idx = _products.indexWhere((p) => p.id == productId);
-    if (idx < 0) return false;
-    final p = _products[idx];
-    final newMap = Map<String, List<String>>.from(p.sectionImages);
-    if (urls.isEmpty) {
-      newMap.remove(sectionKey);
-    } else {
-      newMap[sectionKey] = List<String>.from(urls);
-    }
-    _products[idx] = ProductModel(
-      id: p.id,
-      name: p.name,
-      category: p.category,
-      subCategory: p.subCategory,
-      price: p.price,
-      originalPrice: p.originalPrice,
-      description: p.description,
-      images: p.images,
-      sizes: p.sizes,
-      colors: p.colors,
-      colorHexes: p.colorHexes,
-      material: p.material,
-      isNew: p.isNew,
-      newExpiresAt: p.newExpiresAt,
-      isSale: p.isSale,
-      isFreeShipping: p.isFreeShipping,
-      isGroupOnly: p.isGroupOnly,
-      isGroup: p.isGroup,
-      isActive: p.isActive,
-      rating: p.rating,
-      reviewCount: p.reviewCount,
-      stockCount: p.stockCount,
-      createdAt: p.createdAt,
-      productCode: p.productCode,
-      sectionImages: newMap,
-      nameTranslations: p.nameTranslations,
-      descriptionTranslations: p.descriptionTranslations,
-    );
-    _cache = List.from(_products);
-    await _persist();
-    // Firestore 섹션 이미지 업데이트
     try {
-      await _db
-          .collection('products')
-          .doc(productId)
-          .update({'sectionImages': newMap});
+      // 섹션관리 탭은 관리자 전용 상품 목록에서 상품을 선택할 수 있으므로
+      // 일반 상품 캐시(_products)에 없다는 이유로 저장을 중단하면 안 됩니다.
+      // Firestore 최신 값을 먼저 읽어 다른 섹션 이미지도 덮어쓰지 않습니다.
+      final ref = _db.collection('products').doc(productId);
+      final snapshot = await ref.get();
+      if (!snapshot.exists) return false;
+
+      final newMap = <String, List<String>>{};
+      final raw = snapshot.data()?['sectionImages'];
+      if (raw is Map) {
+        for (final entry in raw.entries) {
+          final value = entry.value;
+          if (value is List) {
+            newMap[entry.key.toString()] =
+                value.map((item) => item.toString()).toList();
+          }
+        }
+      }
+      if (urls.isEmpty) {
+        newMap.remove(sectionKey);
+      } else {
+        newMap[sectionKey] = List<String>.from(urls);
+      }
+
+      await ref.update({'sectionImages': newMap});
+
+      // 캐시에 상품이 있으면 즉시 갱신하고, 없으면 다음 Firestore 로드가 기준이 됩니다.
+      final idx = _products.indexWhere((p) => p.id == productId);
+      if (idx >= 0) {
+        _products[idx] = _products[idx].copyWithSectionImages(newMap);
+        _cache = List.from(_products);
+        await _persist();
+      }
       return true;
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
