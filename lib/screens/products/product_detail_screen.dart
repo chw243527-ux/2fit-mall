@@ -4599,8 +4599,14 @@ $productUrl
   Widget _buildDesignImageSection(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
     final imgs = _sectionImages['design'] ?? [];
-    // 이미지가 없고 관리자도 아니면 숨김
-    if (!isAdmin && imgs.isEmpty) return const SizedBox.shrink();
+    // 레거시 design 키는 섹션관리 카탈로그에 등록된 경우에만 고객에게
+    // 표시합니다. 섹션관리 밖의 기본 디자인 영역은 더 이상 노출하지 않습니다.
+    if (!isAdmin &&
+        (!_sectionCatalogLoaded ||
+            !_activeSectionKeys.contains('design') ||
+            imgs.isEmpty)) {
+      return const SizedBox.shrink();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
