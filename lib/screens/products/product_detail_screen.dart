@@ -6170,9 +6170,14 @@ $productUrl
   }
 
   Widget _storedSectionDescription(String sectionKey) {
-    final productDescription = _productSectionDescriptions[sectionKey];
-    final description =
-        (productDescription ?? _sectionDescriptions[sectionKey])?.trim() ?? '';
+    final canonicalKey = _canonicalSectionKey(sectionKey);
+    final productDescription = _productSectionDescriptions[sectionKey] ??
+        _productSectionDescriptions[canonicalKey];
+    final description = (productDescription ??
+                _sectionDescriptions[sectionKey] ??
+                _sectionDescriptions[canonicalKey])
+            ?.trim() ??
+        '';
     if (description.isEmpty) return const SizedBox.shrink();
     final r = Responsive.of(context);
     return Padding(

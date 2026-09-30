@@ -15187,6 +15187,11 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
   Widget build(BuildContext context) {
     final imgs = _imgs;
     final hasImages = imgs.isNotEmpty;
+    final productDescription =
+        widget.product.sectionDescriptions[widget.sectionKey]?.trim() ?? '';
+    final visibleDescription = productDescription.isNotEmpty
+        ? productDescription
+        : widget.sectionDescription.trim();
 
     return Container(
       decoration: BoxDecoration(
@@ -15243,10 +15248,10 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                             color: _expanded ? Colors.white : AppColors.primary,
                           ),
                         ),
-                        if (widget.sectionDescription.isNotEmpty) ...[
+                        if (visibleDescription.isNotEmpty) ...[
                           const SizedBox(height: 1),
                           Text(
-                            widget.sectionDescription,
+                            visibleDescription,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
