@@ -69,6 +69,12 @@ class _ImageLightboxDialogState extends State<ImageLightboxDialog> {
   @override
   Widget build(BuildContext context) {
     final total = widget.images.length;
+    final media = MediaQuery.sizeOf(context);
+    // 모바일에서 원본 이미지가 세로로 긴 경우에도 라이트박스가
+    // 화면 전체 높이를 차지하지 않도록 이미지 영역을 제한합니다.
+    // 이미지 자체의 비율은 BoxFit.contain으로 그대로 유지합니다.
+    final imageViewportHeight = media.height * 0.72;
+    final imageViewportWidth = media.width * 0.92;
 
     return Material(
       color: Colors.transparent,
@@ -79,10 +85,17 @@ class _ImageLightboxDialogState extends State<ImageLightboxDialog> {
             controller: _ctrl,
             itemCount: total,
             onPageChanged: (i) => setState(() => _idx = i),
-            itemBuilder: (_, i) => InteractiveViewer(
-              minScale: 0.5,
-              maxScale: 4.0,
-              child: Center(child: _buildImage(widget.images[i])),
+            itemBuilder: (_, i) => Center(
+              child: SizedBox(
+                width: imageViewportWidth,
+                height: imageViewportHeight,
+                child: InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  boundaryMargin: const EdgeInsets.all(24),
+                  child: Center(child: _buildImage(widget.images[i])),
+                ),
+              ),
             ),
           ),
 
