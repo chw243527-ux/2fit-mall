@@ -257,9 +257,9 @@ class ProductCard extends StatelessWidget {
             Row(children: [
               if (hasGroupOrder)
                 Container(
-                  margin: const EdgeInsets.only(right: 4, bottom: 5),
+                  margin: const EdgeInsets.only(right: 3, bottom: 4),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                   decoration: BoxDecoration(
                     color: AppColors.textSecondary,
                     borderRadius: BorderRadius.circular(3),
@@ -270,17 +270,17 @@ class ProductCard extends StatelessWidget {
                         : context.loc.t('단체주문', '단체주문'),
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 8,
+                      fontWeight: FontWeight.w600,
                       letterSpacing: 0.1,
                     ),
                   ),
                 ),
               if (product.isReadyMade)
                 Container(
-                  margin: const EdgeInsets.only(bottom: 5),
+                  margin: const EdgeInsets.only(bottom: 4),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(3),
@@ -289,8 +289,8 @@ class ProductCard extends StatelessWidget {
                     context.loc.t('기성품', '기성품'),
                     style: const TextStyle(
                       color: AppColors.textPrimary,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 8,
+                      fontWeight: FontWeight.w600,
                       letterSpacing: 0.1,
                     ),
                   ),
@@ -310,10 +310,10 @@ class ProductCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 10,
+                fontSize: 9,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,
-                letterSpacing: -0.1,
+                letterSpacing: -0.25,
                 height: 1.35,
               ),
             ),

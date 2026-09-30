@@ -1155,7 +1155,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           child: Text(context.loc.t('단체주문 전용', '단체주문 전용'),
                               style: const TextStyle(
                                   color: AppColors.primary,
-                                  fontSize: 9,
+                                  fontSize: 8,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.2)),
                         ),
@@ -1167,7 +1167,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                              fontSize: 10,
+                              fontSize: 9,
                               fontWeight: FontWeight.w700,
                               color: AppColors.primary,
                               height: 1.3),
@@ -1352,7 +1352,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary)),
                     if (p.colors.isNotEmpty) ...[
@@ -1403,12 +1403,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   Widget _badge(String text, Color color) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
         decoration:
             BoxDecoration(color: color, borderRadius: BorderRadius.circular(3)),
         child: Text(text,
             style: const TextStyle(
-                color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900)),
+                color: Colors.white, fontSize: 8, fontWeight: FontWeight.w900)),
       );
 
   Widget _buildEmptyState() {

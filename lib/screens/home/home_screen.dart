@@ -2984,8 +2984,8 @@ class _HomeScreenState extends State<HomeScreen>
                                         left: 5,
                                         child: Container(
                                           padding: EdgeInsets.symmetric(
-                                              horizontal: r.w(4),
-                                              vertical: r.h(2)),
+                                              horizontal: r.w(3),
+                                              vertical: r.h(1)),
                                           decoration: BoxDecoration(
                                             color: AppColors.accent,
                                             borderRadius:
@@ -2994,7 +2994,7 @@ class _HomeScreenState extends State<HomeScreen>
                                           child: Text('$discount%',
                                               style: TextStyle(
                                                   color: Colors.white,
-                                                  fontSize: r.sp(9),
+                                                  fontSize: r.sp(8),
                                                   fontWeight: FontWeight.w800)),
                                         ),
                                       ),
@@ -3010,7 +3010,7 @@ class _HomeScreenState extends State<HomeScreen>
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                        fontSize: r.sp(9),
+                                        fontSize: r.sp(8.5),
                                         fontWeight: FontWeight.w700,
                                         color: const Color(0xFF222222),
                                         height: 1.3)),
