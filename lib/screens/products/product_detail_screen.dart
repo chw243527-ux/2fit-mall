@@ -102,6 +102,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   // 레거시 공통 섹션 설명 폴백 (상품별 설명이 없을 때만 사용)
   final Map<String, String> _sectionDescriptions = {};
   final Map<String, String> _productSectionDescriptions = {};
+  final Map<String, String> _sectionLabels = {};
   final List<String> _sectionOrder = [
     's1',
     's2',
@@ -165,9 +166,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         for (final raw in rawSections) {
           if (raw is! Map) continue;
           final key = raw['key']?.toString().trim() ?? '';
+          final label = raw['label']?.toString().trim() ?? '';
           final description = raw['description']?.toString().trim() ?? '';
           if (key.isNotEmpty && !orderedKeys.contains(key)) {
             orderedKeys.add(key);
+          }
+          if (key.isNotEmpty && label.isNotEmpty) {
+            _sectionLabels[key] = label;
           }
           if (key.isNotEmpty && description.isNotEmpty) {
             _sectionDescriptions[key] = description;
@@ -6010,6 +6015,20 @@ $productUrl
   }
 
   String _adminSectionNumber(String sectionKey) {
+    final savedLabel = _sectionLabels[sectionKey];
+    if (savedLabel != null && savedLabel.isNotEmpty) return savedLabel;
+    const legacyLabels = <String, String>{
+      's1': '섹션 1',
+      's2': '섹션 2',
+      's2_seamless': '섹션 2A',
+      's2_fiber': '섹션 2B',
+      's3': '섹션 3',
+      's4': '섹션 4',
+      's5': '섹션 5',
+      's6': '섹션 6',
+    };
+    final legacyLabel = legacyLabels[sectionKey];
+    if (legacyLabel != null) return legacyLabel;
     final index = _sectionOrder.indexOf(sectionKey);
     return index >= 0 ? '섹션 ${index + 1}' : '섹션';
   }
