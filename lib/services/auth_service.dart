@@ -15,6 +15,8 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
 // 웹 JS interop
 import 'naver_web_stub.dart' if (dart.library.html) 'naver_web_login.dart'
     as naver_web;
+import 'auth_tab_session_stub.dart'
+    if (dart.library.html) 'auth_tab_session_web.dart' as auth_tab;
 import '../models/models.dart';
 
 class AuthService {
@@ -217,6 +219,11 @@ class AuthService {
   static Future<void> configurePersistentAuth() async {
     if (!kIsWeb) return;
     try {
+      // Chrome의 탭 복제는 sessionStorage도 복사할 수 있으므로,
+      // 복제 탭이면 현재 탭의 Firebase 인증값만 먼저 비웁니다.
+      if (await auth_tab.prepareAuthTabSession()) {
+        await _auth.signOut();
+      }
       await _auth.setPersistence(Persistence.SESSION);
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
