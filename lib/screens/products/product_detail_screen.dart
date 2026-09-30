@@ -1762,10 +1762,11 @@ $productUrl
 
   /// 상품명·분류·관리자 소재명에 따른 섬유 혼용률입니다.
   /// 관리자가 브라이트/에어로브라이트 원단명을 입력하면 해당 원단의 비율을 우선 적용합니다.
-  String _materialTextForProduct(ProductModel product) {
+  String _materialTextForProduct(ProductModel product,
+      {bool includeEditorial = true}) {
     // 상품별 에디토리얼 상세 본문이 저장되어 있으면 카테고리 기본 문구보다
     // 우선 표시합니다. 줄바꿈은 상세페이지의 본문 단락으로 유지합니다.
-    if (product.editorialMaterialText.trim().isNotEmpty) {
+    if (includeEditorial && product.editorialMaterialText.trim().isNotEmpty) {
       return product.editorialMaterialText.trim();
     }
     final label =
@@ -1836,7 +1837,10 @@ $productUrl
 
     // ── 1) MATERIAL: 상품 유형별 섬유 혼용률 ─────────────────────
     // 싱글렛·라운드티·골지타이즈·펄원단 상품은 확정된 기준값을 우선 적용합니다.
-    final materialText = _materialTextForProduct(product);
+    // 에디토리얼 전체 본문은 아래 상세 섹션에서만 표시합니다.
+    // 기본 상품정보에는 소재·혼용률만 표시해 같은 내용이 반복되지 않도록 합니다.
+    final materialText =
+        _materialTextForProduct(product, includeEditorial: false);
 
     // ── 2) COLOR: 카테고리/구매방식별 표시 ──────────────────────
     // 단체주문: 골지 19색 모두 선택 가능
