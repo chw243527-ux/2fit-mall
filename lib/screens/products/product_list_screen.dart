@@ -1161,10 +1161,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         ),
                       ],
                       SizedBox(
-                        height: 11 * 1.3 * 2,
+                        height: 11 * 1.3 * 3,
                         child: Text(
                           p.localizedName(_lang),
-                          maxLines: 2,
+                          maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                               fontSize: 11,
@@ -1349,7 +1349,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               color: AppColors.primary)),
                     if (!p.isGroupOnly) const SizedBox(height: 3),
                     Text(p.localizedName(_lang),
-                        maxLines: 2,
+                        maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                             fontSize: 14,

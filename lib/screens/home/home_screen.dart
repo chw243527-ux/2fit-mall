@@ -2474,7 +2474,7 @@ class _HomeScreenState extends State<HomeScreen>
                   SizedBox(height: r.h(2)),
                   Text(
                     product.localizedName(_lang),
-                    maxLines: 2,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                         fontSize: r.sp(11),
@@ -3007,7 +3007,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 padding:
                                     EdgeInsets.symmetric(horizontal: r.w(8)),
                                 child: Text(_pName(p),
-                                    maxLines: 2,
+                                    maxLines: 3,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                         fontSize: r.sp(10),
@@ -4243,7 +4243,7 @@ class _HomeScreenState extends State<HomeScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(_pName(p),
-                                  maxLines: 1,
+                                  maxLines: 3,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                       fontSize: r.sp(11),
