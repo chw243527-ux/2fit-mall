@@ -1121,6 +1121,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             isActive: src.isActive, createdAt: src.createdAt,
             productCode: src.productCode,
             sectionImages: src.sectionImages,
+            sectionDescriptions: src.sectionDescriptions,
             nameTranslations: src.nameTranslations,
             descriptionTranslations: src.descriptionTranslations,
             bottomLength: src.bottomLength,

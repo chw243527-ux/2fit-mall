@@ -1829,6 +1829,17 @@ class ProductProvider extends ChangeNotifier {
     return result;
   }
 
+  /// 상품별 섹션 설명을 저장하고 관리자 상품 목록에 즉시 반영합니다.
+  Future<bool> updateSectionDescription(
+      String productId, String sectionKey, String description) async {
+    final result = await ProductService.updateSectionDescription(
+        productId, sectionKey, description);
+    if (!result) return false;
+    await loadAdminProducts();
+    notifyListeners();
+    return true;
+  }
+
   /// 메인 이미지 업데이트 → 즉시 notifyListeners
   Future<bool> updateMainImages(String productId, List<String> urls) async {
     final result = await ProductService.updateMainImages(productId, urls);
@@ -1861,6 +1872,7 @@ class ProductProvider extends ChangeNotifier {
           salesCount: p.salesCount,
           createdAt: p.createdAt,
           sectionImages: p.sectionImages,
+          sectionDescriptions: p.sectionDescriptions,
         );
         notifyListeners();
       }

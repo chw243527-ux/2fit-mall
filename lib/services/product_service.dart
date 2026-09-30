@@ -1338,6 +1338,42 @@ class ProductService {
     }
   }
 
+  static Future<bool> updateSectionDescription(
+      String productId, String sectionKey, String description) async {
+    try {
+      final ref = _db.collection('products').doc(productId);
+      final snapshot = await ref.get();
+      if (!snapshot.exists) return false;
+      final data = snapshot.data() ?? <String, dynamic>{};
+      final descriptions = <String, String>{};
+      final raw = data['sectionDescriptions'];
+      if (raw is Map) {
+        for (final entry in raw.entries) {
+          descriptions[entry.key.toString()] = entry.value?.toString() ?? '';
+        }
+      }
+      final value = description.trim();
+      if (value.isEmpty) {
+        descriptions.remove(sectionKey);
+      } else {
+        descriptions[sectionKey] = value;
+      }
+      await ref.update({'sectionDescriptions': descriptions});
+      final idx = _products.indexWhere((p) => p.id == productId);
+      if (idx >= 0) {
+        _products[idx] = _products[idx].copyWith(
+          sectionDescriptions: descriptions,
+        );
+        _cache = List.from(_products);
+        await _persist();
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) debugPrint('client_operation_failed');
+      return false;
+    }
+  }
+
   static Future<bool> updateMainImages(
       String productId, List<String> urls) async {
     final idx = _products.indexWhere((p) => p.id == productId);
@@ -1369,6 +1405,7 @@ class ProductService {
       createdAt: p.createdAt,
       productCode: p.productCode,
       sectionImages: p.sectionImages,
+      sectionDescriptions: p.sectionDescriptions,
       nameTranslations: p.nameTranslations,
       descriptionTranslations: p.descriptionTranslations,
     );

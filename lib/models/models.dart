@@ -51,6 +51,8 @@ class ProductModel {
   final String productCode;
   // 섹션별 관리자 업로드 이미지 (key: 's1','s2','s3','s4','s5','s6')
   final Map<String, List<String>> sectionImages;
+  // 상품별 섹션 설명 (key: s1~s6)
+  final Map<String, String> sectionDescriptions;
   // 다국어 상품명 번역 (key: 'en','ja','zh','mn')
   final Map<String, String> nameTranslations;
   // 다국어 상품 설명 번역 (key: 'en','ja','zh','mn')
@@ -109,6 +111,7 @@ class ProductModel {
     required this.createdAt,
     this.productCode = '',
     this.sectionImages = const {},
+    this.sectionDescriptions = const {},
     this.nameTranslations = const {},
     this.descriptionTranslations = const {},
     this.bottomLength = '',
@@ -206,6 +209,7 @@ class ProductModel {
     DateTime? createdAt,
     String? productCode,
     Map<String, List<String>>? sectionImages,
+    Map<String, String>? sectionDescriptions,
     Map<String, String>? nameTranslations,
     Map<String, String>? descriptionTranslations,
     String? bottomLength,
@@ -253,6 +257,7 @@ class ProductModel {
       createdAt: createdAt ?? this.createdAt,
       productCode: productCode ?? this.productCode,
       sectionImages: sectionImages ?? this.sectionImages,
+      sectionDescriptions: sectionDescriptions ?? this.sectionDescriptions,
       nameTranslations: nameTranslations ?? this.nameTranslations,
       descriptionTranslations:
           descriptionTranslations ?? this.descriptionTranslations,
@@ -308,6 +313,7 @@ class ProductModel {
       createdAt: createdAt,
       productCode: productCode,
       sectionImages: sectionImages,
+      sectionDescriptions: sectionDescriptions,
       nameTranslations: nameTranslations ?? this.nameTranslations,
       descriptionTranslations:
           descriptionTranslations ?? this.descriptionTranslations,
@@ -420,6 +426,11 @@ class ProductModel {
       return raw.map((k, v) => MapEntry(k.toString(), parseStrings(v)));
     }
 
+    Map<String, String> parseSectionDescriptions(dynamic raw) {
+      if (raw is! Map) return {};
+      return raw.map((k, v) => MapEntry(k.toString(), v?.toString() ?? ''));
+    }
+
     final parsedColors = parseStrings(json['colors']);
     final parsedColorHexes = parseIntMap(json['colorHexes']);
     // 과거 데이터 중 colors가 비어 있고 colorHexes 키만 있는 상품도 옵션을 복원합니다.
@@ -491,6 +502,8 @@ class ProductModel {
       createdAt: DateTime.parse(json['createdAt'] as String),
       productCode: json['productCode'] as String? ?? '',
       sectionImages: parseSectionImages(json['sectionImages']),
+      sectionDescriptions:
+          parseSectionDescriptions(json['sectionDescriptions']),
       nameTranslations: json['nameTranslations'] != null
           ? Map<String, String>.from(json['nameTranslations'] as Map)
           : const {},
@@ -546,6 +559,7 @@ class ProductModel {
       'createdAt': createdAt.toIso8601String(),
       'productCode': productCode,
       'sectionImages': sectionImages,
+      'sectionDescriptions': sectionDescriptions,
       'nameTranslations': nameTranslations,
       'descriptionTranslations': descriptionTranslations,
     };
@@ -589,6 +603,7 @@ class ProductModel {
       createdAt: createdAt,
       productCode: productCode,
       sectionImages: newSectionImages,
+      sectionDescriptions: sectionDescriptions,
       nameTranslations: nameTranslations,
       descriptionTranslations: descriptionTranslations,
       bottomLength: bottomLength,

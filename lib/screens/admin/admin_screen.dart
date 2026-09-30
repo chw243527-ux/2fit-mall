@@ -15009,10 +15009,12 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
   bool _expanded = false;
   bool _isUploading = false;
   final _urlCtrl = TextEditingController();
+  late final TextEditingController _descriptionCtrl;
 
   @override
   void dispose() {
     _urlCtrl.dispose();
+    _descriptionCtrl.dispose();
     super.dispose();
   }
 
@@ -15159,6 +15161,29 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _descriptionCtrl = TextEditingController(
+      text: widget.product.sectionDescriptions[widget.sectionKey] ??
+          widget.sectionDescription,
+    );
+  }
+
+  Future<void> _saveProductDescription() async {
+    final ok = await context.read<ProductProvider>().updateSectionDescription(
+          widget.product.id,
+          widget.sectionKey,
+          _descriptionCtrl.text,
+        );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(ok ? '이 상품의 섹션 설명이 저장되었습니다' : '섹션 설명 저장에 실패했습니다'),
+      backgroundColor: ok ? AppColors.primary : AppColors.error,
+    ));
+    if (ok) _refresh();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final imgs = _imgs;
     final hasImages = imgs.isNotEmpty;
@@ -15286,6 +15311,26 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  TextField(
+                    controller: _descriptionCtrl,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: '이 상품에만 적용할 섹션 설명',
+                      hintText: '비워두면 설명이 표시되지 않습니다',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton.icon(
+                      onPressed: _saveProductDescription,
+                      icon: const Icon(Icons.save_rounded, size: 16),
+                      label: const Text('상품별 설명 저장'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
                   // ── 이미지 추가 버튼들 ──
                   Row(
                     children: [
@@ -16144,6 +16189,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       descriptionTranslations: descTranslations,
       // ── 상세페이지 섹션 이미지 유지: 기존 sectionImages를 그대로 보존
       sectionImages: widget.existing?.sectionImages ?? const {},
+      sectionDescriptions: widget.existing?.sectionDescriptions ?? const {},
     );
     if (mounted) setState(() => _isSaving = true);
     try {

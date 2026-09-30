@@ -99,8 +99,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   late List<String> _mainImages;
   // Firestore 최신 로드 완료 여부 (중복 로드 방지)
   bool _sectionImagesLoaded = false;
-  // 관리자 섹션관리에서 저장한 공통 섹션 설명
+  // 레거시 공통 섹션 설명 폴백 (상품별 설명이 없을 때만 사용)
   final Map<String, String> _sectionDescriptions = {};
+  final Map<String, String> _productSectionDescriptions = {};
   bool _sectionCatalogLoaded = false;
 
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
@@ -114,6 +115,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     _sectionImages =
         Map<String, List<String>>.from(widget.product.sectionImages);
     _mainImages = List<String>.from(widget.product.images);
+    _productSectionDescriptions.addAll(widget.product.sectionDescriptions);
     // 성별 기본값: 남성 → 하의 5부 자동 설정
     _singletGender = context.loc.t('남', '남');
     _selectedBottomLength = context.loc.t('k_5부', '5부');
@@ -201,6 +203,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       _sectionImages =
           Map<String, List<String>>.from(widget.product.sectionImages);
       _mainImages = List<String>.from(widget.product.images);
+      _productSectionDescriptions
+        ..clear()
+        ..addAll(widget.product.sectionDescriptions);
       _sectionImagesLoaded = false;
       _refreshSectionImagesFromFirestore();
     } else if (!_sectionImagesLoaded) {
@@ -230,6 +235,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
       // Firestore 로드 실패(null)여도 Provider 캐시의 최신값으로 폴백
       final freshImages = fresh?.sectionImages ?? widget.product.sectionImages;
+      if (fresh != null) {
+        _productSectionDescriptions
+          ..clear()
+          ..addAll(fresh.sectionDescriptions);
+      }
 
       bool changed = false;
 
@@ -5050,6 +5060,11 @@ $productUrl
           adminLabel: '에디토리얼 상세 · 핏 및 스타일링 이미지',
           isAdmin: isAdmin,
         ),
+        _buildManagedSectionSlot(
+          sectionKey: 's3',
+          adminLabel: '섹션 3 이미지',
+          isAdmin: isAdmin,
+        ),
         // 이미지가 없어도 관리자 섹션 설명은 표시
         _storedSectionDescription('s4'),
         _buildLimitedImageSlot(
@@ -5058,6 +5073,11 @@ $productUrl
           isAdmin: isAdmin,
         ),
         _storedSectionDescription('s5'),
+        _buildManagedSectionSlot(
+          sectionKey: 's6',
+          adminLabel: '섹션 6 이미지',
+          isAdmin: isAdmin,
+        ),
       ],
     );
   }
@@ -5443,6 +5463,11 @@ $productUrl
           adminLabel: '에디토리얼 상세 · 핏 및 스타일링 이미지',
           isAdmin: isAdmin,
         ),
+        _buildManagedSectionSlot(
+          sectionKey: 's3',
+          adminLabel: '섹션 3 이미지',
+          isAdmin: isAdmin,
+        ),
 
         _storedSectionDescription('s4'),
 
@@ -5545,6 +5570,11 @@ $productUrl
           isAdmin: isAdmin,
         ),
         _storedSectionDescription('s5'),
+        _buildManagedSectionSlot(
+          sectionKey: 's6',
+          adminLabel: '섹션 6 이미지',
+          isAdmin: isAdmin,
+        ),
         Padding(
           padding: EdgeInsets.fromLTRB(r.w(24), r.h(54), r.w(24), r.h(58)),
           child: Column(
@@ -5889,12 +5919,31 @@ $productUrl
     );
   }
 
+  String _canonicalSectionKey(String sectionKey) {
+    if (sectionKey.startsWith('s2_')) return 's2';
+    return sectionKey;
+  }
+
+  Widget _buildManagedSectionSlot({
+    required String sectionKey,
+    required String adminLabel,
+    required bool isAdmin,
+  }) {
+    return _buildLimitedImageSlot(
+      sectionKey: sectionKey,
+      adminLabel: adminLabel,
+      isAdmin: isAdmin,
+    );
+  }
+
   Widget _buildLimitedImageSlot({
     required String sectionKey,
     required String adminLabel,
     required bool isAdmin,
   }) {
-    final images = _sectionImages[sectionKey] ?? const <String>[];
+    final images = _sectionImages[sectionKey] ??
+        _sectionImages[_canonicalSectionKey(sectionKey)] ??
+        const <String>[];
     if (!isAdmin && images.isEmpty) return const SizedBox.shrink();
     final r = Responsive.of(context);
     return Padding(
@@ -6045,7 +6094,9 @@ $productUrl
   }
 
   Widget _storedSectionDescription(String sectionKey) {
-    final description = _sectionDescriptions[sectionKey]?.trim() ?? '';
+    final productDescription = _productSectionDescriptions[sectionKey];
+    final description =
+        (productDescription ?? _sectionDescriptions[sectionKey])?.trim() ?? '';
     if (description.isEmpty) return const SizedBox.shrink();
     final r = Responsive.of(context);
     return Padding(
