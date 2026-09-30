@@ -99,6 +99,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   late List<String> _mainImages;
   // Firestore 최신 로드 완료 여부 (중복 로드 방지)
   bool _sectionImagesLoaded = false;
+  // 관리자 섹션관리에서 저장한 공통 섹션 설명
+  final Map<String, String> _sectionDescriptions = {};
+  bool _sectionCatalogLoaded = false;
 
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   // ignore: unused_element
@@ -131,7 +134,36 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       );
       // Firestore 최신 sectionImages 강제 로드
       _refreshSectionImagesFromFirestore();
+      // 관리자 섹션 설명을 상세페이지 헤더에 반영
+      _loadSectionCatalog();
     });
+  }
+
+  Future<void> _loadSectionCatalog() async {
+    if (_sectionCatalogLoaded) return;
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('app_settings')
+          .doc('admin_content_catalog')
+          .get();
+      if (!mounted) return;
+      final rawSections = snapshot.data()?['sections'];
+      if (rawSections is List) {
+        for (final raw in rawSections) {
+          if (raw is! Map) continue;
+          final key = raw['key']?.toString().trim() ?? '';
+          final description = raw['description']?.toString().trim() ?? '';
+          if (key.isNotEmpty && description.isNotEmpty) {
+            _sectionDescriptions[key] = description;
+          }
+        }
+      }
+      _sectionCatalogLoaded = true;
+      if (mounted && _sectionDescriptions.isNotEmpty) setState(() {});
+    } catch (_) {
+      // 저장된 설명을 읽지 못하면 기존 기본 문구를 유지합니다.
+      _sectionCatalogLoaded = true;
+    }
   }
 
   /// 스크롤 위치를 감지해 탭 하이라이트 자동 추적
@@ -4810,6 +4842,7 @@ $productUrl
 
   // ── 공통: 섹션 헤더 배너 (검정 배경 + 영문 대제목 + 한글 서브) ──
   Widget _sectionHeaderBanner({
+    String? sectionKey,
     required String engTitle,
     required String engSub,
     required String korSub,
@@ -4848,7 +4881,10 @@ $productUrl
           ),
           SizedBox(height: r.h(8)),
           Text(
-            korSub,
+            (sectionKey != null &&
+                    (_sectionDescriptions[sectionKey]?.isNotEmpty ?? false))
+                ? _sectionDescriptions[sectionKey]!
+                : korSub,
             style: TextStyle(
               fontSize: r.sp(11),
               color: AppColors.textSecondary,
@@ -4962,6 +4998,7 @@ $productUrl
           adminLabel: '에디토리얼 상세 · 활동 무드 이미지',
           isAdmin: isAdmin,
         ),
+        _storedSectionDescription('s1'),
         Padding(
           padding: EdgeInsets.fromLTRB(r.w(24), r.h(42), r.w(24), r.h(48)),
           child: Column(
@@ -4986,6 +5023,7 @@ $productUrl
           adminLabel: '에디토리얼 상세 · 원단 및 제작 디테일 이미지',
           isAdmin: isAdmin,
         ),
+        _storedSectionDescription('s2'),
         if (details.isNotEmpty)
           Padding(
             padding: EdgeInsets.fromLTRB(r.w(24), r.h(34), r.w(24), r.h(48)),
@@ -5013,6 +5051,7 @@ $productUrl
           adminLabel: '에디토리얼 상세 · 핏 및 스타일링 이미지',
           isAdmin: isAdmin,
         ),
+        _storedSectionDescription('s4'),
         _buildLimitedImageSlot(
           sectionKey: 's5',
           adminLabel: '에디토리얼 상세 · 브랜드 스토리 이미지',
@@ -5969,6 +6008,7 @@ $productUrl
       children: [
         // ── 섹션1 헤더 배너
         _sectionHeaderBanner(
+          sectionKey: 's1',
           engTitle: 'PERFORMANCE',
           engSub: 'SECTION 01',
           korSub: context.loc.t('고성능_스포츠_소재와_기술이_만든_n최상위_퍼포먼스_웨어',
@@ -5996,6 +6036,23 @@ $productUrl
     );
   }
 
+  Widget _storedSectionDescription(String sectionKey) {
+    final description = _sectionDescriptions[sectionKey]?.trim() ?? '';
+    if (description.isEmpty) return const SizedBox.shrink();
+    final r = Responsive.of(context);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(r.w(24), r.h(8), r.w(24), r.h(22)),
+      child: Text(
+        description,
+        style: TextStyle(
+          fontSize: r.sp(12.5),
+          color: AppColors.textSecondary,
+          height: 1.65,
+        ),
+      ),
+    );
+  }
+
   // ═══════════════════════════════════════════════════════════
   // 섹션 2: MATERIAL — 탑텐 스타일 소재/기술
   // ═══════════════════════════════════════════════════════════
@@ -6020,6 +6077,7 @@ $productUrl
       children: [
         // ── 섹션2 헤더 배너
         _sectionHeaderBanner(
+          sectionKey: 's2',
           engTitle: 'MATERIAL',
           engSub: 'SECTION 02',
           korSub: context.loc.t('고급_원단과_기능성_소재로_완성한_n쾌적하고_지속_가능한_착용감',
@@ -6313,6 +6371,7 @@ $productUrl
       children: [
         // ── 섹션3 헤더 배너
         _sectionHeaderBanner(
+          sectionKey: 's3',
           engTitle: 'POCKET\nSYSTEM',
           engSub: 'SECTION 03',
           korSub: context.loc.t('실용적인_수납_설계와_방수_기능으로_n운동_중에도_완벽한_편의성',
