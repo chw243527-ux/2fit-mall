@@ -210,12 +210,14 @@ class AuthService {
     }
   }
 
-  /// 웹에서도 Firebase Auth의 로컬 persistence를 명시적으로 사용합니다.
+  /// 웹은 탭별 세션을 사용해 같은 기기의 서로 다른 탭에서
+  /// 서로 다른 계정으로 로그인할 수 있게 합니다.
+  /// SESSION은 탭 새로고침 후에도 유지되며 다른 탭과 인증 상태를 공유하지 않습니다.
   /// 앱은 Firebase Auth 네이티브 기본 persistence를 그대로 사용합니다.
   static Future<void> configurePersistentAuth() async {
     if (!kIsWeb) return;
     try {
-      await _auth.setPersistence(Persistence.LOCAL);
+      await _auth.setPersistence(Persistence.SESSION);
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
     }
