@@ -102,6 +102,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   // 레거시 공통 섹션 설명 폴백 (상품별 설명이 없을 때만 사용)
   final Map<String, String> _sectionDescriptions = {};
   final Map<String, String> _productSectionDescriptions = {};
+  final List<String> _sectionOrder = [
+    's1',
+    's2',
+    's2_seamless',
+    's2_fiber',
+    's3',
+    's4',
+    's5',
+    's6',
+  ];
   bool _sectionCatalogLoaded = false;
 
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
@@ -151,17 +161,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       if (!mounted) return;
       final rawSections = snapshot.data()?['sections'];
       if (rawSections is List) {
+        final orderedKeys = <String>[];
         for (final raw in rawSections) {
           if (raw is! Map) continue;
           final key = raw['key']?.toString().trim() ?? '';
           final description = raw['description']?.toString().trim() ?? '';
+          if (key.isNotEmpty && !orderedKeys.contains(key)) {
+            orderedKeys.add(key);
+          }
           if (key.isNotEmpty && description.isNotEmpty) {
             _sectionDescriptions[key] = description;
           }
         }
+        if (orderedKeys.isNotEmpty) {
+          _sectionOrder
+            ..clear()
+            ..addAll(orderedKeys);
+        }
       }
       _sectionCatalogLoaded = true;
-      if (mounted && _sectionDescriptions.isNotEmpty) setState(() {});
+      if (mounted) setState(() {});
     } catch (_) {
       // 저장된 설명을 읽지 못하면 기존 기본 문구를 유지합니다.
       _sectionCatalogLoaded = true;
@@ -5991,26 +6010,8 @@ $productUrl
   }
 
   String _adminSectionNumber(String sectionKey) {
-    switch (sectionKey) {
-      case 's1':
-        return '섹션 1';
-      case 's2':
-        return '섹션 2';
-      case 's2_seamless':
-        return '섹션 2A';
-      case 's2_fiber':
-        return '섹션 2B';
-      case 's3':
-        return '섹션 3';
-      case 's4':
-        return '섹션 4';
-      case 's5':
-        return '섹션 5';
-      case 's6':
-        return '섹션 6';
-      default:
-        return sectionKey;
-    }
+    final index = _sectionOrder.indexOf(sectionKey);
+    return index >= 0 ? '섹션 ${index + 1}' : '섹션';
   }
 
   Widget _buildLimitedDetailLine(String text) {
