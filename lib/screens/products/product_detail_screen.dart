@@ -4884,6 +4884,144 @@ $productUrl
     return _buildGeneralEditorialProductDetail(product, isAdmin);
   }
 
+  /// 관리자가 저장한 상품별 섹션 카피가 있으면 공통 상세 문구보다 먼저
+  /// 렌더링합니다. 기존 공통 템플릿을 함께 그리면 상품별 카피와 중복되거나
+  /// 순서가 뒤섞이므로, 저장 카피가 있는 상품은 이 전용 경로를 사용합니다.
+  Widget _buildStoredEditorialProductDetail(
+      ProductModel product, bool isAdmin) {
+    final r = Responsive.of(context);
+    final heroCopy = _generalEditorialCopy(product);
+    final material = product.editorialMaterialText.trim();
+    final registeredMaterial = product.material.trim();
+    final details = [
+      if (product.colors.isNotEmpty)
+        '상품별 선택 가능 옵션: ${product.colors.join(' · ')}',
+      if (registeredMaterial.isNotEmpty) '소재·혼용률: $registeredMaterial',
+      if (product.manufacturer.trim().isNotEmpty)
+        '제조사: ${product.manufacturer.trim()}',
+      if (product.countryOfOrigin.trim().isNotEmpty)
+        '제조국: ${product.countryOfOrigin.trim()}',
+      if (product.manufacturedAt.trim().isNotEmpty)
+        '제조연월: ${product.manufacturedAt.trim()}',
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(54), r.w(24), r.h(46)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                heroCopy.label,
+                style: TextStyle(
+                  color: AppColors.accent,
+                  fontSize: r.sp(10),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.45,
+                ),
+              ),
+              SizedBox(height: r.h(17)),
+              Text(
+                heroCopy.headline,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: r.sp(36),
+                  fontWeight: FontWeight.w900,
+                  height: 0.94,
+                  letterSpacing: -1.8,
+                ),
+              ),
+              SizedBox(height: r.h(22)),
+              Text(
+                heroCopy.accent,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: r.sp(12),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.75,
+                ),
+              ),
+              SizedBox(height: r.h(14)),
+              const Divider(height: 1, color: AppColors.border),
+              SizedBox(height: r.h(14)),
+              Text(
+                heroCopy.copy,
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: r.sp(13),
+                  height: 1.72,
+                ),
+              ),
+            ],
+          ),
+        ),
+        _buildLimitedImageSlot(
+          sectionKey: 's1',
+          adminLabel: '에디토리얼 상세 · 활동 무드 이미지',
+          isAdmin: isAdmin,
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(42), r.w(24), r.h(48)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'PRODUCT STORY',
+                style: TextStyle(
+                  color: AppColors.accent,
+                  fontSize: r.sp(11),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.25,
+                ),
+              ),
+              SizedBox(height: r.h(14)),
+              _buildEditorialMaterialSections(material, r),
+            ],
+          ),
+        ),
+        _buildLimitedImageSlot(
+          sectionKey: 's2_fiber',
+          adminLabel: '에디토리얼 상세 · 원단 및 제작 디테일 이미지',
+          isAdmin: isAdmin,
+        ),
+        if (details.isNotEmpty)
+          Padding(
+            padding: EdgeInsets.fromLTRB(r.w(24), r.h(34), r.w(24), r.h(48)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Divider(height: 1, color: AppColors.textPrimary),
+                SizedBox(height: r.h(18)),
+                Text(
+                  'DETAIL / SPEC',
+                  style: TextStyle(
+                    fontSize: r.sp(22),
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.7,
+                  ),
+                ),
+                SizedBox(height: r.h(20)),
+                ...details.map(_buildLimitedDetailLine),
+              ],
+            ),
+          ),
+        _buildLimitedImageSlot(
+          sectionKey: 's4',
+          adminLabel: '에디토리얼 상세 · 핏 및 스타일링 이미지',
+          isAdmin: isAdmin,
+        ),
+        _buildLimitedImageSlot(
+          sectionKey: 's5',
+          adminLabel: '에디토리얼 상세 · 브랜드 스토리 이미지',
+          isAdmin: isAdmin,
+        ),
+      ],
+    );
+  }
+
   /// 기성품별 히어로 카피입니다. 상품명에 따라 개별 타이틀·서브 문구를 우선 적용합니다.
   ({String label, String headline, String accent, String copy})
       _generalEditorialCopy(ProductModel product) {
@@ -5093,6 +5231,9 @@ $productUrl
 
   Widget _buildGeneralEditorialProductDetail(
       ProductModel product, bool isAdmin) {
+    if (product.editorialMaterialText.trim().isNotEmpty) {
+      return _buildStoredEditorialProductDetail(product, isAdmin);
+    }
     final r = Responsive.of(context);
     final material = _materialTextForProduct(product);
     final heroCopy = _generalEditorialCopy(product);
