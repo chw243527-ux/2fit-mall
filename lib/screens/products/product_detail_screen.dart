@@ -103,6 +103,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   final Map<String, String> _sectionDescriptions = {};
   final Map<String, String> _productSectionDescriptions = {};
   final Map<String, String> _sectionLabels = {};
+  final Map<String, String> _sectionTitles = {};
+  final Set<String> _activeSectionKeys = {};
   final List<String> _sectionOrder = [
     's1',
     's2',
@@ -167,12 +169,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           if (raw is! Map) continue;
           final key = raw['key']?.toString().trim() ?? '';
           final label = raw['label']?.toString().trim() ?? '';
+          final title = raw['title']?.toString().trim() ?? '';
           final description = raw['description']?.toString().trim() ?? '';
           if (key.isNotEmpty && !orderedKeys.contains(key)) {
             orderedKeys.add(key);
           }
+          if (key.isNotEmpty && raw['active'] != false) {
+            _activeSectionKeys.add(key);
+          }
           if (key.isNotEmpty && label.isNotEmpty) {
             _sectionLabels[key] = label;
+          }
+          if (key.isNotEmpty && title.isNotEmpty) {
+            _sectionTitles[key] = title;
           }
           if (key.isNotEmpty && description.isNotEmpty) {
             _sectionDescriptions[key] = description;
@@ -4949,6 +4958,7 @@ $productUrl
   // 리미티드 싱글렛 전용 에디토리얼 상세페이지
   // 기성품 싱글렛 단품에만 적용하며, 단체주문 상품에는 표시하지 않습니다.
   // ═══════════════════════════════════════════════════════════
+  // ignore: unused_element
   bool _isLimitedSinglet(ProductModel product) {
     // 200명 한정 전용 상세페이지는 더 이상 사용하지 않습니다.
     return false;
@@ -4961,10 +4971,81 @@ $productUrl
   /// 모든 상품에 공통 적용하는 에디토리얼 상세페이지 래퍼입니다.
   /// 한정 수량은 기성품 싱글렛에만 표시하고, 나머지는 동일한 시각 언어만 유지합니다.
   Widget _buildEditorialProductDetail(ProductModel product, bool isAdmin) {
-    if (_isLimitedSinglet(product)) {
-      return _buildLimitedSingletEditorial(product, isAdmin);
+    return _buildManagedOnlyEditorial(product, isAdmin);
+  }
+
+  /// 상세페이지의 관리 대상 콘텐츠는 섹션관리에서 활성화되고 저장된
+  /// 제목·설명·이미지만 표시합니다. 기존 기본 에디토리얼 문구와
+  /// 상품 유형별 하드코딩 템플릿은 고객 화면에서 사용하지 않습니다.
+  Widget _buildManagedOnlyEditorial(ProductModel product, bool isAdmin) {
+    if (!isAdmin && !_sectionCatalogLoaded) {
+      return const SizedBox.shrink();
     }
-    return _buildGeneralEditorialProductDetail(product, isAdmin);
+    final sections = _sectionOrder
+        .where((key) => key != 's6') // 사이즈표는 별도 공통 영역에서 유지
+        .where((key) =>
+            _activeSectionKeys.isEmpty || _activeSectionKeys.contains(key))
+        .map((key) => _buildManagedOnlySection(key, isAdmin))
+        .whereType<Widget>()
+        .toList();
+
+    if (sections.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: sections,
+    );
+  }
+
+  Widget? _buildManagedOnlySection(String sectionKey, bool isAdmin) {
+    final images = _sectionImages[sectionKey] ?? const <String>[];
+    final description = (_productSectionDescriptions[sectionKey] ??
+            _sectionDescriptions[sectionKey] ??
+            '')
+        .trim();
+    final title =
+        (_sectionTitles[sectionKey] ?? _sectionLabels[sectionKey] ?? sectionKey)
+            .trim();
+
+    // 상품별 설명이나 이미지가 저장되지 않은 섹션은 고객 화면에
+    // 기본 틀조차 만들지 않습니다. 관리자는 해당 섹션을 계속 편집할 수
+    // 있도록 활성 섹션 카드를 확인할 수 있습니다.
+    if (!isAdmin && images.isEmpty && description.isEmpty) return null;
+
+    final r = Responsive.of(context);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(r.w(24), r.h(28), r.w(24), r.h(34)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: r.sp(20),
+              fontWeight: FontWeight.w900,
+              height: 1.2,
+            ),
+          ),
+          if (description.isNotEmpty) ...[
+            SizedBox(height: r.h(12)),
+            Text(
+              description,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: r.sp(13),
+                height: 1.7,
+              ),
+            ),
+          ],
+          if (images.isNotEmpty) ...[
+            SizedBox(height: r.h(18)),
+            isAdmin
+                ? _buildAdminImageSection(sectionKey, title, true)
+                : _buildSectionImageSlider(sectionKey),
+          ],
+        ],
+      ),
+    );
   }
 
   /// 관리자가 저장한 상품별 섹션 카피가 있으면 공통 상세 문구보다 먼저
@@ -5326,6 +5407,7 @@ $productUrl
     );
   }
 
+  // ignore: unused_element
   Widget _buildGeneralEditorialProductDetail(
       ProductModel product, bool isAdmin) {
     if (product.editorialMaterialText.trim().isNotEmpty) {
@@ -5642,6 +5724,7 @@ $productUrl
     );
   }
 
+  // ignore: unused_element
   Widget _buildLimitedSingletEditorial(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
     final material = _limitedSingletMaterial(product);
