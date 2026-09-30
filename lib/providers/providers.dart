@@ -1822,6 +1822,9 @@ class ProductProvider extends ChangeNotifier {
         _products[idx] = p.copyWithSectionImages(newMap);
         notifyListeners();
       }
+      // 섹션관리 화면은 adminProducts를 사용하므로 일반 상품 목록만
+      // 갱신하면 저장 직후 해당 섹션 이미지가 화면에 나타나지 않습니다.
+      await loadAdminProducts();
     }
     return result;
   }
