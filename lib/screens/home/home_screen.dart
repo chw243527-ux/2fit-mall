@@ -2474,11 +2474,11 @@ class _HomeScreenState extends State<HomeScreen>
                   SizedBox(height: r.h(2)),
                   Text(
                     product.localizedName(_lang),
-                    maxLines: 3,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        fontSize: r.sp(11),
-                        fontWeight: FontWeight.w600,
+                        fontSize: r.sp(10),
+                        fontWeight: FontWeight.w700,
                         color: AppColors.primary,
                         height: 1.25),
                   ),
@@ -3007,11 +3007,11 @@ class _HomeScreenState extends State<HomeScreen>
                                 padding:
                                     EdgeInsets.symmetric(horizontal: r.w(8)),
                                 child: Text(_pName(p),
-                                    maxLines: 3,
+                                    maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                        fontSize: r.sp(10),
-                                        fontWeight: FontWeight.w600,
+                                        fontSize: r.sp(9),
+                                        fontWeight: FontWeight.w700,
                                         color: const Color(0xFF222222),
                                         height: 1.3)),
                               ),
@@ -4243,11 +4243,11 @@ class _HomeScreenState extends State<HomeScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(_pName(p),
-                                  maxLines: 3,
+                                  maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                      fontSize: r.sp(11),
-                                      fontWeight: FontWeight.w600,
+                                      fontSize: r.sp(10),
+                                      fontWeight: FontWeight.w700,
                                       color: const Color(0xFF222222))),
                               SizedBox(height: r.h(2)),
                               if (p.originalPrice != null)

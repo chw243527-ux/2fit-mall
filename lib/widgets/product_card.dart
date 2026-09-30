@@ -300,18 +300,18 @@ class ProductCard extends StatelessWidget {
 
           // ── 상품명: 모든 카드에서 동일한 높이와 작은 글자 크기를 사용 ──
           SizedBox(
-            height: 11 * 1.35 * 3,
+            height: 10 * 1.35 * 2,
             child: Text(
               // Firestore 번역 데이터 우선, 없으면 loc.t()로 런타임 번역 등록
               product.localizedName(lang) != product.name
                   ? product.localizedName(lang)
                   : loc.t('product_name_${product.id}', product.name),
               softWrap: true,
-              maxLines: 3,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w400,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,
                 letterSpacing: -0.1,
                 height: 1.35,
