@@ -4572,6 +4572,19 @@ $productUrl
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (isAdmin)
+          Padding(
+            padding: EdgeInsets.fromLTRB(r.w(16), 0, r.w(16), r.h(6)),
+            child: Text(
+              '섹션 0',
+              style: TextStyle(
+                color: AppColors.accent,
+                fontSize: r.sp(11),
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.1,
+              ),
+            ),
+          ),
         // ── 헤더 행 (라벨 + AI 배지 + 관리자 업로드 버튼) ──
         Row(
           children: [
@@ -5946,15 +5959,58 @@ $productUrl
         const <String>[];
     if (!isAdmin && images.isEmpty) return const SizedBox.shrink();
     final r = Responsive.of(context);
+    final sectionNumber = _adminSectionNumber(sectionKey);
     return Padding(
       padding: EdgeInsets.only(top: isAdmin ? r.h(14) : 0),
-      child: isAdmin
-          ? Padding(
-              padding: EdgeInsets.symmetric(horizontal: r.w(16)),
-              child: _buildAdminImageSection(sectionKey, adminLabel, isAdmin),
-            )
-          : _buildSectionImageSlider(sectionKey),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isAdmin)
+            Padding(
+              padding: EdgeInsets.fromLTRB(r.w(16), 0, r.w(16), r.h(6)),
+              child: Text(
+                sectionNumber,
+                style: TextStyle(
+                  color: AppColors.accent,
+                  fontSize: r.sp(11),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.1,
+                ),
+              ),
+            ),
+          isAdmin
+              ? Padding(
+                  padding: EdgeInsets.symmetric(horizontal: r.w(16)),
+                  child:
+                      _buildAdminImageSection(sectionKey, adminLabel, isAdmin),
+                )
+              : _buildSectionImageSlider(sectionKey),
+        ],
+      ),
     );
+  }
+
+  String _adminSectionNumber(String sectionKey) {
+    switch (sectionKey) {
+      case 's1':
+        return '섹션 1';
+      case 's2':
+        return '섹션 2';
+      case 's2_seamless':
+        return '섹션 2A';
+      case 's2_fiber':
+        return '섹션 2B';
+      case 's3':
+        return '섹션 3';
+      case 's4':
+        return '섹션 4';
+      case 's5':
+        return '섹션 5';
+      case 's6':
+        return '섹션 6';
+      default:
+        return sectionKey;
+    }
   }
 
   Widget _buildLimitedDetailLine(String text) {
