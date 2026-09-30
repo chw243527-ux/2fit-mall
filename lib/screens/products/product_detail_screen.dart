@@ -4998,7 +4998,6 @@ $productUrl
           adminLabel: '에디토리얼 상세 · 활동 무드 이미지',
           isAdmin: isAdmin,
         ),
-        _storedSectionDescription('s1'),
         Padding(
           padding: EdgeInsets.fromLTRB(r.w(24), r.h(42), r.w(24), r.h(48)),
           child: Column(
@@ -5051,12 +5050,14 @@ $productUrl
           adminLabel: '에디토리얼 상세 · 핏 및 스타일링 이미지',
           isAdmin: isAdmin,
         ),
+        // 이미지가 없어도 관리자 섹션 설명은 표시
         _storedSectionDescription('s4'),
         _buildLimitedImageSlot(
           sectionKey: 's5',
           adminLabel: '에디토리얼 상세 · 브랜드 스토리 이미지',
           isAdmin: isAdmin,
         ),
+        _storedSectionDescription('s5'),
       ],
     );
   }
@@ -5391,6 +5392,8 @@ $productUrl
           isAdmin: isAdmin,
         ),
 
+        _storedSectionDescription('s2'),
+
         // 03. 소재와 제작 정보
         Padding(
           padding: EdgeInsets.fromLTRB(r.w(24), r.h(48), r.w(24), r.h(50)),
@@ -5440,6 +5443,8 @@ $productUrl
           adminLabel: '에디토리얼 상세 · 핏 및 스타일링 이미지',
           isAdmin: isAdmin,
         ),
+
+        _storedSectionDescription('s4'),
 
         // 04. 핏 메시지
         Padding(
@@ -5539,6 +5544,7 @@ $productUrl
           adminLabel: '에디토리얼 상세 · 브랜드 스토리 이미지',
           isAdmin: isAdmin,
         ),
+        _storedSectionDescription('s5'),
         Padding(
           padding: EdgeInsets.fromLTRB(r.w(24), r.h(54), r.w(24), r.h(58)),
           child: Column(
@@ -5762,6 +5768,7 @@ $productUrl
           adminLabel: '리미티드 싱글렛 · 핏 및 스타일링 이미지',
           isAdmin: isAdmin,
         ),
+        _storedSectionDescription('s4'),
         Padding(
           padding: EdgeInsets.fromLTRB(r.w(24), r.h(44), r.w(24), r.h(50)),
           child: Column(
@@ -5851,6 +5858,7 @@ $productUrl
           adminLabel: '리미티드 싱글렛 · 브랜드 스토리 이미지',
           isAdmin: isAdmin,
         ),
+        _storedSectionDescription('s5'),
         Padding(
           padding: EdgeInsets.fromLTRB(r.w(24), r.h(54), r.w(24), r.h(58)),
           child: Column(
@@ -6381,6 +6389,9 @@ $productUrl
               size: 36, color: Color(0x55FFFFFF)),
         ),
         const Divider(height: 1, thickness: 1, color: AppColors.border),
+        // 관리자 섹션 설명은 이미지 유무와 관계없이 표시하고,
+        // 이미지는 등록된 경우에만 아래에서 함께 표시합니다.
+        _storedSectionDescription('s3'),
         // ── 섹션3 어드민 이미지 (관리자: 업로드 UI / 일반: 가로 슬라이더)
         if (isAdmin || (_sectionImages['s3'] ?? []).isNotEmpty)
           isAdmin
@@ -6528,6 +6539,7 @@ $productUrl
                 's6', context.loc.t('섹션6_사이즈_차트', '섹션6 사이즈 차트'), isAdmin),
             SizedBox(height: r.h(20)),
           ],
+          _storedSectionDescription('s6'),
           const Divider(height: 1, color: AppColors.textPrimary),
           SizedBox(height: r.h(18)),
           Row(
