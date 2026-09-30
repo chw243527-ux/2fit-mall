@@ -5094,12 +5094,19 @@ $productUrl
     final heroCopy = _generalEditorialCopy(product);
     final productType = heroCopy.label;
     final isGroupOrder = _isSingletGroupProduct(product);
+    final registeredMaterial = product.material.trim();
     final details = [
       if (isGroupOrder) '팀의 필요 수량과 원하는 사양에 맞춰 상담 가능한 단체주문 상품',
       if (!isGroupOrder) '운동과 일상에서 편안하게 활용할 수 있는 2FIT 스포츠웨어',
       if (product.colors.isNotEmpty)
         '상품별 선택 가능 옵션: ${product.colors.join(' · ')}',
-      '소재 구성: $material',
+      if (registeredMaterial.isNotEmpty) '소재·혼용률: $registeredMaterial',
+      if (product.manufacturer.trim().isNotEmpty)
+        '제조사: ${product.manufacturer.trim()}',
+      if (product.countryOfOrigin.trim().isNotEmpty)
+        '제조국: ${product.countryOfOrigin.trim()}',
+      if (product.manufacturedAt.trim().isNotEmpty)
+        '제조연월: ${product.manufacturedAt.trim()}',
       if (isGroupOrder) '주문 전 제작 일정과 옵션을 상담을 통해 확인해 주세요.',
       if (!isGroupOrder) '사이즈 조견표와 상품 옵션을 함께 확인해 주세요.',
     ];

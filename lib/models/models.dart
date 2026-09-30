@@ -22,6 +22,9 @@ class ProductModel {
   /// 상품에 실제 선택된 색상별 HEX 값 (관리자 커스텀 색상 지원)
   final Map<String, int> colorHexes;
   final String material;
+  final String manufacturer;
+  final String countryOfOrigin;
+  final String manufacturedAt;
 
   /// 신상품 여부 (저장값) — 실제 노출은 [isNewActive] getter 사용
   final bool isNew;
@@ -87,6 +90,9 @@ class ProductModel {
     this.colorPrices = const {},
     this.colorHexes = const {},
     this.material = '78% Nylon, 22% Spandex / 4-way Stretch',
+    this.manufacturer = '',
+    this.countryOfOrigin = '',
+    this.manufacturedAt = '',
     this.isNew = false,
     this.newExpiresAt,
     this.isSale = false,
@@ -181,6 +187,9 @@ class ProductModel {
     Map<String, double>? colorPrices,
     Map<String, int>? colorHexes,
     String? material,
+    String? manufacturer,
+    String? countryOfOrigin,
+    String? manufacturedAt,
     bool? isNew,
     DateTime? newExpiresAt,
     bool? isSale,
@@ -225,6 +234,9 @@ class ProductModel {
       colorPrices: colorPrices ?? this.colorPrices,
       colorHexes: colorHexes ?? this.colorHexes,
       material: material ?? this.material,
+      manufacturer: manufacturer ?? this.manufacturer,
+      countryOfOrigin: countryOfOrigin ?? this.countryOfOrigin,
+      manufacturedAt: manufacturedAt ?? this.manufacturedAt,
       isNew: isNew ?? this.isNew,
       newExpiresAt: newExpiresAt ?? this.newExpiresAt,
       isSale: isSale ?? this.isSale,
@@ -278,6 +290,9 @@ class ProductModel {
       colorPrices: colorPrices,
       colorHexes: colorHexes,
       material: material,
+      manufacturer: manufacturer,
+      countryOfOrigin: countryOfOrigin,
+      manufacturedAt: manufacturedAt,
       isNew: isNew,
       newExpiresAt: newExpiresAt,
       isSale: isSale,
@@ -431,6 +446,9 @@ class ProductModel {
           : const {},
       colorHexes: parsedColorHexes,
       material: json['material'] as String? ?? '78% Nylon, 22% Spandex',
+      manufacturer: json['manufacturer'] as String? ?? '',
+      countryOfOrigin: json['countryOfOrigin'] as String? ?? '',
+      manufacturedAt: json['manufacturedAt'] as String? ?? '',
       editorialLabel: json['editorialLabel'] as String? ?? '',
       editorialTitle: json['editorialTitle'] as String? ?? '',
       editorialAccent: json['editorialAccent'] as String? ?? '',
@@ -497,6 +515,9 @@ class ProductModel {
       'colorPrices': colorPrices,
       'colorHexes': colorHexes,
       'material': material,
+      'manufacturer': manufacturer,
+      'countryOfOrigin': countryOfOrigin,
+      'manufacturedAt': manufacturedAt,
       'editorialLabel': editorialLabel,
       'editorialTitle': editorialTitle,
       'editorialAccent': editorialAccent,
@@ -547,6 +568,9 @@ class ProductModel {
       colorPrices: colorPrices,
       colorHexes: colorHexes,
       material: material,
+      manufacturer: manufacturer,
+      countryOfOrigin: countryOfOrigin,
+      manufacturedAt: manufacturedAt,
       isNew: isNew,
       newExpiresAt: newExpiresAt,
       isSale: isSale,

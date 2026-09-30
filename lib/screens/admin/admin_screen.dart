@@ -15599,6 +15599,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   late final TextEditingController _stockCtrl;
   late final TextEditingController _urlCtrl;
   late final TextEditingController _materialCtrl; // 소재 직접 입력
+  late final TextEditingController _manufacturerCtrl;
+  late final TextEditingController _countryOfOriginCtrl;
+  late final TextEditingController _manufacturedAtCtrl;
   late final TextEditingController _bottomLengthCtrl; // 하의길이 직접 입력
 
   // ── 자동번역 상태
@@ -15792,6 +15795,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     _initSizeStockCtrls(initSizes, e?.sizeStocks ?? {});
     _urlCtrl = TextEditingController();
     _materialCtrl = TextEditingController(text: e?.material ?? '');
+    _manufacturerCtrl = TextEditingController(text: e?.manufacturer ?? '');
+    _countryOfOriginCtrl =
+        TextEditingController(text: e?.countryOfOrigin ?? '');
+    _manufacturedAtCtrl = TextEditingController(text: e?.manufacturedAt ?? '');
     _bottomLengthCtrl = TextEditingController(text: e?.bottomLength ?? '');
 
     // 기존 번역 로드
@@ -15876,6 +15883,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     _stockCtrl.dispose();
     _urlCtrl.dispose();
     _materialCtrl.dispose();
+    _manufacturerCtrl.dispose();
+    _countryOfOriginCtrl.dispose();
+    _manufacturedAtCtrl.dispose();
     _bottomLengthCtrl.dispose();
     for (final c in _sizeStockCtrls.values) {
       c.dispose();
@@ -16100,6 +16110,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
             entry.key: double.tryParse(entry.value.text) ?? 0,
       },
       material: _materialCtrl.text.trim(),
+      manufacturer: _manufacturerCtrl.text.trim(),
+      countryOfOrigin: _countryOfOriginCtrl.text.trim(),
+      manufacturedAt: _manufacturedAtCtrl.text.trim(),
       bottomLength: _bottomLengthCtrl.text.trim(),
       isNew: _isNew,
       // 신상품 ON → 만료일 = 등록일+60일 자동 세팅 / OFF → null
@@ -16854,6 +16867,57 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                             const BoxConstraints(minWidth: 0, minHeight: 0),
                       ),
                       onChanged: (_) => _scheduleAutoSave(),
+                    ),
+                    const SizedBox(height: 10),
+                    _lbl('제조사'),
+                    TextField(
+                      controller: _manufacturerCtrl,
+                      decoration: const InputDecoration(
+                        hintText: '예) 2FIT KOREA',
+                        filled: true,
+                        fillColor: AppColors.surfaceGray,
+                      ),
+                      onChanged: (_) => _scheduleAutoSave(),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _lbl('제조국'),
+                              TextField(
+                                controller: _countryOfOriginCtrl,
+                                decoration: const InputDecoration(
+                                  hintText: '예) 중국',
+                                  filled: true,
+                                  fillColor: AppColors.surfaceGray,
+                                ),
+                                onChanged: (_) => _scheduleAutoSave(),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _lbl('제조연월'),
+                              TextField(
+                                controller: _manufacturedAtCtrl,
+                                decoration: const InputDecoration(
+                                  hintText: '예) 2026년',
+                                  filled: true,
+                                  fillColor: AppColors.surfaceGray,
+                                ),
+                                onChanged: (_) => _scheduleAutoSave(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 6),
                     // 카테고리별 기본 소재 안내
