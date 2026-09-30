@@ -15017,11 +15017,7 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
   }
 
   List<String> get _imgs =>
-      ProductService.getAllProductsSync()
-          .firstWhere((p) => p.id == widget.product.id,
-              orElse: () => widget.product)
-          .sectionImages[widget.sectionKey] ??
-      [];
+      widget.product.sectionImages[widget.sectionKey] ?? const <String>[];
 
   void _refresh() {
     widget.onUpdated();
