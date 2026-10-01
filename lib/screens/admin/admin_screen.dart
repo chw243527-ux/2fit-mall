@@ -781,6 +781,40 @@ class _AdminScreenState extends State<AdminScreen>
       final storedColors = _catalogList(data['colors']);
       final storedSections = _catalogList(data['sections']);
       if (!mounted) return;
+      // 구버전 저장값이나 부분 저장으로 기본 섹션 일부가 사라져도
+      // 관리자 화면이 한두 개 카드만 표시되지 않도록 기본 섹션을 복원합니다.
+      // 저장된 제목·설명·활성 상태는 유지하고 누락된 기본 키만 보충합니다.
+      final storedByKey = <String, Map<String, dynamic>>{
+        for (final section in storedSections)
+          if (section['key']?.toString().isNotEmpty == true)
+            section['key'].toString(): section,
+      };
+      final defaultSectionsByKey = <String, Map<String, dynamic>>{
+        for (final section in _customSections)
+          section['key']?.toString() ?? '': Map<String, dynamic>.from(section),
+      };
+      final hasMissingDefault = defaultSectionsByKey.keys.any(
+        (key) => key.isNotEmpty && !storedByKey.containsKey(key),
+      );
+      final restoredSections = <Map<String, dynamic>>[];
+      if (hasMissingDefault) {
+        // 기본 섹션은 초기 정의 순서를 복원하고, 저장된 사용자 정의 섹션은
+        // 뒤에 유지합니다.
+        for (final section in _customSections) {
+          final key = section['key']?.toString() ?? '';
+          if (key.isEmpty) continue;
+          restoredSections
+              .add(Map<String, dynamic>.from(storedByKey[key] ?? section));
+        }
+        for (final section in storedSections) {
+          final key = section['key']?.toString() ?? '';
+          if (key.isNotEmpty && !defaultSectionsByKey.containsKey(key)) {
+            restoredSections.add(section);
+          }
+        }
+      } else {
+        restoredSections.addAll(storedSections);
+      }
       setState(() {
         // 빈 배열도 관리자가 의도적으로 모두 정리한 결과일 수 있으므로 유지합니다.
         if (data['colors'] is List) {
@@ -791,9 +825,12 @@ class _AdminScreenState extends State<AdminScreen>
         if (data['sections'] is List) {
           _customSections
             ..clear()
-            ..addAll(storedSections.map(_sectionFromCatalog));
+            ..addAll(restoredSections.map(_sectionFromCatalog));
         }
       });
+      if (hasMissingDefault) {
+        await _persistContentCatalogs();
+      }
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
     }
