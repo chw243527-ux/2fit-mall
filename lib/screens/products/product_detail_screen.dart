@@ -63,6 +63,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         (haystack.contains('싱글렛') || haystack.contains('singlet'));
   }
 
+  /// 기존 에디토리얼 본문을 유지할 상품군입니다.
+  /// 싱글렛 단품은 기존 상세 카피를 사용하고, 싱글렛세트는 타이즈 하의
+  /// 상품만 기존 본문을 사용합니다. 그 외 상품은 관리 섹션 기반의
+  /// 화이트 미니멀 상세페이지를 사용합니다.
+  bool _useLegacySingletEditorial(ProductModel product) {
+    final label = '${product.category} ${product.subCategory} ${product.name}'
+        .toLowerCase();
+    final isSinglet = label.contains('싱글렛') || label.contains('singlet');
+    if (!isSinglet) return false;
+
+    final isSet = label.contains('싱글렛세트') ||
+        label.contains('싱글렛 세트') ||
+        label.contains('singlet set');
+    final isTights = label.contains('타이즈') || label.contains('tights');
+    return !isSet || isTights;
+  }
+
   // ── 이미지 관련 ──
   int _mainImageIndex = 0;
   final PageController _pageCtrl = PageController();
@@ -4977,6 +4994,11 @@ $productUrl
   /// 모든 상품에 공통 적용하는 에디토리얼 상세페이지 래퍼입니다.
   /// 한정 수량은 기성품 싱글렛에만 표시하고, 나머지는 동일한 시각 언어만 유지합니다.
   Widget _buildEditorialProductDetail(ProductModel product, bool isAdmin) {
+    if (_useLegacySingletEditorial(product)) {
+      // 싱글렛 계열은 기존에 저장된 상품별 콘텐츠를 유지하되,
+      // 렌더링은 새 화이트 미니멀 스타일을 사용합니다.
+      return _buildStoredEditorialProductDetail(product, isAdmin);
+    }
     return _buildManagedOnlyEditorial(product, isAdmin);
   }
 
@@ -5102,7 +5124,9 @@ $productUrl
       ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
     final heroCopy = _generalEditorialCopy(product);
-    final material = product.editorialMaterialText.trim();
+    final material = product.editorialMaterialText.trim().isNotEmpty
+        ? product.editorialMaterialText.trim()
+        : _materialTextForProduct(product, includeEditorial: false);
     final registeredMaterial = product.material.trim();
     final details = [
       if (product.colors.isNotEmpty)
