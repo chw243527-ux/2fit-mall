@@ -5026,10 +5026,10 @@ $productUrl
 
   Widget? _buildManagedOnlySection(String sectionKey, bool isAdmin) {
     final images = _sectionImages[sectionKey] ?? const <String>[];
-    final description = (_productSectionDescriptions[sectionKey] ??
-            _sectionDescriptions[sectionKey] ??
-            '')
-        .trim();
+    // 섹션 본문은 반드시 현재 상품에 저장된 내용만 사용합니다.
+    // 전역 카탈로그 설명은 관리자 편집용 기본 문구일 뿐, 다른 상품의
+    // 상세페이지에 콘텐츠로 상속되면 안 됩니다.
+    final description = (_productSectionDescriptions[sectionKey] ?? '').trim();
     final title =
         (_sectionTitles[sectionKey] ?? _sectionLabels[sectionKey] ?? sectionKey)
             .trim();
@@ -5061,16 +5061,18 @@ $productUrl
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                'SECTION $sectionNumber',
-                style: TextStyle(
-                  color: AppColors.accent,
-                  fontSize: r.sp(10),
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.2,
+              if (isAdmin) ...[
+                Text(
+                  'SECTION $sectionNumber',
+                  style: TextStyle(
+                    color: AppColors.accent,
+                    fontSize: r.sp(10),
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                  ),
                 ),
-              ),
-              SizedBox(width: r.w(10)),
+                SizedBox(width: r.w(10)),
+              ],
               Expanded(
                 child: Text(
                   title,
@@ -5085,19 +5087,6 @@ $productUrl
               ),
             ],
           ),
-          if (description.isNotEmpty) ...[
-            SizedBox(height: r.h(12)),
-            Text(
-              description,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: r.sp(13),
-                fontWeight: FontWeight.w400,
-                height: 1.65,
-                letterSpacing: -0.05,
-              ),
-            ),
-          ],
           if (images.isNotEmpty) ...[
             SizedBox(height: r.h(18)),
             Container(
@@ -5110,6 +5099,19 @@ $productUrl
               child: isAdmin
                   ? _buildAdminImageSection(sectionKey, title, true)
                   : _buildSectionImageSlider(sectionKey),
+            ),
+          ],
+          if (description.isNotEmpty) ...[
+            SizedBox(height: r.h(14)),
+            Text(
+              description,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: r.sp(13),
+                fontWeight: FontWeight.w400,
+                height: 1.65,
+                letterSpacing: -0.05,
+              ),
             ),
           ],
         ],
@@ -6346,11 +6348,7 @@ $productUrl
     final canonicalKey = _canonicalSectionKey(sectionKey);
     final productDescription = _productSectionDescriptions[sectionKey] ??
         _productSectionDescriptions[canonicalKey];
-    final description = (productDescription ??
-                _sectionDescriptions[sectionKey] ??
-                _sectionDescriptions[canonicalKey])
-            ?.trim() ??
-        '';
+    final description = productDescription?.trim() ?? '';
     if (description.isEmpty) return const SizedBox.shrink();
     final r = Responsive.of(context);
     return Padding(
@@ -13511,8 +13509,9 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
   late final PageController _ctrl;
   int _idx = 0;
 
-  // 상세페이지 디자인 이미지는 모든 상품에서 1:1 비율로 통일합니다.
-  static const double _detailImageRatio = 1.0;
+  // 섹션 등록 이미지는 모든 상품에서 4:5 비율 프레임으로 통일합니다.
+  // width / height = 4 / 5 이므로 height는 width의 1.25배입니다.
+  static const double _detailImageRatio = 1.25;
 
   @override
   void initState() {
@@ -13534,7 +13533,7 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
         final r = Responsive.of(context);
 
         final w = constraints.maxWidth;
-        // 모든 상세페이지 디자인 이미지는 1:1 정사각형 프레임으로 고정합니다.
+        // 모든 섹션 이미지는 4:5 세로 프레임으로 고정합니다.
         final pageViewHeight = w * _detailImageRatio;
 
         return Column(
@@ -13554,7 +13553,7 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
                     imgs[i],
                     width: w,
                     height: pageViewHeight,
-                    // 원본 비율이 달라도 잘라내지 않고 1:1 프레임 안에 전체 표시
+                    // 원본 비율이 달라도 잘라내지 않고 4:5 프레임 안에 전체 표시
                     fit: BoxFit.contain,
                   ),
                 ),
