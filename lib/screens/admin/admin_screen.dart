@@ -12386,6 +12386,44 @@ class _AdminScreenState extends State<AdminScreen>
   // ══════════════════════════════════════════════
   // TAB 6 : 섹션 관리
   // ══════════════════════════════════════════════
+  List<Map<String, dynamic>> _sectionsForProduct(ProductModel? product) {
+    final result = _customSections
+        .map((section) => Map<String, dynamic>.from(section))
+        .toList();
+    if (product == null) return result;
+
+    const fallbackTitles = <String, String>{
+      's1': '메인 배너',
+      's2': '상품설명',
+      's2_seamless': '심리스 구조',
+      's2_fiber': '원단 구조',
+      's3': '스마트 포켓',
+      's4': '착용 및 핏 안내',
+      's5': '골지 원단 색상',
+      's6': '사이즈 차트',
+    };
+    final knownKeys = result.map((section) => section['key']).toSet();
+    for (final entry in product.sectionImages.entries) {
+      final key = entry.key.trim();
+      if (key.isEmpty || entry.value.isEmpty || knownKeys.contains(key)) {
+        continue;
+      }
+      result.add({
+        'key': key,
+        'label': fallbackTitles.containsKey(key)
+            ? '섹션 ${key.replaceAll('s', '')}'
+            : '이미지 섹션',
+        'title': fallbackTitles[key] ?? key,
+        'description': '',
+        'thumbUrl': '',
+        'active': true,
+        'icon': _sectionIconForKey(key),
+      });
+      knownKeys.add(key);
+    }
+    return result;
+  }
+
   Widget _buildSectionManagement() {
     final products = context.watch<ProductProvider>().adminProducts;
     final selectedProduct =
@@ -12395,6 +12433,7 @@ class _AdminScreenState extends State<AdminScreen>
                 orElse: () => products.first,
               )
             : null;
+    final sectionsForProduct = _sectionsForProduct(selectedProduct);
 
     return Column(
       children: [
@@ -12582,7 +12621,7 @@ class _AdminScreenState extends State<AdminScreen>
           )
         else
           Expanded(
-            child: _customSections.isEmpty
+            child: sectionsForProduct.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -12607,10 +12646,10 @@ class _AdminScreenState extends State<AdminScreen>
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.all(12),
-                    itemCount: _customSections.length,
+                    itemCount: sectionsForProduct.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (_, i) {
-                      final sec = _customSections[i];
+                      final sec = sectionsForProduct[i];
                       final key = sec['key'] as String;
                       final imgs = selectedProduct.sectionImages[key] ?? [];
                       return Stack(
