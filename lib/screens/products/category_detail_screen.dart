@@ -133,6 +133,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       all = all.where((p) => p.isFreeShipping).toList();
     }
     final sorted = List<ProductModel>.from(all);
+    if (filter == loc.sortNewArrival) {
+      sorted.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return sorted;
+    }
     switch (_sortBy) {
       case 'priceLow':
         sorted.sort((a, b) => a.price.compareTo(b.price));

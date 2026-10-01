@@ -164,8 +164,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
     }
     if (_onlySale) list = list.where((p) => p.isSale).toList();
     if (_onlyFreeShip) list = list.where((p) => p.isFreeShipping).toList();
-    // 정렬 (_onlyBest: 판매량 내림차순, salesCount가 모두 0이면 최신순 폴백)
-    if (_onlyBest) {
+    // 신상품은 등록일 기준 최신순을 항상 우선합니다.
+    // 초기 상품 캐시 순서에 의존하면 새 상품이 뒤로 밀릴 수 있습니다.
+    if (_onlyNew) {
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    } else if (_onlyBest) {
       final totalSales = list.fold(0, (s, p) => s + p.salesCount);
       if (totalSales == 0) {
         list.sort((a, b) => b.createdAt.compareTo(a.createdAt));

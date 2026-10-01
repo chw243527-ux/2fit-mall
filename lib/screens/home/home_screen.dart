@@ -5755,7 +5755,8 @@ class _HomeScreenState extends State<HomeScreen>
     final allProds = _getAllActiveProducts(provider);
 
     // isNew 배지가 있는 상품만 표시 (폴백 없음)
-    List<ProductModel> products = allProds.where((p) => p.isNewActive).toList();
+    final products = allProds.where((p) => p.isNewActive).toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     if (products.isEmpty) return const SizedBox.shrink();
 

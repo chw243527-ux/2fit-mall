@@ -1019,7 +1019,8 @@ class ProductService {
   }
 
   static Future<List<ProductModel>> getNewArrivals() async {
-    return _products.where((p) => p.isNewActive && p.isActive).toList();
+    return _products.where((p) => p.isNewActive && p.isActive).toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
   static Future<List<ProductModel>> getSaleProducts() async {
