@@ -5018,19 +5018,50 @@ $productUrl
     if (!isAdmin && images.isEmpty && description.isEmpty) return null;
 
     final r = Responsive.of(context);
-    return Padding(
-      padding: EdgeInsets.fromLTRB(r.w(24), r.h(28), r.w(24), r.h(34)),
+    final orderIndex = _sectionOrder.indexOf(sectionKey);
+    final sectionNumber =
+        (orderIndex >= 0 ? orderIndex + 1 : 1).toString().padLeft(2, '0');
+
+    // 고객 상세페이지는 상품 이미지 자체가 주인공이 되도록
+    // 순백 배경, 얇은 구분선, 작은 섹션 번호만 사용하는 미니멀 스타일입니다.
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.fromLTRB(r.w(20), r.h(28), r.w(20), r.h(30)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: r.sp(20),
-              fontWeight: FontWeight.w900,
-              height: 1.2,
-            ),
+          Container(
+            height: 2,
+            width: r.w(28),
+            color: AppColors.accent,
+            margin: EdgeInsets.only(bottom: r.h(14)),
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'SECTION $sectionNumber',
+                style: TextStyle(
+                  color: AppColors.accent,
+                  fontSize: r.sp(10),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              SizedBox(width: r.w(10)),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: r.sp(19),
+                    fontWeight: FontWeight.w800,
+                    height: 1.2,
+                    letterSpacing: -0.25,
+                  ),
+                ),
+              ),
+            ],
           ),
           if (description.isNotEmpty) ...[
             SizedBox(height: r.h(12)),
@@ -5039,15 +5070,25 @@ $productUrl
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: r.sp(13),
-                height: 1.7,
+                fontWeight: FontWeight.w400,
+                height: 1.65,
+                letterSpacing: -0.05,
               ),
             ),
           ],
           if (images.isNotEmpty) ...[
             SizedBox(height: r.h(18)),
-            isAdmin
-                ? _buildAdminImageSection(sectionKey, title, true)
-                : _buildSectionImageSlider(sectionKey),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceGray,
+                border: Border.all(color: AppColors.border, width: 0.8),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: EdgeInsets.all(r.w(6)),
+              child: isAdmin
+                  ? _buildAdminImageSection(sectionKey, title, true)
+                  : _buildSectionImageSlider(sectionKey),
+            ),
           ],
         ],
       ),
@@ -5075,134 +5116,153 @@ $productUrl
         '제조연월: ${product.manufacturedAt.trim()}',
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: EdgeInsets.fromLTRB(r.w(24), r.h(54), r.w(24), r.h(46)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                heroCopy.label,
-                style: TextStyle(
-                  color: AppColors.accent,
-                  fontSize: r.sp(10),
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.45,
-                ),
-              ),
-              SizedBox(height: r.h(17)),
-              Text(
-                heroCopy.headline,
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: r.sp(36),
-                  fontWeight: FontWeight.w900,
-                  height: 0.94,
-                  letterSpacing: -1.8,
-                ),
-              ),
-              SizedBox(height: r.h(22)),
-              Text(
-                heroCopy.accent,
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: r.sp(12),
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.75,
-                ),
-              ),
-              SizedBox(height: r.h(14)),
-              const Divider(height: 1, color: AppColors.border),
-              SizedBox(height: r.h(14)),
-              Text(
-                heroCopy.copy,
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: r.sp(13),
-                  height: 1.72,
-                ),
-              ),
-            ],
-          ),
-        ),
-        _buildLimitedImageSlot(
-          sectionKey: 's1',
-          adminLabel: '에디토리얼 상세 · 활동 무드 이미지',
-          isAdmin: isAdmin,
-        ),
-        Padding(
-          padding: EdgeInsets.fromLTRB(r.w(24), r.h(42), r.w(24), r.h(48)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'PRODUCT STORY',
-                style: TextStyle(
-                  color: AppColors.accent,
-                  fontSize: r.sp(11),
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.25,
-                ),
-              ),
-              SizedBox(height: r.h(14)),
-              _buildEditorialMaterialSections(material, r),
-            ],
-          ),
-        ),
-        _buildLimitedImageSlot(
-          sectionKey: 's2_fiber',
-          adminLabel: '에디토리얼 상세 · 원단 및 제작 디테일 이미지',
-          isAdmin: isAdmin,
-        ),
-        _storedSectionDescription('s2'),
-        if (details.isNotEmpty)
+    return Container(
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(r.w(24), r.h(34), r.w(24), r.h(48)),
+            padding: EdgeInsets.fromLTRB(r.w(20), r.h(32), r.w(20), r.h(34)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Divider(height: 1, color: AppColors.textPrimary),
-                SizedBox(height: r.h(18)),
+                Container(
+                  height: 2,
+                  width: r.w(28),
+                  color: AppColors.accent,
+                  margin: EdgeInsets.only(bottom: r.h(14)),
+                ),
                 Text(
-                  'DETAIL / SPEC',
+                  heroCopy.label,
                   style: TextStyle(
-                    fontSize: r.sp(22),
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -0.7,
+                    color: AppColors.accent,
+                    fontSize: r.sp(10),
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.25,
                   ),
                 ),
-                SizedBox(height: r.h(20)),
-                ...details.map(_buildLimitedDetailLine),
+                SizedBox(height: r.h(12)),
+                Text(
+                  heroCopy.headline,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: r.sp(28),
+                    fontWeight: FontWeight.w800,
+                    height: 1.08,
+                    letterSpacing: -1.0,
+                  ),
+                ),
+                SizedBox(height: r.h(14)),
+                Text(
+                  heroCopy.accent,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: r.sp(12),
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.35,
+                  ),
+                ),
+                SizedBox(height: r.h(14)),
+                const Divider(height: 1, color: AppColors.border),
+                SizedBox(height: r.h(14)),
+                Text(
+                  heroCopy.copy,
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: r.sp(13),
+                    height: 1.65,
+                  ),
+                ),
               ],
             ),
           ),
-        _buildLimitedImageSlot(
-          sectionKey: 's4',
-          adminLabel: '에디토리얼 상세 · 핏 및 스타일링 이미지',
-          isAdmin: isAdmin,
-        ),
-        _buildManagedSectionSlot(
-          sectionKey: 's3',
-          adminLabel: '섹션 3 이미지',
-          isAdmin: isAdmin,
-        ),
-        // 이미지가 없어도 관리자 섹션 설명은 표시
-        _storedSectionDescription('s4'),
-        _buildLimitedImageSlot(
-          sectionKey: 's5',
-          adminLabel: '에디토리얼 상세 · 브랜드 스토리 이미지',
-          isAdmin: isAdmin,
-        ),
-        _storedSectionDescription('s5'),
-        _buildManagedSectionSlot(
-          sectionKey: 's6',
-          adminLabel: '섹션 6 이미지',
-          isAdmin: isAdmin,
-        ),
-      ],
+          _buildLimitedImageSlot(
+            sectionKey: 's1',
+            adminLabel: '에디토리얼 상세 · 활동 무드 이미지',
+            isAdmin: isAdmin,
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(r.w(20), r.h(30), r.w(20), r.h(34)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 2,
+                  width: r.w(28),
+                  color: AppColors.accent,
+                  margin: EdgeInsets.only(bottom: r.h(14)),
+                ),
+                Text(
+                  'PRODUCT STORY',
+                  style: TextStyle(
+                    color: AppColors.accent,
+                    fontSize: r.sp(10),
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.15,
+                  ),
+                ),
+                SizedBox(height: r.h(12)),
+                _buildEditorialMaterialSections(material, r),
+              ],
+            ),
+          ),
+          _buildLimitedImageSlot(
+            sectionKey: 's2_fiber',
+            adminLabel: '에디토리얼 상세 · 원단 및 제작 디테일 이미지',
+            isAdmin: isAdmin,
+          ),
+          _storedSectionDescription('s2'),
+          if (details.isNotEmpty)
+            Padding(
+              padding: EdgeInsets.fromLTRB(r.w(20), r.h(28), r.w(20), r.h(36)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 2,
+                    width: r.w(28),
+                    color: AppColors.accent,
+                    margin: EdgeInsets.only(bottom: r.h(14)),
+                  ),
+                  Text(
+                    'DETAIL / SPEC',
+                    style: TextStyle(
+                      fontSize: r.sp(18),
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  SizedBox(height: r.h(14)),
+                  ...details.map(_buildLimitedDetailLine),
+                ],
+              ),
+            ),
+          _buildLimitedImageSlot(
+            sectionKey: 's4',
+            adminLabel: '에디토리얼 상세 · 핏 및 스타일링 이미지',
+            isAdmin: isAdmin,
+          ),
+          _buildManagedSectionSlot(
+            sectionKey: 's3',
+            adminLabel: '섹션 3 이미지',
+            isAdmin: isAdmin,
+          ),
+          // 이미지가 없어도 관리자 섹션 설명은 표시
+          _storedSectionDescription('s4'),
+          _buildLimitedImageSlot(
+            sectionKey: 's5',
+            adminLabel: '에디토리얼 상세 · 브랜드 스토리 이미지',
+            isAdmin: isAdmin,
+          ),
+          _storedSectionDescription('s5'),
+          _buildManagedSectionSlot(
+            sectionKey: 's6',
+            adminLabel: '섹션 6 이미지',
+            isAdmin: isAdmin,
+          ),
+        ],
+      ),
     );
   }
 
