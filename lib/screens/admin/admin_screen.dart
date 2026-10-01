@@ -12673,7 +12673,7 @@ class _AdminScreenState extends State<AdminScreen>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 GestureDetector(
-                                  onTap: () => _showEditSectionDialog(i),
+                                  onTap: () => _showEditSectionDialogByKey(key),
                                   child: Container(
                                     width: 24,
                                     height: 24,
@@ -12689,8 +12689,8 @@ class _AdminScreenState extends State<AdminScreen>
                                 GestureDetector(
                                   onTap: () =>
                                       _reservedSectionKeys.contains(key)
-                                          ? _toggleSectionActive(i)
-                                          : _confirmDeleteSection(i),
+                                          ? _toggleSectionActiveByKey(key)
+                                          : _confirmDeleteSectionByKey(key),
                                   child: Container(
                                     width: 24,
                                     height: 24,
@@ -12928,7 +12928,17 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
-  void _showEditSectionDialog(int index) {
+  int _customSectionIndex(String key) =>
+      _customSections.indexWhere((section) => section['key'] == key);
+
+  void _showEditSectionDialogByKey(String key) {
+    final index = _customSectionIndex(key);
+    if (index < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('이 섹션 정의를 찾을 수 없습니다. 새로고침 후 다시 시도해주세요.')),
+      );
+      return;
+    }
     final section = _customSections[index];
     final titleCtrl = TextEditingController(text: section['title'] as String);
     final descCtrl =
@@ -13007,7 +13017,9 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
-  Future<void> _toggleSectionActive(int index) async {
+  Future<void> _toggleSectionActiveByKey(String key) async {
+    final index = _customSectionIndex(key);
+    if (index < 0) return;
     final section = _customSections[index];
     final before = Map<String, dynamic>.from(section);
     final nextActive = section['active'] == false;
@@ -13032,7 +13044,9 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   // 섹션 삭제 확인: 기본 키는 상품 이미지 참조를 보호하기 위해 보관으로만 처리합니다.
-  void _confirmDeleteSection(int index) {
+  void _confirmDeleteSectionByKey(String key) {
+    final index = _customSectionIndex(key);
+    if (index < 0) return;
     final sec = _customSections[index];
     showDialog(
       context: context,
