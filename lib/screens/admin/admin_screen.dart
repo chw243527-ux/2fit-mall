@@ -12664,74 +12664,10 @@ class _AdminScreenState extends State<AdminScreen>
                             images: imgs,
                             product: selectedProduct,
                             onUpdated: () => setState(() {}),
+                            onArchive: () => _reservedSectionKeys.contains(key)
+                                ? _toggleSectionActiveByKey(key)
+                                : _confirmDeleteSectionByKey(key),
                           ),
-                          // 수정 및 안전 삭제/보관 버튼 (우상단)
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                GestureDetector(
-                                  onTap: () => _showEditSectionDialogByKey(key),
-                                  child: Container(
-                                    width: 24,
-                                    height: 24,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary,
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: const Icon(Icons.edit_rounded,
-                                        color: Colors.white, size: 14),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                GestureDetector(
-                                  onTap: () =>
-                                      _reservedSectionKeys.contains(key)
-                                          ? _toggleSectionActiveByKey(key)
-                                          : _confirmDeleteSectionByKey(key),
-                                  child: Container(
-                                    width: 24,
-                                    height: 24,
-                                    decoration: BoxDecoration(
-                                      color: _reservedSectionKeys.contains(key)
-                                          ? const Color(0xFF6A1B9A)
-                                          : const Color(0xFFE53935),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Icon(
-                                      _reservedSectionKeys.contains(key)
-                                          ? ((sec['active'] == false)
-                                              ? Icons.visibility_rounded
-                                              : Icons.inventory_2_rounded)
-                                          : Icons.close_rounded,
-                                      color: Colors.white,
-                                      size: 14,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (sec['active'] == false)
-                            Positioned(
-                              left: 8,
-                              top: 8,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF555555),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: const Text('보관됨',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w700)),
-                              ),
-                            ),
                         ],
                       );
                     },
@@ -12931,6 +12867,8 @@ class _AdminScreenState extends State<AdminScreen>
   int _customSectionIndex(String key) =>
       _customSections.indexWhere((section) => section['key'] == key);
 
+  // 이미지·설명 편집은 카드 내부 펼침 영역에서 처리합니다.
+  // ignore: unused_element
   void _showEditSectionDialogByKey(String key) {
     final index = _customSectionIndex(key);
     if (index < 0) {
@@ -15079,6 +15017,7 @@ class _AdminSectionCard extends StatefulWidget {
   final List<String> images;
   final ProductModel product;
   final VoidCallback onUpdated;
+  final VoidCallback? onArchive;
 
   const _AdminSectionCard({
     required this.sectionKey,
@@ -15089,6 +15028,7 @@ class _AdminSectionCard extends StatefulWidget {
     required this.images,
     required this.product,
     required this.onUpdated,
+    this.onArchive,
   });
 
   @override
@@ -15387,6 +15327,40 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                               color: Colors.white,
                               fontWeight: FontWeight.w800)),
                     ),
+                  const SizedBox(width: 4),
+                  // 수정 버튼은 카드 바깥이 아니라 헤더 내부에 고정합니다.
+                  // 이미지가 있는 섹션도 업로드·설명 저장 영역을 바로 열 수 있습니다.
+                  GestureDetector(
+                    onTap: () => setState(() => _expanded = true),
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: _expanded
+                            ? Colors.white.withValues(alpha: 0.18)
+                            : AppColors.primary,
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                      child: const Icon(Icons.edit_rounded,
+                          color: Colors.white, size: 15),
+                    ),
+                  ),
+                  if (widget.onArchive != null) ...[
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: widget.onArchive,
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6A1B9A),
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                        child: const Icon(Icons.inventory_2_rounded,
+                            color: Colors.white, size: 15),
+                      ),
+                    ),
+                  ],
                   Icon(
                     _expanded
                         ? Icons.keyboard_arrow_up_rounded
