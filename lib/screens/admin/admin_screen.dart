@@ -12426,13 +12426,21 @@ class _AdminScreenState extends State<AdminScreen>
 
   Widget _buildSectionManagement() {
     final products = context.watch<ProductProvider>().adminProducts;
-    final selectedProduct =
-        _sectionSelectedProductId != null && products.isNotEmpty
-            ? products.firstWhere(
-                (p) => p.id == _sectionSelectedProductId,
-                orElse: () => products.first,
-              )
-            : null;
+    final dropdownProducts = <ProductModel>[];
+    final seenProductIds = <String>{};
+    for (final product in products) {
+      if (seenProductIds.add(product.id)) dropdownProducts.add(product);
+    }
+    final selectedId = _sectionSelectedProductId != null &&
+            products.any((product) => product.id == _sectionSelectedProductId)
+        ? _sectionSelectedProductId
+        : null;
+    final selectedProduct = selectedId != null && products.isNotEmpty
+        ? products.firstWhere(
+            (p) => p.id == selectedId,
+            orElse: () => products.first,
+          )
+        : null;
     final sectionsForProduct = _sectionsForProduct(selectedProduct);
 
     return Column(
@@ -12502,14 +12510,14 @@ class _AdminScreenState extends State<AdminScreen>
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
-                    value: _sectionSelectedProductId,
+                    value: selectedId,
                     hint: const Text('상품을 선택하세요',
                         style: TextStyle(
                             fontSize: 13, color: AppColors.textSecondary)),
                     isExpanded: true,
                     icon: const Icon(Icons.keyboard_arrow_down_rounded,
                         color: AppColors.textSecondary),
-                    items: products
+                    items: dropdownProducts
                         .map((p) => DropdownMenuItem<String>(
                               value: p.id,
                               child: Row(
