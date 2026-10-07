@@ -12672,8 +12672,9 @@ class _AdminScreenState extends State<AdminScreen>
                             images: imgs,
                             product: selectedProduct,
                             onUpdated: () => setState(() {}),
-                            onSaveTitle: (title) =>
-                                _saveSectionTitleByKey(key, title),
+                            onSaveSettings: (title, description) =>
+                                _saveSectionSettingsByKey(
+                                    key, title, description),
                             onArchive: () => _reservedSectionKeys.contains(key)
                                 ? _toggleSectionActiveByKey(key)
                                 : _confirmDeleteSectionByKey(key),
@@ -12913,6 +12914,34 @@ class _AdminScreenState extends State<AdminScreen>
     if (saved && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('섹션 제목이 저장되었습니다')),
+      );
+    }
+  }
+
+  Future<void> _saveSectionSettingsByKey(
+      String key, String title, String description) async {
+    final index = _customSectionIndex(key);
+    final trimmedTitle = title.trim();
+    if (trimmedTitle.isEmpty) return;
+    if (index < 0) {
+      await _saveSectionTitleByKey(key, trimmedTitle);
+      return;
+    }
+    final before = Map<String, dynamic>.from(_customSections[index]);
+    setState(() {
+      _customSections[index] = {
+        ..._customSections[index],
+        'title': trimmedTitle,
+        'description': description.trim(),
+      };
+    });
+    final saved = await _persistContentCatalogs();
+    if (!saved && mounted) {
+      setState(() => _customSections[index] = before);
+    }
+    if (saved && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('섹션 제목과 설명이 저장되었습니다')),
       );
     }
   }
@@ -15067,7 +15096,7 @@ class _AdminSectionCard extends StatefulWidget {
   final List<String> images;
   final ProductModel product;
   final VoidCallback onUpdated;
-  final Future<void> Function(String title)? onSaveTitle;
+  final Future<void> Function(String title, String description)? onSaveSettings;
   final VoidCallback? onArchive;
 
   const _AdminSectionCard({
@@ -15079,7 +15108,7 @@ class _AdminSectionCard extends StatefulWidget {
     required this.images,
     required this.product,
     required this.onUpdated,
-    this.onSaveTitle,
+    this.onSaveSettings,
     this.onArchive,
   });
 
@@ -15445,17 +15474,6 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: OutlinedButton.icon(
-                      onPressed: widget.onSaveTitle == null
-                          ? null
-                          : () => widget.onSaveTitle!(_titleCtrl.text),
-                      icon: const Icon(Icons.title_rounded, size: 16),
-                      label: const Text('섹션 제목 저장'),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
                   TextField(
                     controller: _descriptionCtrl,
                     maxLines: 3,
@@ -15469,9 +15487,12 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: ElevatedButton.icon(
-                      onPressed: _saveProductDescription,
+                      onPressed: widget.onSaveSettings == null
+                          ? _saveProductDescription
+                          : () => widget.onSaveSettings!(
+                              _titleCtrl.text, _descriptionCtrl.text),
                       icon: const Icon(Icons.save_rounded, size: 16),
-                      label: const Text('상품별 설명 저장'),
+                      label: const Text('섹션 수정 저장'),
                     ),
                   ),
                   const SizedBox(height: 8),
