@@ -12672,6 +12672,8 @@ class _AdminScreenState extends State<AdminScreen>
                             images: imgs,
                             product: selectedProduct,
                             onUpdated: () => setState(() {}),
+                            onSaveTitle: (title) =>
+                                _saveSectionTitleByKey(key, title),
                             onArchive: () => _reservedSectionKeys.contains(key)
                                 ? _toggleSectionActiveByKey(key)
                                 : _confirmDeleteSectionByKey(key),
@@ -12874,6 +12876,46 @@ class _AdminScreenState extends State<AdminScreen>
 
   int _customSectionIndex(String key) =>
       _customSections.indexWhere((section) => section['key'] == key);
+
+  Future<void> _saveSectionTitleByKey(String key, String title) async {
+    final index = _customSectionIndex(key);
+    final trimmed = title.trim();
+    if (trimmed.isEmpty) return;
+    if (index < 0) {
+      setState(() {
+        _customSections.add({
+          'key': key,
+          'label': '이미지 섹션',
+          'title': trimmed,
+          'description': '',
+          'thumbUrl': '',
+          'active': true,
+          'icon': _sectionIconForKey(key),
+        });
+      });
+      final saved = await _persistContentCatalogs();
+      if (!saved && mounted) {
+        setState(() => _customSections.removeWhere((s) => s['key'] == key));
+      }
+      return;
+    }
+    final before = Map<String, dynamic>.from(_customSections[index]);
+    setState(() {
+      _customSections[index] = {
+        ..._customSections[index],
+        'title': trimmed,
+      };
+    });
+    final saved = await _persistContentCatalogs();
+    if (!saved && mounted) {
+      setState(() => _customSections[index] = before);
+    }
+    if (saved && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('섹션 제목이 저장되었습니다')),
+      );
+    }
+  }
 
   // 이미지·설명 편집은 카드 내부 펼침 영역에서 처리합니다.
   // ignore: unused_element
@@ -15025,6 +15067,7 @@ class _AdminSectionCard extends StatefulWidget {
   final List<String> images;
   final ProductModel product;
   final VoidCallback onUpdated;
+  final Future<void> Function(String title)? onSaveTitle;
   final VoidCallback? onArchive;
 
   const _AdminSectionCard({
@@ -15036,6 +15079,7 @@ class _AdminSectionCard extends StatefulWidget {
     required this.images,
     required this.product,
     required this.onUpdated,
+    this.onSaveTitle,
     this.onArchive,
   });
 
@@ -15047,11 +15091,13 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
   bool _expanded = false;
   bool _isUploading = false;
   final _urlCtrl = TextEditingController();
+  late final TextEditingController _titleCtrl;
   late final TextEditingController _descriptionCtrl;
 
   @override
   void dispose() {
     _urlCtrl.dispose();
+    _titleCtrl.dispose();
     _descriptionCtrl.dispose();
     super.dispose();
   }
@@ -15201,6 +15247,7 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
   @override
   void initState() {
     super.initState();
+    _titleCtrl = TextEditingController(text: widget.sectionTitle);
     _descriptionCtrl = TextEditingController(
       text: widget.product.sectionDescriptions[widget.sectionKey] ??
           widget.sectionDescription,
@@ -15388,6 +15435,27 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  TextField(
+                    controller: _titleCtrl,
+                    maxLines: 1,
+                    decoration: const InputDecoration(
+                      labelText: '섹션 제목',
+                      hintText: '섹션 제목을 입력하세요',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: OutlinedButton.icon(
+                      onPressed: widget.onSaveTitle == null
+                          ? null
+                          : () => widget.onSaveTitle!(_titleCtrl.text),
+                      icon: const Icon(Icons.title_rounded, size: 16),
+                      label: const Text('섹션 제목 저장'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   TextField(
                     controller: _descriptionCtrl,
                     maxLines: 3,
