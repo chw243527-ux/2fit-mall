@@ -12675,6 +12675,8 @@ class _AdminScreenState extends State<AdminScreen>
                             onSaveSettings: (title, description) =>
                                 _saveSectionSettingsByKey(
                                     key, title, description),
+                            onMoveUp: () => _moveSectionByKey(key, -1),
+                            onMoveDown: () => _moveSectionByKey(key, 1),
                             onArchive: () => _reservedSectionKeys.contains(key)
                                 ? _toggleSectionActiveByKey(key)
                                 : _confirmDeleteSectionByKey(key),
@@ -12942,6 +12944,33 @@ class _AdminScreenState extends State<AdminScreen>
     if (saved && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('섹션 제목과 설명이 저장되었습니다')),
+      );
+    }
+  }
+
+  Future<void> _moveSectionByKey(String key, int direction) async {
+    final index = _customSectionIndex(key);
+    final target = index + direction;
+    if (index < 0 || target < 0 || target >= _customSections.length) return;
+    final before = _customSections
+        .map((section) => Map<String, dynamic>.from(section))
+        .toList();
+    setState(() {
+      final moved = _customSections.removeAt(index);
+      _customSections.insert(target, moved);
+    });
+    final saved = await _persistContentCatalogs();
+    if (!saved && mounted) {
+      setState(() {
+        _customSections
+          ..clear()
+          ..addAll(before);
+      });
+      return;
+    }
+    if (saved && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('섹션 순서가 저장되었습니다')),
       );
     }
   }
@@ -15097,6 +15126,8 @@ class _AdminSectionCard extends StatefulWidget {
   final ProductModel product;
   final VoidCallback onUpdated;
   final Future<void> Function(String title, String description)? onSaveSettings;
+  final VoidCallback? onMoveUp;
+  final VoidCallback? onMoveDown;
   final VoidCallback? onArchive;
 
   const _AdminSectionCard({
@@ -15109,6 +15140,8 @@ class _AdminSectionCard extends StatefulWidget {
     required this.product,
     required this.onUpdated,
     this.onSaveSettings,
+    this.onMoveUp,
+    this.onMoveDown,
     this.onArchive,
   });
 
@@ -15412,6 +15445,44 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                               fontWeight: FontWeight.w800)),
                     ),
                   const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: widget.onMoveUp,
+                    child: Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        color: _expanded
+                            ? Colors.white.withValues(alpha: 0.18)
+                            : const Color(0xFFE9ECF3),
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                      child: Icon(Icons.keyboard_arrow_up_rounded,
+                          color: _expanded
+                              ? Colors.white
+                              : AppColors.textSecondary,
+                          size: 18),
+                    ),
+                  ),
+                  const SizedBox(width: 3),
+                  GestureDetector(
+                    onTap: widget.onMoveDown,
+                    child: Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        color: _expanded
+                            ? Colors.white.withValues(alpha: 0.18)
+                            : const Color(0xFFE9ECF3),
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                      child: Icon(Icons.keyboard_arrow_down_rounded,
+                          color: _expanded
+                              ? Colors.white
+                              : AppColors.textSecondary,
+                          size: 18),
+                    ),
+                  ),
+                  const SizedBox(width: 3),
                   // 수정 버튼은 카드 바깥이 아니라 헤더 내부에 고정합니다.
                   // 이미지가 있는 섹션도 업로드·설명 저장 영역을 바로 열 수 있습니다.
                   GestureDetector(
