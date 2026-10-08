@@ -12679,8 +12679,8 @@ class _AdminScreenState extends State<AdminScreen>
                               product: selectedProduct,
                               onUpdated: () => setState(() {}),
                               onSaveSettings: (title, description) =>
-                                  _saveSectionSettingsByKey(
-                                      key, title, description),
+                                  _saveSectionSettingsByKey(key,
+                                      selectedProduct.id, title, description),
                               onMoveUp: () => _moveSectionByKey(key, -1),
                               onMoveDown: () => _moveSectionByKey(key, 1),
                               onArchive: () =>
@@ -12929,12 +12929,17 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   Future<void> _saveSectionSettingsByKey(
-      String key, String title, String description) async {
+      String key, String productId, String title, String description) async {
     final index = _customSectionIndex(key);
     final trimmedTitle = title.trim();
     if (trimmedTitle.isEmpty) return;
     if (index < 0) {
       await _saveSectionTitleByKey(key, trimmedTitle);
+      await context.read<ProductProvider>().updateSectionDescription(
+            productId,
+            key,
+            description.trim(),
+          );
       return;
     }
     final before = Map<String, dynamic>.from(_customSections[index]);
@@ -12946,10 +12951,13 @@ class _AdminScreenState extends State<AdminScreen>
       };
     });
     final saved = await _persistContentCatalogs();
+    final productDescriptionSaved = await context
+        .read<ProductProvider>()
+        .updateSectionDescription(productId, key, description.trim());
     if (!saved && mounted) {
       setState(() => _customSections[index] = before);
     }
-    if (saved && mounted) {
+    if (saved && productDescriptionSaved && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('섹션 제목과 설명이 저장되었습니다')),
       );
