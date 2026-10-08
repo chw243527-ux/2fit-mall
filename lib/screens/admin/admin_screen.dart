@@ -12652,36 +12652,44 @@ class _AdminScreenState extends State<AdminScreen>
                       ],
                     ),
                   )
-                : ListView.separated(
+                : ReorderableListView.builder(
                     padding: const EdgeInsets.all(12),
                     itemCount: sectionsForProduct.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    onReorder: (oldIndex, newIndex) =>
+                        _reorderDisplayedSections(
+                            sectionsForProduct, oldIndex, newIndex),
+                    buildDefaultDragHandles: true,
                     itemBuilder: (_, i) {
                       final sec = sectionsForProduct[i];
                       final key = sec['key'] as String;
                       final imgs = selectedProduct.sectionImages[key] ?? [];
-                      return Stack(
-                        children: [
-                          _AdminSectionCard(
-                            sectionKey: key,
-                            sectionLabel: sec['label'] as String,
-                            sectionTitle: sec['title'] as String,
-                            sectionDescription:
-                                (sec['description'] as String?) ?? '',
-                            icon: sec['icon'] as IconData,
-                            images: imgs,
-                            product: selectedProduct,
-                            onUpdated: () => setState(() {}),
-                            onSaveSettings: (title, description) =>
-                                _saveSectionSettingsByKey(
-                                    key, title, description),
-                            onMoveUp: () => _moveSectionByKey(key, -1),
-                            onMoveDown: () => _moveSectionByKey(key, 1),
-                            onArchive: () => _reservedSectionKeys.contains(key)
-                                ? _toggleSectionActiveByKey(key)
-                                : _confirmDeleteSectionByKey(key),
-                          ),
-                        ],
+                      return Padding(
+                        key: ValueKey(key),
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Stack(
+                          children: [
+                            _AdminSectionCard(
+                              sectionKey: key,
+                              sectionLabel: sec['label'] as String,
+                              sectionTitle: sec['title'] as String,
+                              sectionDescription:
+                                  (sec['description'] as String?) ?? '',
+                              icon: sec['icon'] as IconData,
+                              images: imgs,
+                              product: selectedProduct,
+                              onUpdated: () => setState(() {}),
+                              onSaveSettings: (title, description) =>
+                                  _saveSectionSettingsByKey(
+                                      key, title, description),
+                              onMoveUp: () => _moveSectionByKey(key, -1),
+                              onMoveDown: () => _moveSectionByKey(key, 1),
+                              onArchive: () =>
+                                  _reservedSectionKeys.contains(key)
+                                      ? _toggleSectionActiveByKey(key)
+                                      : _confirmDeleteSectionByKey(key),
+                            ),
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -12973,6 +12981,58 @@ class _AdminScreenState extends State<AdminScreen>
         const SnackBar(content: Text('섹션 순서가 저장되었습니다')),
       );
     }
+  }
+
+  Future<void> _reorderDisplayedSections(
+      List<Map<String, dynamic>> displayed, int oldIndex, int newIndex) async {
+    if (oldIndex == newIndex ||
+        oldIndex < 0 ||
+        newIndex < 0 ||
+        oldIndex >= displayed.length ||
+        newIndex > displayed.length) {
+      return;
+    }
+    if (oldIndex < newIndex) newIndex -= 1;
+    final movingKey = displayed[oldIndex]['key']?.toString() ?? '';
+    if (movingKey.isEmpty) return;
+    final targetKey = newIndex < displayed.length
+        ? displayed[newIndex]['key']?.toString() ?? ''
+        : '';
+    if (targetKey.isEmpty && newIndex < displayed.length) return;
+
+    // 이미지 키만 남아 있는 구버전 섹션도 드래그 시 정식 카탈로그로 편입합니다.
+    for (final section in displayed) {
+      final key = section['key']?.toString() ?? '';
+      if (key.isNotEmpty && _customSectionIndex(key) < 0) {
+        _customSections.add(Map<String, dynamic>.from(section));
+      }
+    }
+    final before = _customSections
+        .map((section) => Map<String, dynamic>.from(section))
+        .toList();
+    final currentKeys = _customSections
+        .map((section) => section['key']?.toString() ?? '')
+        .toList();
+    final from = currentKeys.indexOf(movingKey);
+    if (from < 0) return;
+    final moving = _customSections.removeAt(from);
+    if (targetKey.isEmpty) {
+      _customSections.add(moving);
+    } else {
+      final target = _customSectionIndex(targetKey);
+      _customSections.insert(
+          target < 0 ? _customSections.length : target, moving);
+    }
+    final saved = await _persistContentCatalogs();
+    if (!saved && mounted) {
+      setState(() {
+        _customSections
+          ..clear()
+          ..addAll(before);
+      });
+      return;
+    }
+    if (mounted) setState(() {});
   }
 
   // 이미지·설명 편집은 카드 내부 펼침 영역에서 처리합니다.
