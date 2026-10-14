@@ -4998,9 +4998,45 @@ $productUrl
     if (_useLegacySingletEditorial(product)) {
       // 싱글렛 계열은 기존에 저장된 상품별 콘텐츠를 유지하되,
       // 렌더링은 새 화이트 미니멀 스타일을 사용합니다.
-      return _buildStoredEditorialProductDetail(product, isAdmin);
+      // 기존 레이아웃에 포함되지 않던 사용자 정의 섹션은 하단에 이어 붙입니다.
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildStoredEditorialProductDetail(product, isAdmin),
+          _buildAdditionalRegisteredSections(isAdmin),
+        ],
+      );
     }
     return _buildManagedOnlyEditorial(product, isAdmin);
+  }
+
+  /// 기존 싱글렛 상세 레이아웃에 포함되지 않은 사용자 정의 섹션을 표시합니다.
+  /// 기본 섹션은 기존 화면에서 이미 렌더링하므로 중복 표시하지 않습니다.
+  Widget _buildAdditionalRegisteredSections(bool isAdmin) {
+    const legacySectionKeys = <String>{
+      's1',
+      's2',
+      's2_seamless',
+      's2_fiber',
+      's2_fabric_extra',
+      's2_length',
+      's2_length_male',
+      's2_length_female',
+      's3',
+      's4',
+      's5',
+      's6',
+    };
+    final sections = _sectionOrder
+        .where((key) => !legacySectionKeys.contains(key))
+        .map((key) => _buildManagedOnlySection(key, isAdmin))
+        .whereType<Widget>()
+        .toList();
+    if (sections.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: sections,
+    );
   }
 
   /// 상세페이지의 관리 대상 콘텐츠는 섹션관리에서 활성화되고 저장된
