@@ -96,7 +96,7 @@ class StoreNoticeCard extends StatelessWidget {
           if (showPurchaseGuide && showAiImageGuide)
             Padding(
               padding: EdgeInsets.symmetric(vertical: r.h(9)),
-              child: Divider(height: 1, color: AppColors.border),
+              child: const Divider(height: 1, color: AppColors.border),
             ),
           if (showAiImageGuide)
             Row(
