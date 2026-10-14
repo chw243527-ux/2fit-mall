@@ -18,10 +18,11 @@ class StoreNoticeCard extends StatelessWidget {
   });
 
   static const _purchaseItems = <String>[
-    '제품 이미지와 실제 상품의 컬러는 촬영 환경 및 모니터 설정에 따라 다르게 보일 수 있습니다.',
-    '측정 위치에 따라 1~2cm 정도 오차가 발생할 수 있습니다.',
-    '생산 시기와 생산 로트에 따라 퀼팅 간격, 패치 위치, 그래픽 위치가 미세하게 달라질 수 있습니다.',
-    '충전재 특성상 개봉 직후 볼륨감이 다르게 느껴질 수 있으며, 가볍게 털어주면 자연스럽게 회복됩니다.',
+    '상품 이미지와 실제 상품의 색상은 촬영 환경, 조명 및 모니터 설정에 따라 다르게 보일 수 있습니다.',
+    '사이즈는 측정 방법과 측정 위치에 따라 1~2cm 정도 오차가 발생할 수 있으므로, 상세 사이즈표를 함께 확인해 주세요.',
+    '개인의 체형과 착용 방식에 따라 실제 핏과 착용감이 다르게 느껴질 수 있습니다.',
+    '생산 시기와 생산 로트에 따라 퀼팅 간격, 패치 위치 및 그래픽 위치가 일부 달라질 수 있습니다.',
+    '충전재 특성상 개봉 직후 상품의 볼륨감이나 형태가 다르게 느껴질 수 있습니다. 가볍게 털어주고 충분히 펴주면 자연스럽게 회복됩니다.',
   ];
 
   @override
@@ -59,7 +60,7 @@ class StoreNoticeCard extends StatelessWidget {
                     size: r.sp(compact ? 17 : 19), color: AppColors.primary),
                 SizedBox(width: r.w(7)),
                 Text(
-                  '구매 전 안내',
+                  '구매 전 꼭 확인해 주세요',
                   style: TextStyle(
                     color: AppColors.primary,
                     fontSize: r.sp(compact ? 14 : 15),
@@ -69,6 +70,15 @@ class StoreNoticeCard extends StatelessWidget {
               ],
             ),
             SizedBox(height: r.h(9)),
+            Text(
+              '상품 주문 전 아래 안내사항을 확인해 주시기 바랍니다.',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: r.sp(compact ? 11 : 12),
+                height: 1.45,
+              ),
+            ),
+            SizedBox(height: r.h(8)),
             ..._purchaseItems.asMap().entries.map(
                   (entry) => Padding(
                     padding: EdgeInsets.only(bottom: r.h(5)),
