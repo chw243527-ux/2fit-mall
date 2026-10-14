@@ -16,6 +16,7 @@ import '../orders/group_order_form_screen.dart';
 import '../orders/group_order_landing_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../widgets/image_lightbox.dart';
+import '../../widgets/store_notice_card.dart';
 import '../../utils/app_localizations.dart';
 import '../../services/analytics_service.dart';
 import '../../services/product_service.dart';
@@ -882,8 +883,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        context.loc.t('모든_착상_이미지는_AI_생성_이미지입니다',
-                            '※ 모든 착상 이미지는 AI 생성 이미지입니다'),
+                        context.loc.t('디자인_이미지를_제외한_상품_사진은_AI_생성_이미지입니다',
+                            '※ 디자인 이미지를 제외한 상품 사진은 AI 생성 이미지입니다'),
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: r.sp(10),
@@ -1116,9 +1117,9 @@ $productUrl
     showImageLightbox(context, images, initialIndex: initialIndex);
   }
 
-  // ══ AI 생성 이미지 고지 배너 (제거됨 — 메인 이미지에 직접 표시) ══
+  // ══ 공통 구매 전 안내 및 AI 이미지 고지 ══
   Widget _buildAiImageNoticeBanner() {
-    return const SizedBox.shrink();
+    return const StoreNoticeCard();
   }
 
   // ══ 모바일: 메인이미지 아래 디자인 이미지 배너 ══

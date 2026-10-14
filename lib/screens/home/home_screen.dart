@@ -14,6 +14,7 @@ import '../../models/models.dart';
 import '../../services/wishlist_coupon_service.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/store_notice_card.dart';
 import '../products/product_list_screen.dart';
 import '../products/product_detail_screen.dart';
 import '../products/category_detail_screen.dart';
@@ -271,6 +272,13 @@ class _HomeScreenState extends State<HomeScreen>
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
+          // 디자인 이미지를 제외한 상품 사진의 AI 생성 사실을 첫 화면에서 안내
+          const SliverToBoxAdapter(
+            child: StoreNoticeCard(
+              showPurchaseGuide: false,
+              compact: true,
+            ),
+          ),
           // ① 배너: 화면 너비 기준 16:9 비율 (영상 잘림 방지)
           SliverToBoxAdapter(
             child: SizedBox(
@@ -2851,6 +2859,13 @@ class _HomeScreenState extends State<HomeScreen>
                 child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
+                    // 홈페이지 진입 즉시 상품 사진의 AI 생성 사실을 안내
+                    const SliverToBoxAdapter(
+                      child: StoreNoticeCard(
+                        showPurchaseGuide: false,
+                        compact: true,
+                      ),
+                    ),
                     // ── 배너 ──
                     SliverToBoxAdapter(child: _buildCompactBanner(loc)),
 
