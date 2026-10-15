@@ -8225,6 +8225,26 @@ class _AdminScreenState extends State<AdminScreen>
             ),
           ),
         ),
+        // 상품 공개 상태 범례
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+          child: Row(
+            children: [
+              _productStatusLegend(
+                label: '표시 상품',
+                color: AppColors.success,
+                backgroundColor: const Color(0xFFE8F5E9),
+              ),
+              const SizedBox(width: 10),
+              _productStatusLegend(
+                label: '숨김 상품',
+                color: const Color(0xFFE07A00),
+                backgroundColor: const Color(0xFFFFF3E0),
+              ),
+            ],
+          ),
+        ),
         // 전체선택 + 일괄삭제 툴바
         Container(
           color: AppColors.background,
@@ -8515,6 +8535,10 @@ class _AdminScreenState extends State<AdminScreen>
 
   Widget _productCard(ProductModel p) {
     final isSelected = _selectedProductIds.contains(p.id);
+    final isVisible = p.isActive;
+    final statusColor = isVisible ? AppColors.success : const Color(0xFFE07A00);
+    final statusBackground =
+        isVisible ? const Color(0xFFE8F5E9) : const Color(0xFFFFF3E0);
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -8528,10 +8552,16 @@ class _AdminScreenState extends State<AdminScreen>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFE8EAF6) : Colors.white,
+          color: isSelected
+              ? const Color(0xFFE8EAF6)
+              : isVisible
+                  ? Colors.white
+                  : const Color(0xFFFFFBF5),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.border,
+            color: isSelected
+                ? AppColors.primary
+                : statusColor.withValues(alpha: 0.55),
             width: isSelected ? 1.5 : 1,
           ),
           boxShadow: isSelected
@@ -8622,6 +8652,38 @@ class _AdminScreenState extends State<AdminScreen>
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: statusBackground,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isVisible
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                size: 11,
+                                color: statusColor,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                isVisible ? '표시' : '숨김',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: statusColor,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -8743,6 +8805,39 @@ class _AdminScreenState extends State<AdminScreen>
             const SizedBox(width: 4),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _productStatusLegend({
+    required String label,
+    required Color color,
+    required Color backgroundColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }
