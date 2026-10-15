@@ -15404,7 +15404,7 @@ class _AdminScreenState extends State<AdminScreen>
                           await context
                               .read<ProductProvider>()
                               .updateSectionDescription(
-                                connectedProduct!.id,
+                                connectedProduct.id,
                                 newKey,
                                 desc,
                               );
@@ -15413,7 +15413,7 @@ class _AdminScreenState extends State<AdminScreen>
                           await context
                               .read<ProductProvider>()
                               .updateSectionImages(
-                            connectedProduct!.id,
+                            connectedProduct.id,
                             newKey,
                             [imageUrl],
                           );
