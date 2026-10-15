@@ -74,7 +74,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     final isSinglet = label.contains('싱글렛') || label.contains('singlet');
     if (!isSinglet) return false;
 
-    final isSet = label.contains('싱글렛세트') ||
+    final isSet =
+        label.contains('싱글렛세트') ||
         label.contains('싱글렛 세트') ||
         label.contains('singlet set');
     final isTights = label.contains('타이즈') || label.contains('tights');
@@ -85,8 +86,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   int _mainImageIndex = 0;
   final PageController _pageCtrl = PageController();
   final ScrollController _scrollCtrl = ScrollController();
-  final ValueNotifier<double> _imageOffsetNotifier =
-      ValueNotifier(0); // 패럴랙스 오프셋 (setState 없이)
+  final ValueNotifier<double> _imageOffsetNotifier = ValueNotifier(
+    0,
+  ); // 패럴랙스 오프셋 (setState 없이)
 
   // ── 상품 선택 ──
   // ignore: unused_field
@@ -143,8 +145,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: 3, vsync: this);
-    _sectionImages =
-        Map<String, List<String>>.from(widget.product.sectionImages);
+    _sectionImages = Map<String, List<String>>.from(
+      widget.product.sectionImages,
+    );
     _mainImages = List<String>.from(widget.product.images);
     _productSectionDescriptions.addAll(widget.product.sectionDescriptions);
     // 성별 기본값: 남성 → 하의 5부 자동 설정
@@ -251,8 +254,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     // (관리자가 이미지 업로드 후 notifyListeners → 여기서 반영)
     if (oldWidget.product.id != widget.product.id) {
       // 다른 상품으로 교체된 경우 전체 초기화
-      _sectionImages =
-          Map<String, List<String>>.from(widget.product.sectionImages);
+      _sectionImages = Map<String, List<String>>.from(
+        widget.product.sectionImages,
+      );
       _mainImages = List<String>.from(widget.product.images);
       _productSectionDescriptions
         ..clear()
@@ -265,8 +269,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       final incomingDescriptions = widget.product.sectionDescriptions;
       var descriptionChanged = false;
       if (_productSectionDescriptions.length != incomingDescriptions.length ||
-          incomingDescriptions.entries.any((entry) =>
-              _productSectionDescriptions[entry.key] != entry.value)) {
+          incomingDescriptions.entries.any(
+            (entry) => _productSectionDescriptions[entry.key] != entry.value,
+          )) {
         _productSectionDescriptions
           ..clear()
           ..addAll(incomingDescriptions);
@@ -298,14 +303,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       final freshImages = fresh?.sectionImages ?? widget.product.sectionImages;
       bool changed = false;
       if (fresh != null) {
-        final previousDescriptions =
-            Map<String, String>.from(_productSectionDescriptions);
+        final previousDescriptions = Map<String, String>.from(
+          _productSectionDescriptions,
+        );
         _productSectionDescriptions
           ..clear()
           ..addAll(fresh.sectionDescriptions);
         if (previousDescriptions.length != fresh.sectionDescriptions.length ||
-            fresh.sectionDescriptions.entries.any((entry) =>
-                previousDescriptions[entry.key] != entry.value)) {
+            fresh.sectionDescriptions.entries.any(
+              (entry) => previousDescriptions[entry.key] != entry.value,
+            )) {
           changed = true;
         }
       }
@@ -347,8 +354,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       if (mounted && widget.product.sectionImages.isNotEmpty) {
         setState(() {
           for (final key in widget.product.sectionImages.keys) {
-            _sectionImages[key] =
-                List<String>.from(widget.product.sectionImages[key]!);
+            _sectionImages[key] = List<String>.from(
+              widget.product.sectionImages[key]!,
+            );
           }
         });
       }
@@ -365,21 +373,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     super.dispose();
   }
 
-  String _fmt(double p) => p.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+  String _fmt(double p) => p
+      .toStringAsFixed(0)
+      .replaceAllMapped(
+        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+        (m) => '${m[1]},',
+      );
 
   // ═══════════════════════════════════════
   // BUILD
   // ═══════════════════════════════════════
   @override
   Widget build(BuildContext context) {
-// ignore: unused_local_variable
+    // ignore: unused_local_variable
     final r = Responsive.of(context);
     final isAdmin = context.watch<UserProvider>().isAdmin;
     final productProvider = context.watch<ProductProvider>();
     final liveProduct = productProvider.products.firstWhere(
-        (p) => p.id == widget.product.id,
-        orElse: () => widget.product);
+      (p) => p.id == widget.product.id,
+      orElse: () => widget.product,
+    );
     final product = liveProduct;
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
@@ -401,150 +414,193 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // ── 모바일 상세 (<600px) — 기존 레이아웃 그대로 ──
   Widget _buildMobileDetailLayout(
-      BuildContext context, ProductModel product, bool isAdmin) {
+    BuildContext context,
+    ProductModel product,
+    bool isAdmin,
+  ) {
     final r = Responsive.of(context);
     return wrapWithPopScope(
-        context,
-        Scaffold(
-          backgroundColor: Colors.white,
-          body: Stack(
-            children: [
-              CustomScrollView(
-                controller: _scrollCtrl,
-                cacheExtent: 600,
-                slivers: [
-                  _buildSliverAppBarOnly(product),
-                  SliverToBoxAdapter(child: _buildImageSlider(product)),
-                  SliverToBoxAdapter(child: _buildThumbnailBar(product)),
-                  SliverToBoxAdapter(child: _buildAiImageNoticeBanner()),
-                  SliverToBoxAdapter(
-                      child: KeyedSubtree(
-                          key: _keyDesign, child: _buildBasicInfo(product))),
-                  SliverToBoxAdapter(
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+      context,
+      Scaffold(
+        backgroundColor: Colors.white,
+        body: Stack(
+          children: [
+            CustomScrollView(
+              controller: _scrollCtrl,
+              cacheExtent: 600,
+              slivers: [
+                _buildSliverAppBarOnly(product),
+                SliverToBoxAdapter(child: _buildImageSlider(product)),
+                SliverToBoxAdapter(child: _buildThumbnailBar(product)),
+                SliverToBoxAdapter(child: _buildAiImageNoticeBanner()),
+                SliverToBoxAdapter(
+                  child: KeyedSubtree(
+                    key: _keyDesign,
+                    child: _buildBasicInfo(product),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       const Divider(
-                          height: 1, color: AppColors.border, thickness: 1),
+                        height: 1,
+                        color: AppColors.border,
+                        thickness: 1,
+                      ),
                       _buildToptenBrandSection(product),
                       const Divider(
-                          height: 1, color: AppColors.border, thickness: 1),
-                    ]),
+                        height: 1,
+                        color: AppColors.border,
+                        thickness: 1,
+                      ),
+                    ],
                   ),
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _ToptenTabBarDelegate(_buildToptenTabBar()),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _ToptenTabBarDelegate(_buildToptenTabBar()),
+                ),
+                SliverToBoxAdapter(
+                  child: _buildMobileDesignImageBanner(product),
+                ),
+                SliverToBoxAdapter(
+                  child: KeyedSubtree(
+                    key: _keyInfo,
+                    child: _buildToptenInfoSection(product),
                   ),
-                  SliverToBoxAdapter(
-                      child: _buildMobileDesignImageBanner(product)),
-                  SliverToBoxAdapter(
-                      child: KeyedSubtree(
-                          key: _keyInfo,
-                          child: _buildToptenInfoSection(product))),
-                  SliverToBoxAdapter(
-                      child: RepaintBoundary(
-                          child:
-                              _buildEditorialProductDetail(product, isAdmin))),
-                  SliverToBoxAdapter(
-                      child: RepaintBoundary(
-                          key: _keySize,
-                          child: _buildSection6SizeChart(product, isAdmin))),
-                  SliverToBoxAdapter(
-                      child: KeyedSubtree(
-                          key: _keyWashing,
-                          child: _buildWashingTipSection(product))),
-                  SliverToBoxAdapter(
-                      child: RepaintBoundary(
-                          key: _keyReview,
-                          child: _buildReviewSection(product))),
-                  SliverToBoxAdapter(
-                      child: _buildSameDesignColorRecommendations(product)),
-                  SliverToBoxAdapter(child: SizedBox(height: r.h(120))),
-                ],
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: _buildBottomBar(product),
-              ),
-            ],
-          ),
-        ));
+                ),
+                SliverToBoxAdapter(
+                  child: RepaintBoundary(
+                    child: _buildEditorialProductDetail(product, isAdmin),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: RepaintBoundary(
+                    key: _keySize,
+                    child: _buildSection6SizeChart(product, isAdmin),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: KeyedSubtree(
+                    key: _keyWashing,
+                    child: _buildWashingTipSection(product),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: RepaintBoundary(
+                    key: _keyReview,
+                    child: _buildReviewSection(product),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: _buildSameDesignColorRecommendations(product),
+                ),
+                SliverToBoxAdapter(child: SizedBox(height: r.h(120))),
+              ],
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: _buildBottomBar(product),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // ── 태블릿 상세 (600~899px) — 중앙 정렬 + 최대폭 720 ──
   Widget _buildTabletDetailLayout(
-      BuildContext context, ProductModel product, bool isAdmin) {
+    BuildContext context,
+    ProductModel product,
+    bool isAdmin,
+  ) {
     final r = Responsive.of(context);
     return wrapWithPopScope(
-        context,
-        Scaffold(
-          backgroundColor: Colors.white,
-          body: Stack(
-            children: [
-              CustomScrollView(
-                controller: _scrollCtrl,
-                cacheExtent: 600,
-                slivers: [
-                  _buildSliverAppBarOnly(product),
-                  // 콘텐츠 영역 maxWidth 720 중앙 정렬
-                  SliverToBoxAdapter(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 720),
-                        child: Container(
-                          color: Colors.white,
-                          child: Column(
-                            children: [
-                              _buildImageSlider(product),
-                              _buildThumbnailBar(product),
-                              _buildAiImageNoticeBanner(),
-                              KeyedSubtree(
-                                  key: _keyDesign,
-                                  child: _buildBasicInfo(product)),
-                              // 태블릿에서는 상품 정보 바로 아래에 구매 액션을 표시합니다.
-                              _buildBottomBar(product),
-                              _buildSameDesignColorRecommendations(product),
-                              const Divider(
-                                  height: 1,
-                                  color: AppColors.border,
-                                  thickness: 1),
-                              _buildToptenBrandSection(product),
-                              const Divider(
-                                  height: 1,
-                                  color: AppColors.border,
-                                  thickness: 1),
-                              _buildMobileDesignImageBanner(product),
-                              KeyedSubtree(
-                                  key: _keyInfo,
-                                  child: _buildToptenInfoSection(product)),
-                              RepaintBoundary(
-                                  child: _buildEditorialProductDetail(
-                                      product, isAdmin)),
-                              RepaintBoundary(
-                                  key: _keySize,
-                                  child: _buildSection6SizeChart(
-                                      product, isAdmin)),
-                              KeyedSubtree(
-                                  key: _keyWashing,
-                                  child: _buildWashingTipSection(product)),
-                              RepaintBoundary(
-                                  key: _keyReview,
-                                  child: _buildReviewSection(product)),
-                              SizedBox(height: r.h(120)),
-                            ],
-                          ),
+      context,
+      Scaffold(
+        backgroundColor: Colors.white,
+        body: Stack(
+          children: [
+            CustomScrollView(
+              controller: _scrollCtrl,
+              cacheExtent: 600,
+              slivers: [
+                _buildSliverAppBarOnly(product),
+                // 콘텐츠 영역 maxWidth 720 중앙 정렬
+                SliverToBoxAdapter(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 720),
+                      child: Container(
+                        color: Colors.white,
+                        child: Column(
+                          children: [
+                            _buildImageSlider(product),
+                            _buildThumbnailBar(product),
+                            _buildAiImageNoticeBanner(),
+                            KeyedSubtree(
+                              key: _keyDesign,
+                              child: _buildBasicInfo(product),
+                            ),
+                            // 태블릿에서는 상품 정보 바로 아래에 구매 액션을 표시합니다.
+                            _buildBottomBar(product),
+                            _buildSameDesignColorRecommendations(product),
+                            const Divider(
+                              height: 1,
+                              color: AppColors.border,
+                              thickness: 1,
+                            ),
+                            _buildToptenBrandSection(product),
+                            const Divider(
+                              height: 1,
+                              color: AppColors.border,
+                              thickness: 1,
+                            ),
+                            _buildMobileDesignImageBanner(product),
+                            KeyedSubtree(
+                              key: _keyInfo,
+                              child: _buildToptenInfoSection(product),
+                            ),
+                            RepaintBoundary(
+                              child: _buildEditorialProductDetail(
+                                product,
+                                isAdmin,
+                              ),
+                            ),
+                            RepaintBoundary(
+                              key: _keySize,
+                              child: _buildSection6SizeChart(product, isAdmin),
+                            ),
+                            KeyedSubtree(
+                              key: _keyWashing,
+                              child: _buildWashingTipSection(product),
+                            ),
+                            RepaintBoundary(
+                              key: _keyReview,
+                              child: _buildReviewSection(product),
+                            ),
+                            SizedBox(height: r.h(120)),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
-            ],
-          ),
-        ));
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // ── PC 상세 (≥900px) — 2컬럼: 좌 이미지 고정 / 우 정보+스크롤 ──
   Widget _buildPcDetailLayout(
-      BuildContext context, ProductModel product, bool isAdmin) {
+    BuildContext context,
+    ProductModel product,
+    bool isAdmin,
+  ) {
     final r = Responsive.of(context);
     final screenW = MediaQuery.of(context).size.width;
     final screenH = MediaQuery.of(context).size.height;
@@ -554,96 +610,102 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     final infoColW = contentW * 0.55;
 
     return wrapWithPopScope(
-        context,
-        Scaffold(
-          backgroundColor: Colors.white,
-          body: Column(
-            children: [
-              // ── 상단 앱바 (전체 너비) ──
-              Material(
-                color: Colors.white,
-                elevation: 0.5,
-                child: SafeArea(
-                  bottom: false,
-                  child: SizedBox(
-                    height: 56,
-                    child: Row(
-                      children: [
-                        // 뒤로가기
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_rounded,
-                              size: 18, color: AppColors.primary),
-                          onPressed: () => goBackOrHome(context),
+      context,
+      Scaffold(
+        backgroundColor: Colors.white,
+        body: Column(
+          children: [
+            // ── 상단 앱바 (전체 너비) ──
+            Material(
+              color: Colors.white,
+              elevation: 0.5,
+              child: SafeArea(
+                bottom: false,
+                child: SizedBox(
+                  height: 56,
+                  child: Row(
+                    children: [
+                      // 뒤로가기
+                      IconButton(
+                        icon: const Icon(
+                          Icons.arrow_back_ios_rounded,
+                          size: 18,
+                          color: AppColors.primary,
                         ),
-                        // 홈
-                        _appBarIconBtn(
-                          icon: Icons.home_outlined,
-                          onTap: () => Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) =>
-                                      const MainScreen(initialIndex: 0)),
-                              (r) => false),
+                        onPressed: () => goBackOrHome(context),
+                      ),
+                      // 홈
+                      _appBarIconBtn(
+                        icon: Icons.home_outlined,
+                        onTap: () => Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MainScreen(initialIndex: 0),
+                          ),
+                          (r) => false,
                         ),
-                        _appBarIconBtn(
-                          icon: Icons.search_rounded,
-                          onTap: () => Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) =>
-                                      const MainScreen(initialIndex: 1)),
-                              (r) => false),
+                      ),
+                      _appBarIconBtn(
+                        icon: Icons.search_rounded,
+                        onTap: () => Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MainScreen(initialIndex: 1),
+                          ),
+                          (r) => false,
                         ),
-                        _appBarIconBtn(
-                          icon: Icons.shopping_bag_outlined,
-                          onTap: () => Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) =>
-                                      const MainScreen(initialIndex: 2)),
-                              (r) => false),
+                      ),
+                      _appBarIconBtn(
+                        icon: Icons.shopping_bag_outlined,
+                        onTap: () => Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MainScreen(initialIndex: 2),
+                          ),
+                          (r) => false,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              // ── 본문: 2컬럼 ──
-              Expanded(
-                child: Center(
-                  child: SizedBox(
-                    width: contentW,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // ── 좌: 이미지 슬라이더 (스크롤해도 고정) ──
-                        SizedBox(
-                          width: imgColW,
-                          height: screenH - 56,
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                _buildImageSlider(product),
-                                _buildThumbnailBar(product),
-                                _buildAiImageNoticeBanner(),
-                              ],
-                            ),
+            ),
+            // ── 본문: 2컬럼 ──
+            Expanded(
+              child: Center(
+                child: SizedBox(
+                  width: contentW,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── 좌: 이미지 슬라이더 (스크롤해도 고정) ──
+                      SizedBox(
+                        width: imgColW,
+                        height: screenH - 56,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              _buildImageSlider(product),
+                              _buildThumbnailBar(product),
+                              _buildAiImageNoticeBanner(),
+                            ],
                           ),
                         ),
-                        // 세로 구분선
-                        Container(width: 1, color: AppColors.border),
-                        // ── 우: 상품 정보 + 스크롤 ──
-                        SizedBox(
-                          width: infoColW - 1,
-                          height: screenH - 56,
-                          child: Stack(
-                            children: [
-                              CustomScrollView(
-                                controller: _scrollCtrl,
-                                cacheExtent: 600,
-                                slivers: [
-                                  SliverToBoxAdapter(
-                                      child: Container(
+                      ),
+                      // 세로 구분선
+                      Container(width: 1, color: AppColors.border),
+                      // ── 우: 상품 정보 + 스크롤 ──
+                      SizedBox(
+                        width: infoColW - 1,
+                        height: screenH - 56,
+                        child: Stack(
+                          children: [
+                            CustomScrollView(
+                              controller: _scrollCtrl,
+                              cacheExtent: 600,
+                              slivers: [
+                                SliverToBoxAdapter(
+                                  child: Container(
                                     color: Colors.white,
                                     child: Column(
                                       crossAxisAlignment:
@@ -651,72 +713,90 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                       children: [
                                         // 기본 정보
                                         KeyedSubtree(
-                                            key: _keyDesign,
-                                            child: _buildBasicInfo(product)),
+                                          key: _keyDesign,
+                                          child: _buildBasicInfo(product),
+                                        ),
                                         // PC에서는 상품 정보 패널 바로 아래에 표시합니다.
                                         _buildBottomBar(product),
                                         _buildSameDesignColorRecommendations(
-                                            product),
+                                          product,
+                                        ),
                                         const Divider(
-                                            height: 1,
-                                            color: AppColors.border,
-                                            thickness: 1),
+                                          height: 1,
+                                          color: AppColors.border,
+                                          thickness: 1,
+                                        ),
                                         _buildToptenBrandSection(product),
                                         const Divider(
-                                            height: 1,
-                                            color: AppColors.border,
-                                            thickness: 1),
+                                          height: 1,
+                                          color: AppColors.border,
+                                          thickness: 1,
+                                        ),
                                       ],
                                     ),
-                                  )),
-                                  // 탭바 sticky
-                                  SliverPersistentHeader(
-                                    pinned: true,
-                                    delegate: _ToptenTabBarDelegate(
-                                        _buildToptenTabBar()),
                                   ),
-                                  SliverToBoxAdapter(
-                                      child: Container(
+                                ),
+                                // 탭바 sticky
+                                SliverPersistentHeader(
+                                  pinned: true,
+                                  delegate: _ToptenTabBarDelegate(
+                                    _buildToptenTabBar(),
+                                  ),
+                                ),
+                                SliverToBoxAdapter(
+                                  child: Container(
                                     color: Colors.white,
                                     child: Column(
                                       children: [
                                         _buildMobileDesignImageBanner(product),
                                         KeyedSubtree(
-                                            key: _keyInfo,
-                                            child: _buildToptenInfoSection(
-                                                product)),
+                                          key: _keyInfo,
+                                          child: _buildToptenInfoSection(
+                                            product,
+                                          ),
+                                        ),
                                         RepaintBoundary(
-                                            child: _buildEditorialProductDetail(
-                                                product, isAdmin)),
+                                          child: _buildEditorialProductDetail(
+                                            product,
+                                            isAdmin,
+                                          ),
+                                        ),
                                         RepaintBoundary(
-                                            key: _keySize,
-                                            child: _buildSection6SizeChart(
-                                                product, isAdmin)),
+                                          key: _keySize,
+                                          child: _buildSection6SizeChart(
+                                            product,
+                                            isAdmin,
+                                          ),
+                                        ),
                                         KeyedSubtree(
-                                            key: _keyWashing,
-                                            child: _buildWashingTipSection(
-                                                product)),
+                                          key: _keyWashing,
+                                          child: _buildWashingTipSection(
+                                            product,
+                                          ),
+                                        ),
                                         RepaintBoundary(
-                                            key: _keyReview,
-                                            child:
-                                                _buildReviewSection(product)),
+                                          key: _keyReview,
+                                          child: _buildReviewSection(product),
+                                        ),
                                         SizedBox(height: r.h(120)),
                                       ],
                                     ),
-                                  )),
-                                ],
-                              ),
-                            ],
-                          ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
-        ));
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // ═══════════════════════════════════════
@@ -738,8 +818,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           shape: BoxShape.circle,
         ),
         child: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded,
-              color: AppColors.primary, size: 18),
+          icon: const Icon(
+            Icons.arrow_back_ios_rounded,
+            color: AppColors.primary,
+            size: 18,
+          ),
           onPressed: () => goBackOrHome(context),
           padding: EdgeInsets.zero,
         ),
@@ -751,7 +834,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           onTap: () => Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-                builder: (_) => const MainScreen(initialIndex: 0)),
+              builder: (_) => const MainScreen(initialIndex: 0),
+            ),
             (route) => false,
           ),
         ),
@@ -761,7 +845,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           onTap: () => Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-                builder: (_) => const MainScreen(initialIndex: 1)),
+              builder: (_) => const MainScreen(initialIndex: 1),
+            ),
             (route) => false,
           ),
         ),
@@ -771,7 +856,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           onTap: () => Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-                builder: (_) => const MainScreen(initialIndex: 2)),
+              builder: (_) => const MainScreen(initialIndex: 2),
+            ),
             (route) => false,
           ),
           margin: EdgeInsets.only(right: r.w(8), top: r.h(8), bottom: r.h(8)),
@@ -781,16 +867,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   }
 
   // 앱바 원형 아이콘 버튼 헬퍼
-  Widget _appBarIconBtn(
-      {required IconData icon,
-      required VoidCallback onTap,
-      EdgeInsetsGeometry? margin}) {
+  Widget _appBarIconBtn({
+    required IconData icon,
+    required VoidCallback onTap,
+    EdgeInsetsGeometry? margin,
+  }) {
     final r = Responsive.of(context);
     return Container(
       margin:
           margin ?? EdgeInsets.only(right: r.w(2), top: r.h(8), bottom: r.h(8)),
       decoration: const BoxDecoration(
-          color: AppColors.surfaceGray, shape: BoxShape.circle),
+        color: AppColors.surfaceGray,
+        shape: BoxShape.circle,
+      ),
       child: IconButton(
         icon: Icon(icon, color: AppColors.primary, size: 20),
         onPressed: onTap,
@@ -851,8 +940,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 250),
                           height: _mainImageIndex == i ? 3.0 : 2.0,
-                          margin:
-                              EdgeInsets.only(right: i < imgCount - 1 ? 2 : 0),
+                          margin: EdgeInsets.only(
+                            right: i < imgCount - 1 ? 2 : 0,
+                          ),
                           decoration: BoxDecoration(
                             color: _mainImageIndex == i
                                 ? AppColors.primary
@@ -869,7 +959,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                 right: 14,
                 child: Container(
                   padding: EdgeInsets.symmetric(
-                      horizontal: r.w(10), vertical: r.h(4)),
+                    horizontal: r.w(10),
+                    vertical: r.h(4),
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.35),
                     borderRadius: BorderRadius.circular(20),
@@ -877,9 +969,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                   child: Text(
                     '${_mainImageIndex + 1} / $imgCount',
                     style: TextStyle(
-                        color: Colors.white,
-                        fontSize: r.sp(11),
-                        fontWeight: FontWeight.w600),
+                      color: Colors.white,
+                      fontSize: r.sp(11),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -890,7 +983,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                 left: 14,
                 child: Container(
                   padding: EdgeInsets.symmetric(
-                      horizontal: r.w(9), vertical: r.h(6)),
+                    horizontal: r.w(9),
+                    vertical: r.h(6),
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.55),
                     borderRadius: BorderRadius.circular(6),
@@ -899,8 +994,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        context.loc.t('디자인_이미지를_제외한_상품_사진은_AI_생성_이미지입니다',
-                            '※ 디자인 이미지를 제외한 상품 사진은 AI 생성 이미지입니다'),
+                        context.loc.t(
+                          '디자인_이미지를_제외한_상품_사진은_AI_생성_이미지입니다',
+                          '※ 디자인 이미지를 제외한 상품 사진은 AI 생성 이미지입니다',
+                        ),
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: r.sp(10),
@@ -910,8 +1007,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                       ),
                       SizedBox(height: r.h(3)),
                       Text(
-                        context.loc.t('디자인_이미지를_반드시_확인해주세요_확인_필수',
-                            '▶ 디자인 이미지를 반드시 확인해주세요 [확인 필수]'),
+                        context.loc.t(
+                          '디자인_이미지를_반드시_확인해주세요_확인_필수',
+                          '▶ 디자인 이미지를 반드시 확인해주세요 [확인 필수]',
+                        ),
                         style: TextStyle(
                           color: const Color(0xFFFFD966),
                           fontSize: r.sp(10),
@@ -931,11 +1030,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   }
 
   Widget _imagePlaceholder() => Container(
-        color: AppColors.border,
-        child: const Center(
-          child: Icon(Icons.image_outlined, size: 80, color: AppColors.border),
-        ),
-      );
+    color: AppColors.border,
+    child: const Center(
+      child: Icon(Icons.image_outlined, size: 80, color: AppColors.border),
+    ),
+  );
 
   // ══ 상품 공유 ══
   void _shareProduct(ProductModel product) {
@@ -945,7 +1044,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     final price = product.price > 0
         ? '₩${product.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원'
         : '';
-    final text = '''[2FIT MALL] ${product.name}
+    final text =
+        '''[2FIT MALL] ${product.name}
 $price
 $productUrl
 
@@ -964,15 +1064,18 @@ $productUrl
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                    color: AppColors.border,
-                    borderRadius: BorderRadius.circular(2))),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
             SizedBox(height: r.h(16)),
-            Text(context.loc.t('공유하기', '공유하기'),
-                style:
-                    TextStyle(fontSize: r.sp(17), fontWeight: FontWeight.w800)),
+            Text(
+              context.loc.t('공유하기', '공유하기'),
+              style: TextStyle(fontSize: r.sp(17), fontWeight: FontWeight.w800),
+            ),
             SizedBox(height: r.h(20)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -987,9 +1090,11 @@ $productUrl
                     Clipboard.setData(ClipboardData(text: productUrl));
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                          content: Text(
-                              context.loc.t('링크가 복사되었습니다', '링크가 복사되었습니다 ✓')),
-                          backgroundColor: const Color(0xFF4CAF50)),
+                        content: Text(
+                          context.loc.t('링크가 복사되었습니다', '링크가 복사되었습니다 ✓'),
+                        ),
+                        backgroundColor: const Color(0xFF4CAF50),
+                      ),
                     );
                   },
                 ),
@@ -1011,8 +1116,9 @@ $productUrl
                   label: context.loc.t('기타_공유', '기타 공유'),
                   onTap: () {
                     Navigator.pop(context);
-                    SharePlus.instance
-                        .share(ShareParams(text: text, subject: product.name));
+                    SharePlus.instance.share(
+                      ShareParams(text: text, subject: product.name),
+                    );
                   },
                 ),
                 // 카카오 채널 문의
@@ -1064,25 +1170,29 @@ $productUrl
             ),
           ),
           SizedBox(height: r.h(8)),
-          Text(label,
-              style: TextStyle(
-                  fontSize: r.sp(11),
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.textPrimary)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: r.sp(11),
+              fontWeight: FontWeight.w400,
+              color: AppColors.textPrimary,
+            ),
+          ),
         ],
       ),
     );
   }
 
   Future<void> _shareViaKakao(ProductModel product, String url) async {
-// ignore: unused_local_variable
+    // ignore: unused_local_variable
     final r = Responsive.of(context);
     // 카카오톡 앱 링크로 공유 (웹 폴백 포함)
     final kakaoShareUrl = Uri.parse(
       'kakaolink://send?url=${Uri.encodeComponent(url)}&text=${Uri.encodeComponent(product.name)}',
     );
     final webFallbackUrl = Uri.parse(
-        'https://story.kakao.com/share?url=${Uri.encodeComponent(url)}');
+      'https://story.kakao.com/share?url=${Uri.encodeComponent(url)}',
+    );
 
     if (await canLaunchUrl(kakaoShareUrl)) {
       await launchUrl(kakaoShareUrl);
@@ -1096,8 +1206,13 @@ $productUrl
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(context.loc.t('링크가 복사되었습니다 카카오톡에 직접 붙여넣기해 주세요',
-                    '링크가 복사되었습니다 (카카오톡에 직접 붙여넣기해 주세요) ✓'))),
+              content: Text(
+                context.loc.t(
+                  '링크가 복사되었습니다 카카오톡에 직접 붙여넣기해 주세요',
+                  '링크가 복사되었습니다 (카카오톡에 직접 붙여넣기해 주세요) ✓',
+                ),
+              ),
+            ),
           );
         }
       }
@@ -1117,8 +1232,10 @@ $productUrl
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content:
-                  Text(context.loc.t('카카오 채널 2fitmall', '카카오 채널: @2fit-mall'))),
+            content: Text(
+              context.loc.t('카카오 채널 2fitmall', '카카오 채널: @2fit-mall'),
+            ),
+          ),
         );
       }
     }
@@ -1140,7 +1257,7 @@ $productUrl
 
   // ══ 모바일: 메인이미지 아래 디자인 이미지 배너 ══
   Widget _buildMobileDesignImageBanner(ProductModel product) {
-// ignore: unused_local_variable
+    // ignore: unused_local_variable
     final r = Responsive.of(context);
     // 디자인 이미지는 풀사이즈 배너로 표시하지 않음
     // → 상품정보 탭의 '디자인 이미지' 섹션(_buildDesignImageSection)에서만 표시
@@ -1162,14 +1279,16 @@ $productUrl
         itemCount: imgs.length,
         separatorBuilder: (_, __) => SizedBox(width: r.w(6)),
         itemBuilder: (_, i) {
-// ignore: unused_local_variable
+          // ignore: unused_local_variable
           final r = Responsive.of(context);
           final selected = _mainImageIndex == i;
           return GestureDetector(
             onTap: () {
-              _pageCtrl.animateToPage(i,
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut);
+              _pageCtrl.animateToPage(
+                i,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
               setState(() => _mainImageIndex = i);
             },
             child: AnimatedContainer(
@@ -1202,7 +1321,7 @@ $productUrl
   // ═══════════════════════════════════════
   // 섬유 혼용율 인라인 (상품명 아래)
   // ═══════════════════════════════════════
-// ignore: unused_element
+  // ignore: unused_element
   Widget _buildFiberRatioInline(ProductModel product) {
     final r = Responsive.of(context);
     final table = loc.fiberTableData;
@@ -1216,11 +1335,12 @@ $productUrl
         sub.contains(context.loc.t('타이즈', '타이즈')) ||
         cat.contains(context.loc.t('하의', '하의'))) {
       matched = table.firstWhere(
-          (r) =>
-              r[0].contains(context.loc.t('골지', '골지')) ||
-              r[0].contains('Golgi') ||
-              r[0].contains('タイツ'),
-          orElse: () => table.isNotEmpty ? table[1] : []);
+        (r) =>
+            r[0].contains(context.loc.t('골지', '골지')) ||
+            r[0].contains('Golgi') ||
+            r[0].contains('タイツ'),
+        orElse: () => table.isNotEmpty ? table[1] : [],
+      );
     } else if (name.contains(context.loc.t('크롭', '크롭')) ||
         name.contains('crop') ||
         name.contains(context.loc.t('삼각', '삼각')) ||
@@ -1247,9 +1367,10 @@ $productUrl
           child: Text(
             matched[1],
             style: TextStyle(
-                fontSize: r.sp(11),
-                color: AppColors.info,
-                fontWeight: FontWeight.w600),
+              fontSize: r.sp(11),
+              color: AppColors.info,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         if (matched.length > 2)
@@ -1263,9 +1384,10 @@ $productUrl
             child: Text(
               matched[2],
               style: TextStyle(
-                  fontSize: r.sp(11),
-                  color: AppColors.info,
-                  fontWeight: FontWeight.w600),
+                fontSize: r.sp(11),
+                color: AppColors.info,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
       ],
@@ -1279,8 +1401,8 @@ $productUrl
     final r = Responsive.of(context);
     final discount =
         product.originalPrice != null && product.originalPrice! > product.price
-            ? ((1 - product.price / product.originalPrice!) * 100).round()
-            : 0;
+        ? ((1 - product.price / product.originalPrice!) * 100).round()
+        : 0;
     final isAdmin = context.read<UserProvider>().isAdmin;
 
     return Container(
@@ -1300,23 +1422,36 @@ $productUrl
           if (!_isSingletGroupProduct(product) && product.isReadyMade)
             Padding(
               padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
-              child: Row(children: [
-                _toptenTabChip(context.loc.t('기성품', '기성품'), true,
-                    activeColor: AppColors.primary),
-              ]),
+              child: Row(
+                children: [
+                  _toptenTabChip(
+                    context.loc.t('기성품', '기성품'),
+                    true,
+                    activeColor: AppColors.primary,
+                  ),
+                ],
+              ),
             ),
           if (_isSingletGroupProduct(product))
             Padding(
               padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
-              child: Row(children: [
-                _toptenTabChip(context.loc.t('단체전용', '단체전용'), true,
-                    activeColor: AppColors.primary),
-                if (product.isReadyMade) ...[
-                  SizedBox(width: r.w(8)),
-                  _toptenTabChip(context.loc.t('기성품', '기성품'), true,
-                      activeColor: AppColors.primary),
+              child: Row(
+                children: [
+                  _toptenTabChip(
+                    context.loc.t('단체전용', '단체전용'),
+                    true,
+                    activeColor: AppColors.primary,
+                  ),
+                  if (product.isReadyMade) ...[
+                    SizedBox(width: r.w(8)),
+                    _toptenTabChip(
+                      context.loc.t('기성품', '기성품'),
+                      true,
+                      activeColor: AppColors.primary,
+                    ),
+                  ],
                 ],
-              ]),
+              ),
             ),
 
           // ═══════════════════════════════════════════════
@@ -1340,16 +1475,22 @@ $productUrl
                         ),
                       ),
                       SizedBox(width: r.w(2)),
-                      const Icon(Icons.chevron_right_rounded,
-                          size: 16, color: AppColors.textSecondary),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        size: 16,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
                 const Spacer(),
                 GestureDetector(
                   onTap: () => _shareProduct(product),
-                  child: const Icon(Icons.share_outlined,
-                      size: 20, color: AppColors.textSecondary),
+                  child: const Icon(
+                    Icons.share_outlined,
+                    size: 20,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -1397,30 +1538,40 @@ $productUrl
             padding: EdgeInsets.fromLTRB(r.w(16), r.h(8), r.w(16), r.h(0)),
             child: GestureDetector(
               onTap: () {},
-              child: Row(children: [
-                const Icon(Icons.star_rounded,
-                    size: 15, color: AppColors.primary),
-                SizedBox(width: r.w(3)),
-                Text(
-                  product.rating > 0
-                      ? product.rating.toStringAsFixed(1)
-                      : '4.8',
-                  style: TextStyle(
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.star_rounded,
+                    size: 15,
+                    color: AppColors.primary,
+                  ),
+                  SizedBox(width: r.w(3)),
+                  Text(
+                    product.rating > 0
+                        ? product.rating.toStringAsFixed(1)
+                        : '4.8',
+                    style: TextStyle(
                       fontSize: r.sp(13),
                       fontWeight: FontWeight.w800,
-                      color: AppColors.primary),
-                ),
-                SizedBox(width: r.w(4)),
-                Text(
-                  '리뷰 ${product.reviewCount > 0 ? product.reviewCount : 0}건',
-                  style: TextStyle(
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  SizedBox(width: r.w(4)),
+                  Text(
+                    '리뷰 ${product.reviewCount > 0 ? product.reviewCount : 0}건',
+                    style: TextStyle(
                       fontSize: r.sp(13),
                       color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500),
-                ),
-                const Icon(Icons.chevron_right_rounded,
-                    size: 16, color: AppColors.textSecondary),
-              ]),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -1506,9 +1657,10 @@ $productUrl
             child: Text(
               '시즌 : SS26  |  상품번호 : ${product.productCode.isNotEmpty ? product.productCode.toUpperCase() : product.id.toUpperCase()}',
               style: TextStyle(
-                  fontSize: r.sp(11),
-                  color: AppColors.textHint,
-                  fontWeight: FontWeight.w400),
+                fontSize: r.sp(11),
+                color: AppColors.textHint,
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ),
 
@@ -1517,16 +1669,20 @@ $productUrl
           // ═══════════════════════════════════════════════
           Padding(
             padding: EdgeInsets.fromLTRB(r.w(16), r.h(0), r.w(16), r.h(14)),
-            child: Wrap(spacing: 6, runSpacing: 6, children: [
-              _hashtagChip('#2fit'),
-              _hashtagChip(context.loc.t('스포츠웨어', '#스포츠웨어')),
-              if (product.isFreeShipping)
-                _hashtagChip(context.loc.t('무료배송', '#무료배송')),
-              if (product.isNewActive)
-                _hashtagChip(context.loc.t('신상품', '#신상품')),
-              if (product.isSale) _hashtagChip(context.loc.t('세일', '#세일')),
-              _hashtagChip('#${product.category}'),
-            ]),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                _hashtagChip('#2fit'),
+                _hashtagChip(context.loc.t('스포츠웨어', '#스포츠웨어')),
+                if (product.isFreeShipping)
+                  _hashtagChip(context.loc.t('무료배송', '#무료배송')),
+                if (product.isNewActive)
+                  _hashtagChip(context.loc.t('신상품', '#신상품')),
+                if (product.isSale) _hashtagChip(context.loc.t('세일', '#세일')),
+                _hashtagChip('#${product.category}'),
+              ],
+            ),
           ),
 
           // ═══════════════════════════════════════════════
@@ -1562,93 +1718,108 @@ $productUrl
 
   // ── 탑텐 스타일: 색상 원형 그리드 선택 UI ──
   Widget _buildToptenColorSection(ProductModel product) {
-    String selectedColor =
-        product.colors.isNotEmpty ? product.colors.first : '';
+    String selectedColor = product.colors.isNotEmpty
+        ? product.colors.first
+        : '';
     // 골지 텍스처 적용 대상: 타이즈, 단체주문 하의, 5부, 2.5부
     final sub = product.subCategory;
     final name = product.name;
     final showRib =
         _isSingletGroupProduct(product) && product.category == '하의' ||
-            sub.contains(context.loc.t('타이즈', '타이즈')) ||
-            name.contains(context.loc.t('타이즈', '타이즈')) ||
-            sub.contains(context.loc.t('k_5부', '5부')) ||
-            name.contains(context.loc.t('k_5부', '5부')) ||
-            sub.contains(context.loc.t('k_25부', '2.5부')) ||
-            name.contains(context.loc.t('k_25부', '2.5부'));
+        sub.contains(context.loc.t('타이즈', '타이즈')) ||
+        name.contains(context.loc.t('타이즈', '타이즈')) ||
+        sub.contains(context.loc.t('k_5부', '5부')) ||
+        name.contains(context.loc.t('k_5부', '5부')) ||
+        sub.contains(context.loc.t('k_25부', '2.5부')) ||
+        name.contains(context.loc.t('k_25부', '2.5부'));
 
-    return StatefulBuilder(builder: (ctx, setSt) {
-      final r = Responsive.of(context);
+    return StatefulBuilder(
+      builder: (ctx, setSt) {
+        final r = Responsive.of(context);
 
-      return Padding(
-        padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 색상 라벨 + 선택된 색상명
-            Row(children: [
-              Text(context.loc.t('색상', '색상'),
-                  style: TextStyle(
+        return Padding(
+          padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 색상 라벨 + 선택된 색상명
+              Row(
+                children: [
+                  Text(
+                    context.loc.t('색상', '색상'),
+                    style: TextStyle(
                       fontSize: r.sp(13),
                       fontWeight: FontWeight.w700,
-                      color: AppColors.primary)),
-              SizedBox(width: r.w(10)),
-              Text(
-                selectedColor,
-                style: TextStyle(
-                    fontSize: r.sp(13),
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w400),
-              ),
-            ]),
-            SizedBox(height: r.h(12)),
-            // 원형 색상 버튼 그리드
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: product.colors.map((colorName) {
-                final isSelected = selectedColor == colorName;
-                final dotColor = _registeredColorForName(colorName);
-                final isLight = dotColor.computeLuminance() > 0.5;
-                return GestureDetector(
-                  onTap: () => setSt(() => selectedColor = colorName),
-                  child: RibColorSwatch(
-                    color: dotColor,
-                    size: 36,
-                    isSelected: isSelected,
-                    accentColor: AppColors.primary,
-                    isLight: isLight,
-                    borderRadius: 18,
-                    showRib: showRib,
-                    // 선택 상태는 색상 원형과 테두리만으로 표시합니다.
-                    // 기성품 색상 스와치에는 체크 아이콘을 표시하지 않습니다.
+                      color: AppColors.primary,
+                    ),
                   ),
-                );
-              }).toList(),
-            ),
-            SizedBox(height: r.h(8)),
-            // 색상 안내 disclaimer
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.info_outline_rounded,
-                    size: 11, color: AppColors.textHint),
-                SizedBox(width: r.w(4)),
-                Expanded(
-                  child: Text(
-                    context.loc.t('화면에_표시된_색상은_모니터_환경에_따라_실제_제품과_약간의__21558e',
-                        '화면에 표시된 색상은 모니터 환경에 따라 실제 제품과 약간의 차이가 있을 수 있습니다.'),
+                  SizedBox(width: r.w(10)),
+                  Text(
+                    selectedColor,
                     style: TextStyle(
+                      fontSize: r.sp(13),
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: r.h(12)),
+              // 원형 색상 버튼 그리드
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: product.colors.map((colorName) {
+                  final isSelected = selectedColor == colorName;
+                  final dotColor = _registeredColorForName(colorName);
+                  final isLight = dotColor.computeLuminance() > 0.5;
+                  return GestureDetector(
+                    onTap: () => setSt(() => selectedColor = colorName),
+                    child: RibColorSwatch(
+                      color: dotColor,
+                      size: 36,
+                      isSelected: isSelected,
+                      accentColor: AppColors.primary,
+                      isLight: isLight,
+                      borderRadius: 18,
+                      showRib: showRib,
+                      // 선택 상태는 색상 원형과 테두리만으로 표시합니다.
+                      // 기성품 색상 스와치에는 체크 아이콘을 표시하지 않습니다.
+                    ),
+                  );
+                }).toList(),
+              ),
+              SizedBox(height: r.h(8)),
+              // 색상 안내 disclaimer
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    size: 11,
+                    color: AppColors.textHint,
+                  ),
+                  SizedBox(width: r.w(4)),
+                  Expanded(
+                    child: Text(
+                      context.loc.t(
+                        '화면에_표시된_색상은_모니터_환경에_따라_실제_제품과_약간의__21558e',
+                        '화면에 표시된 색상은 모니터 환경에 따라 실제 제품과 약간의 차이가 있을 수 있습니다.',
+                      ),
+                      style: TextStyle(
                         fontSize: r.sp(10),
                         color: AppColors.textHint,
-                        height: 1.45),
+                        height: 1.45,
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    });
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   // ── 탑텐 스타일: 해시태그 칩 ──
@@ -1657,137 +1828,164 @@ $productUrl
     return Text(
       label,
       style: TextStyle(
-          fontSize: r.sp(12),
-          color: AppColors.textSecondary,
-          fontWeight: FontWeight.w400),
+        fontSize: r.sp(12),
+        color: AppColors.textSecondary,
+        fontWeight: FontWeight.w400,
+      ),
     );
   }
 
   // ── 탑텐 스타일: 배송비 + 포인트 구조형 섹션 ──
   Widget _buildToptenShippingSection(ProductModel product) {
     final r = Responsive.of(context);
-    return Column(children: [
-      // 배송비 행
-      Padding(
-        padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(13)),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 44,
-              child: Text(context.loc.t('배송비', '배송비'),
+    return Column(
+      children: [
+        // 배송비 행
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(13)),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 44,
+                child: Text(
+                  context.loc.t('배송비', '배송비'),
                   style: TextStyle(
-                      fontSize: r.sp(13),
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500)),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.isFreeShipping
-                        ? context.loc.t('무료배송', '무료배송')
-                        : context.loc.t('4_000원_300_000원_이상_구매시_무료',
-                            '4,000원 (300,000원 이상 구매시 무료)'),
-                    style: TextStyle(
-                      fontSize: r.sp(13),
-                      color: product.isFreeShipping
-                          ? AppColors.success
-                          : AppColors.primary,
-                      fontWeight: product.isFreeShipping
-                          ? FontWeight.w700
-                          : FontWeight.w400,
-                    ),
+                    fontSize: r.sp(13),
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
                   ),
-                  if (!product.isFreeShipping)
-                    Text(
-                      context.loc
-                          .t('도서산간_배송시_3_000원_추가', '(도서산간 배송시 3,000원 추가)'),
-                      style: TextStyle(
-                          fontSize: r.sp(11), color: AppColors.textHint),
-                    ),
-                  // 포인트 섹션 제거됨 (요청 반영)
-                ],
+                ),
               ),
-            ),
-          ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.isFreeShipping
+                          ? context.loc.t('무료배송', '무료배송')
+                          : context.loc.t(
+                              '4_000원_300_000원_이상_구매시_무료',
+                              '4,000원 (300,000원 이상 구매시 무료)',
+                            ),
+                      style: TextStyle(
+                        fontSize: r.sp(13),
+                        color: product.isFreeShipping
+                            ? AppColors.success
+                            : AppColors.primary,
+                        fontWeight: product.isFreeShipping
+                            ? FontWeight.w700
+                            : FontWeight.w400,
+                      ),
+                    ),
+                    if (!product.isFreeShipping)
+                      Text(
+                        context.loc.t(
+                          '도서산간_배송시_3_000원_추가',
+                          '(도서산간 배송시 3,000원 추가)',
+                        ),
+                        style: TextStyle(
+                          fontSize: r.sp(11),
+                          color: AppColors.textHint,
+                        ),
+                      ),
+                    // 포인트 섹션 제거됨 (요청 반영)
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 
   // ── 탑텐 스타일: 브랜드 로고 박스 섹션 ──
   Widget _buildToptenBrandSection(ProductModel product) {
-    return Consumer<UserProvider>(builder: (_, up, __) {
-      final r = Responsive.of(context);
+    return Consumer<UserProvider>(
+      builder: (_, up, __) {
+        final r = Responsive.of(context);
 
-      final isWish = up.isInWishlist(product.id);
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(14)),
-        child: Row(children: [
-          // 브랜드 로고 — logo_2fit_text.png 이미지
-          SizedBox(
-            width: 90,
-            height: 40,
-            child: Image.asset(
-              'assets/images/logo_2fit_text.png',
-              fit: BoxFit.contain,
-              alignment: Alignment.centerLeft,
-            ),
-          ),
-          SizedBox(width: r.w(10)),
-          // 브랜드명 텍스트
-          GestureDetector(
-            onTap: () {},
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('2FIT',
-                    style: TextStyle(
+        final isWish = up.isInWishlist(product.id);
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(14)),
+          child: Row(
+            children: [
+              // 브랜드 로고 — logo_2fit_text.png 이미지
+              SizedBox(
+                width: 90,
+                height: 40,
+                child: Image.asset(
+                  'assets/images/logo_2fit_text.png',
+                  fit: BoxFit.contain,
+                  alignment: Alignment.centerLeft,
+                ),
+              ),
+              SizedBox(width: r.w(10)),
+              // 브랜드명 텍스트
+              GestureDetector(
+                onTap: () {},
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '2FIT',
+                      style: TextStyle(
                         fontSize: r.sp(14),
                         fontWeight: FontWeight.w800,
                         color: AppColors.primary,
-                        letterSpacing: -0.3)),
-                Text('2FIT KOREA',
-                    style: TextStyle(
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    Text(
+                      '2FIT KOREA',
+                      style: TextStyle(
                         fontSize: r.sp(11),
                         color: AppColors.textSecondary,
                         fontWeight: FontWeight.w400,
-                        letterSpacing: 0.5)),
-              ],
-            ),
-          ),
-          const Spacer(),
-          // 찜하기 하트 + 카운트
-          GestureDetector(
-            onTap: () {
-              if (up.isLoggedIn) {
-                up.toggleWishlist(product.id);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(loc.loginRequired)),
-                );
-              }
-            },
-            child: Column(children: [
-              Icon(
-                isWish ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                color: isWish ? AppColors.error : AppColors.textSecondary,
-                size: 26,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              Text(
-                (up.user?.wishlist.length ?? 0).toString(),
-                style: TextStyle(
-                    fontSize: r.sp(11),
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500),
+              const Spacer(),
+              // 찜하기 하트 + 카운트
+              GestureDetector(
+                onTap: () {
+                  if (up.isLoggedIn) {
+                    up.toggleWishlist(product.id);
+                  } else {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(loc.loginRequired)));
+                  }
+                },
+                child: Column(
+                  children: [
+                    Icon(
+                      isWish
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                      color: isWish ? AppColors.error : AppColors.textSecondary,
+                      size: 26,
+                    ),
+                    Text(
+                      (up.user?.wishlist.length ?? 0).toString(),
+                      style: TextStyle(
+                        fontSize: r.sp(11),
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ]),
+            ],
           ),
-        ]),
-      );
-    });
+        );
+      },
+    );
   }
 
   // ── 탑텐 스타일: 상품정보 탭바 (상품정보/사이즈/리뷰/추천/문의) ──
@@ -1846,21 +2044,26 @@ $productUrl
               behavior: HitTestBehavior.opaque,
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: r.h(13)),
-                child: Column(children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: r.sp(13),
-                      fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
-                      color: sel ? AppColors.primary : AppColors.textSecondary,
+                child: Column(
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: r.sp(13),
+                        fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
+                        color: sel
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: r.h(10)),
-                  Container(
+                    SizedBox(height: r.h(10)),
+                    Container(
                       height: 2,
-                      color: sel ? AppColors.primary : Colors.transparent),
-                ]),
+                      color: sel ? AppColors.primary : Colors.transparent,
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -1871,8 +2074,10 @@ $productUrl
 
   /// 상품명·분류·관리자 소재명에 따른 섬유 혼용률입니다.
   /// 관리자가 브라이트/에어로브라이트 원단명을 입력하면 해당 원단의 비율을 우선 적용합니다.
-  String _materialTextForProduct(ProductModel product,
-      {bool includeEditorial = true}) {
+  String _materialTextForProduct(
+    ProductModel product, {
+    bool includeEditorial = true,
+  }) {
     // 상품별 에디토리얼 상세 본문이 저장되어 있으면 카테고리 기본 문구보다
     // 우선 표시합니다. 줄바꿈은 상세페이지의 본문 단락으로 유지합니다.
     if (includeEditorial && product.editorialMaterialText.trim().isNotEmpty) {
@@ -1888,17 +2093,21 @@ $productUrl
     final customMaterial = product.material.trim();
     final hasCustomMaterial =
         customMaterial.isNotEmpty && !legacyDefaults.contains(customMaterial);
-    final isSingletSet = product.category == '세트' ||
+    final isSingletSet =
+        product.category == '세트' ||
         label.contains('싱글렛세트') ||
         label.contains('싱글렛 세트');
-    final isSingletOrRoundTee = !isSingletSet &&
+    final isSingletOrRoundTee =
+        !isSingletSet &&
         (label.contains('싱글렛') ||
             label.contains('라운드티') ||
             label.contains('라운드 티'));
-    final isGoljiTights = label.contains('골지타이즈') ||
+    final isGoljiTights =
+        label.contains('골지타이즈') ||
         label.contains('골지 타이즈') ||
         (product.category == '하의' && label.contains('골지'));
-    final isPearlWear = label.contains('크롭탑') ||
+    final isPearlWear =
+        label.contains('크롭탑') ||
         label.contains('크롭 탑') ||
         label.contains('삼각') ||
         label.contains('원피스');
@@ -1930,16 +2139,19 @@ $productUrl
     final name = product.name;
 
     // ── 카테고리 판별 헬퍼 ──────────────────────────────────────
-    final isSingletSet = cat == context.loc.t('세트', '세트') ||
+    final isSingletSet =
+        cat == context.loc.t('세트', '세트') ||
         sub.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         name.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         name.contains(context.loc.t('싱글렛 세트', '싱글렛 세트'));
-// ignore: unused_local_variable
-    final isSingletTop = !isSingletSet &&
+    // ignore: unused_local_variable
+    final isSingletTop =
+        !isSingletSet &&
         (cat == context.loc.t('상의', '상의') ||
             sub.contains(context.loc.t('싱글렛', '싱글렛')) ||
             name.contains(context.loc.t('싱글렛', '싱글렛')));
-    final isTaiz = sub.contains(context.loc.t('타이즈', '타이즈')) ||
+    final isTaiz =
+        sub.contains(context.loc.t('타이즈', '타이즈')) ||
         name.contains(context.loc.t('타이즈', '타이즈')) ||
         cat == context.loc.t('하의', '하의');
     final isGroupOnly = _isSingletGroupProduct(product);
@@ -1948,8 +2160,10 @@ $productUrl
     // 싱글렛·라운드티·골지타이즈·펄원단 상품은 확정된 기준값을 우선 적용합니다.
     // 에디토리얼 전체 본문은 아래 상세 섹션에서만 표시합니다.
     // 기본 상품정보에는 소재·혼용률만 표시해 같은 내용이 반복되지 않도록 합니다.
-    final materialText =
-        _materialTextForProduct(product, includeEditorial: false);
+    final materialText = _materialTextForProduct(
+      product,
+      includeEditorial: false,
+    );
 
     // ── 2) COLOR: 카테고리/구매방식별 표시 ──────────────────────
     // 단체주문: 골지 19색 모두 선택 가능
@@ -1968,8 +2182,10 @@ $productUrl
           _infoColorBadge(
             label: context.loc.t('단체주문_전용', '단체주문 전용'),
             labelColor: AppColors.primaryLight,
-            text: context.loc.t('골지원단_19가지_기본_색상_중_원하는_색상으로_자유롭게_제작_가능',
-                '골지원단 19가지 기본 색상 중 원하는 색상으로 자유롭게 제작 가능'),
+            text: context.loc.t(
+              '골지원단_19가지_기본_색상_중_원하는_색상으로_자유롭게_제작_가능',
+              '골지원단 19가지 기본 색상 중 원하는 색상으로 자유롭게 제작 가능',
+            ),
           ),
           SizedBox(height: r.h(10)),
           _infoColorChipRow([
@@ -1991,7 +2207,7 @@ $productUrl
             'BB',
             'FP',
             'FO',
-            'FG'
+            'FG',
           ], useRib: false),
           SizedBox(height: r.h(12)),
           const Divider(height: 1, color: AppColors.border),
@@ -1999,19 +2215,23 @@ $productUrl
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('01',
-                  style: TextStyle(
-                      fontSize: r.sp(10),
-                      color: AppColors.accent,
-                      fontWeight: FontWeight.w900)),
+              Text(
+                '01',
+                style: TextStyle(
+                  fontSize: r.sp(10),
+                  color: AppColors.accent,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
               SizedBox(width: r.w(9)),
               Expanded(
                 child: Text(
                   '${context.loc.t('19가지_기본_색상_외에도_제작_가능', '19가지 기본 색상 외에도 제작 가능')}\n${context.loc.t('원하시는_색상이_있다면_주문_시_별도로_알려주세요', '원하시는 색상이 있다면 주문 시 별도로 알려주세요.')}',
                   style: TextStyle(
-                      fontSize: r.sp(11),
-                      color: AppColors.textSecondary,
-                      height: 1.55),
+                    fontSize: r.sp(11),
+                    color: AppColors.textSecondary,
+                    height: 1.55,
+                  ),
                 ),
               ),
             ],
@@ -2020,7 +2240,8 @@ $productUrl
       );
     } else {
       // 기성품: 타이즈·5부·2.5부는 골지, 그 외(숏츠 등)는 단색
-      final isRibBottom = sub.contains(context.loc.t('타이즈', '타이즈')) ||
+      final isRibBottom =
+          sub.contains(context.loc.t('타이즈', '타이즈')) ||
           name.contains(context.loc.t('타이즈', '타이즈')) ||
           sub.contains(context.loc.t('k_5부', '5부')) ||
           name.contains(context.loc.t('k_5부', '5부')) ||
@@ -2029,9 +2250,13 @@ $productUrl
       final useRib = isRibBottom;
       colorContent = product.colors.isNotEmpty
           ? _infoColorChipRow(product.colors, useRib: useRib)
-          : Text(context.loc.t('등록된_색상_정보가_없습니다', '등록된 색상 정보가 없습니다.'),
+          : Text(
+              context.loc.t('등록된_색상_정보가_없습니다', '등록된 색상 정보가 없습니다.'),
               style: TextStyle(
-                  fontSize: r.sp(12), color: AppColors.textSecondary));
+                fontSize: r.sp(12),
+                color: AppColors.textSecondary,
+              ),
+            );
     }
 
     // ── 3) PRODUCT 테이블 행: 하의길이 행 추가 ──────────────────
@@ -2042,23 +2267,25 @@ $productUrl
       bottomLengthValue = product.bottomLength;
     } else if (!isGroupOnly && isSingletSet) {
       // 싱글렛세트 기성품 기본값
-      bottomLengthValue =
-          context.loc.t('남성_5부_고정_여성_25부_고정', '남성: 5부 고정  /  여성: 2.5부 고정');
+      bottomLengthValue = context.loc.t(
+        '남성_5부_고정_여성_25부_고정',
+        '남성: 5부 고정  /  여성: 2.5부 고정',
+      );
     } else if (!isGroupOnly && isTaiz) {
       // 하의 타이즈 기성품: subCategory에 길이 정보 있으면 사용
       final lengthLabel = sub.contains('9부')
           ? '9부'
           : sub.contains(context.loc.t('k_5부', '5부'))
-              ? '5부'
-              : sub.contains(context.loc.t('k_4부', '4부'))
-                  ? '4부'
-                  : sub.contains(context.loc.t('k_3부', '3부'))
-                      ? '3부'
-                      : sub.contains(context.loc.t('k_25부', '2.5부'))
-                          ? '2.5부'
-                          : sub.contains(context.loc.t('숏쇼츠', '숏쇼츠'))
-                              ? context.loc.t('숏쇼츠', '숏쇼츠')
-                              : null;
+          ? '5부'
+          : sub.contains(context.loc.t('k_4부', '4부'))
+          ? '4부'
+          : sub.contains(context.loc.t('k_3부', '3부'))
+          ? '3부'
+          : sub.contains(context.loc.t('k_25부', '2.5부'))
+          ? '2.5부'
+          : sub.contains(context.loc.t('숏쇼츠', '숏쇼츠'))
+          ? context.loc.t('숏쇼츠', '숏쇼츠')
+          : null;
       if (lengthLabel != null) bottomLengthValue = lengthLabel;
     }
 
@@ -2152,18 +2379,22 @@ $productUrl
         Text(
           '$label ·',
           style: TextStyle(
-              color: labelColor,
-              fontSize: r.sp(10),
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.5),
+            color: labelColor,
+            fontSize: r.sp(10),
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0.5,
+          ),
         ),
         SizedBox(width: r.w(8)),
         Expanded(
-          child: Text(text,
-              style: TextStyle(
-                  fontSize: r.sp(12),
-                  color: AppColors.textSecondary,
-                  height: 1.55)),
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: r.sp(12),
+              color: AppColors.textSecondary,
+              height: 1.55,
+            ),
+          ),
         ),
       ],
     );
@@ -2397,18 +2628,26 @@ $productUrl
   // 세탁 주의사항 리스트
   // static const → runtime loc.t 사용, getter로 대체
   List<String> get _washingTips => [
-        context.loc.t('세제를_풀어_놓은_물에_담가_두지_마시고',
-            '세제를 풀어 놓은 물에 담가 두지 마시고 세탁 시 수축 및 변형 방지를 위해 찬물 세탁을 권장합니다.'),
-        context.loc.t('땀과_물에_젖었을_경우_즉시_세탁', '땀과 물에 젖었을 경우 즉시 세탁하십시오.'),
-        context.loc.t('세탁_시_지퍼나_단추를_잠근_상태', '세탁 시 지퍼나 단추를 잠근 상태에서 세탁하여 주십시오.'),
-        context.loc.t('흰색_제품과_유색_제품은_반드시', '흰색 제품과 유색 제품은 반드시 구분하여 별도 세탁하십시오.'),
-        context.loc.t('이염_방지를_위해_색상이_있는_옷',
-            '이염 방지를 위해 색상이 있는 옷은 단독 세탁 권장 드리며, 염소, xs백 제품은 사용하지 않는 것을 권장 드립니다.'),
-        context.loc.t('탈수_시_약하게_짜시고_탈수_후',
-            '탈수 시 약하게 짜시고 탈수 후 뭉친 상태로 두시면 이염이 될 수 있으니 바로 건조하여 주십시오.'),
-        context.loc.t(
-            '열풍_건조는_제품_수축의_원인', '열풍 건조는 제품 수축의 원인이 될 수 있으므로 열풍 건조를 하지 마십시오.'),
-      ];
+    context.loc.t(
+      '세제를_풀어_놓은_물에_담가_두지_마시고',
+      '세제를 풀어 놓은 물에 담가 두지 마시고 세탁 시 수축 및 변형 방지를 위해 찬물 세탁을 권장합니다.',
+    ),
+    context.loc.t('땀과_물에_젖었을_경우_즉시_세탁', '땀과 물에 젖었을 경우 즉시 세탁하십시오.'),
+    context.loc.t('세탁_시_지퍼나_단추를_잠근_상태', '세탁 시 지퍼나 단추를 잠근 상태에서 세탁하여 주십시오.'),
+    context.loc.t('흰색_제품과_유색_제품은_반드시', '흰색 제품과 유색 제품은 반드시 구분하여 별도 세탁하십시오.'),
+    context.loc.t(
+      '이염_방지를_위해_색상이_있는_옷',
+      '이염 방지를 위해 색상이 있는 옷은 단독 세탁 권장 드리며, 염소, xs백 제품은 사용하지 않는 것을 권장 드립니다.',
+    ),
+    context.loc.t(
+      '탈수_시_약하게_짜시고_탈수_후',
+      '탈수 시 약하게 짜시고 탈수 후 뭉친 상태로 두시면 이염이 될 수 있으니 바로 건조하여 주십시오.',
+    ),
+    context.loc.t(
+      '열풍_건조는_제품_수축의_원인',
+      '열풍 건조는 제품 수축의 원인이 될 수 있으므로 열풍 건조를 하지 마십시오.',
+    ),
+  ];
 
   // ── 최하단 WASHING TIP 독립 섹션 (탑텐 스타일) ──
   Widget _buildWashingTipSection(ProductModel product) {
@@ -2417,32 +2656,32 @@ $productUrl
       (
         Icons.water_drop_outlined,
         context.loc.t('찬물_세탁', '찬물 세탁'),
-        context.loc.t('30_C_이하_찬물_사용_권장', '30°C 이하 찬물 사용 권장')
+        context.loc.t('30_C_이하_찬물_사용_권장', '30°C 이하 찬물 사용 권장'),
       ),
       (
         Icons.front_hand_outlined,
         '손세탁 권장',
-        context.loc.t('세탁기 사용 시 단독 세탁', '세탁기 사용 시 단독 세탁')
+        context.loc.t('세탁기 사용 시 단독 세탁', '세탁기 사용 시 단독 세탁'),
       ),
       (
         Icons.air_outlined,
         '자연 건조',
-        context.loc.t('열풍 건조 금지  수축 원인', '열풍 건조 금지 — 수축 원인')
+        context.loc.t('열풍 건조 금지  수축 원인', '열풍 건조 금지 — 수축 원인'),
       ),
       (
         Icons.lock_outline_rounded,
         '지퍼/단추 잠금',
-        context.loc.t('세탁 전 지퍼·단추를 잠근 후 세탁', '세탁 전 지퍼·단추를 잠근 후 세탁')
+        context.loc.t('세탁 전 지퍼·단추를 잠근 후 세탁', '세탁 전 지퍼·단추를 잠근 후 세탁'),
       ),
       (
         Icons.color_lens_outlined,
         '색상 분리',
-        context.loc.t('흰색·유색 제품 반드시 분리 세탁', '흰색·유색 제품 반드시 분리 세탁')
+        context.loc.t('흰색·유색 제품 반드시 분리 세탁', '흰색·유색 제품 반드시 분리 세탁'),
       ),
       (
         Icons.timer_outlined,
         '즉시 세탁',
-        context.loc.t('땀·물에 젖은 즉시 세탁', '땀·물에 젖은 즉시 세탁')
+        context.loc.t('땀·물에 젖은 즉시 세탁', '땀·물에 젖은 즉시 세탁'),
       ),
     ];
 
@@ -2471,32 +2710,34 @@ $productUrl
             crossAxisSpacing: r.w(10),
             childAspectRatio: 1.04,
             children: washGuide
-                .map((guide) => Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(guide.$1, size: 20, color: AppColors.textPrimary),
-                        SizedBox(height: r.h(7)),
-                        Text(
-                          guide.$2,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: r.sp(10),
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
-                          ),
+                .map(
+                  (guide) => Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(guide.$1, size: 20, color: AppColors.textPrimary),
+                      SizedBox(height: r.h(7)),
+                      Text(
+                        guide.$2,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: r.sp(10),
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
                         ),
-                        SizedBox(height: r.h(3)),
-                        Text(
-                          guide.$3,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: r.sp(9),
-                            color: AppColors.textSecondary,
-                            height: 1.35,
-                          ),
+                      ),
+                      SizedBox(height: r.h(3)),
+                      Text(
+                        guide.$3,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: r.sp(9),
+                          color: AppColors.textSecondary,
+                          height: 1.35,
                         ),
-                      ],
-                    ))
+                      ),
+                    ],
+                  ),
+                )
                 .toList(),
           ),
           SizedBox(height: r.h(30)),
@@ -2509,18 +2750,24 @@ $productUrl
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text((entry.key + 1).toString().padLeft(2, '0'),
-                          style: TextStyle(
-                              fontSize: r.sp(10),
-                              color: AppColors.accent,
-                              fontWeight: FontWeight.w900)),
+                      Text(
+                        (entry.key + 1).toString().padLeft(2, '0'),
+                        style: TextStyle(
+                          fontSize: r.sp(10),
+                          color: AppColors.accent,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                       SizedBox(width: r.w(10)),
                       Expanded(
-                        child: Text(entry.value,
-                            style: TextStyle(
-                                fontSize: r.sp(12),
-                                color: AppColors.textSecondary,
-                                height: 1.65)),
+                        child: Text(
+                          entry.value,
+                          style: TextStyle(
+                            fontSize: r.sp(12),
+                            color: AppColors.textSecondary,
+                            height: 1.65,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -2533,12 +2780,15 @@ $productUrl
           const Divider(height: 1, color: AppColors.border),
           SizedBox(height: r.h(13)),
           Text(
-            context.loc.t('재고는_조기_소진될_수_있으며_소비자_부주의로_인한_제품_손상_dc3ff0',
-                '재고는 조기 소진될 수 있으며, 소비자 부주의로 인한 제품 손상은 보상이 되지 않으므로 위의 세탁 방법을 반드시 준수 바랍니다.'),
+            context.loc.t(
+              '재고는_조기_소진될_수_있으며_소비자_부주의로_인한_제품_손상_dc3ff0',
+              '재고는 조기 소진될 수 있으며, 소비자 부주의로 인한 제품 손상은 보상이 되지 않으므로 위의 세탁 방법을 반드시 준수 바랍니다.',
+            ),
             style: TextStyle(
-                fontSize: r.sp(11),
-                color: AppColors.textSecondary,
-                height: 1.65),
+              fontSize: r.sp(11),
+              color: AppColors.textSecondary,
+              height: 1.65,
+            ),
           ),
         ],
       ),
@@ -2546,7 +2796,7 @@ $productUrl
   }
 
   // 탑텐 스타일: 섹션 내 소타이틀 (기존 _infoBlockTitle 대체)
-// ignore: unused_element
+  // ignore: unused_element
   Widget _infoBlockTitle(String title) {
     final r = Responsive.of(context);
     return Row(
@@ -2567,7 +2817,7 @@ $productUrl
   }
 
   // 탑텐 스타일: 키-값 한 줄 (기존 _infoLabelRow 대체)
-// ignore: unused_element
+  // ignore: unused_element
   Widget _infoLabelRow(String label, String value) {
     final r = Responsive.of(context);
     return Padding(
@@ -2580,24 +2830,27 @@ $productUrl
             child: Text(
               label,
               style: TextStyle(
-                  fontSize: r.sp(12),
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.1),
+                fontSize: r.sp(12),
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.1,
+              ),
             ),
           ),
           Container(
-              width: 1,
-              height: 14,
-              color: AppColors.border,
-              margin: EdgeInsets.only(top: r.h(1), right: r.w(12))),
+            width: 1,
+            height: 14,
+            color: AppColors.border,
+            margin: EdgeInsets.only(top: r.h(1), right: r.w(12)),
+          ),
           Expanded(
             child: Text(
               value,
               style: TextStyle(
-                  fontSize: r.sp(12),
-                  color: const Color(0xFF222222),
-                  fontWeight: FontWeight.w500),
+                fontSize: r.sp(12),
+                color: const Color(0xFF222222),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -2606,7 +2859,7 @@ $productUrl
   }
 
   // ── 탑텐 스타일: 태그 위젯 ──
-// ignore: unused_element
+  // ignore: unused_element
   Widget _toptenTag(IconData icon, String label, Color color) {
     final r = Responsive.of(context);
     return Container(
@@ -2624,7 +2877,10 @@ $productUrl
           Text(
             label,
             style: TextStyle(
-                fontSize: r.sp(11), fontWeight: FontWeight.w700, color: color),
+              fontSize: r.sp(11),
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
           ),
         ],
       ),
@@ -2632,7 +2888,7 @@ $productUrl
   }
 
   // ── 탑텐 스타일: 배송/혜택 정보 심플 라인형 ──
-// ignore: unused_element
+  // ignore: unused_element
   Widget _buildToptenShippingInfo(ProductModel product) {
     final r = Responsive.of(context);
     final items = [
@@ -2681,20 +2937,23 @@ $productUrl
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(item['icon'] as IconData,
-                  size: 15,
-                  color: isHighlight
-                      ? AppColors.success
-                      : AppColors.textSecondary),
+              Icon(
+                item['icon'] as IconData,
+                size: 15,
+                color: isHighlight
+                    ? AppColors.success
+                    : AppColors.textSecondary,
+              ),
               SizedBox(width: r.w(10)),
               SizedBox(
                 width: 52,
                 child: Text(
                   item['label'] as String,
                   style: TextStyle(
-                      fontSize: r.sp(12),
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500),
+                    fontSize: r.sp(12),
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
               Expanded(
@@ -2702,8 +2961,9 @@ $productUrl
                   item['value'] as String,
                   style: TextStyle(
                     fontSize: r.sp(12),
-                    color:
-                        isHighlight ? AppColors.success : AppColors.textPrimary,
+                    color: isHighlight
+                        ? AppColors.success
+                        : AppColors.textPrimary,
                     fontWeight: isHighlight ? FontWeight.w700 : FontWeight.w500,
                     height: 1.4,
                   ),
@@ -2716,7 +2976,7 @@ $productUrl
     );
   }
 
-// ignore: unused_element
+  // ignore: unused_element
   Widget _infoRow(IconData icon, String label, String value) {
     final r = Responsive.of(context);
     return Row(
@@ -2726,18 +2986,24 @@ $productUrl
         SizedBox(width: r.w(8)),
         SizedBox(
           width: 48,
-          child: Text(label,
-              style: TextStyle(
-                  fontSize: r.sp(12),
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w600)),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: r.sp(12),
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
         Expanded(
-          child: Text(value,
-              style: TextStyle(
-                  fontSize: r.sp(12),
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w500)),
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: r.sp(12),
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
       ],
     );
@@ -2745,8 +3011,12 @@ $productUrl
 
   // 상의 색상 안내 배너용 행 위젯
   // ignore: unused_element
-  Widget _colorNoticeRow(IconData icon, String label, String desc,
-      {required bool highlight}) {
+  Widget _colorNoticeRow(
+    IconData icon,
+    String label,
+    String desc, {
+    required bool highlight,
+  }) {
     final r = Responsive.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2785,29 +3055,35 @@ $productUrl
 
   /// 타이즈 또는 싱글렛세트만 하의 색상 선택 배너 표시
   bool _showBottomColorBadge(ProductModel p) {
-    final isTaiz = p.category == '하의' ||
+    final isTaiz =
+        p.category == '하의' ||
         p.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
         p.name.contains(context.loc.t('타이즈', '타이즈'));
-    final isSingletSet = p.category == '세트' ||
+    final isSingletSet =
+        p.category == '세트' ||
         p.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         p.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트'));
     return isTaiz || isSingletSet;
   }
 
   /// 상품명 아래 기성품 색상 안내 뱃지 (싱글렛세트 / 상의 구분)
-// ignore: unused_element
+  // ignore: unused_element
   Widget _buildColorInfoBadge(ProductModel product) {
     final r = Responsive.of(context);
     // 타이즈와 싱글렛세트 모두 "하의 색상 선택" 표시
-    final isTaiz = product.category == '하의' ||
+    final isTaiz =
+        product.category == '하의' ||
         product.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
         product.name.contains(context.loc.t('타이즈', '타이즈'));
-    final label =
-        isTaiz ? context.loc.t('타이즈', '타이즈') : context.loc.t('기성품', '기성품');
+    final label = isTaiz
+        ? context.loc.t('타이즈', '타이즈')
+        : context.loc.t('기성품', '기성품');
     final subtitle = isTaiz
         ? context.loc.t('색상을 선택하세요 19가지', '색상을 선택하세요 (19가지)')
-        : context.loc.t('상의는 디자인 색상 그대로 제작 하의 색상은 선택 가능합니다',
-            '상의는 디자인 색상 그대로 제작, 하의 색상은 선택 가능합니다.');
+        : context.loc.t(
+            '상의는 디자인 색상 그대로 제작 하의 색상은 선택 가능합니다',
+            '상의는 디자인 색상 그대로 제작, 하의 색상은 선택 가능합니다.',
+          );
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(12)),
@@ -2815,7 +3091,9 @@ $productUrl
         color: const Color(0xFFF1F8FF),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-            color: AppColors.info.withValues(alpha: 0.35), width: 1.5),
+          color: AppColors.info.withValues(alpha: 0.35),
+          width: 1.5,
+        ),
       ),
       child: Row(
         children: [
@@ -2825,8 +3103,11 @@ $productUrl
               color: AppColors.info.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.palette_rounded,
-                size: 16, color: AppColors.info),
+            child: const Icon(
+              Icons.palette_rounded,
+              size: 16,
+              color: AppColors.info,
+            ),
           ),
           SizedBox(width: r.w(10)),
           Expanded(
@@ -2837,31 +3118,42 @@ $productUrl
                   children: [
                     Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: r.w(7), vertical: r.h(2)),
+                        horizontal: r.w(7),
+                        vertical: r.h(2),
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.info,
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text(label,
-                          style: TextStyle(
-                              fontSize: r.sp(10),
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white)),
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: r.sp(10),
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                     SizedBox(width: r.w(6)),
-                    Text(context.loc.t('하의_색상_선택', '하의 색상 선택'),
-                        style: TextStyle(
-                            fontSize: r.sp(13),
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.info)),
+                    Text(
+                      context.loc.t('하의_색상_선택', '하의 색상 선택'),
+                      style: TextStyle(
+                        fontSize: r.sp(13),
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.info,
+                      ),
+                    ),
                   ],
                 ),
                 SizedBox(height: r.h(3)),
-                Text(subtitle,
-                    style: TextStyle(
-                        fontSize: r.sp(11),
-                        color: AppColors.textSecondary,
-                        height: 1.4)),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: r.sp(11),
+                    color: AppColors.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
               ],
             ),
           ),
@@ -2870,18 +3162,23 @@ $productUrl
     );
   }
 
-// ignore: unused_element
+  // ignore: unused_element
   Widget _tag(String text, Color color) {
     final r = Responsive.of(context);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
-      decoration:
-          BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
-      child: Text(text,
-          style: TextStyle(
-              color: Colors.white,
-              fontSize: r.sp(10),
-              fontWeight: FontWeight.w700)),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: r.sp(10),
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 
@@ -2894,10 +3191,12 @@ $productUrl
     final r = Responsive.of(context);
     const lengths = AppConstants.bottomLengths;
     final product = widget.product;
-    final isSingletSet = (product.category == '세트' &&
+    final isSingletSet =
+        (product.category == '세트' &&
             (product.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
-                product.subCategory
-                    .contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')))) ||
+                product.subCategory.contains(
+                  context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트'),
+                ))) ||
         product.category.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         product.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         product.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
@@ -2927,24 +3226,34 @@ $productUrl
             // 제목 + 안내
             Row(
               children: [
-                Text(loc.bottomLengthTitle,
-                    style: TextStyle(
-                        fontSize: r.sp(13), fontWeight: FontWeight.w700)),
+                Text(
+                  loc.bottomLengthTitle,
+                  style: TextStyle(
+                    fontSize: r.sp(13),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 SizedBox(width: r.w(6)),
                 Container(
                   padding: EdgeInsets.symmetric(
-                      horizontal: r.w(6), vertical: r.h(2)),
+                    horizontal: r.w(6),
+                    vertical: r.h(2),
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primaryLight.withValues(alpha: 0.09),
                     borderRadius: BorderRadius.circular(4),
                     border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.3)),
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                    ),
                   ),
-                  child: Text(loc.genderAutoFix,
-                      style: TextStyle(
-                          fontSize: r.sp(10),
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700)),
+                  child: Text(
+                    loc.genderAutoFix,
+                    style: TextStyle(
+                      fontSize: r.sp(10),
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -2963,25 +3272,32 @@ $productUrl
             // 확정된 길이 표시
             Container(
               width: double.infinity,
-              padding:
-                  EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(9)),
+              padding: EdgeInsets.symmetric(
+                horizontal: r.w(12),
+                vertical: r.h(9),
+              ),
               decoration: BoxDecoration(
                 color: const Color(0xFFF3E5F5),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.25)),
+                  color: AppColors.primary.withValues(alpha: 0.25),
+                ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.straighten_rounded,
-                      size: 14, color: AppColors.primary),
+                  const Icon(
+                    Icons.straighten_rounded,
+                    size: 14,
+                    color: AppColors.primary,
+                  ),
                   SizedBox(width: r.w(6)),
                   Text(
                     '하의 기장 ${_singletGender == "남" ? "5부 (~55cm)" : "2.5부 (~30cm)"} 확정',
                     style: TextStyle(
-                        fontSize: r.sp(12),
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryLight),
+                      fontSize: r.sp(12),
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryLight,
+                    ),
                   ),
                 ],
               ),
@@ -3009,25 +3325,35 @@ $productUrl
           SizedBox(height: r.h(10)),
           Row(
             children: [
-              Text(loc.bottomLengthSelectTitle,
-                  style: TextStyle(
-                      fontSize: r.sp(13), fontWeight: FontWeight.w700)),
+              Text(
+                loc.bottomLengthSelectTitle,
+                style: TextStyle(
+                  fontSize: r.sp(13),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               if (allowedLengths != null) ...[
                 SizedBox(width: r.w(6)),
                 Container(
                   padding: EdgeInsets.symmetric(
-                      horizontal: r.w(6), vertical: r.h(2)),
+                    horizontal: r.w(6),
+                    vertical: r.h(2),
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.info.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                     border: Border.all(
-                        color: AppColors.info.withValues(alpha: 0.3)),
+                      color: AppColors.info.withValues(alpha: 0.3),
+                    ),
                   ),
-                  child: Text(loc.restrictedLabel,
-                      style: TextStyle(
-                          fontSize: r.sp(10),
-                          color: AppColors.info,
-                          fontWeight: FontWeight.w700)),
+                  child: Text(
+                    loc.restrictedLabel,
+                    style: TextStyle(
+                      fontSize: r.sp(10),
+                      color: AppColors.info,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ],
             ],
@@ -3049,46 +3375,56 @@ $productUrl
                     : () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(loc.restrictedLengthNote
-                                .replaceAll('%s', allowedLengths!.join('·'))),
+                            content: Text(
+                              loc.restrictedLengthNote.replaceAll(
+                                '%s',
+                                allowedLengths!.join('·'),
+                              ),
+                            ),
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         );
                       },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
                   padding: EdgeInsets.symmetric(
-                      horizontal: r.w(10), vertical: r.h(6)),
+                    horizontal: r.w(10),
+                    vertical: r.h(6),
+                  ),
                   decoration: BoxDecoration(
                     color: !isAllowed
                         ? AppColors.surfaceGray
                         : sel
-                            ? AppColors.primary
-                            : const Color(0xFFF7F8FA),
+                        ? AppColors.primary
+                        : const Color(0xFFF7F8FA),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: !isAllowed
                           ? AppColors.border
                           : sel
-                              ? AppColors.primary
-                              : AppColors.border,
+                          ? AppColors.primary
+                          : AppColors.border,
                       width: sel ? 1.5 : 1,
                     ),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(label,
-                          style: TextStyle(
-                              fontSize: r.sp(12),
-                              fontWeight: FontWeight.w800,
-                              color: !isAllowed
-                                  ? AppColors.textHint
-                                  : sel
-                                      ? Colors.white
-                                      : AppColors.primary)),
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: r.sp(12),
+                          fontWeight: FontWeight.w800,
+                          color: !isAllowed
+                              ? AppColors.textHint
+                              : sel
+                              ? Colors.white
+                              : AppColors.primary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -3098,8 +3434,9 @@ $productUrl
           if (allowedLengths != null) ...[
             SizedBox(height: r.h(6)),
             Text(
-                '* ${loc.productAllowedLengthNote}: ${allowedLengths.join("·")}',
-                style: TextStyle(fontSize: r.sp(10), color: AppColors.info)),
+              '* ${loc.productAllowedLengthNote}: ${allowedLengths.join("·")}',
+              style: TextStyle(fontSize: r.sp(10), color: AppColors.info),
+            ),
           ],
         ],
       ),
@@ -3107,8 +3444,12 @@ $productUrl
   }
 
   // 성별 선택 버튼 (모든 제품에 표시)
-  Widget _inlineGenderBtn(String code, String label, String subLabel,
-      {bool autoLength = false}) {
+  Widget _inlineGenderBtn(
+    String code,
+    String label,
+    String subLabel, {
+    bool autoLength = false,
+  }) {
     final r = Responsive.of(context);
     final isSel = _singletGender == code;
     return Expanded(
@@ -3116,8 +3457,9 @@ $productUrl
         onTap: () => setState(() {
           _singletGender = code;
           // 성별 선택 시 하의길이 자동 선택 (싱글렛세트: 남=5부, 여=2.5부)
-          _selectedBottomLength =
-              code == context.loc.t('남', '남') ? '5부' : '2.5부';
+          _selectedBottomLength = code == context.loc.t('남', '남')
+              ? '5부'
+              : '2.5부';
         }),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
@@ -3141,19 +3483,25 @@ $productUrl
                 color: isSel ? Colors.white : AppColors.textSecondary,
               ),
               SizedBox(height: r.h(4)),
-              Text(label,
-                  style: TextStyle(
-                      fontSize: r.sp(13),
-                      fontWeight: FontWeight.w800,
-                      color: isSel ? Colors.white : AppColors.textPrimary)),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: r.sp(13),
+                  fontWeight: FontWeight.w800,
+                  color: isSel ? Colors.white : AppColors.textPrimary,
+                ),
+              ),
               if (subLabel.isNotEmpty) ...[
                 SizedBox(height: r.h(2)),
-                Text(subLabel,
-                    style: TextStyle(
-                        fontSize: r.sp(11),
-                        color: isSel
-                            ? Colors.white.withValues(alpha: 0.8)
-                            : AppColors.textSecondary)),
+                Text(
+                  subLabel,
+                  style: TextStyle(
+                    fontSize: r.sp(11),
+                    color: isSel
+                        ? Colors.white.withValues(alpha: 0.8)
+                        : AppColors.textSecondary,
+                  ),
+                ),
               ],
             ],
           ),
@@ -3181,16 +3529,22 @@ $productUrl
         children: [
           const Icon(Icons.straighten_rounded, color: Colors.white, size: 16),
           SizedBox(width: r.w(8)),
-          Text(label,
-              style: TextStyle(
-                  fontSize: r.sp(15),
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: r.sp(15),
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+          ),
           SizedBox(width: r.w(6)),
-          Text(desc,
-              style: TextStyle(
-                  fontSize: r.sp(12),
-                  color: Colors.white.withValues(alpha: 0.75))),
+          Text(
+            desc,
+            style: TextStyle(
+              fontSize: r.sp(12),
+              color: Colors.white.withValues(alpha: 0.75),
+            ),
+          ),
           const Spacer(),
           Container(
             padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
@@ -3198,11 +3552,14 @@ $productUrl
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Text(loc.confirmLabel,
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: r.sp(10),
-                    fontWeight: FontWeight.w700)),
+            child: Text(
+              loc.confirmLabel,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: r.sp(10),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ],
       ),
@@ -3230,9 +3587,11 @@ $productUrl
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon,
-                  size: 20,
-                  color: sel ? Colors.white : AppColors.textSecondary),
+              Icon(
+                icon,
+                size: 20,
+                color: sel ? Colors.white : AppColors.textSecondary,
+              ),
               SizedBox(height: r.h(6)),
               Text(
                 type,
@@ -3264,31 +3623,36 @@ $productUrl
   // ═══════════════════════════════════════
   // 구매 방식 선택 (인라인 섹션)
   // ═══════════════════════════════════════
-// ignore: unused_element
+  // ignore: unused_element
   Widget _buildPurchaseTypeSection(ProductModel product) {
     final r = Responsive.of(context);
 
     // ── 카테고리 판별 ──────────────────────────────────────────────
     // 싱글렛 A타입세트: 세트 카테고리 + subCategory/name에 싱글렛+A타입 포함
-    final isSingletATypeSet = (product.category == context.loc.t('세트', '세트') &&
-            product.subCategory
-                .contains(context.loc.t('싱글렛_a타입세트', '싱글렛 A타입세트'))) ||
+    final isSingletATypeSet =
+        (product.category == context.loc.t('세트', '세트') &&
+            product.subCategory.contains(
+              context.loc.t('싱글렛_a타입세트', '싱글렛 A타입세트'),
+            )) ||
         product.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
         (product.category == context.loc.t('세트', '세트') &&
             product.name.contains(context.loc.t('싱글렛', '싱글렛')) &&
             product.name.contains(context.loc.t('a타입', 'A타입')));
 
     // 타이즈 / 하의 전체 (싱글렛세트 제외)
-    final isTaiz = !isSingletATypeSet &&
+    final isTaiz =
+        !isSingletATypeSet &&
         (product.category == context.loc.t('하의', '하의') ||
             product.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
             product.name.contains(context.loc.t('타이즈', '타이즈')));
 
     // 트레이닝세트: 세트 카테고리 + 트레이닝 포함
-    final isTrainingSet = !isSingletATypeSet &&
+    final isTrainingSet =
+        !isSingletATypeSet &&
         ((product.category == context.loc.t('세트', '세트') &&
-                product.subCategory
-                    .contains(context.loc.t('트레이닝세트', '트레이닝세트'))) ||
+                product.subCategory.contains(
+                  context.loc.t('트레이닝세트', '트레이닝세트'),
+                )) ||
             (product.category == context.loc.t('세트', '세트') &&
                 product.name.contains(context.loc.t('트레이닝', '트레이닝'))));
 
@@ -3303,7 +3667,8 @@ $productUrl
         !_isSingletGroupProduct(product) && _showBottomColorBadge(product);
 
     // 싱글렛세트 여부: 상의+하의 세트라서 "하의 색상 선택"으로 표기
-    final isSingletSet = product.category == '세트' ||
+    final isSingletSet =
+        product.category == '세트' ||
         product.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         product.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트'));
 
@@ -3347,7 +3712,9 @@ $productUrl
                     // 헤더
                     Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: r.w(16), vertical: r.h(11)),
+                        horizontal: r.w(16),
+                        vertical: r.h(11),
+                      ),
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           colors: [Color(0xFF0D47A1), Color(0xFF1A6ED4)],
@@ -3357,8 +3724,11 @@ $productUrl
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.info_rounded,
-                              size: 18, color: Colors.white),
+                          const Icon(
+                            Icons.info_rounded,
+                            size: 18,
+                            color: Colors.white,
+                          ),
                           SizedBox(width: r.w(8)),
                           Expanded(
                             child: Text(
@@ -3375,16 +3745,21 @@ $productUrl
                           ),
                           Container(
                             padding: EdgeInsets.symmetric(
-                                horizontal: r.w(8), vertical: r.h(3)),
+                              horizontal: r.w(8),
+                              vertical: r.h(3),
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.25),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Text(context.loc.t('기성품', '기성품'),
-                                style: TextStyle(
-                                    fontSize: r.sp(11),
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white)),
+                            child: Text(
+                              context.loc.t('기성품', '기성품'),
+                              style: TextStyle(
+                                fontSize: r.sp(11),
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -3392,7 +3767,9 @@ $productUrl
                     // 상의 색상 고정 행
                     Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: r.w(16), vertical: r.h(12)),
+                        horizontal: r.w(16),
+                        vertical: r.h(12),
+                      ),
                       color: const Color(0xFFFFF3E0),
                       child: Row(
                         children: [
@@ -3402,8 +3779,11 @@ $productUrl
                               color: AppColors.accent.withValues(alpha: 0.12),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.lock_rounded,
-                                size: 16, color: AppColors.accent),
+                            child: const Icon(
+                              Icons.lock_rounded,
+                              size: 16,
+                              color: AppColors.accent,
+                            ),
                           ),
                           SizedBox(width: r.w(10)),
                           Expanded(
@@ -3411,36 +3791,50 @@ $productUrl
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                    context.loc
-                                        .t('상의_색상___변경_불가', '상의 색상 — 변경 불가'),
-                                    style: TextStyle(
-                                        fontSize: r.sp(13),
-                                        fontWeight: FontWeight.w900,
-                                        color: const Color(0xFFBF360C))),
+                                  context.loc.t(
+                                    '상의_색상___변경_불가',
+                                    '상의 색상 — 변경 불가',
+                                  ),
+                                  style: TextStyle(
+                                    fontSize: r.sp(13),
+                                    fontWeight: FontWeight.w900,
+                                    color: const Color(0xFFBF360C),
+                                  ),
+                                ),
                                 SizedBox(height: r.h(2)),
                                 Text(
-                                    context.loc.t('디자인_색상_그대로_제작됩니_62921a',
-                                        '디자인 색상 그대로 제작됩니다'),
-                                    style: TextStyle(
-                                        fontSize: r.sp(11),
-                                        color: const Color(0xFFBF360C)
-                                            .withValues(alpha: 0.8),
-                                        height: 1.3)),
+                                  context.loc.t(
+                                    '디자인_색상_그대로_제작됩니_62921a',
+                                    '디자인 색상 그대로 제작됩니다',
+                                  ),
+                                  style: TextStyle(
+                                    fontSize: r.sp(11),
+                                    color: const Color(
+                                      0xFFBF360C,
+                                    ).withValues(alpha: 0.8),
+                                    height: 1.3,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                           Container(
                             padding: EdgeInsets.symmetric(
-                                horizontal: r.w(9), vertical: r.h(4)),
+                              horizontal: r.w(9),
+                              vertical: r.h(4),
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.accent,
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: Text(context.loc.t('고정', '고정'),
-                                style: TextStyle(
-                                    fontSize: r.sp(11),
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white)),
+                            child: Text(
+                              context.loc.t('고정', '고정'),
+                              style: TextStyle(
+                                fontSize: r.sp(11),
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -3450,7 +3844,9 @@ $productUrl
                     // 하의 색상 선택 가능 행
                     Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: r.w(16), vertical: r.h(12)),
+                        horizontal: r.w(16),
+                        vertical: r.h(12),
+                      ),
                       color: const Color(0xFFE8F5E9),
                       child: Row(
                         children: [
@@ -3460,8 +3856,11 @@ $productUrl
                               color: AppColors.success.withValues(alpha: 0.12),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.check_circle_rounded,
-                                size: 16, color: AppColors.success),
+                            child: const Icon(
+                              Icons.check_circle_rounded,
+                              size: 16,
+                              color: AppColors.success,
+                            ),
                           ),
                           SizedBox(width: r.w(10)),
                           Expanded(
@@ -3469,40 +3868,55 @@ $productUrl
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                    context.loc
-                                        .t('하의_색상___선택_가능', '하의 색상 — 선택 가능'),
-                                    style: TextStyle(
-                                        fontSize: r.sp(13),
-                                        fontWeight: FontWeight.w900,
-                                        color: const Color(0xFF1B5E20))),
+                                  context.loc.t(
+                                    '하의_색상___선택_가능',
+                                    '하의 색상 — 선택 가능',
+                                  ),
+                                  style: TextStyle(
+                                    fontSize: r.sp(13),
+                                    fontWeight: FontWeight.w900,
+                                    color: const Color(0xFF1B5E20),
+                                  ),
+                                ),
                                 SizedBox(height: r.h(2)),
                                 Text(
-                                    isSingletSet
-                                        ? context.loc.t(
-                                            'k_19가지_색상_중_하의_색상을_선택하세요',
-                                            '19가지 색상 중 하의 색상을 선택하세요')
-                                        : context.loc.t('19가지_색상_중_자유롭게_선택하세요',
-                                            '19가지 색상 중 자유롭게 선택하세요'),
-                                    style: TextStyle(
-                                        fontSize: r.sp(11),
-                                        color: const Color(0xFF1B5E20)
-                                            .withValues(alpha: 0.8),
-                                        height: 1.3)),
+                                  isSingletSet
+                                      ? context.loc.t(
+                                          'k_19가지_색상_중_하의_색상을_선택하세요',
+                                          '19가지 색상 중 하의 색상을 선택하세요',
+                                        )
+                                      : context.loc.t(
+                                          '19가지_색상_중_자유롭게_선택하세요',
+                                          '19가지 색상 중 자유롭게 선택하세요',
+                                        ),
+                                  style: TextStyle(
+                                    fontSize: r.sp(11),
+                                    color: const Color(
+                                      0xFF1B5E20,
+                                    ).withValues(alpha: 0.8),
+                                    height: 1.3,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                           Container(
                             padding: EdgeInsets.symmetric(
-                                horizontal: r.w(9), vertical: r.h(4)),
+                              horizontal: r.w(9),
+                              vertical: r.h(4),
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.success,
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: Text(context.loc.t('선택', '선택'),
-                                style: TextStyle(
-                                    fontSize: r.sp(11),
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white)),
+                            child: Text(
+                              context.loc.t('선택', '선택'),
+                              style: TextStyle(
+                                fontSize: r.sp(11),
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -3510,21 +3924,29 @@ $productUrl
                     // 하단 안내
                     Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: r.w(16), vertical: r.h(9)),
+                        horizontal: r.w(16),
+                        vertical: r.h(9),
+                      ),
                       color: AppColors.surfaceGray,
                       child: Row(
                         children: [
-                          const Icon(Icons.touch_app_rounded,
-                              size: 13, color: AppColors.textSecondary),
+                          const Icon(
+                            Icons.touch_app_rounded,
+                            size: 13,
+                            color: AppColors.textSecondary,
+                          ),
                           SizedBox(width: r.w(6)),
                           Expanded(
                             child: Text(
-                              context.loc.t('하의_색상_선택은_장바구니_바로구매_버튼을_눌러_진행하세요',
-                                  '하의 색상 선택은 장바구니 / 바로구매 버튼을 눌러 진행하세요'),
+                              context.loc.t(
+                                '하의_색상_선택은_장바구니_바로구매_버튼을_눌러_진행하세요',
+                                '하의 색상 선택은 장바구니 / 바로구매 버튼을 눌러 진행하세요',
+                              ),
                               style: TextStyle(
-                                  fontSize: r.sp(10.5),
-                                  color: AppColors.textSecondary,
-                                  height: 1.4),
+                                fontSize: r.sp(10.5),
+                                color: AppColors.textSecondary,
+                                height: 1.4,
+                              ),
                             ),
                           ),
                         ],
@@ -3540,8 +3962,10 @@ $productUrl
           // ── 싱글렛 A타입세트: 하의 기장 자동적용 안내 배너 ──
           if (isSingletATypeSet) ...[
             Container(
-              padding:
-                  EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(10)),
+              padding: EdgeInsets.symmetric(
+                horizontal: r.w(14),
+                vertical: r.h(10),
+              ),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -3553,7 +3977,8 @@ $productUrl
                 ),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.25)),
+                  color: AppColors.primary.withValues(alpha: 0.25),
+                ),
               ),
               child: Row(
                 children: [
@@ -3563,25 +3988,34 @@ $productUrl
                       color: AppColors.primary.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.auto_fix_high_rounded,
-                        size: 14, color: AppColors.primary),
+                    child: const Icon(
+                      Icons.auto_fix_high_rounded,
+                      size: 14,
+                      color: AppColors.primary,
+                    ),
                   ),
                   SizedBox(width: r.w(10)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(loc.bottomAutoApplyTitle,
-                            style: TextStyle(
-                                fontSize: r.sp(12),
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.primaryLight)),
+                        Text(
+                          loc.bottomAutoApplyTitle,
+                          style: TextStyle(
+                            fontSize: r.sp(12),
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primaryLight,
+                          ),
+                        ),
                         SizedBox(height: r.h(2)),
-                        Text(loc.bottomAutoApplyDesc,
-                            style: TextStyle(
-                                fontSize: r.sp(11),
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w600)),
+                        Text(
+                          loc.bottomAutoApplyDesc,
+                          style: TextStyle(
+                            fontSize: r.sp(11),
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -3594,13 +4028,16 @@ $productUrl
           // ── 트레이닝세트: 9부 고정 안내 배너 ──
           if (showFixedLength9) ...[
             Container(
-              padding:
-                  EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(10)),
+              padding: EdgeInsets.symmetric(
+                horizontal: r.w(14),
+                vertical: r.h(10),
+              ),
               decoration: BoxDecoration(
                 color: const Color(0xFFF3E5F5),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.25)),
+                  color: AppColors.primary.withValues(alpha: 0.25),
+                ),
               ),
               child: Row(
                 children: [
@@ -3610,25 +4047,34 @@ $productUrl
                       color: AppColors.primary.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.straighten_rounded,
-                        size: 14, color: AppColors.primary),
+                    child: const Icon(
+                      Icons.straighten_rounded,
+                      size: 14,
+                      color: AppColors.primary,
+                    ),
                   ),
                   SizedBox(width: r.w(10)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(loc.bottomFixedTitle,
-                            style: TextStyle(
-                                fontSize: r.sp(12),
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.primaryLight)),
+                        Text(
+                          loc.bottomFixedTitle,
+                          style: TextStyle(
+                            fontSize: r.sp(12),
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primaryLight,
+                          ),
+                        ),
                         SizedBox(height: r.h(2)),
-                        Text(loc.bottomFixedDesc,
-                            style: TextStyle(
-                                fontSize: r.sp(11),
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w600)),
+                        Text(
+                          loc.bottomFixedDesc,
+                          style: TextStyle(
+                            fontSize: r.sp(11),
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -3639,11 +4085,14 @@ $productUrl
           ],
 
           if (!_isSingletGroupProduct(product)) ...[
-            Text(loc.purchaseType,
-                style: TextStyle(
-                    fontSize: r.sp(13),
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary)),
+            Text(
+              loc.purchaseType,
+              style: TextStyle(
+                fontSize: r.sp(13),
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
             SizedBox(height: r.h(8)),
           ],
 
@@ -3652,23 +4101,30 @@ $productUrl
             SizedBox(height: r.h(4)),
             const Divider(height: 1, color: AppColors.surfaceGray),
             SizedBox(height: r.h(10)),
-            Text(context.loc.t('원단_선택', '원단 선택'),
-                style: TextStyle(
-                    fontSize: r.sp(13),
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary)),
+            Text(
+              context.loc.t('원단_선택', '원단 선택'),
+              style: TextStyle(
+                fontSize: r.sp(13),
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
             SizedBox(height: r.h(8)),
-            Row(children: [
-              _fabricTypeBtn(
+            Row(
+              children: [
+                _fabricTypeBtn(
                   context.loc.t('일반원단', '일반원단'),
                   context.loc.t('기본_기능성_원단', '기본 기능성 원단'),
-                  Icons.layers_outlined),
-              SizedBox(width: r.w(8)),
-              _fabricTypeBtn(
+                  Icons.layers_outlined,
+                ),
+                SizedBox(width: r.w(8)),
+                _fabricTypeBtn(
                   context.loc.t('심리스', '심리스'),
                   context.loc.t('봉제선_없는_심리스', '봉제선 없는 심리스'),
-                  Icons.auto_awesome_outlined),
-            ]),
+                  Icons.auto_awesome_outlined,
+                ),
+              ],
+            ),
             SizedBox(height: r.h(10)),
           ],
 
@@ -3690,18 +4146,27 @@ $productUrl
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.groups_rounded,
-                        color: Colors.white, size: 18),
+                    const Icon(
+                      Icons.groups_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                     SizedBox(height: r.h(4)),
-                    Text(loc.groupOrderLabel,
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: r.sp(13),
-                            fontWeight: FontWeight.w800)),
-                    Text(loc.groupOrderSubLabel,
-                        style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7),
-                            fontSize: r.sp(10))),
+                    Text(
+                      loc.groupOrderLabel,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: r.sp(13),
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      loc.groupOrderSubLabel,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontSize: r.sp(10),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -3719,19 +4184,27 @@ $productUrl
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.shopping_bag_rounded,
-                        color: Colors.white, size: 18),
+                    const Icon(
+                      Icons.shopping_bag_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                     SizedBox(height: r.h(4)),
-                    Text(loc.readyMadeLabel,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: r.sp(13),
-                          fontWeight: FontWeight.w800,
-                        )),
-                    Text(loc.buyNow,
-                        style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7),
-                            fontSize: r.sp(10))),
+                    Text(
+                      loc.readyMadeLabel,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: r.sp(13),
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      loc.buyNow,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontSize: r.sp(10),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -3743,39 +4216,57 @@ $productUrl
             SizedBox(height: r.h(12)),
             const Divider(height: 1, color: AppColors.surfaceGray),
             SizedBox(height: r.h(10)),
-            Text(loc.gender,
-                style: TextStyle(
-                    fontSize: r.sp(13),
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary)),
+            Text(
+              loc.gender,
+              style: TextStyle(
+                fontSize: r.sp(13),
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
             SizedBox(height: r.h(8)),
-            Row(children: [
-              _inlineGenderBtn(
-                  '남', loc.male, isSingletATypeSet ? loc.maleBottomSub : '',
-                  autoLength: isSingletATypeSet),
-              SizedBox(width: r.w(8)),
-              _inlineGenderBtn(
-                  '여', loc.female, isSingletATypeSet ? loc.femaleBottomSub : '',
-                  autoLength: isSingletATypeSet),
-            ]),
+            Row(
+              children: [
+                _inlineGenderBtn(
+                  '남',
+                  loc.male,
+                  isSingletATypeSet ? loc.maleBottomSub : '',
+                  autoLength: isSingletATypeSet,
+                ),
+                SizedBox(width: r.w(8)),
+                _inlineGenderBtn(
+                  '여',
+                  loc.female,
+                  isSingletATypeSet ? loc.femaleBottomSub : '',
+                  autoLength: isSingletATypeSet,
+                ),
+              ],
+            ),
 
             // ── 싱글렛 A타입세트: 성별에 따라 하의 길이 1개만 표시 ──
             if (isSingletATypeSet) ...[
               SizedBox(height: r.h(12)),
               const Divider(height: 1, color: AppColors.surfaceGray),
               SizedBox(height: r.h(10)),
-              Text(loc.bottomLengthTitle,
-                  style: TextStyle(
-                      fontSize: r.sp(13),
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary)),
+              Text(
+                loc.bottomLengthTitle,
+                style: TextStyle(
+                  fontSize: r.sp(13),
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
+              ),
               SizedBox(height: r.h(8)),
               if (_singletGender == context.loc.t('남', '남')) ...[
                 _singletLengthOnlyBtn(
-                    label: context.loc.t('5부', '5부'), desc: '~55 cm'),
+                  label: context.loc.t('5부', '5부'),
+                  desc: '~55 cm',
+                ),
               ] else ...[
                 _singletLengthOnlyBtn(
-                    label: context.loc.t('2_5부', '2.5부'), desc: '~30 cm'),
+                  label: context.loc.t('2_5부', '2.5부'),
+                  desc: '~30 cm',
+                ),
               ],
             ],
 
@@ -3784,11 +4275,14 @@ $productUrl
               SizedBox(height: r.h(12)),
               const Divider(height: 1, color: AppColors.surfaceGray),
               SizedBox(height: r.h(10)),
-              Text(loc.bottomLengthTitle,
-                  style: TextStyle(
-                      fontSize: r.sp(13),
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary)),
+              Text(
+                loc.bottomLengthTitle,
+                style: TextStyle(
+                  fontSize: r.sp(13),
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
+              ),
               SizedBox(height: r.h(8)),
               Wrap(
                 spacing: 7,
@@ -3804,10 +4298,13 @@ $productUrl
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
                       padding: EdgeInsets.symmetric(
-                          horizontal: r.w(14), vertical: r.h(10)),
+                        horizontal: r.w(14),
+                        vertical: r.h(10),
+                      ),
                       decoration: BoxDecoration(
-                        color:
-                            sel ? AppColors.textPrimary : AppColors.background,
+                        color: sel
+                            ? AppColors.textPrimary
+                            : AppColors.background,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: sel ? AppColors.textPrimary : AppColors.border,
@@ -3817,19 +4314,24 @@ $productUrl
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(label,
-                              style: TextStyle(
-                                  fontSize: r.sp(13),
-                                  fontWeight: FontWeight.w800,
-                                  color:
-                                      sel ? Colors.white : AppColors.primary)),
+                          Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: r.sp(13),
+                              fontWeight: FontWeight.w800,
+                              color: sel ? Colors.white : AppColors.primary,
+                            ),
+                          ),
                           SizedBox(height: r.h(2)),
-                          Text(desc,
-                              style: TextStyle(
-                                  fontSize: r.sp(10),
-                                  color: sel
-                                      ? Colors.white.withValues(alpha: 0.75)
-                                      : AppColors.textSecondary)),
+                          Text(
+                            desc,
+                            style: TextStyle(
+                              fontSize: r.sp(10),
+                              color: sel
+                                  ? Colors.white.withValues(alpha: 0.75)
+                                  : AppColors.textSecondary,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -3843,15 +4345,20 @@ $productUrl
               SizedBox(height: r.h(12)),
               const Divider(height: 1, color: AppColors.surfaceGray),
               SizedBox(height: r.h(10)),
-              Text(loc.bottomLengthTitle,
-                  style: TextStyle(
-                      fontSize: r.sp(13),
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary)),
+              Text(
+                loc.bottomLengthTitle,
+                style: TextStyle(
+                  fontSize: r.sp(13),
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
+              ),
               SizedBox(height: r.h(8)),
               Container(
                 padding: EdgeInsets.symmetric(
-                    horizontal: r.w(18), vertical: r.h(10)),
+                  horizontal: r.w(18),
+                  vertical: r.h(10),
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.textPrimary,
                   borderRadius: BorderRadius.circular(8),
@@ -3860,15 +4367,22 @@ $productUrl
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(loc.productShorter9,
-                        style: TextStyle(
-                            fontSize: r.sp(13),
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white)),
+                    Text(
+                      loc.productShorter9,
+                      style: TextStyle(
+                        fontSize: r.sp(13),
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
                     SizedBox(height: r.h(2)),
-                    Text(loc.fixedLabel,
-                        style: TextStyle(
-                            fontSize: r.sp(10), color: Colors.white70)),
+                    Text(
+                      loc.fixedLabel,
+                      style: TextStyle(
+                        fontSize: r.sp(10),
+                        color: Colors.white70,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -3887,7 +4401,7 @@ $productUrl
   // ── 기본 하의길이 참조 이미지 (이미지 미등록 시 fallback) ──
   static const String _defaultMaleLengthImg =
       'https://firebasestorage.googleapis.com/v0/b/fit-mall.firebasestorage.app/o/section_images%2Flength_male_default.jpg?alt=media';
-// ignore: unused_field
+  // ignore: unused_field
   static const String _defaultFemaleLengthImg =
       'https://firebasestorage.googleapis.com/v0/b/fit-mall.firebasestorage.app/o/section_images%2Flength_female_default.jpg?alt=media';
 
@@ -3914,30 +4428,42 @@ $productUrl
         if (isAdmin) ...[
           // 관리자: 단일 업로드 섹션
           Container(
-            padding:
-                EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(8)),
+            padding: EdgeInsets.symmetric(
+              horizontal: r.w(10),
+              vertical: r.h(8),
+            ),
             decoration: BoxDecoration(
               color: const Color(0xFFF3E5F5),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                  color: const Color(0xFF9C27B0).withValues(alpha: 0.3)),
+                color: const Color(0xFF9C27B0).withValues(alpha: 0.3),
+              ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.photo_library_rounded,
-                    size: 14, color: Color(0xFF7B1FA2)),
+                const Icon(
+                  Icons.photo_library_rounded,
+                  size: 14,
+                  color: Color(0xFF7B1FA2),
+                ),
                 SizedBox(width: r.w(6)),
-                Text(loc.productLengthRefImg,
-                    style: TextStyle(
-                        fontSize: r.sp(12),
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF7B1FA2))),
+                Text(
+                  loc.productLengthRefImg,
+                  style: TextStyle(
+                    fontSize: r.sp(12),
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF7B1FA2),
+                  ),
+                ),
               ],
             ),
           ),
           SizedBox(height: r.h(10)),
-          _buildAdminImageSection('s2_length',
-              context.loc.t('하의길이_참조_이미지', '하의길이 참조 이미지'), isAdmin),
+          _buildAdminImageSection(
+            's2_length',
+            context.loc.t('하의길이_참조_이미지', '하의길이 참조 이미지'),
+            isAdmin,
+          ),
         ] else ...[
           // 일반 유저: 업로드된 이미지 표시
           _buildStaticImageList(effectiveImgs),
@@ -3959,15 +4485,19 @@ $productUrl
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.straighten_rounded,
-                        size: 14, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.straighten_rounded,
+                      size: 14,
+                      color: AppColors.textSecondary,
+                    ),
                     SizedBox(width: r.w(6)),
                     Text(
                       context.loc.t('왼쪽부터', '왼쪽부터'),
                       style: TextStyle(
-                          fontSize: r.sp(11),
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textSecondary),
+                        fontSize: r.sp(11),
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                     SizedBox(width: r.w(8)),
                     Expanded(
@@ -3981,11 +4511,13 @@ $productUrl
                             '4부',
                             '3부',
                             '2.5부',
-                            '숏사각'
+                            '숏사각',
                           ])
                             Container(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: r.w(7), vertical: r.h(2)),
+                                horizontal: r.w(7),
+                                vertical: r.h(2),
+                              ),
                               decoration: BoxDecoration(
                                 color: label == context.loc.t('숏사각', '숏사각')
                                     ? const Color(0xFFFFF3E0)
@@ -4022,29 +4554,35 @@ $productUrl
                   children: [
                     Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: r.w(7), vertical: r.h(3)),
+                        horizontal: r.w(7),
+                        vertical: r.h(3),
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFF3E0),
                         borderRadius: BorderRadius.circular(4),
                         border: Border.all(
-                            color:
-                                const Color(0xFFFF8F00).withValues(alpha: 0.5)),
+                          color: const Color(0xFFFF8F00).withValues(alpha: 0.5),
+                        ),
                       ),
-                      child: Text(context.loc.t('숏사각', '숏사각'),
-                          style: TextStyle(
-                              fontSize: r.sp(11),
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.accent)),
+                      child: Text(
+                        context.loc.t('숏사각', '숏사각'),
+                        style: TextStyle(
+                          fontSize: r.sp(11),
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.accent,
+                        ),
+                      ),
                     ),
                     SizedBox(width: r.w(8)),
                     Expanded(
                       child: Text(
                         context.loc.t('주머니_추가_불가', '주머니 추가 불가'),
                         style: TextStyle(
-                            fontSize: r.sp(12),
-                            color: AppColors.accent,
-                            height: 1.5,
-                            fontWeight: FontWeight.w600),
+                          fontSize: r.sp(12),
+                          color: AppColors.accent,
+                          height: 1.5,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -4058,26 +4596,34 @@ $productUrl
                   children: [
                     Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: r.w(7), vertical: r.h(3)),
+                        horizontal: r.w(7),
+                        vertical: r.h(3),
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFE3F2FD),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text(context.loc.t('남성', '남성'),
-                          style: TextStyle(
-                              fontSize: r.sp(11),
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.info)),
+                      child: Text(
+                        context.loc.t('남성', '남성'),
+                        style: TextStyle(
+                          fontSize: r.sp(11),
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.info,
+                        ),
+                      ),
                     ),
                     SizedBox(width: r.w(8)),
                     Expanded(
                       child: Text(
                         context.loc.t(
-                            '9부_5부_4부_3부까지_적용_가능', '9부 · 5부 · 4부 · 3부까지 적용 가능'),
+                          '9부_5부_4부_3부까지_적용_가능',
+                          '9부 · 5부 · 4부 · 3부까지 적용 가능',
+                        ),
                         style: TextStyle(
-                            fontSize: r.sp(12),
-                            color: AppColors.textSecondary,
-                            height: 1.5),
+                          fontSize: r.sp(12),
+                          color: AppColors.textSecondary,
+                          height: 1.5,
+                        ),
                       ),
                     ),
                   ],
@@ -4089,26 +4635,34 @@ $productUrl
                   children: [
                     Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: r.w(7), vertical: r.h(3)),
+                        horizontal: r.w(7),
+                        vertical: r.h(3),
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFCE4EC),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text(context.loc.t('여성', '여성'),
-                          style: TextStyle(
-                              fontSize: r.sp(11),
-                              fontWeight: FontWeight.w800,
-                              color: const Color(0xFFC62828))),
+                      child: Text(
+                        context.loc.t('여성', '여성'),
+                        style: TextStyle(
+                          fontSize: r.sp(11),
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFFC62828),
+                        ),
+                      ),
                     ),
                     SizedBox(width: r.w(8)),
                     Expanded(
                       child: Text(
-                        context.loc.t('9부_5부_4부_3부_2_5부_숏사각까지_적용_가능',
-                            '9부 · 5부 · 4부 · 3부 · 2.5부 · 숏사각까지 적용 가능'),
+                        context.loc.t(
+                          '9부_5부_4부_3부_2_5부_숏사각까지_적용_가능',
+                          '9부 · 5부 · 4부 · 3부 · 2.5부 · 숏사각까지 적용 가능',
+                        ),
                         style: TextStyle(
-                            fontSize: r.sp(12),
-                            color: AppColors.textSecondary,
-                            height: 1.5),
+                          fontSize: r.sp(12),
+                          color: AppColors.textSecondary,
+                          height: 1.5,
+                        ),
                       ),
                     ),
                   ],
@@ -4127,18 +4681,20 @@ $productUrl
     // 각 이미지를 _SectionImageSliderWidget으로 렌더링 (height:null 버그 방지)
     return Column(
       children: imgs
-          .map((url) => Padding(
-                padding: EdgeInsets.only(bottom: r.h(6)),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: _SectionImageSliderWidget(imgs: [url]),
-                ),
-              ))
+          .map(
+            (url) => Padding(
+              padding: EdgeInsets.only(bottom: r.h(6)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: _SectionImageSliderWidget(imgs: [url]),
+              ),
+            ),
+          )
           .toList(),
     );
   }
 
-// ignore: unused_element
+  // ignore: unused_element
   Widget _buildGenderImageHeader({
     required IconData icon,
     required String label,
@@ -4157,11 +4713,14 @@ $productUrl
         children: [
           Icon(icon, size: 16, color: color),
           SizedBox(width: r.w(6)),
-          Text(label,
-              style: TextStyle(
-                  fontSize: r.sp(12),
-                  fontWeight: FontWeight.w800,
-                  color: color)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: r.sp(12),
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
+          ),
         ],
       ),
     );
@@ -4211,14 +4770,23 @@ $productUrl
             // 관리자용 안내 텍스트
             Padding(
               padding: EdgeInsets.only(top: r.h(6), bottom: r.h(4)),
-              child: Row(children: [
-                const Icon(Icons.drag_indicator_rounded,
-                    size: 14, color: AppColors.textSecondary),
-                SizedBox(width: r.w(4)),
-                Text(loc.dragToReorder,
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.drag_indicator_rounded,
+                    size: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                  SizedBox(width: r.w(4)),
+                  Text(
+                    loc.dragToReorder,
                     style: TextStyle(
-                        fontSize: r.sp(11), color: AppColors.textSecondary)),
-              ]),
+                      fontSize: r.sp(11),
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
             ),
             // ReorderableListView — 드래그 순서 변경
             ReorderableListView(
@@ -4233,21 +4801,25 @@ $productUrl
                 setState(() => _sectionImages[sectionKey] = newList);
                 // 백그라운드 저장 (나중에)
                 context.read<ProductProvider>().updateSectionImages(
-                    widget.product.id, sectionKey, newList);
+                  widget.product.id,
+                  sectionKey,
+                  newList,
+                );
               },
               children: imgs.asMap().entries.map((e) {
-// ignore: unused_local_variable
+                // ignore: unused_local_variable
                 final r = Responsive.of(context);
                 final i = e.key;
                 final url = e.value;
                 return _buildReorderableImageItem(
-                    key: ValueKey('$sectionKey-$i-$url'),
-                    url: url,
-                    index: i,
-                    sectionKey: sectionKey,
-                    imgs: imgs,
-                    isAdmin: isAdmin,
-                    onTap: () => _openLightbox(imgs, i));
+                  key: ValueKey('$sectionKey-$i-$url'),
+                  url: url,
+                  index: i,
+                  sectionKey: sectionKey,
+                  imgs: imgs,
+                  isAdmin: isAdmin,
+                  onTap: () => _openLightbox(imgs, i),
+                );
               }).toList(),
             ),
           ] else ...[
@@ -4291,8 +4863,11 @@ $productUrl
                 padding: EdgeInsets.only(top: r.h(4), right: r.w(6)),
                 child: ReorderableDragStartListener(
                   index: index,
-                  child: const Icon(Icons.drag_indicator_rounded,
-                      size: 22, color: AppColors.textHint),
+                  child: const Icon(
+                    Icons.drag_indicator_rounded,
+                    size: 22,
+                    color: AppColors.textHint,
+                  ),
                 ),
               ),
               // 이미지 본체 (탭 → 라이트박스)
@@ -4327,10 +4902,14 @@ $productUrl
                   });
                   // 백그라운드 저장 (나중에)
                   context.read<ProductProvider>().updateSectionImages(
-                      widget.product.id, sectionKey, newList);
+                    widget.product.id,
+                    sectionKey,
+                    newList,
+                  );
                   // Firebase Storage URL이면 Storage에서도 삭제
                   if (deletedUrl.startsWith(
-                          'https://firebasestorage.googleapis.com') ||
+                        'https://firebasestorage.googleapis.com',
+                      ) ||
                       deletedUrl.startsWith('https://storage.googleapis.com')) {
                     StorageService.deleteFile(deletedUrl);
                   }
@@ -4342,8 +4921,11 @@ $productUrl
                     color: Colors.black.withValues(alpha: 0.6),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.close_rounded,
-                      color: Colors.white, size: 18),
+                  child: const Icon(
+                    Icons.close_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                 ),
               ),
             ),
@@ -4369,7 +4951,10 @@ $productUrl
   }
 
   Widget _buildAdminUploadButton(
-      String sectionKey, String sectionLabel, List<String> existingImgs) {
+    String sectionKey,
+    String sectionLabel,
+    List<String> existingImgs,
+  ) {
     final r = Responsive.of(context);
     return GestureDetector(
       onTap: () => _pickAndUploadImages(sectionKey, sectionLabel, existingImgs),
@@ -4388,8 +4973,11 @@ $productUrl
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.add_photo_alternate_outlined,
-                size: 20, color: AppColors.primary),
+            const Icon(
+              Icons.add_photo_alternate_outlined,
+              size: 20,
+              color: AppColors.primary,
+            ),
             SizedBox(width: r.w(8)),
             Text(
               existingImgs.isEmpty
@@ -4409,7 +4997,10 @@ $productUrl
 
   // ── 파일 선택 → Base64 변환 → 자동 저장 ──
   Future<void> _pickAndUploadImages(
-      String sectionKey, String sectionLabel, List<String> existingImgs) async {
+    String sectionKey,
+    String sectionLabel,
+    List<String> existingImgs,
+  ) async {
     final r = Responsive.of(context);
 
     final picker = ImagePicker();
@@ -4418,15 +5009,20 @@ $productUrl
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(children: [
-          SizedBox(
+        content: Row(
+          children: [
+            SizedBox(
               width: r.w(20),
               height: 20,
               child: const CircularProgressIndicator(
-                  strokeWidth: 2, color: Colors.white)),
-          SizedBox(width: r.w(12)),
-          Text(loc.fileSelecting),
-        ]),
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: r.w(12)),
+            Text(loc.fileSelecting),
+          ],
+        ),
         duration: const Duration(seconds: 60),
         backgroundColor: AppColors.primary,
       ),
@@ -4448,15 +5044,20 @@ $productUrl
     // 2) 업로드 중 스낵바
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(children: [
-          SizedBox(
+        content: Row(
+          children: [
+            SizedBox(
               width: r.w(20),
               height: 20,
               child: const CircularProgressIndicator(
-                  strokeWidth: 2, color: Colors.white)),
-          SizedBox(width: r.w(12)),
-          Text('${pickedFiles.length}장 업로드 중... (잠시 기다려 주세요)'),
-        ]),
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: r.w(12)),
+            Text('${pickedFiles.length}장 업로드 중... (잠시 기다려 주세요)'),
+          ],
+        ),
         duration: const Duration(seconds: 120),
         backgroundColor: AppColors.primary,
       ),
@@ -4483,7 +5084,9 @@ $productUrl
             fileName: fileName,
           );
           if (url.isNotEmpty) newUrls.add(url);
-        } catch (_) {/* 개별 파일 실패 시 스킵 */}
+        } catch (_) {
+          /* 개별 파일 실패 시 스킵 */
+        }
       }
 
       if (!mounted) return;
@@ -4492,8 +5095,12 @@ $productUrl
       if (newUrls.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.loc.t('업로드 실패 Firebase Storage 저장에 실패했습니다',
-                '업로드 실패: Firebase Storage 저장에 실패했습니다.')),
+            content: Text(
+              context.loc.t(
+                '업로드 실패 Firebase Storage 저장에 실패했습니다',
+                '업로드 실패: Firebase Storage 저장에 실패했습니다.',
+              ),
+            ),
             backgroundColor: AppColors.error,
           ),
         );
@@ -4508,24 +5115,31 @@ $productUrl
       // 5) Firestore 저장 중 스낵바
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(children: [
-            SizedBox(
+          content: Row(
+            children: [
+              SizedBox(
                 width: r.w(20),
                 height: 20,
                 child: const CircularProgressIndicator(
-                    strokeWidth: 2, color: Colors.white)),
-            SizedBox(width: r.w(12)),
-            Text('$sectionLabel Firestore 저장 중...'),
-          ]),
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(width: r.w(12)),
+              Text('$sectionLabel Firestore 저장 중...'),
+            ],
+          ),
           duration: const Duration(seconds: 30),
           backgroundColor: AppColors.primary,
         ),
       );
 
       // 6) Firestore 자동 저장
-      final ok = await context
-          .read<ProductProvider>()
-          .updateSectionImages(productId, sectionKey, finalUrls);
+      final ok = await context.read<ProductProvider>().updateSectionImages(
+        productId,
+        sectionKey,
+        finalUrls,
+      );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -4533,8 +5147,12 @@ $productUrl
       if (!ok) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.loc.t('Firestore_저장_실패_잠시_후_다시_시도해_주세요',
-                'Firestore 저장 실패. 잠시 후 다시 시도해 주세요.')),
+            content: Text(
+              context.loc.t(
+                'Firestore_저장_실패_잠시_후_다시_시도해_주세요',
+                'Firestore 저장 실패. 잠시 후 다시 시도해 주세요.',
+              ),
+            ),
             backgroundColor: AppColors.error,
           ),
         );
@@ -4547,12 +5165,17 @@ $productUrl
       // 8) 완료 스낵바
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(children: [
-            const Icon(Icons.check_circle_rounded,
-                color: Colors.white, size: 18),
-            SizedBox(width: r.w(10)),
-            Text('$sectionLabel 이미지 ${newUrls.length}장 저장 완료'),
-          ]),
+          content: Row(
+            children: [
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
+              SizedBox(width: r.w(10)),
+              Text('$sectionLabel 이미지 ${newUrls.length}장 저장 완료'),
+            ],
+          ),
           duration: const Duration(seconds: 2),
           backgroundColor: AppColors.success,
         ),
@@ -4570,7 +5193,7 @@ $productUrl
   }
 
   // ── 선택된 이미지 미리보기 + 최종 저장 다이얼로그 (레거시 - 더 이상 사용 안함) ──
-// ignore: unused_element
+  // ignore: unused_element
   void _showPickedImagesPreview(
     String sectionKey,
     String sectionLabel,
@@ -4588,9 +5211,11 @@ $productUrl
         existingImgs: existingImgs,
         pickedFiles: pickedFiles,
         onSave: (finalUrls) async {
-          await context
-              .read<ProductProvider>()
-              .updateSectionImages(widget.product.id, sectionKey, finalUrls);
+          await context.read<ProductProvider>().updateSectionImages(
+            widget.product.id,
+            sectionKey,
+            finalUrls,
+          );
           if (!mounted) return;
           setState(() {
             if (finalUrls.isEmpty) {
@@ -4608,9 +5233,11 @@ $productUrl
           );
         },
         onDeleteAll: () async {
-          await context
-              .read<ProductProvider>()
-              .updateSectionImages(widget.product.id, sectionKey, []);
+          await context.read<ProductProvider>().updateSectionImages(
+            widget.product.id,
+            sectionKey,
+            [],
+          );
           if (!mounted) return;
           setState(() => _sectionImages.remove(sectionKey));
           if (!mounted) return;
@@ -4673,34 +5300,45 @@ $productUrl
             Text(
               context.loc.t('디자인_이미지', '디자인 이미지'),
               style: TextStyle(
-                  fontSize: r.sp(13),
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                  letterSpacing: -0.2),
+                fontSize: r.sp(13),
+                fontWeight: FontWeight.w800,
+                color: AppColors.primary,
+                letterSpacing: -0.2,
+              ),
             ),
             if (isAdmin) ...[
               SizedBox(width: r.w(8)),
               Container(
-                padding:
-                    EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(2)),
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.w(6),
+                  vertical: r.h(2),
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primaryLight.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: Text(context.loc.t('관리자', '관리자'),
-                    style: TextStyle(
-                        fontSize: r.sp(9),
-                        color: AppColors.primaryLight,
-                        fontWeight: FontWeight.w700)),
+                child: Text(
+                  context.loc.t('관리자', '관리자'),
+                  style: TextStyle(
+                    fontSize: r.sp(9),
+                    color: AppColors.primaryLight,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
               const Spacer(),
               // 업로드 버튼
               GestureDetector(
                 onTap: () => _pickAndUploadImages(
-                    'design', context.loc.t('디자인_이미지', '디자인 이미지'), imgs),
+                  'design',
+                  context.loc.t('디자인_이미지', '디자인 이미지'),
+                  imgs,
+                ),
                 child: Container(
                   padding: EdgeInsets.symmetric(
-                      horizontal: r.w(10), vertical: r.h(5)),
+                    horizontal: r.w(10),
+                    vertical: r.h(5),
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(6),
@@ -4708,17 +5346,21 @@ $productUrl
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.add_photo_alternate_outlined,
-                          color: Colors.white, size: 14),
+                      const Icon(
+                        Icons.add_photo_alternate_outlined,
+                        color: Colors.white,
+                        size: 14,
+                      ),
                       SizedBox(width: r.w(4)),
                       Text(
                         imgs.isEmpty
                             ? context.loc.t('이미지_업로드', '이미지 업로드')
                             : '${context.loc.t('이미지_추가', '이미지 추가')} (${imgs.length}장)',
                         style: TextStyle(
-                            color: Colors.white,
-                            fontSize: r.sp(11),
-                            fontWeight: FontWeight.w700),
+                          color: Colors.white,
+                          fontSize: r.sp(11),
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ],
                   ),
@@ -4769,8 +5411,9 @@ $productUrl
                                     ),
                                     child: const Center(
                                       child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: AppColors.primaryLight),
+                                        strokeWidth: 2,
+                                        color: AppColors.primaryLight,
+                                      ),
                                     ),
                                   );
                                 },
@@ -4780,23 +5423,28 @@ $productUrl
                                   decoration: BoxDecoration(
                                     color: Colors.grey[100],
                                     borderRadius: BorderRadius.circular(8),
-                                    border:
-                                        Border.all(color: Colors.grey[300]!),
+                                    border: Border.all(
+                                      color: Colors.grey[300]!,
+                                    ),
                                   ),
                                   child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.broken_image_outlined,
-                                            color: Colors.grey[400], size: 28),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                            context.loc
-                                                .t('이미지_로드_실패', '이미지 로드 실패'),
-                                            style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.grey[400])),
-                                      ]),
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.broken_image_outlined,
+                                        color: Colors.grey[400],
+                                        size: 28,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        context.loc.t('이미지_로드_실패', '이미지 로드 실패'),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.grey[400],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                       ),
@@ -4810,8 +5458,11 @@ $productUrl
                             color: Colors.black.withValues(alpha: 0.55),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Icon(Icons.zoom_in_rounded,
-                              color: Colors.white, size: 13),
+                          child: const Icon(
+                            Icons.zoom_in_rounded,
+                            color: Colors.white,
+                            size: 13,
+                          ),
                         ),
                       ),
                       // 관리자: 삭제 버튼
@@ -4836,11 +5487,16 @@ $productUrl
                               context
                                   .read<ProductProvider>()
                                   .updateSectionImages(
-                                      product.id, 'design', newList);
+                                    product.id,
+                                    'design',
+                                    newList,
+                                  );
                               if (deletedUrl.startsWith(
-                                      'https://firebasestorage.googleapis.com') ||
+                                    'https://firebasestorage.googleapis.com',
+                                  ) ||
                                   deletedUrl.startsWith(
-                                      'https://storage.googleapis.com')) {
+                                    'https://storage.googleapis.com',
+                                  )) {
                                 StorageService.deleteFile(deletedUrl);
                               }
                             },
@@ -4850,8 +5506,11 @@ $productUrl
                                 color: AppColors.error.withValues(alpha: 0.85),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: const Icon(Icons.close_rounded,
-                                  color: Colors.white, size: 12),
+                              child: const Icon(
+                                Icons.close_rounded,
+                                color: Colors.white,
+                                size: 12,
+                              ),
                             ),
                           ),
                         ),
@@ -4871,17 +5530,25 @@ $productUrl
               color: AppColors.primaryLight.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                  color: AppColors.primaryLight.withValues(alpha: 0.2),
-                  style: BorderStyle.solid),
+                color: AppColors.primaryLight.withValues(alpha: 0.2),
+                style: BorderStyle.solid,
+              ),
             ),
             child: Column(
               children: [
-                const Icon(Icons.image_outlined,
-                    size: 28, color: Color(0xFF9E9E9E)),
+                const Icon(
+                  Icons.image_outlined,
+                  size: 28,
+                  color: Color(0xFF9E9E9E),
+                ),
                 SizedBox(height: r.h(6)),
-                Text(context.loc.t('디자인_이미지를_업로드하세요', '디자인 이미지를 업로드하세요'),
-                    style: TextStyle(
-                        fontSize: r.sp(12), color: const Color(0xFF9E9E9E))),
+                Text(
+                  context.loc.t('디자인_이미지를_업로드하세요', '디자인 이미지를 업로드하세요'),
+                  style: TextStyle(
+                    fontSize: r.sp(12),
+                    color: const Color(0xFF9E9E9E),
+                  ),
+                ),
               ],
             ),
           ),
@@ -4902,7 +5569,7 @@ $productUrl
   // 섹션 1: PERFORMANCE — 탑텐 스타일 모노크롬 특징 리스트
   // ═══════════════════════════════════════════════════════════
   // ── 골지 타이즈 소재 행 반환 (나일론 75% / 라이크라 25%) ──
-// ignore: unused_element
+  // ignore: unused_element
   List<String>? _getGoljiTaizFiberRow() {
     switch (loc.language) {
       case AppLanguage.english:
@@ -4919,7 +5586,7 @@ $productUrl
   }
 
   // ── 싱글렛 상의 소재 행 반환 (폴리에스터 92% / 라이크라 8%) ──
-// ignore: unused_element
+  // ignore: unused_element
   List<String>? _getSingletTopFiberRow() {
     // 언어별로 싱글렛 상의 소재 행 반환
     switch (loc.language) {
@@ -4943,7 +5610,7 @@ $productUrl
     required String engSub,
     required String korSub,
     Color bgColor = AppColors.primary,
-// ignore: unused_element_parameter
+    // ignore: unused_element_parameter
     Color textColor = Colors.white,
     Widget? trailingIcon,
   }) {
@@ -5045,8 +5712,10 @@ $productUrl
     };
     final sections = _sectionOrder
         .where((key) => !legacySectionKeys.contains(key))
-        .where((key) =>
-            _activeSectionKeys.isEmpty || _activeSectionKeys.contains(key))
+        .where(
+          (key) =>
+              _activeSectionKeys.isEmpty || _activeSectionKeys.contains(key),
+        )
         .map((key) => _buildManagedOnlySection(key, isAdmin))
         .whereType<Widget>()
         .toList();
@@ -5066,8 +5735,10 @@ $productUrl
     }
     final sections = _sectionOrder
         .where((key) => key != 's6') // 사이즈표는 별도 공통 영역에서 유지
-        .where((key) =>
-            _activeSectionKeys.isEmpty || _activeSectionKeys.contains(key))
+        .where(
+          (key) =>
+              _activeSectionKeys.isEmpty || _activeSectionKeys.contains(key),
+        )
         .map((key) => _buildManagedOnlySection(key, isAdmin))
         .whereType<Widget>()
         .toList();
@@ -5096,8 +5767,9 @@ $productUrl
 
     final r = Responsive.of(context);
     final orderIndex = _sectionOrder.indexOf(sectionKey);
-    final sectionNumber =
-        (orderIndex >= 0 ? orderIndex + 1 : 1).toString().padLeft(2, '0');
+    final sectionNumber = (orderIndex >= 0 ? orderIndex + 1 : 1)
+        .toString()
+        .padLeft(2, '0');
 
     // 고객 상세페이지는 상품 이미지 자체가 주인공이 되도록
     // 순백 배경, 얇은 구분선, 작은 섹션 번호만 사용하는 미니멀 스타일입니다.
@@ -5178,7 +5850,9 @@ $productUrl
   /// 렌더링합니다. 기존 공통 템플릿을 함께 그리면 상품별 카피와 중복되거나
   /// 순서가 뒤섞이므로, 저장 카피가 있는 상품은 이 전용 경로를 사용합니다.
   Widget _buildStoredEditorialProductDetail(
-      ProductModel product, bool isAdmin) {
+    ProductModel product,
+    bool isAdmin,
+  ) {
     final r = Responsive.of(context);
     final heroCopy = _generalEditorialCopy(product);
     final material = product.editorialMaterialText.trim().isNotEmpty
@@ -5349,7 +6023,7 @@ $productUrl
 
   /// 기성품별 히어로 카피입니다. 상품명에 따라 개별 타이틀·서브 문구를 우선 적용합니다.
   ({String label, String headline, String accent, String copy})
-      _generalEditorialCopy(ProductModel product) {
+  _generalEditorialCopy(ProductModel product) {
     final name = product.name;
 
     if (_isSingletGroupProduct(product)) {
@@ -5556,7 +6230,9 @@ $productUrl
 
   // ignore: unused_element
   Widget _buildGeneralEditorialProductDetail(
-      ProductModel product, bool isAdmin) {
+    ProductModel product,
+    bool isAdmin,
+  ) {
     if (product.editorialMaterialText.trim().isNotEmpty) {
       return _buildStoredEditorialProductDetail(product, isAdmin);
     }
@@ -5664,9 +6340,10 @@ $productUrl
               Text(
                 '좋은 스포츠웨어는 움직임을 돕되, 움직임을 대신하지 않습니다. 2FIT은 오래 입고 오래 움직일 수 있는 균형을 고민합니다.',
                 style: TextStyle(
-                    fontSize: r.sp(15),
-                    color: AppColors.textSecondary,
-                    height: 1.72),
+                  fontSize: r.sp(15),
+                  color: AppColors.textSecondary,
+                  height: 1.72,
+                ),
               ),
             ],
           ),
@@ -5689,10 +6366,11 @@ $productUrl
               Text(
                 isGroupOrder ? '01 / CUSTOM OPTIONS' : '01 / MATERIAL & DETAIL',
                 style: TextStyle(
-                    fontSize: r.sp(11),
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.15,
-                    color: AppColors.accent),
+                  fontSize: r.sp(11),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.15,
+                  color: AppColors.accent,
+                ),
               ),
               SizedBox(height: r.h(13)),
               Text(
@@ -5700,11 +6378,12 @@ $productUrl
                     ? 'YOUR TEAM.\nYOUR DESIGN.'
                     : 'FORM, FUNCTION,\nAND MOVEMENT.',
                 style: TextStyle(
-                    fontSize: r.sp(26),
-                    fontWeight: FontWeight.w900,
-                    height: 1.03,
-                    letterSpacing: -1.0,
-                    color: AppColors.textPrimary),
+                  fontSize: r.sp(26),
+                  fontWeight: FontWeight.w900,
+                  height: 1.03,
+                  letterSpacing: -1.0,
+                  color: AppColors.textPrimary,
+                ),
               ),
               SizedBox(height: r.h(17)),
               Text(
@@ -5712,9 +6391,10 @@ $productUrl
                     ? '수량, 색상, 디자인 등 팀에 필요한 주문 조건을 상담으로 확인할 수 있습니다.'
                     : '상품마다 다른 원단과 디테일을 적용해, 활용 목적에 맞는 편안한 착용감을 제안합니다.',
                 style: TextStyle(
-                    fontSize: r.sp(14),
-                    color: AppColors.textSecondary,
-                    height: 1.7),
+                  fontSize: r.sp(14),
+                  color: AppColors.textSecondary,
+                  height: 1.7,
+                ),
               ),
               SizedBox(height: r.h(22)),
               const Divider(height: 1, color: AppColors.border),
@@ -5750,10 +6430,11 @@ $productUrl
                     ? 'ONE TEAM, ONE IDENTITY.'
                     : 'ONE PIECE, YOUR PACE.',
                 style: TextStyle(
-                    fontSize: r.sp(23),
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.6,
-                    color: AppColors.textPrimary),
+                  fontSize: r.sp(23),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.6,
+                  color: AppColors.textPrimary,
+                ),
               ),
               SizedBox(height: r.h(10)),
               Text(
@@ -5761,9 +6442,10 @@ $productUrl
                     ? '함께 달리는 팀의 정체성을 더 분명하게 보여줄 수 있도록.'
                     : '운동을 위한 한 장. 그리고 당신의 일상에 자연스럽게 더해질 한 장.',
                 style: TextStyle(
-                    fontSize: r.sp(13),
-                    color: AppColors.textSecondary,
-                    height: 1.65),
+                  fontSize: r.sp(13),
+                  color: AppColors.textSecondary,
+                  height: 1.65,
+                ),
               ),
             ],
           ),
@@ -5778,10 +6460,11 @@ $productUrl
               Text(
                 'DETAIL / SPEC',
                 style: TextStyle(
-                    fontSize: r.sp(24),
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -0.8),
+                  fontSize: r.sp(24),
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                  letterSpacing: -0.8,
+                ),
               ),
               SizedBox(height: r.h(28)),
               ...details.map(_buildLimitedDetailLine),
@@ -5791,9 +6474,10 @@ $productUrl
               Text(
                 '2FIT SPORTSWEAR\n$productType',
                 style: TextStyle(
-                    fontSize: r.sp(13),
-                    color: AppColors.textSecondary,
-                    height: 1.8),
+                  fontSize: r.sp(13),
+                  color: AppColors.textSecondary,
+                  height: 1.8,
+                ),
               ),
             ],
           ),
@@ -5810,16 +6494,19 @@ $productUrl
               Text(
                 isGroupOrder ? 'ORDER GUIDE' : 'PURCHASE GUIDE',
                 style: TextStyle(
-                    fontSize: r.sp(11),
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.accent,
-                    letterSpacing: 1.35),
+                  fontSize: r.sp(11),
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.accent,
+                  letterSpacing: 1.35,
+                ),
               ),
               SizedBox(height: r.h(18)),
               if (isGroupOrder) ...[
                 _buildLimitedPolicyLine('01', '상담을 통해 수량과 제작 사양을 확인합니다.'),
                 _buildLimitedPolicyLine(
-                    '02', '디자인 및 생산 일정은 주문 조건에 따라 달라질 수 있습니다.'),
+                  '02',
+                  '디자인 및 생산 일정은 주문 조건에 따라 달라질 수 있습니다.',
+                ),
                 _buildLimitedPolicyLine('03', '확정된 제작 조건은 결제 전 다시 안내합니다.'),
               ] else ...[
                 _buildLimitedPolicyLine('01', '구매 전 상품 옵션과 사이즈 정보를 확인해 주세요.'),
@@ -5849,19 +6536,21 @@ $productUrl
               Text(
                 '2FIT\nSPORTSWEAR',
                 style: TextStyle(
-                    fontSize: r.sp(26),
-                    fontWeight: FontWeight.w900,
-                    height: 1.03,
-                    letterSpacing: -1.1,
-                    color: AppColors.textPrimary),
+                  fontSize: r.sp(26),
+                  fontWeight: FontWeight.w900,
+                  height: 1.03,
+                  letterSpacing: -1.1,
+                  color: AppColors.textPrimary,
+                ),
               ),
               SizedBox(height: r.h(18)),
               Text(
                 '2FIT MALL은 움직임을 멈추지 않는 사람들을 위한 스포츠웨어를 제안합니다. 목적과 취향에 맞는 한 장이 더 나은 움직임으로 이어진다고 믿습니다.',
                 style: TextStyle(
-                    fontSize: r.sp(14),
-                    color: AppColors.textSecondary,
-                    height: 1.72),
+                  fontSize: r.sp(14),
+                  color: AppColors.textSecondary,
+                  height: 1.72,
+                ),
               ),
             ],
           ),
@@ -5980,28 +6669,31 @@ $productUrl
               Text(
                 '01 / SEAMLESS DESIGN',
                 style: TextStyle(
-                    fontSize: r.sp(11),
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.15,
-                    color: AppColors.accent),
+                  fontSize: r.sp(11),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.15,
+                  color: AppColors.accent,
+                ),
               ),
               SizedBox(height: r.h(13)),
               Text(
                 'SEAMLESS,\nBY DESIGN.',
                 style: TextStyle(
-                    fontSize: r.sp(26),
-                    fontWeight: FontWeight.w900,
-                    height: 1.03,
-                    letterSpacing: -1.0,
-                    color: AppColors.textPrimary),
+                  fontSize: r.sp(26),
+                  fontWeight: FontWeight.w900,
+                  height: 1.03,
+                  letterSpacing: -1.0,
+                  color: AppColors.textPrimary,
+                ),
               ),
               SizedBox(height: r.h(16)),
               Text(
                 '불필요한 선은 덜고, 움직임을 위한 매끄러운 실루엣을 완성했습니다.',
                 style: TextStyle(
-                    fontSize: r.sp(14),
-                    color: AppColors.textSecondary,
-                    height: 1.7),
+                  fontSize: r.sp(14),
+                  color: AppColors.textSecondary,
+                  height: 1.7,
+                ),
               ),
             ],
           ),
@@ -6042,9 +6734,10 @@ $productUrl
               Text(
                 '가볍게 입고 오래 움직일 수 있도록, 폴리에스터의 경쾌함에 라이크라의 유연함을 더했습니다. 몸의 움직임에 자연스럽게 대응하는 소재 구성입니다.',
                 style: TextStyle(
-                    fontSize: r.sp(14),
-                    color: AppColors.textSecondary,
-                    height: 1.72),
+                  fontSize: r.sp(14),
+                  color: AppColors.textSecondary,
+                  height: 1.72,
+                ),
               ),
               SizedBox(height: r.h(22)),
               const Divider(height: 1, color: AppColors.border),
@@ -6052,9 +6745,10 @@ $productUrl
               Text(
                 material,
                 style: TextStyle(
-                    fontSize: r.sp(12),
-                    color: AppColors.textSecondary,
-                    height: 1.5),
+                  fontSize: r.sp(12),
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
               ),
             ],
           ),
@@ -6076,18 +6770,20 @@ $productUrl
               Text(
                 'ONE PIECE, YOUR PACE.',
                 style: TextStyle(
-                    fontSize: r.sp(23),
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.6,
-                    color: AppColors.textPrimary),
+                  fontSize: r.sp(23),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.6,
+                  color: AppColors.textPrimary,
+                ),
               ),
               SizedBox(height: r.h(10)),
               Text(
                 '러닝을 위한 한 장. 그리고 당신의 일상에 자연스럽게 더해질 한 장.',
                 style: TextStyle(
-                    fontSize: r.sp(13),
-                    color: AppColors.textSecondary,
-                    height: 1.65),
+                  fontSize: r.sp(13),
+                  color: AppColors.textSecondary,
+                  height: 1.65,
+                ),
               ),
             ],
           ),
@@ -6102,10 +6798,11 @@ $productUrl
               Text(
                 'DETAIL / FABRIC',
                 style: TextStyle(
-                    fontSize: r.sp(24),
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -0.8),
+                  fontSize: r.sp(24),
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                  letterSpacing: -0.8,
+                ),
               ),
               SizedBox(height: r.h(30)),
               _buildLimitedDetailLine('디자인당 200장 한정으로 제작되는 리미티드 싱글렛'),
@@ -6118,9 +6815,10 @@ $productUrl
               Text(
                 'Polyester 92% · Lycra 8%\nSeamless Design\nLimited to 200 Pieces per Design\nMade for 200 Runners',
                 style: TextStyle(
-                    fontSize: r.sp(13),
-                    color: AppColors.textSecondary,
-                    height: 1.8),
+                  fontSize: r.sp(13),
+                  color: AppColors.textSecondary,
+                  height: 1.8,
+                ),
               ),
             ],
           ),
@@ -6137,10 +6835,11 @@ $productUrl
               Text(
                 'LIMITED RELEASE POLICY',
                 style: TextStyle(
-                    fontSize: r.sp(10),
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.accent,
-                    letterSpacing: 1.35),
+                  fontSize: r.sp(10),
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.accent,
+                  letterSpacing: 1.35,
+                ),
               ),
               SizedBox(height: r.h(18)),
               _buildLimitedPolicyLine('01', '디자인당 200장 발매'),
@@ -6164,19 +6863,21 @@ $productUrl
               Text(
                 '2FIT LIMITED\nRUNNING COLLECTION',
                 style: TextStyle(
-                    fontSize: r.sp(26),
-                    fontWeight: FontWeight.w900,
-                    height: 1.03,
-                    letterSpacing: -1.1,
-                    color: AppColors.textPrimary),
+                  fontSize: r.sp(26),
+                  fontWeight: FontWeight.w900,
+                  height: 1.03,
+                  letterSpacing: -1.1,
+                  color: AppColors.textPrimary,
+                ),
               ),
               SizedBox(height: r.h(18)),
               Text(
                 '2FIT MALL은 더 많은 수량보다, 더 분명한 기준을 선택합니다. 한 디자인은 단 200장. 자신만의 기준과 취향으로 달리는 러너를 위해 만듭니다.',
                 style: TextStyle(
-                    fontSize: r.sp(14),
-                    color: AppColors.textSecondary,
-                    height: 1.72),
+                  fontSize: r.sp(14),
+                  color: AppColors.textSecondary,
+                  height: 1.72,
+                ),
               ),
             ],
           ),
@@ -6208,7 +6909,8 @@ $productUrl
     required String adminLabel,
     required bool isAdmin,
   }) {
-    final images = _sectionImages[sectionKey] ??
+    final images =
+        _sectionImages[sectionKey] ??
         _sectionImages[_canonicalSectionKey(sectionKey)] ??
         const <String>[];
     if (!isAdmin && images.isEmpty) return const SizedBox.shrink();
@@ -6235,8 +6937,11 @@ $productUrl
           isAdmin
               ? Padding(
                   padding: EdgeInsets.symmetric(horizontal: r.w(16)),
-                  child:
-                      _buildAdminImageSection(sectionKey, adminLabel, isAdmin),
+                  child: _buildAdminImageSection(
+                    sectionKey,
+                    adminLabel,
+                    isAdmin,
+                  ),
                 )
               : _buildSectionImageSlider(sectionKey),
         ],
@@ -6270,7 +6975,10 @@ $productUrl
       child: Text(
         '- $text',
         style: TextStyle(
-            fontSize: r.sp(16), color: AppColors.textSecondary, height: 1.55),
+          fontSize: r.sp(16),
+          color: AppColors.textSecondary,
+          height: 1.55,
+        ),
       ),
     );
   }
@@ -6284,18 +6992,24 @@ $productUrl
         children: [
           SizedBox(
             width: r.w(30),
-            child: Text(number,
-                style: TextStyle(
-                    fontSize: r.sp(11),
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.accent)),
+            child: Text(
+              number,
+              style: TextStyle(
+                fontSize: r.sp(11),
+                fontWeight: FontWeight.w900,
+                color: AppColors.accent,
+              ),
+            ),
           ),
           Expanded(
-            child: Text(text,
-                style: TextStyle(
-                    fontSize: r.sp(13),
-                    color: AppColors.textSecondary,
-                    height: 1.6)),
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: r.sp(13),
+                color: AppColors.textSecondary,
+                height: 1.6,
+              ),
+            ),
           ),
         ],
       ),
@@ -6331,18 +7045,20 @@ $productUrl
               Text(
                 notice.$1,
                 style: TextStyle(
-                    fontSize: r.sp(11),
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.textPrimary,
-                    letterSpacing: 1.1),
+                  fontSize: r.sp(11),
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                  letterSpacing: 1.1,
+                ),
               ),
               SizedBox(height: r.h(10)),
               Text(
                 notice.$2,
                 style: TextStyle(
-                    fontSize: r.sp(12.5),
-                    color: AppColors.textSecondary,
-                    height: 1.72),
+                  fontSize: r.sp(12.5),
+                  color: AppColors.textSecondary,
+                  height: 1.72,
+                ),
               ),
               if (!isLast) ...[
                 SizedBox(height: r.h(24)),
@@ -6356,10 +7072,10 @@ $productUrl
     );
   }
 
-// ignore: unused_element
+  // ignore: unused_element
   Widget _buildSection1Banner(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
-// ignore: unused_local_variable
+    // ignore: unused_local_variable
     final features = [
       {'tag': 'ULTRA LIGHT', 'title': loc.feat1Title, 'desc': loc.feat1Desc},
       {'tag': 'SEAMLESS', 'title': loc.feat2Title, 'desc': loc.feat2Desc},
@@ -6374,23 +7090,35 @@ $productUrl
           sectionKey: 's1',
           engTitle: 'PERFORMANCE',
           engSub: 'SECTION 01',
-          korSub: context.loc.t('고성능_스포츠_소재와_기술이_만든_n최상위_퍼포먼스_웨어',
-              '고성능 스포츠 소재와 기술이 만든\n최상위 퍼포먼스 웨어'),
-          trailingIcon: const Icon(Icons.bolt_rounded,
-              size: 36, color: Color(0x55FFFFFF)),
+          korSub: context.loc.t(
+            '고성능_스포츠_소재와_기술이_만든_n최상위_퍼포먼스_웨어',
+            '고성능 스포츠 소재와 기술이 만든\n최상위 퍼포먼스 웨어',
+          ),
+          trailingIcon: const Icon(
+            Icons.bolt_rounded,
+            size: 36,
+            color: Color(0x55FFFFFF),
+          ),
         ),
         const Divider(height: 1, thickness: 1, color: AppColors.border),
         // ── 섹션1 어드민 이미지 (관리자: 업로드 UI / 일반: 가로 슬라이더)
         if (isAdmin || (_sectionImages['s1'] ?? []).isNotEmpty)
           Container(
             color: Colors.white,
-            padding:
-                EdgeInsets.fromLTRB(r.w(0), isAdmin ? 12 : 0, r.w(0), r.h(0)),
+            padding: EdgeInsets.fromLTRB(
+              r.w(0),
+              isAdmin ? 12 : 0,
+              r.w(0),
+              r.h(0),
+            ),
             child: isAdmin
                 ? Padding(
                     padding: EdgeInsets.symmetric(horizontal: r.w(16)),
                     child: _buildAdminImageSection(
-                        's1', context.loc.t('섹션1_메인_배너', '섹션1 메인 배너'), isAdmin),
+                      's1',
+                      context.loc.t('섹션1_메인_배너', '섹션1 메인 배너'),
+                      isAdmin,
+                    ),
                   )
                 : _buildSectionImageSlider('s1'),
           ),
@@ -6401,7 +7129,8 @@ $productUrl
 
   Widget _storedSectionDescription(String sectionKey) {
     final canonicalKey = _canonicalSectionKey(sectionKey);
-    final productDescription = _productSectionDescriptions[sectionKey] ??
+    final productDescription =
+        _productSectionDescriptions[sectionKey] ??
         _productSectionDescriptions[canonicalKey];
     final description = productDescription?.trim() ?? '';
     if (description.isEmpty) return const SizedBox.shrink();
@@ -6422,7 +7151,7 @@ $productUrl
   // ═══════════════════════════════════════════════════════════
   // 섹션 2: MATERIAL — 탑텐 스타일 소재/기술
   // ═══════════════════════════════════════════════════════════
-// ignore: unused_element
+  // ignore: unused_element
   Widget _buildSection2Material(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
     final techRows = [
@@ -6431,7 +7160,7 @@ $productUrl
       {
         'label': 'MOISTURE',
         'desc': loc.techAbsorbTitle,
-        'sub': loc.techAbsorbDesc
+        'sub': loc.techAbsorbDesc,
       },
     ];
 
@@ -6446,11 +7175,16 @@ $productUrl
           sectionKey: 's2',
           engTitle: 'MATERIAL',
           engSub: 'SECTION 02',
-          korSub: context.loc.t('고급_원단과_기능성_소재로_완성한_n쾌적하고_지속_가능한_착용감',
-              '고급 원단과 기능성 소재로 완성한\n쾌적하고 지속 가능한 착용감'),
+          korSub: context.loc.t(
+            '고급_원단과_기능성_소재로_완성한_n쾌적하고_지속_가능한_착용감',
+            '고급 원단과 기능성 소재로 완성한\n쾌적하고 지속 가능한 착용감',
+          ),
           bgColor: const Color(0xFF212121),
-          trailingIcon: const Icon(Icons.layers_rounded,
-              size: 36, color: Color(0x55FFFFFF)),
+          trailingIcon: const Icon(
+            Icons.layers_rounded,
+            size: 36,
+            color: Color(0x55FFFFFF),
+          ),
         ),
         const Divider(height: 1, thickness: 1, color: AppColors.border),
 
@@ -6468,13 +7202,20 @@ $productUrl
           if (isAdmin || (_sectionImages['s2_fabric_extra'] ?? []).isNotEmpty)
             Container(
               color: Colors.white,
-              padding:
-                  EdgeInsets.fromLTRB(r.w(0), isAdmin ? 12 : 0, r.w(0), r.h(0)),
+              padding: EdgeInsets.fromLTRB(
+                r.w(0),
+                isAdmin ? 12 : 0,
+                r.w(0),
+                r.h(0),
+              ),
               child: isAdmin
                   ? Padding(
                       padding: EdgeInsets.symmetric(horizontal: r.w(16)),
-                      child: _buildAdminImageSection('s2_fabric_extra',
-                          context.loc.t('원단_추가_이미지', '원단 추가 이미지'), isAdmin),
+                      child: _buildAdminImageSection(
+                        's2_fabric_extra',
+                        context.loc.t('원단_추가_이미지', '원단 추가 이미지'),
+                        isAdmin,
+                      ),
                     )
                   : _buildSectionImageSlider('s2_fabric_extra'),
             ),
@@ -6487,76 +7228,96 @@ $productUrl
           padding: EdgeInsets.fromLTRB(r.w(20), r.h(8), r.w(20), r.h(0)),
           child: Column(
             children: techRows
-                .where((t) =>
-                    product.category != context.loc.t('하의', '하의') ||
-                    t['label'] != 'SEAMLESS')
+                .where(
+                  (t) =>
+                      product.category != context.loc.t('하의', '하의') ||
+                      t['label'] != 'SEAMLESS',
+                )
                 .toList()
                 .asMap()
                 .entries
                 .map((entry) {
-              final r = Responsive.of(context);
+                  final r = Responsive.of(context);
 
-              final i = entry.key;
-              final t = entry.value;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (i > 0) const Divider(height: 1, color: Color(0xFFE8E8E8)),
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: r.h(18)),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 28,
-                          child: Text('0${i + 1}',
-                              style: TextStyle(
+                  final i = entry.key;
+                  final t = entry.value;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (i > 0)
+                        const Divider(height: 1, color: Color(0xFFE8E8E8)),
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: r.h(18)),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: 28,
+                              child: Text(
+                                '0${i + 1}',
+                                style: TextStyle(
                                   fontSize: r.sp(11),
                                   fontWeight: FontWeight.w900,
                                   color: AppColors.border,
-                                  letterSpacing: 1)),
-                        ),
-                        SizedBox(width: r.w(12)),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: r.w(7), vertical: r.h(3)),
-                                decoration: BoxDecoration(
-                                    border: Border.all(
-                                        color: AppColors.textSecondary)),
-                                child: Text(t['label']!,
-                                    style: TextStyle(
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: r.w(12)),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: r.w(7),
+                                      vertical: r.h(3),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      t['label']!,
+                                      style: TextStyle(
                                         fontSize: r.sp(9),
                                         fontWeight: FontWeight.w800,
                                         color: AppColors.textSecondary,
-                                        letterSpacing: 1.2)),
-                              ),
-                              SizedBox(height: r.h(8)),
-                              Text(t['desc']!,
-                                  style: TextStyle(
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: r.h(8)),
+                                  Text(
+                                    t['desc']!,
+                                    style: TextStyle(
                                       fontSize: r.sp(14),
                                       fontWeight: FontWeight.w800,
                                       color: AppColors.primary,
-                                      height: 1.3)),
-                              SizedBox(height: r.h(5)),
-                              Text(t['sub']!,
-                                  style: TextStyle(
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                  SizedBox(height: r.h(5)),
+                                  Text(
+                                    t['sub']!,
+                                    style: TextStyle(
                                       fontSize: r.sp(12),
                                       color: const Color(0xFF777777),
                                       height: 1.6,
-                                      fontWeight: FontWeight.w400)),
-                            ],
-                          ),
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            }).toList(),
+                      ),
+                    ],
+                  );
+                })
+                .toList(),
           ),
         ),
 
@@ -6569,10 +7330,17 @@ $productUrl
         if (isAdmin || (_sectionImages['s2_fiber'] ?? []).isNotEmpty)
           isAdmin
               ? Padding(
-                  padding:
-                      EdgeInsets.fromLTRB(r.w(16), r.h(0), r.w(16), r.h(0)),
-                  child: _buildAdminImageSection('s2_fiber',
-                      context.loc.t('소재혼용율_이미지', '소재혼용율 이미지'), isAdmin),
+                  padding: EdgeInsets.fromLTRB(
+                    r.w(16),
+                    r.h(0),
+                    r.w(16),
+                    r.h(0),
+                  ),
+                  child: _buildAdminImageSection(
+                    's2_fiber',
+                    context.loc.t('소재혼용율_이미지', '소재혼용율 이미지'),
+                    isAdmin,
+                  ),
                 )
               : _buildSectionImageSlider('s2_fiber'),
       ],
@@ -6688,7 +7456,7 @@ $productUrl
   // 포켓시스템 표시 여부: 하의 카테고리 중 타이즈·5부·2.5부만 표시
   // (숏츠·단체주문 상의·세트 등 나머지는 숨김)
   // ═══════════════════════════════════════════════════════════
-// ignore: unused_element
+  // ignore: unused_element
   bool _showPocketSection(ProductModel product) {
     final cat = product.category;
     final sub = product.subCategory;
@@ -6711,24 +7479,24 @@ $productUrl
   // ═══════════════════════════════════════════════════════════
   // 섹션 3: POCKET SYSTEM — 탑텐 스타일 기능 리스트
   // ═══════════════════════════════════════════════════════════
-// ignore: unused_element
+  // ignore: unused_element
   Widget _buildSection3Pocket(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
     final pockets = [
       {
         'tag': 'BACK POCKET',
         'title': loc.pocketTile1Title,
-        'desc': loc.pocketTile1Desc
+        'desc': loc.pocketTile1Desc,
       },
       {
         'tag': 'PHONE FIT',
         'title': loc.pocketTile3Title,
-        'desc': loc.pocketTile3Desc
+        'desc': loc.pocketTile3Desc,
       },
       {
         'tag': 'WATER RESIST',
         'title': loc.pocketTile4Title,
-        'desc': loc.pocketTile4Desc
+        'desc': loc.pocketTile4Desc,
       },
     ];
 
@@ -6740,11 +7508,16 @@ $productUrl
           sectionKey: 's3',
           engTitle: 'POCKET\nSYSTEM',
           engSub: 'SECTION 03',
-          korSub: context.loc.t('실용적인_수납_설계와_방수_기능으로_n운동_중에도_완벽한_편의성',
-              '실용적인 수납 설계와 방수 기능으로\n운동 중에도 완벽한 편의성'),
+          korSub: context.loc.t(
+            '실용적인_수납_설계와_방수_기능으로_n운동_중에도_완벽한_편의성',
+            '실용적인 수납 설계와 방수 기능으로\n운동 중에도 완벽한 편의성',
+          ),
           bgColor: const Color(0xFF1C2B3A),
-          trailingIcon: const Icon(Icons.inventory_2_rounded,
-              size: 36, color: Color(0x55FFFFFF)),
+          trailingIcon: const Icon(
+            Icons.inventory_2_rounded,
+            size: 36,
+            color: Color(0x55FFFFFF),
+          ),
         ),
         const Divider(height: 1, thickness: 1, color: AppColors.border),
         // 관리자 섹션 설명은 이미지 유무와 관계없이 표시하고,
@@ -6754,10 +7527,17 @@ $productUrl
         if (isAdmin || (_sectionImages['s3'] ?? []).isNotEmpty)
           isAdmin
               ? Padding(
-                  padding:
-                      EdgeInsets.fromLTRB(r.w(16), r.h(12), r.w(16), r.h(0)),
+                  padding: EdgeInsets.fromLTRB(
+                    r.w(16),
+                    r.h(12),
+                    r.w(16),
+                    r.h(0),
+                  ),
                   child: _buildAdminImageSection(
-                      's3', context.loc.t('섹션3_포켓_특성', '섹션3 포켓 특성'), isAdmin),
+                    's3',
+                    context.loc.t('섹션3_포켓_특성', '섹션3 포켓 특성'),
+                    isAdmin,
+                  ),
                 )
               : _buildSectionImageSlider('s3'),
 
@@ -6783,12 +7563,15 @@ $productUrl
                       children: [
                         SizedBox(
                           width: 28,
-                          child: Text('0${i + 1}',
-                              style: TextStyle(
-                                  fontSize: r.sp(11),
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.border,
-                                  letterSpacing: 1)),
+                          child: Text(
+                            '0${i + 1}',
+                            style: TextStyle(
+                              fontSize: r.sp(11),
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.border,
+                              letterSpacing: 1,
+                            ),
+                          ),
                         ),
                         SizedBox(width: r.w(12)),
                         Expanded(
@@ -6797,31 +7580,42 @@ $productUrl
                             children: [
                               Container(
                                 padding: EdgeInsets.symmetric(
-                                    horizontal: r.w(7), vertical: r.h(3)),
+                                  horizontal: r.w(7),
+                                  vertical: r.h(3),
+                                ),
                                 decoration: BoxDecoration(
-                                    border:
-                                        Border.all(color: AppColors.primary)),
-                                child: Text(p['tag']!,
-                                    style: TextStyle(
-                                        fontSize: r.sp(9),
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.primary,
-                                        letterSpacing: 1.2)),
+                                  border: Border.all(color: AppColors.primary),
+                                ),
+                                child: Text(
+                                  p['tag']!,
+                                  style: TextStyle(
+                                    fontSize: r.sp(9),
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.primary,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
                               ),
                               SizedBox(height: r.h(8)),
-                              Text(p['title']!,
-                                  style: TextStyle(
-                                      fontSize: r.sp(15),
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.primary,
-                                      height: 1.3)),
+                              Text(
+                                p['title']!,
+                                style: TextStyle(
+                                  fontSize: r.sp(15),
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.primary,
+                                  height: 1.3,
+                                ),
+                              ),
                               SizedBox(height: r.h(5)),
-                              Text(p['desc']!,
-                                  style: TextStyle(
-                                      fontSize: r.sp(12),
-                                      color: const Color(0xFF777777),
-                                      height: 1.6,
-                                      fontWeight: FontWeight.w400)),
+                              Text(
+                                p['desc']!,
+                                style: TextStyle(
+                                  fontSize: r.sp(12),
+                                  color: const Color(0xFF777777),
+                                  height: 1.6,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -6841,7 +7635,7 @@ $productUrl
 
   // ─── 제거됨: 섹션4 COLOR LINE (색상 선택 영역에 통합) ───
   // ─── 제거됨: 섹션5 (미사용 번호) ───
-// ignore: unused_element
+  // ignore: unused_element
   Widget _buildSection5GoljiColors(ProductModel product, bool isAdmin) {
     return const SizedBox.shrink();
   }
@@ -6856,7 +7650,7 @@ $productUrl
       'HEIGHT\n(cm)',
       'WEIGHT\n(kg)',
       'CHEST\n(cm)',
-      'WAIST\n(inch)'
+      'WAIST\n(inch)',
     ];
     const adultRows = [
       ['XS(85)', '154~159', '44~51', '85', '26~28'],
@@ -6879,12 +7673,18 @@ $productUrl
     final notices = [
       loc.sizeChartDesc1,
       loc.sizeChartDesc2,
-      context.loc.t('제품_이미지와_색상은_모니터의_상태에_따라_다소_다르게_보일_수_있습니다',
-          '제품 이미지와 색상은 모니터의 상태에 따라 다소 다르게 보일 수 있습니다.'),
-      context.loc.t('측정_위치에_따라_1_2cm_정도의_오차가_발생할_수_있습니다',
-          '측정 위치에 따라 1~2cm 정도의 오차가 발생할 수 있습니다.'),
-      context.loc.t('제품_생산_시기_및_생산지에_따라서_동일_상품_간_컬러_및_혼_98c440',
-          '제품 생산 시기 및 생산지에 따라서 동일 상품 간 컬러 및 혼용률 차이가 발생할 수 있습니다.'),
+      context.loc.t(
+        '제품_이미지와_색상은_모니터의_상태에_따라_다소_다르게_보일_수_있습니다',
+        '제품 이미지와 색상은 모니터의 상태에 따라 다소 다르게 보일 수 있습니다.',
+      ),
+      context.loc.t(
+        '측정_위치에_따라_1_2cm_정도의_오차가_발생할_수_있습니다',
+        '측정 위치에 따라 1~2cm 정도의 오차가 발생할 수 있습니다.',
+      ),
+      context.loc.t(
+        '제품_생산_시기_및_생산지에_따라서_동일_상품_간_컬러_및_혼_98c440',
+        '제품 생산 시기 및 생산지에 따라서 동일 상품 간 컬러 및 혼용률 차이가 발생할 수 있습니다.',
+      ),
     ];
 
     return Padding(
@@ -6894,7 +7694,10 @@ $productUrl
         children: [
           if (isAdmin || (_sectionImages['s6'] ?? []).isNotEmpty) ...[
             _buildAdminImageSection(
-                's6', context.loc.t('섹션6_사이즈_차트', '섹션6 사이즈 차트'), isAdmin),
+              's6',
+              context.loc.t('섹션6_사이즈_차트', '섹션6 사이즈 차트'),
+              isAdmin,
+            ),
             SizedBox(height: r.h(20)),
           ],
           _storedSectionDescription('s6'),
@@ -6936,27 +7739,35 @@ $productUrl
             loc: loc,
           ),
           SizedBox(height: r.h(30)),
-          ...notices.asMap().entries.map((entry) => Padding(
-                padding: EdgeInsets.only(bottom: r.h(9)),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text((entry.key + 1).toString().padLeft(2, '0'),
-                        style: TextStyle(
-                            color: AppColors.accent,
-                            fontSize: r.sp(10),
-                            fontWeight: FontWeight.w900)),
-                    SizedBox(width: r.w(9)),
-                    Expanded(
-                      child: Text(entry.value,
-                          style: TextStyle(
-                              fontSize: r.sp(11),
-                              color: AppColors.textSecondary,
-                              height: 1.55)),
+          ...notices.asMap().entries.map(
+            (entry) => Padding(
+              padding: EdgeInsets.only(bottom: r.h(9)),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    (entry.key + 1).toString().padLeft(2, '0'),
+                    style: TextStyle(
+                      color: AppColors.accent,
+                      fontSize: r.sp(10),
+                      fontWeight: FontWeight.w900,
                     ),
-                  ],
-                ),
-              )),
+                  ),
+                  SizedBox(width: r.w(9)),
+                  Expanded(
+                    child: Text(
+                      entry.value,
+                      style: TextStyle(
+                        fontSize: r.sp(11),
+                        color: AppColors.textSecondary,
+                        height: 1.55,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -6976,12 +7787,14 @@ $productUrl
           // 헤더 행
           _RibTableHeader(headers: headers),
           // 데이터 행
-          ...rows.asMap().entries.map((e) => _RibTableRow(
-                values: e.value,
-                isEven: e.key.isEven,
-                isLast: e.key == rows.length - 1,
-                isSizeCol: true,
-              )),
+          ...rows.asMap().entries.map(
+            (e) => _RibTableRow(
+              values: e.value,
+              isEven: e.key.isEven,
+              isLast: e.key == rows.length - 1,
+              isSizeCol: true,
+            ),
+          ),
         ],
       ),
     );
@@ -7007,44 +7820,57 @@ $productUrl
               Text(
                 'REVIEW / ${reviews.length}',
                 style: TextStyle(
-                    fontSize: r.sp(11),
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary,
-                    letterSpacing: 1.25),
+                  fontSize: r.sp(11),
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 1.25,
+                ),
               ),
               SizedBox(height: r.h(10)),
-              Text(loc.productReviewLabel,
-                  style: TextStyle(
-                      fontSize: r.sp(22),
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textPrimary)),
+              Text(
+                loc.productReviewLabel,
+                style: TextStyle(
+                  fontSize: r.sp(22),
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary,
+                ),
+              ),
               if (avg > 0) ...[
                 SizedBox(height: r.h(14)),
                 Row(
                   children: [
-                    Text(avg.toStringAsFixed(1),
-                        style: TextStyle(
-                            fontSize: r.sp(40),
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textPrimary)),
+                    Text(
+                      avg.toStringAsFixed(1),
+                      style: TextStyle(
+                        fontSize: r.sp(40),
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
                     SizedBox(width: r.w(12)),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: List.generate(
-                              5,
-                              (i) => Icon(Icons.star_rounded,
-                                  size: 20,
-                                  color: i < avg.floor()
-                                      ? AppColors.accent
-                                      : AppColors.border)),
+                            5,
+                            (i) => Icon(
+                              Icons.star_rounded,
+                              size: 20,
+                              color: i < avg.floor()
+                                  ? AppColors.accent
+                                  : AppColors.border,
+                            ),
+                          ),
                         ),
                         SizedBox(height: r.h(4)),
-                        Text('${reviews.length}개 리뷰',
-                            style: TextStyle(
-                                fontSize: r.sp(12),
-                                color: AppColors.textSecondary)),
+                        Text(
+                          '${reviews.length}개 리뷰',
+                          style: TextStyle(
+                            fontSize: r.sp(12),
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -7071,9 +7897,13 @@ $productUrl
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(context.loc.moreReviews,
-                        style: TextStyle(
-                            fontSize: r.sp(13), fontWeight: FontWeight.w400)),
+                    Text(
+                      context.loc.moreReviews,
+                      style: TextStyle(
+                        fontSize: r.sp(13),
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
                     const SizedBox(width: 6),
                     const Icon(Icons.arrow_forward_rounded, size: 16),
                   ],
@@ -7088,7 +7918,7 @@ $productUrl
 
   // 예시 리뷰 제거됨 - 실제 회원 리뷰만 표시
 
-// ignore: unused_element
+  // ignore: unused_element
   Widget _reviewChip(String text) {
     final r = Responsive.of(context);
     return Container(
@@ -7098,8 +7928,10 @@ $productUrl
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: AppColors.border),
       ),
-      child: Text(text,
-          style: TextStyle(fontSize: r.sp(10), color: AppColors.textSecondary)),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: r.sp(10), color: AppColors.textSecondary),
+      ),
     );
   }
 
@@ -7110,11 +7942,13 @@ $productUrl
     final siblings = context
         .read<ProductProvider>()
         .products
-        .where((p) =>
-            p.id != product.id &&
-            p.isActive &&
-            p.productCode.trim() == code &&
-            p.colors.join('|') != product.colors.join('|'))
+        .where(
+          (p) =>
+              p.id != product.id &&
+              p.isActive &&
+              p.productCode.trim() == code &&
+              p.colors.join('|') != product.colors.join('|'),
+        )
         .take(8)
         .toList();
     if (siblings.isEmpty) return const SizedBox.shrink();
@@ -7126,15 +7960,22 @@ $productUrl
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(context.loc.t('같은_디자인_다른_색상', '같은 디자인, 다른 색상'),
-              style: TextStyle(
-                  fontSize: r.sp(17),
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary)),
+          Text(
+            context.loc.t('같은_디자인_다른_색상', '같은 디자인, 다른 색상'),
+            style: TextStyle(
+              fontSize: r.sp(17),
+              fontWeight: FontWeight.w800,
+              color: AppColors.primary,
+            ),
+          ),
           SizedBox(height: r.h(5)),
-          Text(context.loc.t('구매하기_아래_추천', '구매하기 아래에서 다른 색상도 확인해 보세요.'),
-              style: TextStyle(
-                  fontSize: r.sp(12), color: AppColors.textSecondary)),
+          Text(
+            context.loc.t('구매하기_아래_추천', '구매하기 아래에서 다른 색상도 확인해 보세요.'),
+            style: TextStyle(
+              fontSize: r.sp(12),
+              color: AppColors.textSecondary,
+            ),
+          ),
           SizedBox(height: r.h(12)),
           SizedBox(
             height: r.isMobile ? 190 : 220,
@@ -7144,16 +7985,18 @@ $productUrl
               separatorBuilder: (_, __) => SizedBox(width: r.w(10)),
               itemBuilder: (_, index) {
                 final sibling = siblings[index];
-                final colorLabel =
-                    sibling.colors.isEmpty ? '' : sibling.colors.join(' · ');
+                final colorLabel = sibling.colors.isEmpty
+                    ? ''
+                    : sibling.colors.join(' · ');
                 return SizedBox(
                   width: r.isMobile ? 128 : 150,
                   child: GestureDetector(
                     onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) =>
-                                ProductDetailScreen(product: sibling))),
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ProductDetailScreen(product: sibling),
+                      ),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -7162,28 +8005,39 @@ $productUrl
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: sibling.images.isNotEmpty
-                                ? NetImage(sibling.images.first,
+                                ? NetImage(
+                                    sibling.images.first,
                                     fit: BoxFit.cover,
-                                    alignment: Alignment.topCenter)
+                                    alignment: Alignment.topCenter,
+                                  )
                                 : Container(
                                     color: AppColors.surface,
-                                    child: const Icon(Icons.image_outlined,
-                                        color: AppColors.textHint)),
+                                    child: const Icon(
+                                      Icons.image_outlined,
+                                      color: AppColors.textHint,
+                                    ),
+                                  ),
                           ),
                         ),
                         SizedBox(height: r.h(7)),
-                        Text(colorLabel.isEmpty ? sibling.name : colorLabel,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                fontSize: r.sp(12),
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primary)),
+                        Text(
+                          colorLabel.isEmpty ? sibling.name : colorLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: r.sp(12),
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
                         SizedBox(height: r.h(3)),
-                        Text('${_fmt(sibling.price)}원',
-                            style: TextStyle(
-                                fontSize: r.sp(12),
-                                color: AppColors.textSecondary)),
+                        Text(
+                          '${_fmt(sibling.price)}원',
+                          style: TextStyle(
+                            fontSize: r.sp(12),
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -7203,7 +8057,10 @@ $productUrl
     final r = Responsive.of(context);
     final buyNowLabel = context.loc.t('바로구매', '바로구매');
     final compactTextStyle = TextStyle(
-        fontWeight: FontWeight.w500, fontSize: r.sp(14), letterSpacing: -0.1);
+      fontWeight: FontWeight.w500,
+      fontSize: r.sp(14),
+      letterSpacing: -0.1,
+    );
 
     return Container(
       decoration: const BoxDecoration(
@@ -7228,15 +8085,22 @@ $productUrl
                   height: 50,
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.groups_rounded, size: 18),
-                    label: Text(loc.groupOrderBtn,
-                        style: TextStyle(
-                            fontWeight: FontWeight.w500, fontSize: r.sp(15))),
+                    label: Text(
+                      loc.groupOrderBtn,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: r.sp(15),
+                      ),
+                    ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.textPrimary,
-                      side:
-                          const BorderSide(color: AppColors.border, width: 0.8),
+                      side: const BorderSide(
+                        color: AppColors.border,
+                        width: 0.8,
+                      ),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     onPressed: () => _showGroupOrderGuide(product),
                   ),
@@ -7246,21 +8110,30 @@ $productUrl
                   builder: (_, up, __) => Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(context.loc.t('현재_품절된_상품입니다', '현재 품절된 상품입니다'),
-                          style: TextStyle(
-                              fontSize: r.sp(12),
-                              color: AppColors.textSecondary)),
+                      Text(
+                        context.loc.t('현재_품절된_상품입니다', '현재 품절된 상품입니다'),
+                        style: TextStyle(
+                          fontSize: r.sp(12),
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                       SizedBox(height: r.h(5)),
                       TextButton.icon(
                         onPressed: () => _showRestockAlert(product, up),
-                        icon: const Icon(Icons.notifications_active_rounded,
-                            size: 16),
-                        label: Text(context.loc.t('재입고_알림_신청', '재입고 알림 신청'),
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: r.sp(14))),
+                        icon: const Icon(
+                          Icons.notifications_active_rounded,
+                          size: 16,
+                        ),
+                        label: Text(
+                          context.loc.t('재입고_알림_신청', '재입고 알림 신청'),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: r.sp(14),
+                          ),
+                        ),
                         style: TextButton.styleFrom(
-                            foregroundColor: AppColors.textPrimary),
+                          foregroundColor: AppColors.textPrimary,
+                        ),
                       ),
                     ],
                   ),
@@ -7297,10 +8170,13 @@ $productUrl
                       child: TextButton.icon(
                         onPressed: () => _addToCart(product),
                         icon: const Icon(Icons.shopping_bag_outlined, size: 17),
-                        label: Text(context.loc.t('장바구니', '장바구니'),
-                            style: compactTextStyle),
+                        label: Text(
+                          context.loc.t('장바구니', '장바구니'),
+                          style: compactTextStyle,
+                        ),
                         style: TextButton.styleFrom(
-                            foregroundColor: AppColors.textPrimary),
+                          foregroundColor: AppColors.textPrimary,
+                        ),
                       ),
                     ),
                     Container(width: 1, height: 18, color: AppColors.border),
@@ -7310,7 +8186,8 @@ $productUrl
                         icon: const Icon(Icons.arrow_forward_rounded, size: 17),
                         label: Text(buyNowLabel, style: compactTextStyle),
                         style: TextButton.styleFrom(
-                            foregroundColor: AppColors.textPrimary),
+                          foregroundColor: AppColors.textPrimary,
+                        ),
                       ),
                     ),
                   ],
@@ -7363,8 +8240,10 @@ $productUrl
   String _getLengthDesc(String label) {
     switch (label) {
       case '9부':
-        return context.loc
-            .t('발목_바로_위까지_오는_풀_레깅스_스타일', '발목 바로 위까지 오는 풀 레깅스 스타일');
+        return context.loc.t(
+          '발목_바로_위까지_오는_풀_레깅스_스타일',
+          '발목 바로 위까지 오는 풀 레깅스 스타일',
+        );
       case '5부':
         return context.loc.t('무릎_약간_위_가장_범용적인_기장', '무릎 약간 위, 가장 범용적인 기장');
       case '4부':
@@ -7374,8 +8253,10 @@ $productUrl
       case '2.5부':
         return context.loc.t('허벅지_상단_스피드_특화', '허벅지 상단, 스피드 특화');
       case '숏쇼츠':
-        return context.loc
-            .t('k_25부보다_짧은_초단_디자인_스피드_경기용', '2.5부보다 짧은 초단 디자인, 스피드 경기용');
+        return context.loc.t(
+          'k_25부보다_짧은_초단_디자인_스피드_경기용',
+          '2.5부보다 짧은 초단 디자인, 스피드 경기용',
+        );
       default:
         return '';
     }
@@ -7390,12 +8271,14 @@ $productUrl
     if (_isSingletGroupProduct(p) || p.isReadyMade) return true;
 
     // 1) 타이즈 / 하의 카테고리 전체
-    final isTights = p.category == context.loc.t('하의', '하의') ||
+    final isTights =
+        p.category == context.loc.t('하의', '하의') ||
         p.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
         p.name.contains(context.loc.t('타이즈', '타이즈'));
 
     // 2) 싱글렛 A타입세트 (세트 카테고리)
-    final isSingletATypeSet = (p.category == context.loc.t('세트', '세트') &&
+    final isSingletATypeSet =
+        (p.category == context.loc.t('세트', '세트') &&
             p.subCategory.contains(context.loc.t('싱글렛_a타입세트', '싱글렛 A타입세트'))) ||
         p.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
         (p.category == context.loc.t('세트', '세트') &&
@@ -7403,28 +8286,32 @@ $productUrl
             p.name.contains(context.loc.t('a타입', 'A타입')));
 
     // 3) 트레이닝세트 (세트 카테고리)
-    final isTrainingSet = (p.category == context.loc.t('세트', '세트') &&
+    final isTrainingSet =
+        (p.category == context.loc.t('세트', '세트') &&
             p.subCategory.contains(context.loc.t('트레이닝세트', '트레이닝세트'))) ||
         p.subCategory.contains(context.loc.t('트레이닝세트', '트레이닝세트')) ||
         (p.category == context.loc.t('세트', '세트') &&
             p.name.contains(context.loc.t('트레이닝', '트레이닝')));
 
     // 4) 싱글렛 A타입 (상의 카테고리)
-    final isSingletA = (p.category == context.loc.t('상의', '상의') &&
+    final isSingletA =
+        (p.category == context.loc.t('상의', '상의') &&
             p.subCategory.contains(context.loc.t('싱글렛_a타입', '싱글렛 A타입'))) ||
         (p.category == context.loc.t('상의', '상의') &&
             p.name.contains(context.loc.t('싱글렛', '싱글렛')) &&
             p.name.contains(context.loc.t('a타입', 'A타입')));
 
     // 5) 싱글렛 B타입 (상의 카테고리)
-    final isSingletB = (p.category == context.loc.t('상의', '상의') &&
+    final isSingletB =
+        (p.category == context.loc.t('상의', '상의') &&
             p.subCategory.contains(context.loc.t('싱글렛_b타입', '싱글렛 B타입'))) ||
         (p.category == context.loc.t('상의', '상의') &&
             p.name.contains(context.loc.t('싱글렛', '싱글렛')) &&
             p.name.contains(context.loc.t('b타입', 'B타입')));
 
     // 6) 라운드티 (상의 카테고리)
-    final isRoundTee = (p.category == context.loc.t('상의', '상의') &&
+    final isRoundTee =
+        (p.category == context.loc.t('상의', '상의') &&
             p.subCategory.contains(context.loc.t('라운드', '라운드'))) ||
         (p.category == context.loc.t('상의', '상의') &&
             p.name.contains(context.loc.t('라운드', '라운드')) &&
@@ -7449,8 +8336,12 @@ $productUrl
       backgroundColor: Colors.transparent,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setSheetState) => Container(
-          padding: EdgeInsets.fromLTRB(r.w(20), r.h(20), r.w(20),
-              MediaQuery.of(context).padding.bottom + 24),
+          padding: EdgeInsets.fromLTRB(
+            r.w(20),
+            r.h(20),
+            r.w(20),
+            MediaQuery.of(context).padding.bottom + 24,
+          ),
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -7465,20 +8356,28 @@ $productUrl
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                        color: AppColors.border,
-                        borderRadius: BorderRadius.circular(2)),
+                      color: AppColors.border,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
                 SizedBox(height: r.h(20)),
-                Text(loc.purchaseTypeTitle,
-                    style: TextStyle(
-                        fontSize: r.sp(18),
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.primary)),
+                Text(
+                  loc.purchaseTypeTitle,
+                  style: TextStyle(
+                    fontSize: r.sp(18),
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.primary,
+                  ),
+                ),
                 SizedBox(height: r.h(6)),
-                Text(loc.purchaseTypeSubtitle,
-                    style: TextStyle(
-                        fontSize: r.sp(13), color: AppColors.textSecondary)),
+                Text(
+                  loc.purchaseTypeSubtitle,
+                  style: TextStyle(
+                    fontSize: r.sp(13),
+                    color: AppColors.textSecondary,
+                  ),
+                ),
 
                 // ── 싱글렛 전용: 성별·타입 선택 ──
                 if (isSingletProduct) ...[
@@ -7489,30 +8388,40 @@ $productUrl
                       color: const Color(0xFFF3E5F5),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.3)),
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.accessibility_new_rounded,
-                                size: 16, color: AppColors.primary),
+                            const Icon(
+                              Icons.accessibility_new_rounded,
+                              size: 16,
+                              color: AppColors.primary,
+                            ),
                             SizedBox(width: r.w(6)),
-                            Text(loc.singletOptionLabel,
-                                style: TextStyle(
-                                    fontSize: r.sp(14),
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.primary)),
+                            Text(
+                              loc.singletOptionLabel,
+                              style: TextStyle(
+                                fontSize: r.sp(14),
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primary,
+                              ),
+                            ),
                           ],
                         ),
                         SizedBox(height: r.h(14)),
                         // 성별 선택
-                        Text(context.watch<LanguageProvider>().loc.gender,
-                            style: TextStyle(
-                                fontSize: r.sp(12),
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textSecondary)),
+                        Text(
+                          context.watch<LanguageProvider>().loc.gender,
+                          style: TextStyle(
+                            fontSize: r.sp(12),
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
                         SizedBox(height: r.h(8)),
                         Row(
                           children: ['남성', context.loc.t('여성', '여성')].map((g) {
@@ -7523,16 +8432,19 @@ $productUrl
                             return Expanded(
                               child: GestureDetector(
                                 onTap: () => setSheetState(() {
-                                  setState(() => _singletGender =
-                                      g == context.loc.t('남성', '남성')
-                                          ? '남'
-                                          : '여');
+                                  setState(
+                                    () => _singletGender =
+                                        g == context.loc.t('남성', '남성')
+                                        ? '남'
+                                        : '여',
+                                  );
                                 }),
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 150),
                                   margin: EdgeInsets.only(right: r.w(8)),
-                                  padding:
-                                      EdgeInsets.symmetric(vertical: r.h(10)),
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: r.h(10),
+                                  ),
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? AppColors.primary
@@ -7577,74 +8489,82 @@ $productUrl
                         ),
                         SizedBox(height: r.h(14)),
                         // 타입 선택
-                        Text(loc.styleTypeLabel,
-                            style: TextStyle(
-                                fontSize: r.sp(12),
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textSecondary)),
+                        Text(
+                          loc.styleTypeLabel,
+                          style: TextStyle(
+                            fontSize: r.sp(12),
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
                         SizedBox(height: r.h(8)),
                         // A타입(레이서백) 카드 제거 → B타입(스쿱넥)만 표시
                         Row(
-                          children: [
-                            {
-                              'type': 'B',
-                              'label': loc.singletTypeB,
-                              'desc': loc.singletTypeBDesc
-                            },
-                          ].map((t) {
-                            final r = Responsive.of(context);
+                          children:
+                              [
+                                {
+                                  'type': 'B',
+                                  'label': loc.singletTypeB,
+                                  'desc': loc.singletTypeBDesc,
+                                },
+                              ].map((t) {
+                                final r = Responsive.of(context);
 
-                            final isSelected = _singletType == t['type'];
-                            return Expanded(
-                              child: GestureDetector(
-                                onTap: () => setSheetState(() {
-                                  setState(() => _singletType = t['type']!);
-                                }),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 150),
-                                  margin: EdgeInsets.only(right: r.w(8)),
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: r.h(10), horizontal: r.w(12)),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppColors.primary
-                                        : Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? AppColors.primary
-                                          : AppColors.border,
-                                      width: isSelected ? 2 : 1,
+                                final isSelected = _singletType == t['type'];
+                                return Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => setSheetState(() {
+                                      setState(() => _singletType = t['type']!);
+                                    }),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(
+                                        milliseconds: 150,
+                                      ),
+                                      margin: EdgeInsets.only(right: r.w(8)),
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: r.h(10),
+                                        horizontal: r.w(12),
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? AppColors.primary
+                                            : Colors.white,
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? AppColors.primary
+                                              : AppColors.border,
+                                          width: isSelected ? 2 : 1,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            t['label']!,
+                                            style: TextStyle(
+                                              fontSize: r.sp(13),
+                                              fontWeight: FontWeight.w800,
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : AppColors.textPrimary,
+                                            ),
+                                          ),
+                                          Text(
+                                            t['desc']!,
+                                            style: TextStyle(
+                                              fontSize: r.sp(11),
+                                              fontWeight: FontWeight.w500,
+                                              color: isSelected
+                                                  ? Colors.white70
+                                                  : AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        t['label']!,
-                                        style: TextStyle(
-                                          fontSize: r.sp(13),
-                                          fontWeight: FontWeight.w800,
-                                          color: isSelected
-                                              ? Colors.white
-                                              : AppColors.textPrimary,
-                                        ),
-                                      ),
-                                      Text(
-                                        t['desc']!,
-                                        style: TextStyle(
-                                          fontSize: r.sp(11),
-                                          fontWeight: FontWeight.w500,
-                                          color: isSelected
-                                              ? Colors.white70
-                                              : AppColors.textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
+                                );
+                              }).toList(),
                         ),
                       ],
                     ),
@@ -7658,7 +8578,7 @@ $productUrl
                   description: loc.orderTypeReadyMadeDesc,
                   tags: [
                     loc.orderTypeReadyMadeTag1,
-                    loc.orderTypeReadyMadeTag2
+                    loc.orderTypeReadyMadeTag2,
                   ],
                   color: AppColors.primary,
                   onTap: () {
@@ -7675,8 +8595,10 @@ $productUrl
                     _orderTypeBtn(
                       emoji: '📦',
                       title: context.loc.t('기성품_단체주문', '기성품 단체주문'),
-                      description: context.loc
-                          .t('기성_디자인_그대로_단체_수량으로_주문', '기성 디자인 그대로 단체 수량으로 주문'),
+                      description: context.loc.t(
+                        '기성_디자인_그대로_단체_수량으로_주문',
+                        '기성 디자인 그대로 단체 수량으로 주문',
+                      ),
                       tags: ['기성품', context.loc.t('빠른납기', '빠른납기')],
                       color: AppColors.primary,
                       onTap: () {
@@ -7691,7 +8613,7 @@ $productUrl
                       description: loc.orderTypeGroupCustomDesc,
                       tags: [
                         loc.orderTypeGroupCustomTag1,
-                        loc.orderTypeGroupCustomTag2
+                        loc.orderTypeGroupCustomTag2,
                       ],
                       color: AppColors.error,
                       onTap: () {
@@ -7707,13 +8629,15 @@ $productUrl
                           : loc.orderTypeGroupCustomTitle,
                       description: product.isReadyMade
                           ? context.loc.t(
-                              '기성 디자인 그대로 단체 수량으로 주문', '기성 디자인 그대로 단체 수량으로 주문')
+                              '기성 디자인 그대로 단체 수량으로 주문',
+                              '기성 디자인 그대로 단체 수량으로 주문',
+                            )
                           : loc.orderTypeGroupCustomDesc,
                       tags: product.isReadyMade
                           ? ['기성품', context.loc.t('빠른납기', '빠른납기')]
                           : [
                               loc.orderTypeGroupCustomTag1,
-                              loc.orderTypeGroupCustomTag2
+                              loc.orderTypeGroupCustomTag2,
                             ],
                       color: product.isReadyMade
                           ? AppColors.primary
@@ -7759,31 +8683,46 @@ $productUrl
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: TextStyle(
-                          fontSize: r.sp(15),
-                          fontWeight: FontWeight.w800,
-                          color: color)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: r.sp(15),
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                    ),
+                  ),
                   SizedBox(height: r.h(3)),
-                  Text(description,
-                      style: TextStyle(
-                          fontSize: r.sp(12), color: AppColors.textSecondary)),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: r.sp(12),
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                   SizedBox(height: r.h(6)),
                   Wrap(
                     spacing: 6,
                     children: tags
-                        .map((t) => Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: r.w(8), vertical: r.h(2)),
-                              decoration: BoxDecoration(
-                                  color: color.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(20)),
-                              child: Text(t,
-                                  style: TextStyle(
-                                      fontSize: r.sp(11),
-                                      color: color,
-                                      fontWeight: FontWeight.w600)),
-                            ))
+                        .map(
+                          (t) => Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: r.w(8),
+                              vertical: r.h(2),
+                            ),
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              t,
+                              style: TextStyle(
+                                fontSize: r.sp(11),
+                                color: color,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        )
                         .toList(),
                   ),
                 ],
@@ -7816,9 +8755,9 @@ $productUrl
   // ─── 재입고 알림 신청 ───────────────────────────────────────────
   void _showRestockAlert(ProductModel product, UserProvider up) async {
     if (!up.isLoggedIn) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.loginRequired)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(loc.loginRequired)));
       return;
     }
     final user = up.user!;
@@ -7835,7 +8774,8 @@ $productUrl
       final existingData = existing.data();
       // 아직 발송되지 않은 신청을 다시 저장하면서 대기 상태를 초기화하지 않습니다.
       // 사용자가 반복 클릭해도 신청 1건만 유지되어 중복 알림을 방지합니다.
-      final alreadyWaiting = existing.exists &&
+      final alreadyWaiting =
+          existing.exists &&
           existingData != null &&
           existingData['notified'] != true &&
           existingData['isNotified'] != true;
@@ -7857,40 +8797,58 @@ $productUrl
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(children: [
-            const Icon(Icons.notifications_active_rounded,
-                color: AppColors.info, size: 22),
-            SizedBox(width: r.w(8)),
-            Text(context.loc.t('재입고_알림_신청_완료', '재입고 알림 신청 완료'),
-                style:
-                    TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w800)),
-          ]),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              const Icon(
+                Icons.notifications_active_rounded,
+                color: AppColors.info,
+                size: 22,
+              ),
+              SizedBox(width: r.w(8)),
+              Text(
+                context.loc.t('재입고_알림_신청_완료', '재입고 알림 신청 완료'),
+                style: TextStyle(
+                  fontSize: r.sp(16),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(product.name,
-                  style: TextStyle(
-                      fontSize: r.sp(14), fontWeight: FontWeight.w700),
-                  overflow: TextOverflow.ellipsis),
+              Text(
+                product.name,
+                style: TextStyle(
+                  fontSize: r.sp(14),
+                  fontWeight: FontWeight.w700,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
               SizedBox(height: r.h(8)),
               Text(
-                  '재입고 시 ${email.isNotEmpty ? email : context.loc.t('등록된_연락처', '등록된 연락처')}로 알림을 보내드립니다.',
-                  style: TextStyle(
-                      fontSize: r.sp(13),
-                      color: AppColors.textSecondary,
-                      height: 1.5)),
+                '재입고 시 ${email.isNotEmpty ? email : context.loc.t('등록된_연락처', '등록된 연락처')}로 알림을 보내드립니다.',
+                style: TextStyle(
+                  fontSize: r.sp(13),
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
+              ),
             ],
           ),
           actions: [
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.info,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8))),
+                backgroundColor: AppColors.info,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
               onPressed: () => Navigator.pop(ctx),
               child: Text(context.loc.t('확인', '확인')),
             ),
@@ -7901,8 +8859,9 @@ $productUrl
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(context.loc.t('신청 실패 _', '신청 실패: $e')),
-            backgroundColor: AppColors.error),
+          content: Text(context.loc.t('신청 실패 _', '신청 실패: $e')),
+          backgroundColor: AppColors.error,
+        ),
       );
     }
   }
@@ -7938,8 +8897,10 @@ $productUrl
     _showReadyMadeOptionSheet(product, isBuyNow: false);
   }
 
-  void _showReadyMadeOptionSheet(ProductModel product,
-      {required bool isBuyNow}) {
+  void _showReadyMadeOptionSheet(
+    ProductModel product, {
+    required bool isBuyNow,
+  }) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -7953,7 +8914,8 @@ $productUrl
             product: product,
             isBuyNow: isBuyNow,
             calcExtraForColor: (color) => _calcExtraForColor(product, color),
-            hideColorExtraPrice: product.isReadyMade &&
+            hideColorExtraPrice:
+                product.isReadyMade &&
                 (product.category.contains('상의') ||
                     product.subCategory.contains('싱글렛') ||
                     product.name.contains('싱글렛')) &&
@@ -7970,7 +8932,8 @@ $productUrl
 
   // 현재 선택된 색상의 추가금액 계산
   double _calcExtraForColor(ProductModel product, String color) {
-    final isSingletReadyMade = product.isReadyMade &&
+    final isSingletReadyMade =
+        product.isReadyMade &&
         (product.category.contains('상의') ||
             product.subCategory.contains('싱글렛') ||
             product.name.contains('싱글렛')) &&
@@ -7999,18 +8962,21 @@ $productUrl
     // ignore: unused_local_variable
     final extra = _calcExtraForColor(product, color);
     context.read<CartProvider>().addItem(
-          product,
-          size,
-          color,
-          quantity: qty,
-          extraPrice: extra,
-        );
+      product,
+      size,
+      color,
+      quantity: qty,
+      extraPrice: extra,
+    );
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle_rounded,
-                color: Colors.white, size: 18),
+            const Icon(
+              Icons.check_circle_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
             SizedBox(width: r.w(8)),
             Expanded(
               child: Text(
@@ -8035,7 +9001,7 @@ $productUrl
   // ─── 공통 섹션 헤더 ───
   // ── 탑텐 스타일 섹션 헤더: 얇은 상단 라인 + 영문 대제목 + 한글 서브 ──
   // _sectionHeader: 검정 포인트 라인만 표시 (텍스트 제거)
-// ignore: unused_element
+  // ignore: unused_element
   Widget _sectionHeader(String num, String title, String sub) =>
       Container(width: 28, height: 2, color: AppColors.primary);
 
@@ -8061,19 +9027,22 @@ $productUrl
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(2)),
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
             SizedBox(height: r.h(16)),
-            Text(context.watch<LanguageProvider>().loc.sizeGuideTitle,
-                style:
-                    TextStyle(fontSize: r.sp(17), fontWeight: FontWeight.w800)),
+            Text(
+              context.watch<LanguageProvider>().loc.sizeGuideTitle,
+              style: TextStyle(fontSize: r.sp(17), fontWeight: FontWeight.w800),
+            ),
             SizedBox(height: r.h(16)),
             const Divider(),
             Expanded(
-                child: SingleChildScrollView(
-              child: _buildSection6SizeChart(widget.product),
-            )),
+              child: SingleChildScrollView(
+                child: _buildSection6SizeChart(widget.product),
+              ),
+            ),
           ],
         ),
       ),
@@ -8082,17 +9051,20 @@ $productUrl
 
   /// 하의길이 비교 섹션 표시 여부: 하의 카테고리 또는 싱글렛세트만 표시
   bool _isBottomOrSingletSetProduct(ProductModel p) {
-    final isSingletSet = (p.category == context.loc.t('세트', '세트') &&
+    final isSingletSet =
+        (p.category == context.loc.t('세트', '세트') &&
             (p.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
-                p.subCategory
-                    .contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')))) ||
+                p.subCategory.contains(
+                  context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트'),
+                ))) ||
         p.category.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         p.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         p.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
         (p.category == context.loc.t('세트', '세트') &&
             p.name.contains(context.loc.t('싱글렛', '싱글렛')));
 
-    final isBottom = p.category == context.loc.t('하의', '하의') ||
+    final isBottom =
+        p.category == context.loc.t('하의', '하의') ||
         p.subCategory == context.loc.t('타이즈', '타이즈') ||
         p.name.contains(context.loc.t('타이즈', '타이즈')) ||
         p.subCategory.contains(context.loc.t('레깅스', '레깅스')) ||
@@ -8124,16 +9096,23 @@ class _MeasureRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 50,
-            child: Text(label,
-                style: TextStyle(
-                    fontSize: r.sp(12),
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textSecondary)),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: r.sp(12),
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary,
+              ),
+            ),
           ),
           Expanded(
-            child: Text(desc,
-                style: TextStyle(
-                    fontSize: r.sp(12), color: AppColors.textSecondary)),
+            child: Text(
+              desc,
+              style: TextStyle(
+                fontSize: r.sp(12),
+                color: AppColors.textSecondary,
+              ),
+            ),
           ),
         ],
       ),
@@ -8201,10 +9180,10 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
         final mime = ext.endsWith('.png')
             ? 'image/png'
             : ext.endsWith('.gif')
-                ? 'image/gif'
-                : ext.endsWith('.webp')
-                    ? 'image/webp'
-                    : 'image/jpeg';
+            ? 'image/gif'
+            : ext.endsWith('.webp')
+            ? 'image/webp'
+            : 'image/jpeg';
         final b64 = 'data:$mime;base64,${base64Encode(bytes)}';
         _convertedBase64.add(b64);
         if (mounted) setState(() {});
@@ -8328,29 +9307,40 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                         color: AppColors.primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.admin_panel_settings_rounded,
-                          size: 18, color: AppColors.primary),
+                      child: const Icon(
+                        Icons.admin_panel_settings_rounded,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
                     ),
                     SizedBox(width: r.w(10)),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(loc.imageUploadLabel,
-                              style: TextStyle(
-                                  fontSize: r.sp(16),
-                                  fontWeight: FontWeight.w800)),
-                          Text(widget.sectionLabel,
-                              style: TextStyle(
-                                  fontSize: r.sp(12),
-                                  color: AppColors.textSecondary)),
+                          Text(
+                            loc.imageUploadLabel,
+                            style: TextStyle(
+                              fontSize: r.sp(16),
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          Text(
+                            widget.sectionLabel,
+                            style: TextStyle(
+                              fontSize: r.sp(12),
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     // 이미지 수 배지
                     Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: r.w(10), vertical: r.h(4)),
+                        horizontal: r.w(10),
+                        vertical: r.h(4),
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(12),
@@ -8358,9 +9348,10 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                       child: Text(
                         '${_allImages.length}장',
                         style: TextStyle(
-                            color: Colors.white,
-                            fontSize: r.sp(12),
-                            fontWeight: FontWeight.w700),
+                          color: Colors.white,
+                          fontSize: r.sp(12),
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ],
@@ -8374,21 +9365,27 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
           // ── 변환 중 진행 표시 ──
           if (_isConverting)
             Padding(
-              padding:
-                  EdgeInsets.symmetric(horizontal: r.w(20), vertical: r.h(8)),
+              padding: EdgeInsets.symmetric(
+                horizontal: r.w(20),
+                vertical: r.h(8),
+              ),
               child: Row(
                 children: [
                   const SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: AppColors.primary),
+                      strokeWidth: 2,
+                      color: AppColors.primary,
+                    ),
                   ),
                   SizedBox(width: r.w(10)),
                   Text(
                     '이미지 변환 중... (${_convertedBase64.length}/${_pendingFiles.length + _convertedBase64.length})',
                     style: TextStyle(
-                        fontSize: r.sp(12), color: AppColors.textSecondary),
+                      fontSize: r.sp(12),
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -8401,18 +9398,19 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.image_not_supported_outlined,
-                            size: 48,
-                            color: Colors.grey.withValues(alpha: 0.4)),
+                        Icon(
+                          Icons.image_not_supported_outlined,
+                          size: 48,
+                          color: Colors.grey.withValues(alpha: 0.4),
+                        ),
                         SizedBox(height: r.h(12)),
                         Text(
-                            context
-                                .watch<LanguageProvider>()
-                                .loc
-                                .noImageSelected,
-                            style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: r.sp(14))),
+                          context.watch<LanguageProvider>().loc.noImageSelected,
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: r.sp(14),
+                          ),
+                        ),
                       ],
                     ),
                   )
@@ -8421,11 +9419,11 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                     child: GridView.builder(
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 6,
-                        mainAxisSpacing: 6,
-                        childAspectRatio: 1.0,
-                      ),
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 6,
+                            mainAxisSpacing: 6,
+                            childAspectRatio: 1.0,
+                          ),
                       itemCount: _allImages.length,
                       itemBuilder: (_, i) {
                         final r = Responsive.of(context);
@@ -8461,11 +9459,14 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Center(
-                                  child: Text('${i + 1}',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: r.sp(11),
-                                          fontWeight: FontWeight.w800)),
+                                  child: Text(
+                                    '${i + 1}',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: r.sp(11),
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -8481,12 +9482,16 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                                   width: 24,
                                   height: 24,
                                   decoration: BoxDecoration(
-                                    color:
-                                        AppColors.error.withValues(alpha: 0.85),
+                                    color: AppColors.error.withValues(
+                                      alpha: 0.85,
+                                    ),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(Icons.close_rounded,
-                                      color: Colors.white, size: 14),
+                                  child: const Icon(
+                                    Icons.close_rounded,
+                                    color: Colors.white,
+                                    size: 14,
+                                  ),
                                 ),
                               ),
                             ),
@@ -8499,25 +9504,35 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
 
           // ── 하단 버튼 영역 ──
           Padding(
-            padding: EdgeInsets.fromLTRB(r.w(16), r.h(8), r.w(16),
-                MediaQuery.of(context).padding.bottom + 12),
+            padding: EdgeInsets.fromLTRB(
+              r.w(16),
+              r.h(8),
+              r.w(16),
+              MediaQuery.of(context).padding.bottom + 12,
+            ),
             child: Column(
               children: [
                 // 이미지 추가 버튼
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    icon: const Icon(Icons.add_photo_alternate_outlined,
-                        size: 18),
+                    icon: const Icon(
+                      Icons.add_photo_alternate_outlined,
+                      size: 18,
+                    ),
                     label: Text(
-                        context.watch<LanguageProvider>().loc.addMoreImages),
+                      context.watch<LanguageProvider>().loc.addMoreImages,
+                    ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       side: const BorderSide(
-                          color: AppColors.primary, width: 1.5),
+                        color: AppColors.primary,
+                        width: 1.5,
+                      ),
                       padding: EdgeInsets.symmetric(vertical: r.h(12)),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                     onPressed: _isConverting ? null : _addMoreImages,
                   ),
@@ -8536,7 +9551,8 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                             side: const BorderSide(color: AppColors.error),
                             padding: EdgeInsets.symmetric(vertical: r.h(12)),
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                           onPressed: () {
                             Navigator.pop(context);
@@ -8554,26 +9570,32 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                                 width: r.w(16),
                                 height: 16,
                                 child: const CircularProgressIndicator(
-                                    strokeWidth: 2, color: Colors.white))
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
                             : const Icon(Icons.check_rounded, size: 18),
                         label: Text(
                           _isUploadingSave
-                              ? context.loc
-                                  .t('storage_업로드_중', 'Storage 업로드 중...')
+                              ? context.loc.t(
+                                  'storage_업로드_중',
+                                  'Storage 업로드 중...',
+                                )
                               : _allImages.isEmpty
-                                  ? context.loc.t('저장 이미지 없음', '저장 (이미지 없음)')
-                                  : '${_allImages.length}장 저장하기',
+                              ? context.loc.t('저장 이미지 없음', '저장 (이미지 없음)')
+                              : '${_allImages.length}장 저장하기',
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
                               (_allImages.isEmpty && !_isUploadingSave)
-                                  ? Colors.grey
-                                  : AppColors.primary,
+                              ? Colors.grey
+                              : AppColors.primary,
                           foregroundColor: Colors.white,
                           padding: EdgeInsets.symmetric(vertical: r.h(12)),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                         onPressed: (_isConverting || _isUploadingSave)
                             ? null
@@ -8596,7 +9618,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
 class _ReadyMadePurchaseSheet extends StatefulWidget {
   final ProductModel product;
   final void Function(String length, String size, String color, int qty)
-      onConfirm;
+  onConfirm;
   final String? initialSize;
   final String? initialColor;
 
@@ -8629,13 +9651,16 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
   // ── 싱글렛 A타입 세트만 성별선택 스텝 ──
   bool get _isSingletASet =>
       (widget.product.category == context.loc.t('세트', '세트') &&
-          (widget.product.subCategory
-                  .contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
-              widget.product.subCategory
-                  .contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')))) ||
+          (widget.product.subCategory.contains(
+                context.loc.t('싱글렛세트', '싱글렛세트'),
+              ) ||
+              widget.product.subCategory.contains(
+                context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트'),
+              ))) ||
       widget.product.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
-      widget.product.subCategory
-          .contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
+      widget.product.subCategory.contains(
+        context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트'),
+      ) ||
       (widget.product.category == context.loc.t('세트', '세트') &&
           widget.product.name.contains(context.loc.t('싱글렛', '싱글렛')));
 
@@ -8658,8 +9683,12 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
     return Container(
-      padding: EdgeInsets.fromLTRB(r.w(20), r.h(20), r.w(20),
-          MediaQuery.of(context).padding.bottom + 24),
+      padding: EdgeInsets.fromLTRB(
+        r.w(20),
+        r.h(20),
+        r.w(20),
+        MediaQuery.of(context).padding.bottom + 24,
+      ),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -8676,18 +9705,24 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Center(
-            child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                    color: AppColors.border,
-                    borderRadius: BorderRadius.circular(2)))),
+          child: Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.border,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ),
         SizedBox(height: r.h(20)),
-        Text(context.loc.t('성별_선택', '성별 선택'),
-            style: TextStyle(
-                fontSize: r.sp(16),
-                fontWeight: FontWeight.w900,
-                color: AppColors.primary)),
+        Text(
+          context.loc.t('성별_선택', '성별 선택'),
+          style: TextStyle(
+            fontSize: r.sp(16),
+            fontWeight: FontWeight.w900,
+            color: AppColors.primary,
+          ),
+        ),
         SizedBox(height: r.h(10)),
         Container(
           padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(10)),
@@ -8695,29 +9730,41 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             color: const Color(0xFFFFF8E1),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-                color: const Color(0xFFFFCC02).withValues(alpha: 0.5)),
+              color: const Color(0xFFFFCC02).withValues(alpha: 0.5),
+            ),
           ),
-          child: Row(children: [
-            const Icon(Icons.info_outline_rounded,
-                size: 14, color: Color(0xFF7A5000)),
-            SizedBox(width: r.w(6)),
-            Expanded(
+          child: Row(
+            children: [
+              const Icon(
+                Icons.info_outline_rounded,
+                size: 14,
+                color: Color(0xFF7A5000),
+              ),
+              SizedBox(width: r.w(6)),
+              Expanded(
                 child: Text(
-              context.loc.t('남성_하의_5부_자동_적용_n여성_하의_2_5부_자동_적용',
-                  '남성 → 하의 5부 자동 적용\n여성 → 하의 2.5부 자동 적용'),
-              style: TextStyle(
-                  fontSize: r.sp(12),
-                  color: const Color(0xFF7A5000),
-                  height: 1.5),
-            )),
-          ]),
+                  context.loc.t(
+                    '남성_하의_5부_자동_적용_n여성_하의_2_5부_자동_적용',
+                    '남성 → 하의 5부 자동 적용\n여성 → 하의 2.5부 자동 적용',
+                  ),
+                  style: TextStyle(
+                    fontSize: r.sp(12),
+                    color: const Color(0xFF7A5000),
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         SizedBox(height: r.h(16)),
-        Row(children: [
-          _gBtn('남', context.loc.t('하의 5부', '하의 5부')),
-          SizedBox(width: r.w(12)),
-          _gBtn('여', context.loc.t('하의 25부', '하의 2.5부')),
-        ]),
+        Row(
+          children: [
+            _gBtn('남', context.loc.t('하의 5부', '하의 5부')),
+            SizedBox(width: r.w(12)),
+            _gBtn('여', context.loc.t('하의 25부', '하의 2.5부')),
+          ],
+        ),
         SizedBox(height: r.h(20)),
         SizedBox(
           width: double.infinity,
@@ -8735,7 +9782,8 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
               backgroundColor: AppColors.primary,
               disabledBackgroundColor: AppColors.border,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               elevation: 0,
             ),
             child: Text(
@@ -8743,9 +9791,10 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                   ? context.loc.t('성별을 선택해주세요', '성별을 선택해주세요')
                   : '다음  ·  하의 ${_lengthForGender(_gender!)} 확정',
               style: TextStyle(
-                  fontSize: r.sp(15),
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white),
+                fontSize: r.sp(15),
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -8770,25 +9819,34 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
               width: sel ? 2 : 1,
             ),
           ),
-          child: Column(children: [
-            Icon(
+          child: Column(
+            children: [
+              Icon(
                 gender == context.loc.t('남', '남')
                     ? Icons.male_rounded
                     : Icons.female_rounded,
                 size: 32,
-                color: sel ? Colors.white : AppColors.textSecondary),
-            SizedBox(height: r.h(6)),
-            Text(gender == context.loc.t('남', '남') ? '남성' : '여성',
+                color: sel ? Colors.white : AppColors.textSecondary,
+              ),
+              SizedBox(height: r.h(6)),
+              Text(
+                gender == context.loc.t('남', '남') ? '남성' : '여성',
                 style: TextStyle(
-                    fontSize: r.sp(16),
-                    fontWeight: FontWeight.w800,
-                    color: sel ? Colors.white : AppColors.primary)),
-            SizedBox(height: r.h(4)),
-            Text(sub,
+                  fontSize: r.sp(16),
+                  fontWeight: FontWeight.w800,
+                  color: sel ? Colors.white : AppColors.primary,
+                ),
+              ),
+              SizedBox(height: r.h(4)),
+              Text(
+                sub,
                 style: TextStyle(
-                    fontSize: r.sp(11),
-                    color: sel ? Colors.white70 : AppColors.textSecondary)),
-          ]),
+                  fontSize: r.sp(11),
+                  color: sel ? Colors.white70 : AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -8809,7 +9867,8 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
     final juniorSizes = allSizes.where((s) => _isJuniorSizeLabel(s)).toList();
     final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
 
-    final isBottom = _isSingletASet ||
+    final isBottom =
+        _isSingletASet ||
         widget.product.category == context.loc.t('하의', '하의') ||
         widget.product.subCategory == context.loc.t('타이즈', '타이즈') ||
         widget.product.name.contains(context.loc.t('타이즈', '타이즈'));
@@ -8821,38 +9880,47 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
         children: [
           // 드래그 핸들 + 헤더
           Center(
-              child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                      color: AppColors.border,
-                      borderRadius: BorderRadius.circular(2)))),
-          SizedBox(height: r.h(14)),
-          Row(children: [
-            if (_isSingletASet) ...[
-              GestureDetector(
-                onTap: () => setState(() => _step = 0),
-                child: const Icon(Icons.chevron_left_rounded, size: 24),
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
               ),
-              SizedBox(width: r.w(4)),
-            ],
-            Expanded(
-                child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _isSingletASet
-                      ? context.loc.t('사이즈 · 색상 선택  _  남  남성  여성 · 하의 _',
-                          '사이즈 · 색상 선택  (${_gender == "남" ? "남성" : "여성"} · 하의 ${_autoLength ?? ""})')
-                      : context.loc.t('사이즈_색상_수량_선택', '사이즈 · 색상 · 수량 선택'),
-                  style: TextStyle(
-                      fontSize: r.sp(15),
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.primary),
+            ),
+          ),
+          SizedBox(height: r.h(14)),
+          Row(
+            children: [
+              if (_isSingletASet) ...[
+                GestureDetector(
+                  onTap: () => setState(() => _step = 0),
+                  child: const Icon(Icons.chevron_left_rounded, size: 24),
                 ),
+                SizedBox(width: r.w(4)),
               ],
-            )),
-          ]),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _isSingletASet
+                          ? context.loc.t(
+                              '사이즈 · 색상 선택  _  남  남성  여성 · 하의 _',
+                              '사이즈 · 색상 선택  (${_gender == "남" ? "남성" : "여성"} · 하의 ${_autoLength ?? ""})',
+                            )
+                          : context.loc.t('사이즈_색상_수량_선택', '사이즈 · 색상 · 수량 선택'),
+                      style: TextStyle(
+                        fontSize: r.sp(15),
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
           SizedBox(height: r.h(12)),
 
           // 안내 배지
@@ -8861,45 +9929,63 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             decoration: BoxDecoration(
               color: const Color(0xFFE8F5E9),
               borderRadius: BorderRadius.circular(8),
-              border:
-                  Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppColors.success.withValues(alpha: 0.3),
+              ),
             ),
-            child: Row(children: [
-              const Icon(Icons.check_circle_rounded,
-                  size: 14, color: AppColors.success),
-              SizedBox(width: r.w(5)),
-              Expanded(
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.check_circle_rounded,
+                  size: 14,
+                  color: AppColors.success,
+                ),
+                SizedBox(width: r.w(5)),
+                Expanded(
                   child: Text(
-                      context.loc
-                          .t('기성품___2_3일_이내_배_8ebadd', '기성품 · 2~3일 이내 배송'),
-                      style: TextStyle(
-                          fontSize: r.sp(12),
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.success))),
-            ]),
+                    context.loc.t('기성품___2_3일_이내_배_8ebadd', '기성품 · 2~3일 이내 배송'),
+                    style: TextStyle(
+                      fontSize: r.sp(12),
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.success,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           SizedBox(height: r.h(16)),
 
           // ── 사이즈 ──
-          Text(context.loc.t('사이즈', '사이즈'),
-              style:
-                  TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
+          Text(
+            context.loc.t('사이즈', '사이즈'),
+            style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700),
+          ),
           SizedBox(height: r.h(8)),
           if (hasBoth) ...[
             // 성인 그룹
-            Row(children: [
-              const Icon(Icons.person_outline_rounded,
-                  size: 13, color: AppColors.primary),
-              SizedBox(width: r.w(4)),
-              Text(context.loc.t('성인', '성인'),
+            Row(
+              children: [
+                const Icon(
+                  Icons.person_outline_rounded,
+                  size: 13,
+                  color: AppColors.primary,
+                ),
+                SizedBox(width: r.w(4)),
+                Text(
+                  context.loc.t('성인', '성인'),
                   style: TextStyle(
-                      fontSize: r.sp(11),
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary)),
-              SizedBox(width: r.w(6)),
-              Expanded(
-                  child: Container(height: 1, color: const Color(0x331A1A2E))),
-            ]),
+                    fontSize: r.sp(11),
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                ),
+                SizedBox(width: r.w(6)),
+                Expanded(
+                  child: Container(height: 1, color: const Color(0x331A1A2E)),
+                ),
+              ],
+            ),
             SizedBox(height: r.h(6)),
             Wrap(
               spacing: 8,
@@ -8913,36 +9999,51 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 120),
                     padding: EdgeInsets.symmetric(
-                        horizontal: r.w(16), vertical: r.h(8)),
+                      horizontal: r.w(16),
+                      vertical: r.h(8),
+                    ),
                     decoration: BoxDecoration(
                       color: sel ? AppColors.primary : Colors.white,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                          color: sel ? AppColors.primary : AppColors.border),
+                        color: sel ? AppColors.primary : AppColors.border,
+                      ),
                     ),
-                    child: Text(s,
-                        style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: sel ? Colors.white : AppColors.primary)),
+                    child: Text(
+                      s,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: sel ? Colors.white : AppColors.primary,
+                      ),
+                    ),
                   ),
                 );
               }).toList(),
             ),
             SizedBox(height: r.h(10)),
             // 주니어 그룹
-            Row(children: [
-              const Icon(Icons.child_care_rounded,
-                  size: 13, color: AppColors.info),
-              SizedBox(width: r.w(4)),
-              Text(context.loc.t('주니어', '주니어'),
+            Row(
+              children: [
+                const Icon(
+                  Icons.child_care_rounded,
+                  size: 13,
+                  color: AppColors.info,
+                ),
+                SizedBox(width: r.w(4)),
+                Text(
+                  context.loc.t('주니어', '주니어'),
                   style: TextStyle(
-                      fontSize: r.sp(11),
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.info)),
-              SizedBox(width: r.w(6)),
-              Expanded(
-                  child: Container(height: 1, color: const Color(0x331565C0))),
-            ]),
+                    fontSize: r.sp(11),
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.info,
+                  ),
+                ),
+                SizedBox(width: r.w(6)),
+                Expanded(
+                  child: Container(height: 1, color: const Color(0x331565C0)),
+                ),
+              ],
+            ),
             SizedBox(height: r.h(6)),
             Wrap(
               spacing: 8,
@@ -8956,17 +10057,23 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 120),
                     padding: EdgeInsets.symmetric(
-                        horizontal: r.w(16), vertical: r.h(8)),
+                      horizontal: r.w(16),
+                      vertical: r.h(8),
+                    ),
                     decoration: BoxDecoration(
                       color: sel ? AppColors.info : Colors.white,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                          color: sel ? AppColors.info : AppColors.border),
+                        color: sel ? AppColors.info : AppColors.border,
+                      ),
                     ),
-                    child: Text(s,
-                        style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: sel ? Colors.white : AppColors.primary)),
+                    child: Text(
+                      s,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: sel ? Colors.white : AppColors.primary,
+                      ),
+                    ),
                   ),
                 );
               }).toList(),
@@ -8984,17 +10091,23 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 120),
                     padding: EdgeInsets.symmetric(
-                        horizontal: r.w(16), vertical: r.h(8)),
+                      horizontal: r.w(16),
+                      vertical: r.h(8),
+                    ),
                     decoration: BoxDecoration(
                       color: sel ? AppColors.primary : Colors.white,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                          color: sel ? AppColors.primary : AppColors.border),
+                        color: sel ? AppColors.primary : AppColors.border,
+                      ),
                     ),
-                    child: Text(s,
-                        style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: sel ? Colors.white : AppColors.primary)),
+                    child: Text(
+                      s,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: sel ? Colors.white : AppColors.primary,
+                      ),
+                    ),
                   ),
                 );
               }).toList(),
@@ -9017,9 +10130,10 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
           SizedBox(height: r.h(16)),
 
           // ── 무게 ──
-          Text(context.loc.t('원단_무게', '원단 무게'),
-              style:
-                  TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
+          Text(
+            context.loc.t('원단_무게', '원단 무게'),
+            style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700),
+          ),
           SizedBox(height: r.h(8)),
           Row(
             children: AppConstants.fabricWeights.map((w) {
@@ -9032,31 +10146,40 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 130),
                     margin: EdgeInsets.only(
-                        right: w == AppConstants.fabricWeights.first ? 8 : 0),
+                      right: w == AppConstants.fabricWeights.first ? 8 : 0,
+                    ),
                     padding: EdgeInsets.symmetric(vertical: r.h(12)),
                     decoration: BoxDecoration(
                       color: sel ? AppColors.primary : AppColors.background,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                          color: sel ? AppColors.primary : AppColors.border),
+                        color: sel ? AppColors.primary : AppColors.border,
+                      ),
                     ),
-                    child: Column(children: [
-                      Text(w,
+                    child: Column(
+                      children: [
+                        Text(
+                          w,
                           style: TextStyle(
-                              fontSize: r.sp(16),
-                              fontWeight: FontWeight.w800,
-                              color: sel ? Colors.white : AppColors.primary)),
-                      SizedBox(height: r.h(2)),
-                      Text(
+                            fontSize: r.sp(16),
+                            fontWeight: FontWeight.w800,
+                            color: sel ? Colors.white : AppColors.primary,
+                          ),
+                        ),
+                        SizedBox(height: r.h(2)),
+                        Text(
                           w == '80g'
                               ? context.loc.t('가볍고 시원함', '가볍고 시원함')
                               : '두툼하고 탄탄함',
                           style: TextStyle(
-                              fontSize: r.sp(10),
-                              color: sel
-                                  ? Colors.white70
-                                  : AppColors.textSecondary)),
-                    ]),
+                            fontSize: r.sp(10),
+                            color: sel
+                                ? Colors.white70
+                                : AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -9065,24 +10188,35 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
           SizedBox(height: r.h(16)),
 
           // ── 수량 ──
-          Row(children: [
-            Text(context.loc.t('수량', '수량'),
-                style:
-                    TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
-            const Spacer(),
-            IconButton(
-              icon: const Icon(Icons.remove_circle_outline),
-              onPressed:
-                  _quantity > 1 ? () => setState(() => _quantity--) : null,
-            ),
-            Text('$_quantity',
-                style:
-                    TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w800)),
-            IconButton(
-              icon: const Icon(Icons.add_circle_outline),
-              onPressed: () => setState(() => _quantity++),
-            ),
-          ]),
+          Row(
+            children: [
+              Text(
+                context.loc.t('수량', '수량'),
+                style: TextStyle(
+                  fontSize: r.sp(13),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.remove_circle_outline),
+                onPressed: _quantity > 1
+                    ? () => setState(() => _quantity--)
+                    : null,
+              ),
+              Text(
+                '$_quantity',
+                style: TextStyle(
+                  fontSize: r.sp(16),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.add_circle_outline),
+                onPressed: () => setState(() => _quantity++),
+              ),
+            ],
+          ),
           SizedBox(height: r.h(16)),
 
           // ── 확인 버튼 ──
@@ -9092,25 +10226,27 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             child: ElevatedButton(
               onPressed: _canConfirm
                   ? () => widget.onConfirm(
-                        _autoLength ?? '-',
-                        _selectedSize!,
-                        _selectedColor!,
-                        _quantity,
-                      )
+                      _autoLength ?? '-',
+                      _selectedSize!,
+                      _selectedColor!,
+                      _quantity,
+                    )
                   : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 disabledBackgroundColor: AppColors.border,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 elevation: 0,
               ),
               child: Text(
                 _canConfirm ? context.loc.t('확인', '확인') : '사이즈와 색상을 선택해주세요',
                 style: TextStyle(
-                    fontSize: r.sp(15),
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white),
+                  fontSize: r.sp(15),
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
@@ -9132,7 +10268,7 @@ class _QuickSizeSelectSheet extends StatefulWidget {
     required this.product,
     required this.onConfirm,
     // ignore: unused_element
-// ignore: unused_element_parameter
+    // ignore: unused_element_parameter
     this.isBuyNow = false,
   });
 
@@ -9189,129 +10325,175 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
           // 타이틀
           Row(
             children: [
-              Text(loc.sizeSelectTitle,
-                  style: TextStyle(
-                      fontSize: r.sp(18), fontWeight: FontWeight.w900)),
+              Text(
+                loc.sizeSelectTitle,
+                style: TextStyle(
+                  fontSize: r.sp(18),
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
               const Spacer(),
               Container(
-                padding:
-                    EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(4)),
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.w(10),
+                  vertical: r.h(4),
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF3F4F6),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(widget.product.localizedName(_lang),
-                    style: TextStyle(
-                        fontSize: r.sp(11), color: AppColors.textSecondary)),
+                child: Text(
+                  widget.product.localizedName(_lang),
+                  style: TextStyle(
+                    fontSize: r.sp(11),
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ),
             ],
           ),
           SizedBox(height: r.h(6)),
           Text(
             widget.isBuyNow
-                ? context.loc
-                    .t('사이즈를 선택하고 바로 결제로 이동합니다', '사이즈를 선택하고 바로 결제로 이동합니다')
+                ? context.loc.t(
+                    '사이즈를 선택하고 바로 결제로 이동합니다',
+                    '사이즈를 선택하고 바로 결제로 이동합니다',
+                  )
                 : context.loc.t('사이즈를_선택하고_장바구니에_담습니다', '사이즈를 선택하고 장바구니에 담습니다'),
-            style:
-                TextStyle(fontSize: r.sp(12), color: AppColors.textSecondary),
+            style: TextStyle(
+              fontSize: r.sp(12),
+              color: AppColors.textSecondary,
+            ),
           ),
           SizedBox(height: r.h(18)),
 
           // 사이즈 선택 그리드 (성인/주니어 구분)
-          Builder(builder: (context) {
-            final adultSizes =
-                sizes.where((s) => !_isJuniorSizeLabel(s)).toList();
-            final juniorSizes =
-                sizes.where((s) => _isJuniorSizeLabel(s)).toList();
-            final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
+          Builder(
+            builder: (context) {
+              final adultSizes = sizes
+                  .where((s) => !_isJuniorSizeLabel(s))
+                  .toList();
+              final juniorSizes = sizes
+                  .where((s) => _isJuniorSizeLabel(s))
+                  .toList();
+              final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
 
-            Widget chipWrap(List<String> list, Color activeColor) => Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: list.map((s) {
-                    final r = Responsive.of(context);
+              Widget chipWrap(List<String> list, Color activeColor) => Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: list.map((s) {
+                  final r = Responsive.of(context);
 
-                    final sel = _selectedSize == s;
-                    return GestureDetector(
-                      onTap: () => setState(() => _selectedSize = s),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 130),
-                        width: 64,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: sel ? activeColor : Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: sel ? activeColor : AppColors.border,
-                            width: sel ? 2 : 1,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(s,
-                              style: TextStyle(
-                                  fontSize: r.sp(14),
-                                  fontWeight: FontWeight.w700,
-                                  color:
-                                      sel ? Colors.white : AppColors.primary)),
+                  final sel = _selectedSize == s;
+                  return GestureDetector(
+                    onTap: () => setState(() => _selectedSize = s),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 130),
+                      width: 64,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: sel ? activeColor : Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: sel ? activeColor : AppColors.border,
+                          width: sel ? 2 : 1,
                         ),
                       ),
-                    );
-                  }).toList(),
-                );
-
-            if (hasBoth) {
-              final r = Responsive.of(context);
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    const Icon(Icons.person_outline_rounded,
-                        size: 13, color: AppColors.primary),
-                    SizedBox(width: r.w(4)),
-                    Text(context.loc.t('성인', '성인'),
-                        style: TextStyle(
-                            fontSize: r.sp(11),
+                      child: Center(
+                        child: Text(
+                          s,
+                          style: TextStyle(
+                            fontSize: r.sp(14),
                             fontWeight: FontWeight.w700,
-                            color: AppColors.primary)),
-                    SizedBox(width: r.w(6)),
-                    Expanded(
-                        child: Container(
-                            height: 1, color: const Color(0x221A1A2E))),
-                  ]),
-                  SizedBox(height: r.h(6)),
-                  chipWrap(adultSizes, AppColors.primary),
-                  SizedBox(height: r.h(12)),
-                  Row(children: [
-                    const Icon(Icons.child_care_rounded,
-                        size: 13, color: AppColors.info),
-                    SizedBox(width: r.w(4)),
-                    Text(context.loc.t('주니어', '주니어'),
-                        style: TextStyle(
-                            fontSize: r.sp(11),
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.info)),
-                    SizedBox(width: r.w(6)),
-                    Expanded(
-                        child: Container(
-                            height: 1, color: const Color(0x221565C0))),
-                  ]),
-                  SizedBox(height: r.h(6)),
-                  chipWrap(juniorSizes, AppColors.info),
-                ],
+                            color: sel ? Colors.white : AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
               );
-            }
-            return chipWrap(sizes, AppColors.primary);
-          }),
+
+              if (hasBoth) {
+                final r = Responsive.of(context);
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.person_outline_rounded,
+                          size: 13,
+                          color: AppColors.primary,
+                        ),
+                        SizedBox(width: r.w(4)),
+                        Text(
+                          context.loc.t('성인', '성인'),
+                          style: TextStyle(
+                            fontSize: r.sp(11),
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        SizedBox(width: r.w(6)),
+                        Expanded(
+                          child: Container(
+                            height: 1,
+                            color: const Color(0x221A1A2E),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: r.h(6)),
+                    chipWrap(adultSizes, AppColors.primary),
+                    SizedBox(height: r.h(12)),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.child_care_rounded,
+                          size: 13,
+                          color: AppColors.info,
+                        ),
+                        SizedBox(width: r.w(4)),
+                        Text(
+                          context.loc.t('주니어', '주니어'),
+                          style: TextStyle(
+                            fontSize: r.sp(11),
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.info,
+                          ),
+                        ),
+                        SizedBox(width: r.w(6)),
+                        Expanded(
+                          child: Container(
+                            height: 1,
+                            color: const Color(0x221565C0),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: r.h(6)),
+                    chipWrap(juniorSizes, AppColors.info),
+                  ],
+                );
+              }
+              return chipWrap(sizes, AppColors.primary);
+            },
+          ),
           SizedBox(height: r.h(20)),
 
           // 수량 선택
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(loc.quantitySelectTitle,
-                  style: TextStyle(
-                      fontSize: r.sp(13), fontWeight: FontWeight.w700)),
+              Text(
+                loc.quantitySelectTitle,
+                style: TextStyle(
+                  fontSize: r.sp(13),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               Row(
                 children: [
                   GestureDetector(
@@ -9331,9 +10513,13 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
                   Container(
                     width: 44,
                     alignment: Alignment.center,
-                    child: Text('$_quantity',
-                        style: TextStyle(
-                            fontSize: r.sp(16), fontWeight: FontWeight.w800)),
+                    child: Text(
+                      '$_quantity',
+                      style: TextStyle(
+                        fontSize: r.sp(16),
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
                   GestureDetector(
                     onTap: () => setState(() => _quantity++),
@@ -9356,8 +10542,10 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
           // 금액 요약
           if (_selectedSize != null)
             Container(
-              padding:
-                  EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
+              padding: EdgeInsets.symmetric(
+                horizontal: r.w(16),
+                vertical: r.h(12),
+              ),
               margin: EdgeInsets.only(bottom: r.h(14)),
               decoration: BoxDecoration(
                 color: const Color(0xFFF7F8FA),
@@ -9367,15 +10555,19 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                      '${widget.product.localizedName(_lang)} · $_selectedSize',
-                      style: TextStyle(
-                          fontSize: r.sp(12), color: AppColors.textSecondary)),
+                    '${widget.product.localizedName(_lang)} · $_selectedSize',
+                    style: TextStyle(
+                      fontSize: r.sp(12),
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                   Text(
                     '${_fmt((widget.product.price * _quantity).toInt())}원',
                     style: TextStyle(
-                        fontSize: r.sp(16),
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.primary),
+                      fontSize: r.sp(16),
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ],
               ),
@@ -9393,7 +10585,8 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
                 padding: EdgeInsets.symmetric(vertical: r.h(16)),
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: _selectedSize == null
                   ? null
@@ -9402,19 +10595,22 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                      widget.isBuyNow
-                          ? Icons.payment_rounded
-                          : Icons.shopping_bag_outlined,
-                      size: 18),
+                    widget.isBuyNow
+                        ? Icons.payment_rounded
+                        : Icons.shopping_bag_outlined,
+                    size: 18,
+                  ),
                   SizedBox(width: r.w(8)),
                   Text(
                     _selectedSize == null
                         ? context.loc.t('사이즈를 선택해주세요', '사이즈를 선택해주세요')
                         : (widget.isBuyNow
-                            ? context.loc.t('바로 결제하기', '바로 결제하기')
-                            : context.loc.t('장바구니에 담기', '장바구니에 담기')),
+                              ? context.loc.t('바로 결제하기', '바로 결제하기')
+                              : context.loc.t('장바구니에 담기', '장바구니에 담기')),
                     style: TextStyle(
-                        fontSize: r.sp(15), fontWeight: FontWeight.w800),
+                      fontSize: r.sp(15),
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ],
               ),
@@ -9475,12 +10671,15 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   /// 싱글렛 A타입 세트: 성별 선택 → 하의기장 고정(남=5부, 여=2.5부, 변경불가)
   bool get _isSingletATypeSet =>
       (widget.product.category == context.loc.t('세트', '세트') &&
-          (widget.product.subCategory
-                  .contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
-              widget.product.subCategory
-                  .contains(context.loc.t('싱글렛세트', '싱글렛세트')))) ||
-      widget.product.subCategory
-          .contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
+          (widget.product.subCategory.contains(
+                context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트'),
+              ) ||
+              widget.product.subCategory.contains(
+                context.loc.t('싱글렛세트', '싱글렛세트'),
+              ))) ||
+      widget.product.subCategory.contains(
+        context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트'),
+      ) ||
       widget.product.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
       (widget.product.category == context.loc.t('세트', '세트') &&
           widget.product.name.contains(context.loc.t('싱글렛_a타입', '싱글렛 A타입')));
@@ -9493,8 +10692,9 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   bool get _isTightsShorts =>
       _isTaiz &&
       ((_length ?? '').contains(context.loc.t('숏쇼츠', '숏쇼츠')) ||
-          '${widget.product.subCategory} ${widget.product.name}'
-              .contains(context.loc.t('숏쇼츠', '숏쇼츠')));
+          '${widget.product.subCategory} ${widget.product.name}'.contains(
+            context.loc.t('숏쇼츠', '숏쇼츠'),
+          ));
 
   /// 세트 상품 여부 (상의/하의 사이즈 각각 선택)
   bool get _isSetProduct =>
@@ -9539,8 +10739,9 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
       widget.product.isReadyMade &&
       (widget.product.category == context.loc.t('하의', '하의') ||
           widget.product.subCategory.contains(context.loc.t('숏츠', '숏츠')) ||
-          widget.product.subCategory
-              .contains(context.loc.t('트레이닝바지', '트레이닝바지')) ||
+          widget.product.subCategory.contains(
+            context.loc.t('트레이닝바지', '트레이닝바지'),
+          ) ||
           widget.product.subCategory.contains(context.loc.t('타이즈', '타이즈')));
 
   // ─────────────────────────────────────────────
@@ -9554,7 +10755,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   List<String> get _allSizes {
     final raw = widget.product.sizes;
     if (raw.isNotEmpty) return raw;
-    final isJunior = widget.product.name.contains('주니어') ||
+    final isJunior =
+        widget.product.name.contains('주니어') ||
         widget.product.name.contains('Jr') ||
         widget.product.subCategory.contains(context.loc.t('주니어', '주니어'));
     return isJunior ? AppConstants.juniorSizes : AppConstants.adultSizes;
@@ -9602,10 +10804,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   int _totalQty() => _items.fold(0, (s, e) => s + (e['qty'] as int));
   int _totalPrice() => _items.fold(0, (s, e) {
-        final base = (widget.product.price as num).toInt();
-        final extra = (e['extra'] as num).toInt();
-        return s + (base + extra) * (e['qty'] as int);
-      });
+    final base = (widget.product.price as num).toInt();
+    final extra = (e['extra'] as num).toInt();
+    return s + (base + extra) * (e['qty'] as int);
+  });
 
   String _fmt(int v) {
     final s = v.toString();
@@ -9625,8 +10827,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
     // 기성품 하의: 주머니 제거 선택 시 -10,000원
     final pocketDiscount =
         _isReadyMadeBottom && !_isTightsShorts && _removePocket
-            ? -10000.0
-            : 0.0;
+        ? -10000.0
+        : 0.0;
     setState(() {
       final sizeLabel = _isSetProduct
           ? context.loc.t('상의 _  하의 _', '상의 $_topSize / 하의 $_bottomSize')
@@ -9668,10 +10870,13 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   }
 
   Future<void> _showCartRecommendationDialog(
-      BuildContext host, ProductModel addedProduct) async {
+    BuildContext host,
+    ProductModel addedProduct,
+  ) async {
     final provider = host.read<ProductProvider>();
-    final source = provider.products
-        .where((p) => p.id != addedProduct.id && p.isActive && !p.isSoldOut);
+    final source = provider.products.where(
+      (p) => p.id != addedProduct.id && p.isActive && !p.isSoldOut,
+    );
     final isGroup = addedProduct.isGroup || addedProduct.isGroupOnly;
     final text =
         '${addedProduct.category} ${addedProduct.subCategory} ${addedProduct.name}';
@@ -9698,99 +10903,131 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
           constraints: const BoxConstraints(maxWidth: 560),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(18, 20, 18, 16),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Row(children: [
-                const Icon(Icons.check_circle_rounded,
-                    color: AppColors.success),
-                const SizedBox(width: 8),
-                const Expanded(
-                    child: Text('장바구니에 담았어요',
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.check_circle_rounded,
+                      color: AppColors.success,
+                    ),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        '장바구니에 담았어요',
                         style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w800))),
-                IconButton(
-                    onPressed: () => Navigator.pop(dialogContext),
-                    icon: const Icon(Icons.close)),
-              ]),
-              const SizedBox(height: 6),
-              Align(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     isGroup
                         ? '단체주문 가능 상품을 추천해 드려요.'
                         : isFunctional
-                            ? '기능성 상품을 추천해 드려요.'
-                            : '함께 보면 좋은 상품을 추천해 드려요.',
+                        ? '기능성 상품을 추천해 드려요.'
+                        : '함께 보면 좋은 상품을 추천해 드려요.',
                     style: const TextStyle(color: AppColors.textSecondary),
-                  )),
-              if (candidates.isNotEmpty) ...[
-                const SizedBox(height: 14),
-                SizedBox(
-                  height: 210,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: candidates.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 10),
-                    itemBuilder: (_, index) {
-                      final item = candidates[index];
-                      return SizedBox(
+                  ),
+                ),
+                if (candidates.isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    height: 210,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: candidates.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 10),
+                      itemBuilder: (_, index) {
+                        final item = candidates[index];
+                        return SizedBox(
                           width: 118,
                           child: InkWell(
                             onTap: () {
                               Navigator.pop(dialogContext);
                               Navigator.push(
-                                  host,
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          ProductDetailScreen(product: item)));
+                                host,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      ProductDetailScreen(product: item),
+                                ),
+                              );
                             },
                             child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  AspectRatio(
-                                      aspectRatio: 4 / 5,
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: item.images.isNotEmpty
-                                            ? NetImage(item.images.first,
-                                                fit: BoxFit.cover)
-                                            : Container(
-                                                color: AppColors.surface),
-                                      )),
-                                  const SizedBox(height: 6),
-                                  Text(item.name,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600)),
-                                  Text('${item.price.toStringAsFixed(0)}원',
-                                      style: const TextStyle(
-                                          fontSize: 12,
-                                          color: AppColors.textSecondary)),
-                                ]),
-                          ));
-                    },
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AspectRatio(
+                                  aspectRatio: 4 / 5,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: item.images.isNotEmpty
+                                        ? NetImage(
+                                            item.images.first,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Container(color: AppColors.surface),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  item.name,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  '${item.price.toStringAsFixed(0)}원',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ] else
-                const Padding(
+                ] else
+                  const Padding(
                     padding: EdgeInsets.symmetric(vertical: 18),
-                    child: Text('추천 상품을 준비 중입니다.')),
-              const SizedBox(height: 16),
-              Row(children: [
-                Expanded(
-                    child: OutlinedButton(
-                  onPressed: () => Navigator.pop(dialogContext, 'continue'),
-                  child: const Text('쇼핑 계속하기'),
-                )),
-                const SizedBox(width: 10),
-                Expanded(
-                    child: ElevatedButton(
-                  onPressed: () => Navigator.pop(dialogContext, 'cart'),
-                  child: const Text('장바구니 이동'),
-                )),
-              ]),
-            ]),
+                    child: Text('추천 상품을 준비 중입니다.'),
+                  ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () =>
+                            Navigator.pop(dialogContext, 'continue'),
+                        child: const Text('쇼핑 계속하기'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(dialogContext, 'cart'),
+                        child: const Text('장바구니 이동'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -9799,11 +11036,11 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   }
 
   void _proceedToCart() {
-// ignore: unused_local_variable
+    // ignore: unused_local_variable
     final r = Responsive.of(context);
 
     final cart = context.read<CartProvider>();
-// ignore: unused_local_variable
+    // ignore: unused_local_variable
     final messenger = ScaffoldMessenger.maybeOf(context);
     final navigator = Navigator.of(context);
     for (final item in _items) {
@@ -9913,19 +11150,24 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             ),
                             SizedBox(height: r.h(2)),
                             Text(
-                              context.loc.t('옵션을_선택하고_추가하면_한_번에_담을_수_있어요',
-                                  '옵션을 선택하고 추가하면 한 번에 담을 수 있어요'),
+                              context.loc.t(
+                                '옵션을_선택하고_추가하면_한_번에_담을_수_있어요',
+                                '옵션을 선택하고 추가하면 한 번에 담을 수 있어요',
+                              ),
                               style: TextStyle(
-                                  fontSize: r.sp(12),
-                                  color: AppColors.textSecondary),
+                                fontSize: r.sp(12),
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                           ],
                         ),
                       ),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: const Icon(Icons.close,
-                            color: AppColors.textSecondary),
+                        child: const Icon(
+                          Icons.close,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -9939,38 +11181,54 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
             Expanded(
               child: ListView(
                 controller: scrollCtrl,
-                padding:
-                    EdgeInsets.fromLTRB(r.w(20), r.h(0), r.w(20), r.h(100)),
+                padding: EdgeInsets.fromLTRB(
+                  r.w(20),
+                  r.h(0),
+                  r.w(20),
+                  r.h(100),
+                ),
                 children: [
                   // ══════════════════════════════
                   // [1] 싱글렛 A타입 세트: 성별 선택 → 기장 고정
                   // ══════════════════════════════
                   if (_needsGender) ...[
-                    _sectionTitle(context.loc.t('성별_선택', '성별 선택'),
-                        required: true),
+                    _sectionTitle(
+                      context.loc.t('성별_선택', '성별 선택'),
+                      required: true,
+                    ),
                     SizedBox(height: r.h(8)),
                     // 안내 배지
                     Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: r.w(10), vertical: r.h(7)),
+                        horizontal: r.w(10),
+                        vertical: r.h(7),
+                      ),
                       margin: EdgeInsets.only(bottom: r.h(10)),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFF8E1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Row(children: [
-                        const Icon(Icons.info_outline_rounded,
-                            size: 13, color: Color(0xFF7A5000)),
-                        SizedBox(width: r.w(5)),
-                        Text(
-                          context.loc.t('남성_5부_자동선택_여성_2_5부_자동선택',
-                              '남성 → 5부 자동선택  •  여성 → 2.5부 자동선택'),
-                          style: TextStyle(
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.info_outline_rounded,
+                            size: 13,
+                            color: Color(0xFF7A5000),
+                          ),
+                          SizedBox(width: r.w(5)),
+                          Text(
+                            context.loc.t(
+                              '남성_5부_자동선택_여성_2_5부_자동선택',
+                              '남성 → 5부 자동선택  •  여성 → 2.5부 자동선택',
+                            ),
+                            style: TextStyle(
                               fontSize: r.sp(11),
                               color: const Color(0xFF7A5000),
-                              fontWeight: FontWeight.w600),
-                        ),
-                      ]),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     Row(
                       children: ['남', context.loc.t('여', '여')].map((g) {
@@ -9986,7 +11244,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 130),
                               margin: EdgeInsets.only(
-                                  right: g == context.loc.t('남', '남') ? 8 : 0),
+                                right: g == context.loc.t('남', '남') ? 8 : 0,
+                              ),
                               padding: EdgeInsets.symmetric(vertical: r.h(14)),
                               decoration: BoxDecoration(
                                 color: isSel
@@ -10025,12 +11284,15 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                   SizedBox(height: r.h(4)),
                                   Container(
                                     padding: EdgeInsets.symmetric(
-                                        horizontal: r.w(8), vertical: r.h(2)),
+                                      horizontal: r.w(8),
+                                      vertical: r.h(2),
+                                    ),
                                     decoration: BoxDecoration(
                                       color: isSel
                                           ? Colors.white.withValues(alpha: 0.2)
-                                          : AppColors.primary
-                                              .withValues(alpha: 0.07),
+                                          : AppColors.primary.withValues(
+                                              alpha: 0.07,
+                                            ),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
@@ -10057,27 +11319,36 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                       Container(
                         width: double.infinity,
                         padding: EdgeInsets.symmetric(
-                            horizontal: r.w(14), vertical: r.h(10)),
+                          horizontal: r.w(14),
+                          vertical: r.h(10),
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE8F5E9),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                              color: const Color(0xFF4CAF50)
-                                  .withValues(alpha: 0.4)),
+                            color: const Color(
+                              0xFF4CAF50,
+                            ).withValues(alpha: 0.4),
+                          ),
                         ),
-                        child: Row(children: [
-                          const Icon(Icons.lock_outline_rounded,
-                              size: 15, color: AppColors.success),
-                          SizedBox(width: r.w(6)),
-                          Text(
-                            '하의 기장: ${_length!} (고정 · 변경 불가)',
-                            style: TextStyle(
-                              fontSize: r.sp(13),
-                              fontWeight: FontWeight.w700,
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.lock_outline_rounded,
+                              size: 15,
                               color: AppColors.success,
                             ),
-                          ),
-                        ]),
+                            SizedBox(width: r.w(6)),
+                            Text(
+                              '하의 기장: ${_length!} (고정 · 변경 불가)',
+                              style: TextStyle(
+                                fontSize: r.sp(13),
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.success,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       SizedBox(height: r.h(16)),
                     ],
@@ -10087,8 +11358,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // [2] 타이즈: 하의길이 모두 선택 가능 (성별 선택 없음)
                   // ══════════════════════════════
                   if (_isTaiz && !_needsGender) ...[
-                    _sectionTitle(context.loc.t('하의_기장_선택', '하의 기장 선택'),
-                        required: true),
+                    _sectionTitle(
+                      context.loc.t('하의_기장_선택', '하의 기장 선택'),
+                      required: true,
+                    ),
                     SizedBox(height: r.h(8)),
                     Wrap(
                       spacing: 8,
@@ -10104,7 +11377,9 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           }),
                           child: Container(
                             padding: EdgeInsets.symmetric(
-                                horizontal: r.w(16), vertical: r.h(10)),
+                              horizontal: r.w(16),
+                              vertical: r.h(10),
+                            ),
                             decoration: BoxDecoration(
                               color: isSel ? AppColors.primary : Colors.white,
                               borderRadius: BorderRadius.circular(8),
@@ -10135,12 +11410,17 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // ══════════════════════════════
                   if (_isSetProduct) ...[
                     // 상의 사이즈
-                    _sectionTitle(context.loc.t('상의_사이즈', '상의 사이즈'),
-                        required: true),
+                    _sectionTitle(
+                      context.loc.t('상의_사이즈', '상의 사이즈'),
+                      required: true,
+                    ),
                     SizedBox(height: r.h(8)),
                     if (_hasBothGroups) ...[
-                      _sizeSectionLabel(context.loc.t('성인', '성인'),
-                          Icons.person_outline_rounded, AppColors.primary),
+                      _sizeSectionLabel(
+                        context.loc.t('성인', '성인'),
+                        Icons.person_outline_rounded,
+                        AppColors.primary,
+                      ),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8,
@@ -10148,16 +11428,20 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         children: _adultSizes.map((s) {
                           final isSel = _topSize == s;
                           return _sizeChip(
-                              label: s,
-                              isSelected: isSel,
-                              activeColor: AppColors.primary,
-                              isSoldOut: _isSizeOutOfStock(s),
-                              onTap: () => setState(() => _topSize = s));
+                            label: s,
+                            isSelected: isSel,
+                            activeColor: AppColors.primary,
+                            isSoldOut: _isSizeOutOfStock(s),
+                            onTap: () => setState(() => _topSize = s),
+                          );
                         }).toList(),
                       ),
                       SizedBox(height: r.h(10)),
-                      _sizeSectionLabel(context.loc.t('주니어', '주니어'),
-                          Icons.child_care_rounded, AppColors.info),
+                      _sizeSectionLabel(
+                        context.loc.t('주니어', '주니어'),
+                        Icons.child_care_rounded,
+                        AppColors.info,
+                      ),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8,
@@ -10165,11 +11449,12 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         children: _juniorSizes.map((s) {
                           final isSel = _topSize == s;
                           return _sizeChip(
-                              label: s,
-                              isSelected: isSel,
-                              activeColor: AppColors.info,
-                              isSoldOut: _isSizeOutOfStock(s),
-                              onTap: () => setState(() => _topSize = s));
+                            label: s,
+                            isSelected: isSel,
+                            activeColor: AppColors.info,
+                            isSoldOut: _isSizeOutOfStock(s),
+                            onTap: () => setState(() => _topSize = s),
+                          );
                         }).toList(),
                       ),
                     ] else ...[
@@ -10179,24 +11464,28 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         children: _defaultSizes.map((s) {
                           final isSel = _topSize == s;
                           return _sizeChip(
-                              label: s,
-                              isSelected: isSel,
-                              activeColor: AppColors.primary,
-                              isSoldOut: _isSizeOutOfStock(s),
-                              onTap: () => setState(() => _topSize = s));
+                            label: s,
+                            isSelected: isSel,
+                            activeColor: AppColors.primary,
+                            isSoldOut: _isSizeOutOfStock(s),
+                            onTap: () => setState(() => _topSize = s),
+                          );
                         }).toList(),
                       ),
                     ],
                     SizedBox(height: r.h(16)),
                     // 하의 사이즈
-                    _sectionTitle(context.loc.t('하의_사이즈', '하의 사이즈'),
-                        required: true),
+                    _sectionTitle(
+                      context.loc.t('하의_사이즈', '하의 사이즈'),
+                      required: true,
+                    ),
                     SizedBox(height: r.h(8)),
                     if (_hasBothGroups) ...[
                       _sizeSectionLabel(
-                          context.loc.t('성인', '성인'),
-                          Icons.person_outline_rounded,
-                          const Color(0xFF5C6BC0)),
+                        context.loc.t('성인', '성인'),
+                        Icons.person_outline_rounded,
+                        const Color(0xFF5C6BC0),
+                      ),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8,
@@ -10204,16 +11493,20 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         children: _adultSizes.map((s) {
                           final isSel = _bottomSize == s;
                           return _sizeChip(
-                              label: s,
-                              isSelected: isSel,
-                              activeColor: const Color(0xFF5C6BC0),
-                              isSoldOut: _isSizeOutOfStock(s),
-                              onTap: () => setState(() => _bottomSize = s));
+                            label: s,
+                            isSelected: isSel,
+                            activeColor: const Color(0xFF5C6BC0),
+                            isSoldOut: _isSizeOutOfStock(s),
+                            onTap: () => setState(() => _bottomSize = s),
+                          );
                         }).toList(),
                       ),
                       SizedBox(height: r.h(10)),
-                      _sizeSectionLabel(context.loc.t('주니어', '주니어'),
-                          Icons.child_care_rounded, AppColors.info),
+                      _sizeSectionLabel(
+                        context.loc.t('주니어', '주니어'),
+                        Icons.child_care_rounded,
+                        AppColors.info,
+                      ),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8,
@@ -10221,11 +11514,12 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         children: _juniorSizes.map((s) {
                           final isSel = _bottomSize == s;
                           return _sizeChip(
-                              label: s,
-                              isSelected: isSel,
-                              activeColor: AppColors.info,
-                              isSoldOut: _isSizeOutOfStock(s),
-                              onTap: () => setState(() => _bottomSize = s));
+                            label: s,
+                            isSelected: isSel,
+                            activeColor: AppColors.info,
+                            isSoldOut: _isSizeOutOfStock(s),
+                            onTap: () => setState(() => _bottomSize = s),
+                          );
                         }).toList(),
                       ),
                     ] else ...[
@@ -10235,11 +11529,12 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         children: _defaultSizes.map((s) {
                           final isSel = _bottomSize == s;
                           return _sizeChip(
-                              label: s,
-                              isSelected: isSel,
-                              activeColor: const Color(0xFF5C6BC0),
-                              isSoldOut: _isSizeOutOfStock(s),
-                              onTap: () => setState(() => _bottomSize = s));
+                            label: s,
+                            isSelected: isSel,
+                            activeColor: const Color(0xFF5C6BC0),
+                            isSoldOut: _isSizeOutOfStock(s),
+                            onTap: () => setState(() => _bottomSize = s),
+                          );
                         }).toList(),
                       ),
                     ],
@@ -10252,8 +11547,11 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     // ── 성인/주니어 혼합 상품: 그룹 구분 표시 ──
                     if (_hasBothGroups) ...[
                       // 성인 그룹 라벨
-                      _sizeSectionLabel(context.loc.t('성인', '성인'),
-                          Icons.person_outline_rounded, AppColors.primary),
+                      _sizeSectionLabel(
+                        context.loc.t('성인', '성인'),
+                        Icons.person_outline_rounded,
+                        AppColors.primary,
+                      ),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8,
@@ -10271,8 +11569,11 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                       ),
                       SizedBox(height: r.h(14)),
                       // 주니어 그룹 라벨
-                      _sizeSectionLabel(context.loc.t('주니어', '주니어'),
-                          Icons.child_care_rounded, AppColors.info),
+                      _sizeSectionLabel(
+                        context.loc.t('주니어', '주니어'),
+                        Icons.child_care_rounded,
+                        AppColors.info,
+                      ),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8,
@@ -10312,8 +11613,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // [3-A] 기성품 하의 전용: 주머니 옵션
                   // ══════════════════════════════
                   if (_isTightsShorts) ...[
-                    _sectionTitle(context.loc.t('주머니_옵션', '주머니 옵션'),
-                        required: false),
+                    _sectionTitle(
+                      context.loc.t('주머니_옵션', '주머니 옵션'),
+                      required: false,
+                    ),
                     SizedBox(height: r.h(8)),
                     Container(
                       width: double.infinity,
@@ -10325,17 +11628,23 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.lock_outline_rounded,
-                              size: 16, color: AppColors.textSecondary),
+                          const Icon(
+                            Icons.lock_outline_rounded,
+                            size: 16,
+                            color: AppColors.textSecondary,
+                          ),
                           SizedBox(width: r.w(8)),
                           Expanded(
                             child: Text(
-                              context.loc.t('타이즈_숏쇼츠는_주머니를_선택할_수_없습니다',
-                                  '타이즈 숏쇼츠는 주머니를 선택할 수 없습니다.'),
+                              context.loc.t(
+                                '타이즈_숏쇼츠는_주머니를_선택할_수_없습니다',
+                                '타이즈 숏쇼츠는 주머니를 선택할 수 없습니다.',
+                              ),
                               style: TextStyle(
-                                  fontSize: r.sp(12),
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.w600),
+                                fontSize: r.sp(12),
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],
@@ -10344,8 +11653,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     SizedBox(height: r.h(16)),
                   ],
                   if (_isReadyMadeBottom && !_isTightsShorts) ...[
-                    _sectionTitle(context.loc.t('주머니_옵션', '주머니 옵션'),
-                        required: false),
+                    _sectionTitle(
+                      context.loc.t('주머니_옵션', '주머니 옵션'),
+                      required: false,
+                    ),
                     SizedBox(height: r.h(8)),
                     Container(
                       padding: EdgeInsets.all(r.w(12)),
@@ -10353,122 +11664,145 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         color: const Color(0xFFF3E5F5),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                            color:
-                                const Color(0xFF9C27B0).withValues(alpha: 0.3)),
+                          color: const Color(0xFF9C27B0).withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.info_outline_rounded,
-                              size: 14, color: AppColors.primary),
+                          const Icon(
+                            Icons.info_outline_rounded,
+                            size: 14,
+                            color: AppColors.primary,
+                          ),
                           SizedBox(width: r.w(6)),
                           Expanded(
                             child: Text(
                               context.loc.t(
-                                  '기본_옵션_주머니_포함_n주머니_제거_선택_시_10_000원_할인됩니다',
-                                  '기본 옵션: 주머니 포함\n주머니 제거 선택 시 10,000원 할인됩니다.'),
+                                '기본_옵션_주머니_포함_n주머니_제거_선택_시_10_000원_할인됩니다',
+                                '기본 옵션: 주머니 포함\n주머니 제거 선택 시 10,000원 할인됩니다.',
+                              ),
                               style: TextStyle(
-                                  fontSize: r.sp(11),
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.5),
+                                fontSize: r.sp(11),
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600,
+                                height: 1.5,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
                     SizedBox(height: r.h(10)),
-                    Row(children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _removePocket = false),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 130),
-                            padding: EdgeInsets.symmetric(vertical: r.h(12)),
-                            decoration: BoxDecoration(
-                              color: !_removePocket
-                                  ? AppColors.primary
-                                  : AppColors.background,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _removePocket = false),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 130),
+                              padding: EdgeInsets.symmetric(vertical: r.h(12)),
+                              decoration: BoxDecoration(
                                 color: !_removePocket
                                     ? AppColors.primary
-                                    : AppColors.border,
-                                width: !_removePocket ? 2 : 1,
+                                    : AppColors.background,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: !_removePocket
+                                      ? AppColors.primary
+                                      : AppColors.border,
+                                  width: !_removePocket ? 2 : 1,
+                                ),
                               ),
-                            ),
-                            child: Column(
-                              children: [
-                                Icon(Icons.shopping_bag_outlined,
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.shopping_bag_outlined,
                                     size: 20,
                                     color: !_removePocket
                                         ? Colors.white
-                                        : AppColors.textSecondary),
-                                SizedBox(height: r.h(4)),
-                                Text(context.loc.t('주머니_포함', '주머니 포함'),
+                                        : AppColors.textSecondary,
+                                  ),
+                                  SizedBox(height: r.h(4)),
+                                  Text(
+                                    context.loc.t('주머니_포함', '주머니 포함'),
                                     style: TextStyle(
-                                        fontSize: r.sp(12),
-                                        fontWeight: FontWeight.w700,
-                                        color: !_removePocket
-                                            ? Colors.white
-                                            : AppColors.primary)),
-                                Text(context.loc.t('기본_옵션', '기본 옵션'),
+                                      fontSize: r.sp(12),
+                                      fontWeight: FontWeight.w700,
+                                      color: !_removePocket
+                                          ? Colors.white
+                                          : AppColors.primary,
+                                    ),
+                                  ),
+                                  Text(
+                                    context.loc.t('기본_옵션', '기본 옵션'),
                                     style: TextStyle(
-                                        fontSize: r.sp(10),
-                                        color: !_removePocket
-                                            ? Colors.white70
-                                            : AppColors.textSecondary)),
-                              ],
+                                      fontSize: r.sp(10),
+                                      color: !_removePocket
+                                          ? Colors.white70
+                                          : AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(width: r.w(10)),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _removePocket = true),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 130),
-                            padding: EdgeInsets.symmetric(vertical: r.h(12)),
-                            decoration: BoxDecoration(
-                              color: _removePocket
-                                  ? AppColors.primary
-                                  : AppColors.background,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
+                        SizedBox(width: r.w(10)),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _removePocket = true),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 130),
+                              padding: EdgeInsets.symmetric(vertical: r.h(12)),
+                              decoration: BoxDecoration(
                                 color: _removePocket
                                     ? AppColors.primary
-                                    : AppColors.border,
-                                width: _removePocket ? 2 : 1,
+                                    : AppColors.background,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: _removePocket
+                                      ? AppColors.primary
+                                      : AppColors.border,
+                                  width: _removePocket ? 2 : 1,
+                                ),
                               ),
-                            ),
-                            child: Column(
-                              children: [
-                                Icon(Icons.remove_shopping_cart_outlined,
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.remove_shopping_cart_outlined,
                                     size: 20,
                                     color: _removePocket
                                         ? Colors.white
-                                        : AppColors.textSecondary),
-                                SizedBox(height: r.h(4)),
-                                Text(context.loc.t('주머니_제거', '주머니 제거'),
+                                        : AppColors.textSecondary,
+                                  ),
+                                  SizedBox(height: r.h(4)),
+                                  Text(
+                                    context.loc.t('주머니_제거', '주머니 제거'),
                                     style: TextStyle(
-                                        fontSize: r.sp(12),
-                                        fontWeight: FontWeight.w700,
-                                        color: _removePocket
-                                            ? Colors.white
-                                            : AppColors.primary)),
-                                Text('-₩10,000',
+                                      fontSize: r.sp(12),
+                                      fontWeight: FontWeight.w700,
+                                      color: _removePocket
+                                          ? Colors.white
+                                          : AppColors.primary,
+                                    ),
+                                  ),
+                                  Text(
+                                    '-₩10,000',
                                     style: TextStyle(
-                                        fontSize: r.sp(10),
-                                        fontWeight: FontWeight.w800,
-                                        color: _removePocket
-                                            ? AppColors.accent
-                                            : AppColors.textSecondary)),
-                              ],
+                                      fontSize: r.sp(10),
+                                      fontWeight: FontWeight.w800,
+                                      color: _removePocket
+                                          ? AppColors.accent
+                                          : AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ]),
+                      ],
+                    ),
                     SizedBox(height: r.h(16)),
                   ],
 
@@ -10479,9 +11813,12 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // ══════════════════════════════
                   if (widget.product.colors.isNotEmpty) ...[
                     _sectionTitle(
-                        context.loc.t(_isBottomItem ? '하의_색상' : '상품_색상',
-                            _isBottomItem ? '하의 색상' : '상품 색상'),
-                        required: true),
+                      context.loc.t(
+                        _isBottomItem ? '하의_색상' : '상품_색상',
+                        _isBottomItem ? '하의 색상' : '상품 색상',
+                      ),
+                      required: true,
+                    ),
                     SizedBox(height: r.h(6)),
                     _ColorSelectionWidget(
                       isBottomCategory: _isBottomItem,
@@ -10517,7 +11854,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                   ? () => setState(() => _qty--)
                                   : null,
                               borderRadius: const BorderRadius.horizontal(
-                                  left: Radius.circular(8)),
+                                left: Radius.circular(8),
+                              ),
                               child: Container(
                                 width: 36,
                                 height: 36,
@@ -10538,20 +11876,25 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                               child: Text(
                                 '$_qty',
                                 style: TextStyle(
-                                    fontSize: r.sp(15),
-                                    fontWeight: FontWeight.w800),
+                                  fontSize: r.sp(15),
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                             ),
                             InkWell(
                               onTap: () => setState(() => _qty++),
                               borderRadius: const BorderRadius.horizontal(
-                                  right: Radius.circular(8)),
+                                right: Radius.circular(8),
+                              ),
                               child: Container(
                                 width: 36,
                                 height: 36,
                                 alignment: Alignment.center,
-                                child: const Icon(Icons.add,
-                                    size: 16, color: AppColors.primary),
+                                child: const Icon(
+                                  Icons.add,
+                                  size: 16,
+                                  color: AppColors.primary,
+                                ),
                               ),
                             ),
                           ],
@@ -10585,7 +11928,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             ? AppColors.primary
                             : AppColors.textHint,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
                   ),
@@ -10597,8 +11941,11 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     SizedBox(height: r.h(20)),
                     Row(
                       children: [
-                        const Icon(Icons.shopping_bag_outlined,
-                            size: 16, color: AppColors.primary),
+                        const Icon(
+                          Icons.shopping_bag_outlined,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
                         SizedBox(width: r.w(6)),
                         Text(
                           '선택된 옵션 ${_items.length}가지',
@@ -10612,9 +11959,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         Text(
                           '총 ${_totalQty()}개 · ${_fmt(_totalPrice())}원',
                           style: TextStyle(
-                              fontSize: r.sp(12),
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textSecondary),
+                            fontSize: r.sp(12),
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ],
                     ),
@@ -10645,18 +11993,25 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                     spacing: 6,
                                     runSpacing: 4,
                                     children: [
-                                      _optionChip(item['size'] as String,
-                                          AppColors.primary),
+                                      _optionChip(
+                                        item['size'] as String,
+                                        AppColors.primary,
+                                      ),
                                       if ((item['color'] as String) != '-')
-                                        _optionChip(item['color'] as String,
-                                            AppColors.success),
+                                        _optionChip(
+                                          item['color'] as String,
+                                          AppColors.success,
+                                        ),
                                       if ((item['length'] as String) != '-')
-                                        _optionChip(item['length'] as String,
-                                            AppColors.info),
+                                        _optionChip(
+                                          item['length'] as String,
+                                          AppColors.info,
+                                        ),
                                       if (item['removePocket'] == true)
                                         _optionChip(
-                                            context.loc.t('주머니_제거', '주머니 제거'),
-                                            AppColors.primary),
+                                          context.loc.t('주머니_제거', '주머니 제거'),
+                                          AppColors.primary,
+                                        ),
                                     ],
                                   ),
                                   SizedBox(height: r.h(8)),
@@ -10666,23 +12021,27 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                       Container(
                                         decoration: BoxDecoration(
                                           border: Border.all(
-                                              color: AppColors.border),
-                                          borderRadius:
-                                              BorderRadius.circular(6),
+                                            color: AppColors.border,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             InkWell(
                                               onTap: (item['qty'] as int) > 1
-                                                  ? () => setState(() =>
-                                                      _items[idx]['qty'] =
+                                                  ? () => setState(
+                                                      () => _items[idx]['qty'] =
                                                           (item['qty'] as int) -
-                                                              1)
+                                                          1,
+                                                    )
                                                   : null,
                                               borderRadius:
                                                   const BorderRadius.horizontal(
-                                                      left: Radius.circular(6)),
+                                                    left: Radius.circular(6),
+                                                  ),
                                               child: Container(
                                                 width: 28,
                                                 height: 28,
@@ -10692,8 +12051,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                                   size: 13,
                                                   color:
                                                       (item['qty'] as int) > 1
-                                                          ? AppColors.primary
-                                                          : AppColors.border,
+                                                      ? AppColors.primary
+                                                      : AppColors.border,
                                                 ),
                                               ),
                                             ),
@@ -10711,20 +12070,23 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                               ),
                                             ),
                                             InkWell(
-                                              onTap: () => setState(() =>
-                                                  _items[idx]['qty'] =
-                                                      (item['qty'] as int) + 1),
+                                              onTap: () => setState(
+                                                () => _items[idx]['qty'] =
+                                                    (item['qty'] as int) + 1,
+                                              ),
                                               borderRadius:
                                                   const BorderRadius.horizontal(
-                                                      right:
-                                                          Radius.circular(6)),
+                                                    right: Radius.circular(6),
+                                                  ),
                                               child: Container(
                                                 width: 28,
                                                 height: 28,
                                                 alignment: Alignment.center,
-                                                child: const Icon(Icons.add,
-                                                    size: 13,
-                                                    color: AppColors.primary),
+                                                child: const Icon(
+                                                  Icons.add,
+                                                  size: 13,
+                                                  color: AppColors.primary,
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -10733,12 +12095,16 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                       if (item['removePocket'] == true) ...[
                                         SizedBox(width: r.w(8)),
                                         Text(
-                                            context.loc.t('주머니_제거__10_000원',
-                                                '주머니 제거 -10,000원'),
-                                            style: TextStyle(
-                                                fontSize: r.sp(11),
-                                                color: AppColors.primary,
-                                                fontWeight: FontWeight.w700)),
+                                          context.loc.t(
+                                            '주머니_제거__10_000원',
+                                            '주머니 제거 -10,000원',
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: r.sp(11),
+                                            color: AppColors.primary,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
                                       ],
                                     ],
                                   ),
@@ -10759,8 +12125,11 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                 SizedBox(height: r.h(4)),
                                 GestureDetector(
                                   onTap: () => _removeItem(idx),
-                                  child: const Icon(Icons.close,
-                                      size: 16, color: AppColors.textHint),
+                                  child: const Icon(
+                                    Icons.close,
+                                    size: 16,
+                                    color: AppColors.textHint,
+                                  ),
                                 ),
                               ],
                             ),
@@ -10775,8 +12144,12 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
             // ── 하단 버튼 ──
             Container(
-              padding: EdgeInsets.fromLTRB(r.w(20), r.h(12), r.w(20),
-                  MediaQuery.of(context).padding.bottom + 16),
+              padding: EdgeInsets.fromLTRB(
+                r.w(20),
+                r.h(12),
+                r.w(20),
+                MediaQuery.of(context).padding.bottom + 16,
+              ),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 border: Border(top: BorderSide(color: AppColors.border)),
@@ -10788,23 +12161,28 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                       child: ElevatedButton(
                         onPressed: _canAddItem
                             ? () =>
-                                _addCurrentAndProceed(buyNow: widget.isBuyNow)
+                                  _addCurrentAndProceed(buyNow: widget.isBuyNow)
                             : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.border,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           elevation: 0,
                         ),
                         child: Text(
                           _canAddItem
                               ? (widget.isBuyNow
-                                  ? context.loc.t('바로구매', '바로구매')
-                                  : context.loc.t('장바구니_담기', '장바구니 담기'))
-                              : context.loc
-                                  .t('사이즈와_색상을_선택해주세요', '사이즈와 색상을 선택해주세요'),
+                                    ? context.loc.t('바로구매', '바로구매')
+                                    : context.loc.t('장바구니_담기', '장바구니 담기'))
+                              : context.loc.t(
+                                  '사이즈와_색상을_선택해주세요',
+                                  '사이즈와 색상을 선택해주세요',
+                                ),
                           style: const TextStyle(
-                              color: Colors.white, fontWeight: FontWeight.w700),
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     )
@@ -10818,9 +12196,12 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                 onPressed: _proceedToCart,
                                 style: OutlinedButton.styleFrom(
                                   side: const BorderSide(
-                                      color: AppColors.primary, width: 1.5),
+                                    color: AppColors.primary,
+                                    width: 1.5,
+                                  ),
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
                                 child: Text(
                                   '장바구니 담기\n(${_totalQty()}개)',
@@ -10846,13 +12227,16 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                                 elevation: 0,
                               ),
                               child: Text(
                                 widget.isBuyNow
-                                    ? context.loc.t('바로구매 __totalPrice원',
-                                        '바로구매 (${_fmt(_totalPrice())}원)')
+                                    ? context.loc.t(
+                                        '바로구매 __totalPrice원',
+                                        '바로구매 (${_fmt(_totalPrice())}원)',
+                                      )
                                     : context.loc.t('바로구매', '바로구매'),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w800,
@@ -10919,15 +12303,20 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
     final r = Responsive.of(context);
     return Row(
       children: [
-        Text(title,
-            style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
+        Text(
+          title,
+          style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700),
+        ),
         if (required) ...[
           SizedBox(width: r.w(4)),
-          Text('*',
-              style: TextStyle(
-                  color: AppColors.error,
-                  fontSize: r.sp(13),
-                  fontWeight: FontWeight.w900)),
+          Text(
+            '*',
+            style: TextStyle(
+              color: AppColors.error,
+              fontSize: r.sp(13),
+              fontWeight: FontWeight.w900,
+            ),
+          ),
         ],
       ],
     );
@@ -10951,10 +12340,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
         ),
         SizedBox(width: r.w(6)),
         Expanded(
-          child: Container(
-            height: 1,
-            color: color.withValues(alpha: 0.2),
-          ),
+          child: Container(height: 1, color: color.withValues(alpha: 0.2)),
         ),
       ],
     );
@@ -10981,15 +12367,15 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
           color: isSoldOut
               ? AppColors.surfaceGray
               : isSelected
-                  ? activeColor
-                  : Colors.white,
+              ? activeColor
+              : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSoldOut
                 ? AppColors.border
                 : isSelected
-                    ? activeColor
-                    : AppColors.border,
+                ? activeColor
+                : AppColors.border,
           ),
         ),
         child: Column(
@@ -11002,8 +12388,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                 color: isSoldOut
                     ? AppColors.textHint
                     : isSelected
-                        ? Colors.white
-                        : AppColors.primary,
+                    ? Colors.white
+                    : AppColors.primary,
                 decoration: isSoldOut ? TextDecoration.lineThrough : null,
                 decorationColor: AppColors.textSecondary,
                 decorationThickness: 2,
@@ -11038,7 +12424,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
       child: Text(
         label,
         style: TextStyle(
-            fontSize: r.sp(11), fontWeight: FontWeight.w700, color: color),
+          fontSize: r.sp(11),
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
       ),
     );
   }
@@ -11090,7 +12479,8 @@ class _QuickSizeColorSelectSheetState
   void initState() {
     super.initState();
     _selectedSize = widget.initialSize;
-    _selectedColor = widget.initialColor ??
+    _selectedColor =
+        widget.initialColor ??
         (widget.product.colors.isNotEmpty ? widget.product.colors.first : null);
   }
 
@@ -11114,16 +12504,19 @@ class _QuickSizeColorSelectSheetState
     final sizes = widget.product.sizes;
     // 골지 텍스처: 싱글렛세트 또는 타이즈(하의) 상품에만 적용
     final p = widget.product;
-    final isSingletSetHere = (p.category == context.loc.t('세트', '세트') &&
+    final isSingletSetHere =
+        (p.category == context.loc.t('세트', '세트') &&
             (p.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
-                p.subCategory
-                    .contains(context.loc.t('싱글렛_a타입세트', '싱글렛 A타입세트')))) ||
+                p.subCategory.contains(
+                  context.loc.t('싱글렛_a타입세트', '싱글렛 A타입세트'),
+                ))) ||
         p.category.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         p.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         p.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
         (p.category == context.loc.t('세트', '세트') &&
             p.name.contains(context.loc.t('싱글렛', '싱글렛')));
-    final isBottom = isSingletSetHere ||
+    final isBottom =
+        isSingletSetHere ||
         p.category == context.loc.t('하의', '하의') ||
         p.subCategory == context.loc.t('타이즈', '타이즈') ||
         p.name.contains(context.loc.t('타이즈', '타이즈'));
@@ -11152,118 +12545,160 @@ class _QuickSizeColorSelectSheetState
             ),
             Row(
               children: [
-                Text(loc.optionSelectTitle,
-                    style: TextStyle(
-                        fontSize: r.sp(18), fontWeight: FontWeight.w900)),
+                Text(
+                  loc.optionSelectTitle,
+                  style: TextStyle(
+                    fontSize: r.sp(18),
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
                 const Spacer(),
                 Container(
                   padding: EdgeInsets.symmetric(
-                      horizontal: r.w(10), vertical: r.h(4)),
+                    horizontal: r.w(10),
+                    vertical: r.h(4),
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF3F4F6),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(widget.product.localizedName(_lang),
-                      style: TextStyle(
-                          fontSize: r.sp(11), color: AppColors.textSecondary)),
+                  child: Text(
+                    widget.product.localizedName(_lang),
+                    style: TextStyle(
+                      fontSize: r.sp(11),
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
               ],
             ),
             SizedBox(height: r.h(6)),
-            Text(loc.buyNowCheckoutDesc,
-                style: TextStyle(
-                    fontSize: r.sp(12), color: AppColors.textSecondary)),
+            Text(
+              loc.buyNowCheckoutDesc,
+              style: TextStyle(
+                fontSize: r.sp(12),
+                color: AppColors.textSecondary,
+              ),
+            ),
             SizedBox(height: r.h(20)),
-            Text(loc.sizeLabel,
-                style:
-                    TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
+            Text(
+              loc.sizeLabel,
+              style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700),
+            ),
             SizedBox(height: r.h(10)),
-            Builder(builder: (context) {
-              final adultSizes =
-                  sizes.where((s) => !_isJuniorSizeLabel(s)).toList();
-              final juniorSizes =
-                  sizes.where((s) => _isJuniorSizeLabel(s)).toList();
-              final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
+            Builder(
+              builder: (context) {
+                final adultSizes = sizes
+                    .where((s) => !_isJuniorSizeLabel(s))
+                    .toList();
+                final juniorSizes = sizes
+                    .where((s) => _isJuniorSizeLabel(s))
+                    .toList();
+                final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
 
-              Widget chipWrap(List<String> list, Color activeColor) => Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: list.map((s) {
-                      final r = Responsive.of(context);
+                Widget chipWrap(List<String> list, Color activeColor) => Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: list.map((s) {
+                    final r = Responsive.of(context);
 
-                      final sel = _selectedSize == s;
-                      return GestureDetector(
-                        onTap: () => setState(() => _selectedSize = s),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 130),
-                          width: 64,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: sel ? activeColor : Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: sel ? activeColor : AppColors.border,
-                              width: sel ? 2 : 1,
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(s,
-                                style: TextStyle(
-                                    fontSize: r.sp(14),
-                                    fontWeight: FontWeight.w700,
-                                    color: sel
-                                        ? Colors.white
-                                        : AppColors.primary)),
+                    final sel = _selectedSize == s;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedSize = s),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 130),
+                        width: 64,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: sel ? activeColor : Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: sel ? activeColor : AppColors.border,
+                            width: sel ? 2 : 1,
                           ),
                         ),
-                      );
-                    }).toList(),
-                  );
-
-              if (hasBoth) {
-                final r = Responsive.of(context);
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: [
-                      const Icon(Icons.person_outline_rounded,
-                          size: 13, color: AppColors.primary),
-                      SizedBox(width: r.w(4)),
-                      Text(context.loc.t('성인', '성인'),
-                          style: TextStyle(
-                              fontSize: r.sp(11),
+                        child: Center(
+                          child: Text(
+                            s,
+                            style: TextStyle(
+                              fontSize: r.sp(14),
                               fontWeight: FontWeight.w700,
-                              color: AppColors.primary)),
-                      SizedBox(width: r.w(6)),
-                      Expanded(
-                          child: Container(
-                              height: 1, color: const Color(0x221A1A2E))),
-                    ]),
-                    SizedBox(height: r.h(6)),
-                    chipWrap(adultSizes, AppColors.primary),
-                    SizedBox(height: r.h(12)),
-                    Row(children: [
-                      const Icon(Icons.child_care_rounded,
-                          size: 13, color: AppColors.info),
-                      SizedBox(width: r.w(4)),
-                      Text(context.loc.t('주니어', '주니어'),
-                          style: TextStyle(
-                              fontSize: r.sp(11),
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.info)),
-                      SizedBox(width: r.w(6)),
-                      Expanded(
-                          child: Container(
-                              height: 1, color: const Color(0x221565C0))),
-                    ]),
-                    SizedBox(height: r.h(6)),
-                    chipWrap(juniorSizes, AppColors.info),
-                  ],
+                              color: sel ? Colors.white : AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 );
-              }
-              return chipWrap(sizes, AppColors.primary);
-            }),
+
+                if (hasBoth) {
+                  final r = Responsive.of(context);
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.person_outline_rounded,
+                            size: 13,
+                            color: AppColors.primary,
+                          ),
+                          SizedBox(width: r.w(4)),
+                          Text(
+                            context.loc.t('성인', '성인'),
+                            style: TextStyle(
+                              fontSize: r.sp(11),
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          SizedBox(width: r.w(6)),
+                          Expanded(
+                            child: Container(
+                              height: 1,
+                              color: const Color(0x221A1A2E),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: r.h(6)),
+                      chipWrap(adultSizes, AppColors.primary),
+                      SizedBox(height: r.h(12)),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.child_care_rounded,
+                            size: 13,
+                            color: AppColors.info,
+                          ),
+                          SizedBox(width: r.w(4)),
+                          Text(
+                            context.loc.t('주니어', '주니어'),
+                            style: TextStyle(
+                              fontSize: r.sp(11),
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.info,
+                            ),
+                          ),
+                          SizedBox(width: r.w(6)),
+                          Expanded(
+                            child: Container(
+                              height: 1,
+                              color: const Color(0x221565C0),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: r.h(6)),
+                      chipWrap(juniorSizes, AppColors.info),
+                    ],
+                  );
+                }
+                return chipWrap(sizes, AppColors.primary);
+              },
+            ),
             SizedBox(height: r.h(20)),
             // 컬러 섹션 (하의: 19가지 + 팔레트, 기타: 검정/남색)
             _ColorSelectionWidget(
@@ -11281,9 +12716,13 @@ class _QuickSizeColorSelectSheetState
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(loc.quantityLabel,
-                    style: TextStyle(
-                        fontSize: r.sp(13), fontWeight: FontWeight.w700)),
+                Text(
+                  loc.quantityLabel,
+                  style: TextStyle(
+                    fontSize: r.sp(13),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 Row(
                   children: [
                     GestureDetector(
@@ -11303,9 +12742,13 @@ class _QuickSizeColorSelectSheetState
                     Container(
                       width: 44,
                       alignment: Alignment.center,
-                      child: Text('$_quantity',
-                          style: TextStyle(
-                              fontSize: r.sp(16), fontWeight: FontWeight.w800)),
+                      child: Text(
+                        '$_quantity',
+                        style: TextStyle(
+                          fontSize: r.sp(16),
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ),
                     GestureDetector(
                       onTap: () => setState(() => _quantity++),
@@ -11327,7 +12770,9 @@ class _QuickSizeColorSelectSheetState
             if (_canConfirm)
               Container(
                 padding: EdgeInsets.symmetric(
-                    horizontal: r.w(16), vertical: r.h(12)),
+                  horizontal: r.w(16),
+                  vertical: r.h(12),
+                ),
                 margin: EdgeInsets.only(bottom: r.h(14)),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF7F8FA),
@@ -11338,18 +12783,21 @@ class _QuickSizeColorSelectSheetState
                   children: [
                     Expanded(
                       child: Text(
-                          '${widget.product.localizedName(_lang)} · $_selectedSize · $_selectedColor',
-                          style: TextStyle(
-                              fontSize: r.sp(12),
-                              color: AppColors.textSecondary),
-                          softWrap: true),
+                        '${widget.product.localizedName(_lang)} · $_selectedSize · $_selectedColor',
+                        style: TextStyle(
+                          fontSize: r.sp(12),
+                          color: AppColors.textSecondary,
+                        ),
+                        softWrap: true,
+                      ),
                     ),
                     Text(
                       '${_fmt(((widget.product.price + _extraPrice) * _quantity).toInt())}원',
                       style: TextStyle(
-                          fontSize: r.sp(16),
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.primary),
+                        fontSize: r.sp(16),
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ],
                 ),
@@ -11358,17 +12806,22 @@ class _QuickSizeColorSelectSheetState
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      _canConfirm ? AppColors.primary : AppColors.border,
+                  backgroundColor: _canConfirm
+                      ? AppColors.primary
+                      : AppColors.border,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(vertical: r.h(16)),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 onPressed: _canConfirm
                     ? () => widget.onConfirm(
-                        _selectedSize!, _selectedColor!, _quantity)
+                        _selectedSize!,
+                        _selectedColor!,
+                        _quantity,
+                      )
                     : null,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -11380,7 +12833,9 @@ class _QuickSizeColorSelectSheetState
                           ? context.loc.t('바로 결제하기', '바로 결제하기')
                           : '사이즈와 컬러를 선택해주세요',
                       style: TextStyle(
-                          fontSize: r.sp(15), fontWeight: FontWeight.w800),
+                        fontSize: r.sp(15),
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ],
                 ),
@@ -11459,25 +12914,33 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
         // ── 헤더 ──
         Row(
           children: [
-            Text(loc.colorLabel2,
-                style:
-                    TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
+            Text(
+              loc.colorLabel2,
+              style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700),
+            ),
             if (isTights) ...[
               SizedBox(width: r.w(8)),
               Container(
-                padding:
-                    EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.w(8),
+                  vertical: r.h(3),
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFF3E0),
                   borderRadius: BorderRadius.circular(4),
-                  border:
-                      Border.all(color: const Color(0xFFFFB74D), width: 0.8),
+                  border: Border.all(
+                    color: const Color(0xFFFFB74D),
+                    width: 0.8,
+                  ),
                 ),
-                child: Text(loc.productColorExtraNote,
-                    style: TextStyle(
-                        fontSize: r.sp(10),
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.w700)),
+                child: Text(
+                  loc.productColorExtraNote,
+                  style: TextStyle(
+                    fontSize: r.sp(10),
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ],
           ],
@@ -11486,51 +12949,64 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
 
         // ── 선택된 색상 표시 ──
         if (widget.selectedColor != null) ...[
-          Builder(builder: (_) {
-            final r = Responsive.of(context);
+          Builder(
+            builder: (_) {
+              final r = Responsive.of(context);
 
-            final col = widget.selectedColor!;
-            final found = optionPalette.firstWhere(
-              (c) => c['name'] == col,
-              orElse: () => <String, dynamic>{},
-            );
-            if (found.isEmpty) return const SizedBox.shrink();
-            final configuredPrice = (found['price'] as num?)?.toDouble() ?? 0.0;
-            final selHex = found['hex'] as int;
-            final selColor = Color(selHex);
-            return Padding(
-              padding: EdgeInsets.only(bottom: r.h(8)),
-              child: Row(children: [
-                Text(loc.selectedLabel,
-                    style: TextStyle(
-                        fontSize: r.sp(12), color: AppColors.textSecondary)),
-                SizedBox(width: r.w(6)),
-                RibColorSwatch(
-                  color: selColor,
-                  size: 20,
-                  isSelected: true,
-                  accentColor: AppColors.primary,
-                  isLight: selColor.computeLuminance() > 0.5,
-                  borderRadius: 4,
-                  showRib: widget.isTightsCategory,
-                ),
-                SizedBox(width: r.w(6)),
-                Text(widget.hideExtraPrice ? '원디자인 색상과 동일' : col,
-                    style: TextStyle(
-                        fontSize: r.sp(13), fontWeight: FontWeight.w700)),
-                SizedBox(width: r.w(6)),
-                if (!widget.hideExtraPrice && configuredPrice > 0)
-                  Text(
-                    '+${configuredPrice.toInt()}원',
-                    style: TextStyle(
-                      fontSize: r.sp(11),
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFFCC0000),
+              final col = widget.selectedColor!;
+              final found = optionPalette.firstWhere(
+                (c) => c['name'] == col,
+                orElse: () => <String, dynamic>{},
+              );
+              if (found.isEmpty) return const SizedBox.shrink();
+              final configuredPrice =
+                  (found['price'] as num?)?.toDouble() ?? 0.0;
+              final selHex = found['hex'] as int;
+              final selColor = Color(selHex);
+              return Padding(
+                padding: EdgeInsets.only(bottom: r.h(8)),
+                child: Row(
+                  children: [
+                    Text(
+                      loc.selectedLabel,
+                      style: TextStyle(
+                        fontSize: r.sp(12),
+                        color: AppColors.textSecondary,
+                      ),
                     ),
-                  ),
-              ]),
-            );
-          }),
+                    SizedBox(width: r.w(6)),
+                    RibColorSwatch(
+                      color: selColor,
+                      size: 20,
+                      isSelected: true,
+                      accentColor: AppColors.primary,
+                      isLight: selColor.computeLuminance() > 0.5,
+                      borderRadius: 4,
+                      showRib: widget.isTightsCategory,
+                    ),
+                    SizedBox(width: r.w(6)),
+                    Text(
+                      widget.hideExtraPrice ? '원디자인 색상과 동일' : col,
+                      style: TextStyle(
+                        fontSize: r.sp(13),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(width: r.w(6)),
+                    if (!widget.hideExtraPrice && configuredPrice > 0)
+                      Text(
+                        '+${configuredPrice.toInt()}원',
+                        style: TextStyle(
+                          fontSize: r.sp(11),
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFFCC0000),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
         ],
 
         // ── 색상 팔레트 그리드 (상세 페이지와 동일) ──
@@ -11571,11 +13047,14 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                   ),
                   if (!widget.hideExtraPrice && !isFree)
                     Text(
-                        configuredPrice > 0
-                            ? '+${configuredPrice.toInt()}원'
-                            : '+₩',
-                        style: TextStyle(
-                            fontSize: r.sp(8), color: const Color(0xFFCC0000))),
+                      configuredPrice > 0
+                          ? '+${configuredPrice.toInt()}원'
+                          : '+₩',
+                      style: TextStyle(
+                        fontSize: r.sp(8),
+                        color: const Color(0xFFCC0000),
+                      ),
+                    ),
                 ],
               ),
             );
@@ -11583,9 +13062,13 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
         ),
         SizedBox(height: r.h(4)),
         if (isTights && !widget.hideExtraPrice)
-          Text(loc.productColorExtraFull,
-              style: TextStyle(
-                  fontSize: r.sp(10), color: AppColors.textSecondary)),
+          Text(
+            loc.productColorExtraFull,
+            style: TextStyle(
+              fontSize: r.sp(10),
+              color: AppColors.textSecondary,
+            ),
+          ),
         SizedBox(height: r.h(12)),
       ],
     );
@@ -11634,10 +13117,16 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 180),
           child: _tab == 0
-              ? _buildTable(widget.adultHeaders, widget.adultRows,
-                  key: const ValueKey('adult'))
-              : _buildTable(widget.juniorHeaders, widget.juniorRows,
-                  key: const ValueKey('junior')),
+              ? _buildTable(
+                  widget.adultHeaders,
+                  widget.adultRows,
+                  key: const ValueKey('adult'),
+                )
+              : _buildTable(
+                  widget.juniorHeaders,
+                  widget.juniorRows,
+                  key: const ValueKey('junior'),
+                ),
         ),
       ],
     );
@@ -11653,45 +13142,56 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-                color: selected ? AppColors.textPrimary : AppColors.border,
-                width: selected ? 2 : 1),
+              color: selected ? AppColors.textPrimary : AppColors.border,
+              width: selected ? 2 : 1,
+            ),
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(label,
-                style: TextStyle(
-                    fontSize: r.sp(12),
-                    fontWeight: FontWeight.w900,
-                    color: selected
-                        ? AppColors.textPrimary
-                        : AppColors.textSecondary,
-                    letterSpacing: 1.1)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: r.sp(12),
+                fontWeight: FontWeight.w900,
+                color: selected
+                    ? AppColors.textPrimary
+                    : AppColors.textSecondary,
+                letterSpacing: 1.1,
+              ),
+            ),
             SizedBox(width: r.w(5)),
-            Text(sublabel,
-                style: TextStyle(
-                    fontSize: r.sp(10),
-                    color:
-                        selected ? AppColors.textPrimary : AppColors.textHint)),
+            Text(
+              sublabel,
+              style: TextStyle(
+                fontSize: r.sp(10),
+                color: selected ? AppColors.textPrimary : AppColors.textHint,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTable(List<String> headers, List<List<String>> rows,
-      {Key? key}) {
+  Widget _buildTable(
+    List<String> headers,
+    List<List<String>> rows, {
+    Key? key,
+  }) {
     return Column(
       key: key,
       children: [
         _RibTableHeader(headers: headers),
-        ...rows.asMap().entries.map((entry) => _RibTableRow(
-              values: entry.value,
-              isEven: entry.key.isEven,
-              isLast: entry.key == rows.length - 1,
-              isSizeCol: true,
-            )),
+        ...rows.asMap().entries.map(
+          (entry) => _RibTableRow(
+            values: entry.value,
+            isEven: entry.key.isEven,
+            isLast: entry.key == rows.length - 1,
+            isSizeCol: true,
+          ),
+        ),
       ],
     );
   }
@@ -11747,8 +13247,9 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
         content: Text(context.loc.t('이 리뷰를 삭제하시겠습니까', '이 리뷰를 삭제하시겠습니까?')),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(context.loc.t('취소', '취소'))),
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.loc.t('취소', '취소')),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
@@ -11762,8 +13263,9 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(context.loc.t('리뷰가 삭제되었습니다', '리뷰가 삭제되었습니다')),
-              backgroundColor: AppColors.primary),
+            content: Text(context.loc.t('리뷰가 삭제되었습니다', '리뷰가 삭제되었습니다')),
+            backgroundColor: AppColors.primary,
+          ),
         );
       }
     }
@@ -11777,9 +13279,10 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
         final r = Responsive.of(context);
 
         final reviews = List<ReviewModel>.from(
-            reviewProv.getProductReviews(widget.product.id).isNotEmpty
-                ? reviewProv.getProductReviews(widget.product.id)
-                : widget.reviews);
+          reviewProv.getProductReviews(widget.product.id).isNotEmpty
+              ? reviewProv.getProductReviews(widget.product.id)
+              : widget.reviews,
+        );
         if (_sort == 'highest') {
           reviews.sort((a, b) => b.rating.compareTo(a.rating));
         }
@@ -11789,7 +13292,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
         final avg = reviews.isEmpty
             ? 0.0
             : reviews.map((r) => r.rating).reduce((a, b) => a + b) /
-                reviews.length;
+                  reviews.length;
         final myReview = currentUid != null
             ? reviews.where((r) => r.userId == currentUid).firstOrNull
             : null;
@@ -11810,40 +13313,52 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('리뷰 ${reviews.length}개',
-                            style: TextStyle(
-                                fontSize: r.sp(18),
-                                fontWeight: FontWeight.w800)),
+                        Text(
+                          '리뷰 ${reviews.length}개',
+                          style: TextStyle(
+                            fontSize: r.sp(18),
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
                         Row(
                           children: [
                             ...List.generate(
-                                5,
-                                (i) => Icon(Icons.star_rounded,
-                                    size: 16,
-                                    color: i < avg.round()
-                                        ? AppColors.accent
-                                        : AppColors.border)),
+                              5,
+                              (i) => Icon(
+                                Icons.star_rounded,
+                                size: 16,
+                                color: i < avg.round()
+                                    ? AppColors.accent
+                                    : AppColors.border,
+                              ),
+                            ),
                             SizedBox(width: r.w(6)),
-                            Text(avg.toStringAsFixed(1),
-                                style: TextStyle(
-                                    fontSize: r.sp(14),
-                                    fontWeight: FontWeight.w700)),
+                            Text(
+                              avg.toStringAsFixed(1),
+                              style: TextStyle(
+                                fontSize: r.sp(14),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ],
                         ),
                       ],
                     ),
                     const Spacer(),
                     IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context)),
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
                   ],
                 ),
               ),
               const Divider(),
               // 정렬 버튼 + 리뷰 작성 버튼
               Padding(
-                padding:
-                    EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(8)),
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.w(16),
+                  vertical: r.h(8),
+                ),
                 child: Row(
                   children: [
                     _sortBtn(context.loc.t('최신순', '최신순'), 'latest'),
@@ -11857,7 +13372,9 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                         onTap: () => _showWriteReviewDialog(existing: myReview),
                         child: Container(
                           padding: EdgeInsets.symmetric(
-                              horizontal: r.w(12), vertical: r.h(6)),
+                            horizontal: r.w(12),
+                            vertical: r.h(6),
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.textPrimary,
                             borderRadius: BorderRadius.circular(8),
@@ -11865,20 +13382,23 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                           child: Row(
                             children: [
                               Icon(
-                                  myReview != null
-                                      ? Icons.edit
-                                      : Icons.rate_review,
-                                  size: 14,
-                                  color: Colors.white),
+                                myReview != null
+                                    ? Icons.edit
+                                    : Icons.rate_review,
+                                size: 14,
+                                color: Colors.white,
+                              ),
                               SizedBox(width: r.w(4)),
                               Text(
-                                  myReview != null
-                                      ? context.loc.t('내 리뷰 수정', '내 리뷰 수정')
-                                      : '리뷰 작성',
-                                  style: TextStyle(
-                                      fontSize: r.sp(12),
-                                      fontWeight: FontWeight.w400,
-                                      color: Colors.white)),
+                                myReview != null
+                                    ? context.loc.t('내 리뷰 수정', '내 리뷰 수정')
+                                    : '리뷰 작성',
+                                style: TextStyle(
+                                  fontSize: r.sp(12),
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -11893,26 +13413,39 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.rate_review_outlined,
-                                size: 48, color: AppColors.border),
+                            const Icon(
+                              Icons.rate_review_outlined,
+                              size: 48,
+                              color: AppColors.border,
+                            ),
                             SizedBox(height: r.h(12)),
-                            Text(loc.noReviewYet,
-                                style: const TextStyle(
-                                    color: AppColors.textSecondary)),
+                            Text(
+                              loc.noReviewYet,
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
                             if (currentUid != null) ...[
                               SizedBox(height: r.h(16)),
                               ElevatedButton.icon(
                                 onPressed: () => _showWriteReviewDialog(),
                                 icon: const Icon(Icons.rate_review, size: 16),
-                                label: Text(context.loc
-                                    .t('첫 번째 리뷰를 작성해보세요', '첫 번째 리뷰를 작성해보세요')),
+                                label: Text(
+                                  context.loc.t(
+                                    '첫 번째 리뷰를 작성해보세요',
+                                    '첫 번째 리뷰를 작성해보세요',
+                                  ),
+                                ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.textPrimary,
                                   foregroundColor: Colors.white,
                                   padding: EdgeInsets.symmetric(
-                                      horizontal: r.w(20), vertical: r.h(10)),
+                                    horizontal: r.w(20),
+                                    vertical: r.h(10),
+                                  ),
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8)),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                 ),
                               ),
                             ],
@@ -11940,13 +13473,15 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                           ? const Color(0xFF6C63FF)
                                           : AppColors.primary,
                                       child: Text(
-                                          rev.userName.isNotEmpty
-                                              ? rev.userName[0].toUpperCase()
-                                              : 'U',
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: r.sp(12),
-                                              fontWeight: FontWeight.w700)),
+                                        rev.userName.isNotEmpty
+                                            ? rev.userName[0].toUpperCase()
+                                            : 'U',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: r.sp(12),
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
                                     ),
                                     SizedBox(width: r.w(10)),
                                     Column(
@@ -11955,104 +13490,132 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                       children: [
                                         Row(
                                           children: [
-                                            Text(rev.userName,
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.w700,
-                                                    fontSize: r.sp(13))),
+                                            Text(
+                                              rev.userName,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: r.sp(13),
+                                              ),
+                                            ),
                                             if (rev.isBest) ...[
                                               SizedBox(width: r.w(6)),
                                               Container(
                                                 padding: EdgeInsets.symmetric(
-                                                    horizontal: r.w(6),
-                                                    vertical: r.h(2)),
+                                                  horizontal: r.w(6),
+                                                  vertical: r.h(2),
+                                                ),
                                                 decoration: BoxDecoration(
                                                   color: AppColors.accent
                                                       .withValues(alpha: 0.12),
                                                   borderRadius:
                                                       BorderRadius.circular(4),
                                                 ),
-                                                child: Text('BEST',
-                                                    style: TextStyle(
-                                                        fontSize: r.sp(10),
-                                                        color: AppColors.accent,
-                                                        fontWeight:
-                                                            FontWeight.w800)),
+                                                child: Text(
+                                                  'BEST',
+                                                  style: TextStyle(
+                                                    fontSize: r.sp(10),
+                                                    color: AppColors.accent,
+                                                    fontWeight: FontWeight.w800,
+                                                  ),
+                                                ),
                                               ),
                                             ],
                                             if (isMyReview) ...[
                                               SizedBox(width: r.w(6)),
                                               Container(
                                                 padding: EdgeInsets.symmetric(
-                                                    horizontal: r.w(6),
-                                                    vertical: r.h(2)),
+                                                  horizontal: r.w(6),
+                                                  vertical: r.h(2),
+                                                ),
                                                 decoration: BoxDecoration(
                                                   color: AppColors.surfaceGray,
                                                   borderRadius:
                                                       BorderRadius.circular(4),
                                                 ),
                                                 child: Text(
-                                                    context.loc
-                                                        .t('내_리뷰', '내 리뷰'),
-                                                    style: TextStyle(
-                                                        fontSize: r.sp(10),
-                                                        color: AppColors
-                                                            .textPrimary,
-                                                        fontWeight:
-                                                            FontWeight.w400)),
+                                                  context.loc.t('내_리뷰', '내 리뷰'),
+                                                  style: TextStyle(
+                                                    fontSize: r.sp(10),
+                                                    color:
+                                                        AppColors.textPrimary,
+                                                    fontWeight: FontWeight.w400,
+                                                  ),
+                                                ),
                                               ),
                                             ],
                                           ],
                                         ),
                                         Row(
                                           children: List.generate(
-                                              5,
-                                              (j) => Icon(Icons.star_rounded,
-                                                  size: 13,
-                                                  color: j < rev.rating
-                                                      ? AppColors.accent
-                                                      : AppColors.border)),
+                                            5,
+                                            (j) => Icon(
+                                              Icons.star_rounded,
+                                              size: 13,
+                                              color: j < rev.rating
+                                                  ? AppColors.accent
+                                                  : AppColors.border,
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
                                     const Spacer(),
                                     Text(
-                                        '${rev.createdAt.year}.${rev.createdAt.month.toString().padLeft(2, '0')}.${rev.createdAt.day.toString().padLeft(2, '0')}',
-                                        style: TextStyle(
-                                            fontSize: r.sp(11),
-                                            color: AppColors.textSecondary)),
+                                      '${rev.createdAt.year}.${rev.createdAt.month.toString().padLeft(2, '0')}.${rev.createdAt.day.toString().padLeft(2, '0')}',
+                                      style: TextStyle(
+                                        fontSize: r.sp(11),
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
                                     if (isMyReview) ...[
                                       SizedBox(width: r.w(4)),
                                       PopupMenuButton<String>(
-                                        icon: const Icon(Icons.more_vert,
-                                            size: 18,
-                                            color: AppColors.textSecondary),
+                                        icon: const Icon(
+                                          Icons.more_vert,
+                                          size: 18,
+                                          color: AppColors.textSecondary,
+                                        ),
                                         onSelected: (v) {
                                           if (v == 'edit') {
                                             _showWriteReviewDialog(
-                                                existing: rev);
+                                              existing: rev,
+                                            );
                                           }
                                           if (v == 'delete') _deleteReview(rev);
                                         },
                                         itemBuilder: (_) => [
                                           PopupMenuItem(
-                                              value: 'edit',
-                                              child: Row(children: [
-                                                const Icon(Icons.edit,
-                                                    size: 16),
+                                            value: 'edit',
+                                            child: Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.edit,
+                                                  size: 16,
+                                                ),
                                                 SizedBox(width: r.w(8)),
-                                                Text(context.loc.t('수정', '수정'))
-                                              ])),
+                                                Text(context.loc.t('수정', '수정')),
+                                              ],
+                                            ),
+                                          ),
                                           PopupMenuItem(
-                                              value: 'delete',
-                                              child: Row(children: [
-                                                const Icon(Icons.delete,
-                                                    size: 16,
-                                                    color: AppColors.error),
+                                            value: 'delete',
+                                            child: Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.delete,
+                                                  size: 16,
+                                                  color: AppColors.error,
+                                                ),
                                                 SizedBox(width: r.w(8)),
-                                                Text(context.loc.t('삭제', '삭제'),
-                                                    style: const TextStyle(
-                                                        color: AppColors.error))
-                                              ])),
+                                                Text(
+                                                  context.loc.t('삭제', '삭제'),
+                                                  style: const TextStyle(
+                                                    color: AppColors.error,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ],
@@ -12063,48 +13626,67 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                   Row(
                                     children: [
                                       if (rev.size.isNotEmpty)
-                                        _chip(context.loc
-                                            .t('사이즈 _', '사이즈: ${rev.size}')),
+                                        _chip(
+                                          context.loc.t(
+                                            '사이즈 _',
+                                            '사이즈: ${rev.size}',
+                                          ),
+                                        ),
                                       if (rev.color.isNotEmpty) ...[
                                         SizedBox(width: r.w(6)),
-                                        _chip(context.loc
-                                            .t('색상 _', '색상: ${rev.color}'))
+                                        _chip(
+                                          context.loc.t(
+                                            '색상 _',
+                                            '색상: ${rev.color}',
+                                          ),
+                                        ),
                                       ],
                                     ],
                                   ),
                                 SizedBox(height: r.h(6)),
-                                Text(rev.content,
-                                    style: TextStyle(
-                                        fontSize: r.sp(13),
-                                        height: 1.5,
-                                        color: AppColors.textPrimary)),
+                                Text(
+                                  rev.content,
+                                  style: TextStyle(
+                                    fontSize: r.sp(13),
+                                    height: 1.5,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
                                 if (rev.adminReply.isNotEmpty) ...[
                                   SizedBox(height: r.h(10)),
                                   Container(
                                     width: double.infinity,
                                     padding: EdgeInsets.symmetric(
-                                        horizontal: r.w(12), vertical: r.h(10)),
+                                      horizontal: r.w(12),
+                                      vertical: r.h(10),
+                                    ),
                                     decoration: BoxDecoration(
-                                      border:
-                                          Border.all(color: AppColors.border),
+                                      border: Border.all(
+                                        color: AppColors.border,
+                                      ),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text('2FIT 답변',
-                                            style: TextStyle(
-                                                fontSize: r.sp(11),
-                                                fontWeight: FontWeight.w800,
-                                                color: AppColors.info)),
+                                        Text(
+                                          '2FIT 답변',
+                                          style: TextStyle(
+                                            fontSize: r.sp(11),
+                                            fontWeight: FontWeight.w800,
+                                            color: AppColors.info,
+                                          ),
+                                        ),
                                         SizedBox(height: r.h(4)),
-                                        Text(rev.adminReply,
-                                            style: TextStyle(
-                                                fontSize: r.sp(12),
-                                                height: 1.5,
-                                                color:
-                                                    AppColors.textSecondary)),
+                                        Text(
+                                          rev.adminReply,
+                                          style: TextStyle(
+                                            fontSize: r.sp(12),
+                                            height: 1.5,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -12120,10 +13702,12 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                           SizedBox(width: r.w(6)),
                                       itemBuilder: (_, j) => ClipRRect(
                                         borderRadius: BorderRadius.circular(6),
-                                        child: NetImage(rev.images[j],
-                                            width: 60,
-                                            height: 60,
-                                            fit: BoxFit.cover),
+                                        child: NetImage(
+                                          rev.images[j],
+                                          width: 60,
+                                          height: 60,
+                                          fit: BoxFit.cover,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -12153,11 +13737,14 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: sel ? AppColors.primary : AppColors.border),
         ),
-        child: Text(label,
-            style: TextStyle(
-                fontSize: r.sp(12),
-                fontWeight: FontWeight.w600,
-                color: sel ? Colors.white : AppColors.textSecondary)),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: r.sp(12),
+            fontWeight: FontWeight.w600,
+            color: sel ? Colors.white : AppColors.textSecondary,
+          ),
+        ),
       ),
     );
   }
@@ -12167,9 +13754,13 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
       decoration: BoxDecoration(
-          color: AppColors.surfaceGray, borderRadius: BorderRadius.circular(4)),
-      child: Text(text,
-          style: TextStyle(fontSize: r.sp(11), color: AppColors.textSecondary)),
+        color: AppColors.surfaceGray,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: r.sp(11), color: AppColors.textSecondary),
+      ),
     );
   }
 }
@@ -12183,12 +13774,13 @@ class _WriteReviewSheet extends StatefulWidget {
   final VoidCallback? onSubmitted;
   final String? initialSize;
   final String? initialColor;
-  const _WriteReviewSheet(
-      {required this.product,
-      this.existing,
-      this.onSubmitted,
-      this.initialSize,
-      this.initialColor});
+  const _WriteReviewSheet({
+    required this.product,
+    this.existing,
+    this.onSubmitted,
+    this.initialSize,
+    this.initialColor,
+  });
   @override
   State<_WriteReviewSheet> createState() => _WriteReviewSheetState();
 }
@@ -12227,8 +13819,9 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
     if (_contentCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(context.loc.t('리뷰 내용을 입력해주세요', '리뷰 내용을 입력해주세요')),
-            backgroundColor: AppColors.error),
+          content: Text(context.loc.t('리뷰 내용을 입력해주세요', '리뷰 내용을 입력해주세요')),
+          backgroundColor: AppColors.error,
+        ),
       );
       return;
     }
@@ -12236,8 +13829,9 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(context.loc.t('로그인이 필요합니다', '로그인이 필요합니다')),
-            backgroundColor: AppColors.error),
+          content: Text(context.loc.t('로그인이 필요합니다', '로그인이 필요합니다')),
+          backgroundColor: AppColors.error,
+        ),
       );
       return;
     }
@@ -12263,8 +13857,9 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(context.loc.t('리뷰가 수정되었습니다', '리뷰가 수정되었습니다 ✓')),
-                backgroundColor: const Color(0xFF4CAF50)),
+              content: Text(context.loc.t('리뷰가 수정되었습니다', '리뷰가 수정되었습니다 ✓')),
+              backgroundColor: const Color(0xFF4CAF50),
+            ),
           );
         }
       } else {
@@ -12272,8 +13867,9 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
         final review = ReviewModel(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           userId: user.id,
-          userName:
-              user.name.isNotEmpty ? user.name : user.email.split('@').first,
+          userName: user.name.isNotEmpty
+              ? user.name
+              : user.email.split('@').first,
           productId: widget.product.id,
           rating: _rating,
           content: _contentCtrl.text.trim(),
@@ -12286,8 +13882,9 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(context.loc.t('리뷰가 등록되었습니다', '리뷰가 등록되었습니다 ✓')),
-                backgroundColor: const Color(0xFF4CAF50)),
+              content: Text(context.loc.t('리뷰가 등록되었습니다', '리뷰가 등록되었습니다 ✓')),
+              backgroundColor: const Color(0xFF4CAF50),
+            ),
           );
         }
       }
@@ -12297,8 +13894,9 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(context.loc.t('오류가 발생했습니다 _', '오류가 발생했습니다: $e')),
-              backgroundColor: AppColors.error),
+            content: Text(context.loc.t('오류가 발생했습니다 _', '오류가 발생했습니다: $e')),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -12310,11 +13908,13 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
     return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: Container(
         constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.85),
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -12328,24 +13928,30 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
               child: Column(
                 children: [
                   Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                          color: AppColors.border,
-                          borderRadius: BorderRadius.circular(2))),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.border,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
                   SizedBox(height: r.h(12)),
                   Row(
                     children: [
                       Text(
-                          widget.existing != null
-                              ? context.loc.t('리뷰 수정', '리뷰 수정')
-                              : '리뷰 작성',
-                          style: TextStyle(
-                              fontSize: r.sp(18), fontWeight: FontWeight.w500)),
+                        widget.existing != null
+                            ? context.loc.t('리뷰 수정', '리뷰 수정')
+                            : '리뷰 작성',
+                        style: TextStyle(
+                          fontSize: r.sp(18),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                       const Spacer(),
                       IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.pop(context)),
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
                     ],
                   ),
                 ],
@@ -12360,58 +13966,81 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 상품명
-                    Text(widget.product.name,
-                        style: TextStyle(
-                            fontSize: r.sp(14), color: AppColors.textSecondary),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis),
+                    Text(
+                      widget.product.name,
+                      style: TextStyle(
+                        fontSize: r.sp(14),
+                        color: AppColors.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     SizedBox(height: r.h(20)),
                     // 별점
-                    Text(context.loc.t('별점', '별점'),
-                        style: TextStyle(
-                            fontSize: r.sp(14), fontWeight: FontWeight.w700)),
+                    Text(
+                      context.loc.t('별점', '별점'),
+                      style: TextStyle(
+                        fontSize: r.sp(14),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     SizedBox(height: r.h(8)),
                     Row(
                       children: [
                         ...List.generate(
-                            5,
-                            (i) => GestureDetector(
-                                  onTap: () => setState(
-                                      () => _rating = (i + 1).toDouble()),
-                                  child: Padding(
-                                    padding: EdgeInsets.only(right: r.w(4)),
-                                    child: Icon(Icons.star_rounded,
-                                        size: 36,
-                                        color: i < _rating
-                                            ? AppColors.accent
-                                            : AppColors.border),
-                                  ),
-                                )),
+                          5,
+                          (i) => GestureDetector(
+                            onTap: () =>
+                                setState(() => _rating = (i + 1).toDouble()),
+                            child: Padding(
+                              padding: EdgeInsets.only(right: r.w(4)),
+                              child: Icon(
+                                Icons.star_rounded,
+                                size: 36,
+                                color: i < _rating
+                                    ? AppColors.accent
+                                    : AppColors.border,
+                              ),
+                            ),
+                          ),
+                        ),
                         SizedBox(width: r.w(8)),
-                        Text('${_rating.toInt()}점',
-                            style: TextStyle(
-                                fontSize: r.sp(16),
-                                fontWeight: FontWeight.w700)),
+                        Text(
+                          '${_rating.toInt()}점',
+                          style: TextStyle(
+                            fontSize: r.sp(16),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ],
                     ),
                     SizedBox(height: r.h(20)),
                     // 리뷰 내용
-                    Text(context.loc.t('리뷰_내용', '리뷰 내용'),
-                        style: TextStyle(
-                            fontSize: r.sp(14), fontWeight: FontWeight.w700)),
+                    Text(
+                      context.loc.t('리뷰_내용', '리뷰 내용'),
+                      style: TextStyle(
+                        fontSize: r.sp(14),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     SizedBox(height: r.h(8)),
                     TextField(
                       controller: _contentCtrl,
                       maxLines: 5,
                       decoration: InputDecoration(
-                        hintText: context.loc.t('상품에_대한_솔직한_후기를__1c42fc',
-                            '상품에 대한 솔직한 후기를 남겨주세요 (최소 10자)'),
+                        hintText: context.loc.t(
+                          '상품에_대한_솔직한_후기를__1c42fc',
+                          '상품에 대한 솔직한 후기를 남겨주세요 (최소 10자)',
+                        ),
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: const BorderSide(
-                              color: AppColors.textPrimary, width: 1),
+                            color: AppColors.textPrimary,
+                            width: 1,
+                          ),
                         ),
                       ),
                     ),
@@ -12423,10 +14052,13 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(context.loc.t('구매_사이즈__선택', '구매 사이즈 (선택)'),
-                                  style: TextStyle(
-                                      fontSize: r.sp(13),
-                                      fontWeight: FontWeight.w600)),
+                              Text(
+                                context.loc.t('구매_사이즈__선택', '구매 사이즈 (선택)'),
+                                style: TextStyle(
+                                  fontSize: r.sp(13),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                               SizedBox(height: r.h(6)),
                               TextField(
                                 controller: _sizeCtrl,
@@ -12434,11 +14066,13 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                                   hintText: 'ex) M, 55',
                                   isDense: true,
                                   border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8)),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide: const BorderSide(
-                                        color: AppColors.textPrimary),
+                                      color: AppColors.textPrimary,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -12450,23 +14084,30 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(context.loc.t('구매_색상__선택', '구매 색상 (선택)'),
-                                  style: TextStyle(
-                                      fontSize: r.sp(13),
-                                      fontWeight: FontWeight.w600)),
+                              Text(
+                                context.loc.t('구매_색상__선택', '구매 색상 (선택)'),
+                                style: TextStyle(
+                                  fontSize: r.sp(13),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                               SizedBox(height: r.h(6)),
                               TextField(
                                 controller: _colorCtrl,
                                 decoration: InputDecoration(
-                                  hintText: context.loc
-                                      .t('ex__블랙__화이트', 'ex) 블랙, 화이트'),
+                                  hintText: context.loc.t(
+                                    'ex__블랙__화이트',
+                                    'ex) 블랙, 화이트',
+                                  ),
                                   isDense: true,
                                   border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8)),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide: const BorderSide(
-                                        color: AppColors.textPrimary),
+                                      color: AppColors.textPrimary,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -12486,7 +14127,8 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                           backgroundColor: AppColors.textPrimary,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8)),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           elevation: 0,
                         ),
                         child: _isSubmitting
@@ -12494,14 +14136,19 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                                 width: r.w(20),
                                 height: 20,
                                 child: const CircularProgressIndicator(
-                                    strokeWidth: 2, color: Colors.white))
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
                             : Text(
                                 widget.existing != null
                                     ? context.loc.t('리뷰 수정 완료', '리뷰 수정 완료')
                                     : '리뷰 등록',
                                 style: TextStyle(
-                                    fontSize: r.sp(16),
-                                    fontWeight: FontWeight.w500)),
+                                  fontSize: r.sp(16),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                       ),
                     ),
                   ],
@@ -12528,7 +14175,7 @@ class _RibPatternPainter extends CustomPainter {
 
   const _RibPatternPainter({
     required this.lineColor,
-// ignore: unused_element_parameter
+    // ignore: unused_element_parameter
     this.spacing = 6.0,
     // ignore: unused_element_parameter
     this.lineWidth = 0.6,
@@ -12569,8 +14216,10 @@ class _RibTableHeader extends StatelessWidget {
         children: headers.asMap().entries.map((entry) {
           return Expanded(
             child: Container(
-              padding:
-                  EdgeInsets.symmetric(vertical: r.h(12), horizontal: r.w(3)),
+              padding: EdgeInsets.symmetric(
+                vertical: r.h(12),
+                horizontal: r.w(3),
+              ),
               decoration: BoxDecoration(
                 border: Border(
                   right: entry.key < headers.length - 1
@@ -12627,8 +14276,10 @@ class _RibTableRow extends StatelessWidget {
           final isSize = entry.key == 0 && isSizeCol;
           return Expanded(
             child: Container(
-              padding:
-                  EdgeInsets.symmetric(vertical: r.h(11), horizontal: r.w(3)),
+              padding: EdgeInsets.symmetric(
+                vertical: r.h(11),
+                horizontal: r.w(3),
+              ),
               decoration: BoxDecoration(
                 border: Border(
                   right: entry.key < values.length - 1
@@ -12672,7 +14323,7 @@ class _GoljiSwatch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-// ignore: unused_local_variable
+    // ignore: unused_local_variable
     final r = Responsive.of(context);
     return RibColorSwatch(
       color: color,
@@ -12733,23 +14384,32 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     color: _purple.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.groups_rounded,
-                      color: _purple, size: 22),
+                  child: const Icon(
+                    Icons.groups_rounded,
+                    color: _purple,
+                    size: 22,
+                  ),
                 ),
                 SizedBox(width: r.w(12)),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(context.loc.t('단체_주문_안내', '단체 주문 안내'),
-                        style: TextStyle(
-                            fontSize: r.sp(18),
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.primary)),
-                    Text(context.loc.t('단체_맞춤_제작', '단체 맞춤 제작'),
-                        style: TextStyle(
-                            fontSize: r.sp(11),
-                            color: AppColors.textSecondary,
-                            letterSpacing: 0.5)),
+                    Text(
+                      context.loc.t('단체_주문_안내', '단체 주문 안내'),
+                      style: TextStyle(
+                        fontSize: r.sp(18),
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    Text(
+                      context.loc.t('단체_맞춤_제작', '단체 맞춤 제작'),
+                      style: TextStyle(
+                        fontSize: r.sp(11),
+                        color: AppColors.textSecondary,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -12764,16 +14424,21 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ─── 1. 기본 안내 ───────────────────────────────
-                  _sheetSectionTitle(Icons.info_outline_rounded,
-                      context.loc.t('단체_주문_안내', '단체 주문 안내'), AppColors.info),
+                  _sheetSectionTitle(
+                    Icons.info_outline_rounded,
+                    context.loc.t('단체_주문_안내', '단체 주문 안내'),
+                    AppColors.info,
+                  ),
                   SizedBox(height: r.h(10)),
                   _infoCard(
                     icon: Icons.people_outline_rounded,
                     iconBg: const Color(0xFFE8EAF6),
                     iconColor: _purple,
                     title: context.loc.t('최소_수량', '최소 수량'),
-                    content: context.loc.t('단체_커스텀_제작은_최소_5명부터_가능합니다',
-                        '단체 커스텀 제작은 최소 5명부터 가능합니다.'),
+                    content: context.loc.t(
+                      '단체_커스텀_제작은_최소_5명부터_가능합니다',
+                      '단체 커스텀 제작은 최소 5명부터 가능합니다.',
+                    ),
                   ),
                   SizedBox(height: r.h(8)),
                   _infoCard(
@@ -12782,8 +14447,9 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     iconColor: AppColors.primary,
                     title: context.loc.t('제작_기간', '제작 기간'),
                     content: context.loc.t(
-                        '주문_확정_후_14_21일_소요됩니다_n_디자인_수정_1회당__ec8820',
-                        '주문 확정 후 14~21일 소요됩니다.\n• 1차 디자인 수정: 주문 후 7일 이내 신청 가능\n• 2차 디자인 수정: 1차 수정본 확인 후 7일 이내 신청 가능\n• 각 단계의 기간이 지나면 디자인이 자동 확정되어 제작이 시작됩니다.\n(시즌/물량에 따라 변동될 수 있습니다)'),
+                      '주문_확정_후_14_21일_소요됩니다_n_디자인_수정_1회당__ec8820',
+                      '주문 확정 후 14~21일 소요됩니다.\n• 1차 디자인 수정: 주문 후 7일 이내 신청 가능\n• 2차 디자인 수정: 1차 수정본 확인 후 7일 이내 신청 가능\n• 각 단계의 기간이 지나면 디자인이 자동 확정되어 제작이 시작됩니다.\n(시즌/물량에 따라 변동될 수 있습니다)',
+                    ),
                   ),
                   SizedBox(height: r.h(8)),
                   _infoCardWidget(
@@ -12795,30 +14461,42 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                            context.loc.t('30만원_이상_구매_시__무_bf306c',
-                                '• 30만원 이상 구매 시: 무료배송'),
-                            style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                          context.loc.t(
+                            '30만원_이상_구매_시__무_bf306c',
+                            '• 30만원 이상 구매 시: 무료배송',
+                          ),
+                          style: TextStyle(fontSize: r.sp(13), height: 1.6),
+                        ),
                         Text(
-                            context.loc
-                                .t('30만원_미만__배송비_별도', '• 30만원 미만: 배송비 별도'),
-                            style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                          context.loc.t('30만원_미만__배송비_별도', '• 30만원 미만: 배송비 별도'),
+                          style: TextStyle(fontSize: r.sp(13), height: 1.6),
+                        ),
                         Text(
-                            context.loc.t('추가_제작__5장_미만____934992',
-                                '• 추가 제작 (5장 미만): 배송비 4,000원 추가'),
-                            style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                          context.loc.t(
+                            '추가_제작__5장_미만____934992',
+                            '• 추가 제작 (5장 미만): 배송비 4,000원 추가',
+                          ),
+                          style: TextStyle(fontSize: r.sp(13), height: 1.6),
+                        ),
                         Text(
-                            context.loc.t('단체_주문은_일괄_배송이_원_b42f46',
-                                '• 단체 주문은 일괄 배송이 원칙입니다.'),
-                            style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                          context.loc.t(
+                            '단체_주문은_일괄_배송이_원_b42f46',
+                            '• 단체 주문은 일괄 배송이 원칙입니다.',
+                          ),
+                          style: TextStyle(fontSize: r.sp(13), height: 1.6),
+                        ),
                       ],
                     ),
                   ),
                   SizedBox(height: r.h(20)),
 
                   // ─── 3. 사이즈 안내 ──────────────────────────────
-                  _sheetSectionTitle(null, context.loc.t('사이즈_안내', '사이즈 안내'),
-                      AppColors.primary,
-                      emoji: '📏'),
+                  _sheetSectionTitle(
+                    null,
+                    context.loc.t('사이즈_안내', '사이즈 안내'),
+                    AppColors.primary,
+                    emoji: '📏',
+                  ),
                   SizedBox(height: r.h(10)),
                   _sizeTable(
                     title: context.loc.t('성인_사이즈__XS_XXXL', '성인 사이즈 (XS~XXXL)'),
@@ -12866,17 +14544,25 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                  context.loc
-                                      .t('원하는_사이즈가_없을_경우', '원하는 사이즈가 없을 경우'),
-                                  style: TextStyle(
-                                      fontSize: r.sp(14),
-                                      fontWeight: FontWeight.w700)),
+                                context.loc.t(
+                                  '원하는_사이즈가_없을_경우',
+                                  '원하는 사이즈가 없을 경우',
+                                ),
+                                style: TextStyle(
+                                  fontSize: r.sp(14),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                               SizedBox(height: r.h(4)),
                               Text(
-                                context.loc.t('주문_양식에_키와_체중을_입력해주세요',
-                                    '주문 양식에 키와 체중을 입력해주세요'),
-                                style:
-                                    TextStyle(fontSize: r.sp(13), height: 1.5),
+                                context.loc.t(
+                                  '주문_양식에_키와_체중을_입력해주세요',
+                                  '주문 양식에 키와 체중을 입력해주세요',
+                                ),
+                                style: TextStyle(
+                                  fontSize: r.sp(13),
+                                  height: 1.5,
+                                ),
                               ),
                             ],
                           ),
@@ -12887,9 +14573,12 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                   SizedBox(height: r.h(20)),
 
                   // ─── 4. 교환·환불 정책 ───────────────────────────
-                  _sheetSectionTitle(null,
-                      context.loc.t('교환_환불_정책', '교환·환불 정책'), AppColors.accent,
-                      emoji: '⚠️'),
+                  _sheetSectionTitle(
+                    null,
+                    context.loc.t('교환_환불_정책', '교환·환불 정책'),
+                    AppColors.accent,
+                    emoji: '⚠️',
+                  ),
                   SizedBox(height: r.h(10)),
 
                   // 4-1. 단체(커스텀) 주문 정책 — 최상단 강조
@@ -12901,22 +14590,32 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     contentWidget: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('맞춤 제작 상품으로 교환·환불이 불가합니다.',
-                            style: TextStyle(
-                                fontSize: r.sp(13),
-                                height: 1.7,
-                                fontWeight: FontWeight.w700,
-                                color:
-                                    AppColors.error.withValues(alpha: 0.82))),
+                        Text(
+                          '맞춤 제작 상품으로 교환·환불이 불가합니다.',
+                          style: TextStyle(
+                            fontSize: r.sp(13),
+                            height: 1.7,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.error.withValues(alpha: 0.82),
+                          ),
+                        ),
                         SizedBox(height: r.h(2)),
-                        Text('단, 아래 경우는 교환·환불 가능합니다:',
-                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text('  ✔ 의류 자체 불량 (봉제 불량, 원단 결함)',
-                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text('  ✔ 주문 내용과 다르게 제작된 경우',
-                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text('  ✔ 배송 중 파손된 경우',
-                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
+                        Text(
+                          '단, 아래 경우는 교환·환불 가능합니다:',
+                          style: TextStyle(fontSize: r.sp(13), height: 1.7),
+                        ),
+                        Text(
+                          '  ✔ 의류 자체 불량 (봉제 불량, 원단 결함)',
+                          style: TextStyle(fontSize: r.sp(13), height: 1.7),
+                        ),
+                        Text(
+                          '  ✔ 주문 내용과 다르게 제작된 경우',
+                          style: TextStyle(fontSize: r.sp(13), height: 1.7),
+                        ),
+                        Text(
+                          '  ✔ 배송 중 파손된 경우',
+                          style: TextStyle(fontSize: r.sp(13), height: 1.7),
+                        ),
                       ],
                     ),
                   ),
@@ -12931,16 +14630,23 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     contentWidget: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('• 상품 수령 후 7일 이내 신청 (전자상거래법 기준)',
-                            style: TextStyle(
-                                fontSize: r.sp(13),
-                                height: 1.7,
-                                color: AppColors.success,
-                                fontWeight: FontWeight.w600)),
-                        Text('• 단순 변심, 사이즈 미스, 색상 차이 포함',
-                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text('• 왕복 배송비 고객 부담 (제품 하자·오배송 제외)',
-                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
+                        Text(
+                          '• 상품 수령 후 7일 이내 신청 (전자상거래법 기준)',
+                          style: TextStyle(
+                            fontSize: r.sp(13),
+                            height: 1.7,
+                            color: AppColors.success,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          '• 단순 변심, 사이즈 미스, 색상 차이 포함',
+                          style: TextStyle(fontSize: r.sp(13), height: 1.7),
+                        ),
+                        Text(
+                          '• 왕복 배송비 고객 부담 (제품 하자·오배송 제외)',
+                          style: TextStyle(fontSize: r.sp(13), height: 1.7),
+                        ),
                       ],
                     ),
                   ),
@@ -12962,7 +14668,9 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                         SizedBox(height: r.h(6)),
                         Container(
                           padding: EdgeInsets.symmetric(
-                              horizontal: r.w(10), vertical: r.h(7)),
+                            horizontal: r.w(10),
+                            vertical: r.h(7),
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFFF3E0),
                             borderRadius: BorderRadius.circular(6),
@@ -12970,19 +14678,24 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(Icons.warning_amber_rounded,
-                                  size: 14,
-                                  color: AppColors.warning
-                                      .withValues(alpha: 0.82)),
+                              Icon(
+                                Icons.warning_amber_rounded,
+                                size: 14,
+                                color: AppColors.warning.withValues(
+                                  alpha: 0.82,
+                                ),
+                              ),
                               SizedBox(width: r.w(6)),
                               Expanded(
                                 child: Text(
                                   '상품 검수 후 교환·환불이 진행됩니다.\n검수 결과 반품 불가 조건에 해당하는 경우 상품이 반송될 수 있습니다.',
                                   style: TextStyle(
-                                      fontSize: r.sp(11),
-                                      height: 1.6,
-                                      color: AppColors.warning
-                                          .withValues(alpha: 0.90)),
+                                    fontSize: r.sp(11),
+                                    height: 1.6,
+                                    color: AppColors.warning.withValues(
+                                      alpha: 0.90,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -13005,14 +14718,20 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                         _returnPolicyRow('🏷️', '택(tag) 제거 후', '착용 여부 확인 불가'),
                         _returnPolicyRow('👕', '착용 또는 세탁한 경우', '상품 가치 훼손'),
                         _returnPolicyRow(
-                            '📦', '의류 포장 봉투(쇼핑백) 없는 경우', '택배 봉투는 해당 없음'),
+                          '📦',
+                          '의류 포장 봉투(쇼핑백) 없는 경우',
+                          '택배 봉투는 해당 없음',
+                        ),
                         SizedBox(height: r.h(4)),
-                        Text('※ 수령 즉시 상품 상태를 확인해 주세요.',
-                            style: TextStyle(
-                                fontSize: r.sp(11),
-                                height: 1.6,
-                                color: Colors.grey.shade600,
-                                fontStyle: FontStyle.italic)),
+                        Text(
+                          '※ 수령 즉시 상품 상태를 확인해 주세요.',
+                          style: TextStyle(
+                            fontSize: r.sp(11),
+                            height: 1.6,
+                            color: Colors.grey.shade600,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -13035,17 +14754,23 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('마이페이지 → 내 주문에서 신청',
-                                  style: TextStyle(
-                                      fontSize: r.sp(13),
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.info)),
+                              Text(
+                                '마이페이지 → 내 주문에서 신청',
+                                style: TextStyle(
+                                  fontSize: r.sp(13),
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.info,
+                                ),
+                              ),
                               SizedBox(height: r.h(6)),
-                              Text('교환·반품 신청은 마이페이지 > 내 주문에서 직접 신청해 주세요.',
-                                  style: TextStyle(
-                                      fontSize: r.sp(12),
-                                      height: 1.6,
-                                      color: AppColors.primary)),
+                              Text(
+                                '교환·반품 신청은 마이페이지 > 내 주문에서 직접 신청해 주세요.',
+                                style: TextStyle(
+                                  fontSize: r.sp(12),
+                                  height: 1.6,
+                                  color: AppColors.primary,
+                                ),
+                              ),
                               SizedBox(height: r.h(8)),
                               // 반품 주소 박스
                               Container(
@@ -13054,33 +14779,48 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                      color: const Color(0xFF90CAF9)),
+                                    color: const Color(0xFF90CAF9),
+                                  ),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Row(children: [
-                                      const Icon(Icons.location_on_rounded,
-                                          size: 13, color: AppColors.info),
-                                      SizedBox(width: r.w(4)),
-                                      Text('반품·교환 반송 주소',
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.location_on_rounded,
+                                          size: 13,
+                                          color: AppColors.info,
+                                        ),
+                                        SizedBox(width: r.w(4)),
+                                        Text(
+                                          '반품·교환 반송 주소',
                                           style: TextStyle(
-                                              fontSize: r.sp(11),
-                                              fontWeight: FontWeight.w700,
-                                              color: AppColors.info)),
-                                    ]),
+                                            fontSize: r.sp(11),
+                                            fontWeight: FontWeight.w700,
+                                            color: AppColors.info,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                     SizedBox(height: r.h(4)),
-                                    Text('전북 남원시 오들1길 97, 205-303',
-                                        style: TextStyle(
-                                            fontSize: r.sp(12),
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.primary)),
+                                    Text(
+                                      '전북 남원시 오들1길 97, 205-303',
+                                      style: TextStyle(
+                                        fontSize: r.sp(12),
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
                                     SizedBox(height: r.h(2)),
-                                    Text('※ 반드시 운송장 번호를 내 주문에서 입력해 주세요.',
-                                        style: TextStyle(
-                                            fontSize: r.sp(10),
-                                            color: Colors.grey.shade600,
-                                            fontStyle: FontStyle.italic)),
+                                    Text(
+                                      '※ 반드시 운송장 번호를 내 주문에서 입력해 주세요.',
+                                      style: TextStyle(
+                                        fontSize: r.sp(10),
+                                        color: Colors.grey.shade600,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -13103,10 +14843,14 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('• 단체 주문: 주문 확정 후 제작 착수 전까지만 취소 가능합니다.',
-                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text('• 색상은 모니터·기기 환경에 따라 실제와 다소 다를 수 있습니다.',
-                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
+                        Text(
+                          '• 단체 주문: 주문 확정 후 제작 착수 전까지만 취소 가능합니다.',
+                          style: TextStyle(fontSize: r.sp(13), height: 1.7),
+                        ),
+                        Text(
+                          '• 색상은 모니터·기기 환경에 따라 실제와 다소 다를 수 있습니다.',
+                          style: TextStyle(fontSize: r.sp(13), height: 1.7),
+                        ),
                       ],
                     ),
                   ),
@@ -13143,19 +14887,25 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                               ),
                             ),
                             child: _checked
-                                ? const Icon(Icons.check_rounded,
-                                    color: Colors.white, size: 14)
+                                ? const Icon(
+                                    Icons.check_rounded,
+                                    color: Colors.white,
+                                    size: 14,
+                                  )
                                 : null,
                           ),
                           SizedBox(width: r.w(10)),
                           Expanded(
                             child: Text(
-                              context.loc.t('주문_안내_내용을_모두_확인하였습니다',
-                                  '주문 안내 내용을 모두 확인하였습니다'),
+                              context.loc.t(
+                                '주문_안내_내용을_모두_확인하였습니다',
+                                '주문 안내 내용을 모두 확인하였습니다',
+                              ),
                               style: TextStyle(
-                                  fontSize: r.sp(13),
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.primary),
+                                fontSize: r.sp(13),
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
                             ),
                           ),
                         ],
@@ -13169,18 +14919,26 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     width: double.infinity,
                     height: 54,
                     child: ElevatedButton.icon(
-                      icon: const Icon(Icons.edit_note_rounded,
-                          color: Colors.white, size: 20),
-                      label: Text(context.loc.t('단체_서식_작성하기', '단체 서식 작성하기'),
-                          style: TextStyle(
-                              fontSize: r.sp(16),
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white)),
+                      icon: const Icon(
+                        Icons.edit_note_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      label: Text(
+                        context.loc.t('단체_서식_작성하기', '단체 서식 작성하기'),
+                        style: TextStyle(
+                          fontSize: r.sp(16),
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            _checked ? _purple : AppColors.textHint,
+                        backgroundColor: _checked
+                            ? _purple
+                            : AppColors.textHint,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         elevation: 0,
                       ),
                       onPressed: _checked
@@ -13189,31 +14947,38 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) => GroupOrderFormScreen(
-                                          product: widget.product,
-                                          initialCount: 5,
-                                          isBottomOrder: widget
-                                                      .product.category ==
-                                                  context.loc.t('하의', '하의') ||
-                                              (widget.product.subCategory
-                                                      .contains(context.loc
-                                                          .t('타이즈', '타이즈')) ??
-// ignore: dead_null_aware_expression
-                                                  false) ||
-                                              (widget.product.subCategory
-                                                      .contains(context.loc.t(
-                                                          '남성 5부', '남성 5부')) ??
-// ignore: dead_null_aware_expression
-                                                  false) ||
-                                              (widget.product.subCategory
-                                                      .contains(context.loc.t(
-                                                          '여성 25부', '여성 2.5부')) ??
-// ignore: dead_null_aware_expression
-                                                  false) ||
-                                              widget.product.name.contains(
-                                                  context.loc.t('타이즈', '타이즈')) ||
-                                              widget.product.name.contains(context.loc.t('하의', '하의')),
-                                        )),
+                                  builder: (_) => GroupOrderFormScreen(
+                                    product: widget.product,
+                                    initialCount: 5,
+                                    isBottomOrder:
+                                        widget.product.category ==
+                                            context.loc.t('하의', '하의') ||
+                                        (widget.product.subCategory.contains(
+                                              context.loc.t('타이즈', '타이즈'),
+                                            ) ??
+                                            // ignore: dead_null_aware_expression
+                                            false) ||
+                                        (widget.product.subCategory.contains(
+                                              context.loc.t('남성 5부', '남성 5부'),
+                                            ) ??
+                                            // ignore: dead_null_aware_expression
+                                            false) ||
+                                        (widget.product.subCategory.contains(
+                                              context.loc.t(
+                                                '여성 25부',
+                                                '여성 2.5부',
+                                              ),
+                                            ) ??
+                                            // ignore: dead_null_aware_expression
+                                            false) ||
+                                        widget.product.name.contains(
+                                          context.loc.t('타이즈', '타이즈'),
+                                        ) ||
+                                        widget.product.name.contains(
+                                          context.loc.t('하의', '하의'),
+                                        ),
+                                  ),
+                                ),
                               );
                             }
                           : null,
@@ -13245,16 +15010,21 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: Text(step,
-                style: const TextStyle(
-                    fontSize: 11,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800)),
+            child: Text(
+              step,
+              style: const TextStyle(
+                fontSize: 11,
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ),
           SizedBox(width: r.w(8)),
           Expanded(
-            child:
-                Text(text, style: TextStyle(fontSize: r.sp(13), height: 1.5)),
+            child: Text(
+              text,
+              style: TextStyle(fontSize: r.sp(13), height: 1.5),
+            ),
           ),
         ],
       ),
@@ -13275,15 +15045,22 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
             child: RichText(
               text: TextSpan(
                 style: TextStyle(
-                    fontSize: r.sp(13), height: 1.6, color: AppColors.primary),
+                  fontSize: r.sp(13),
+                  height: 1.6,
+                  color: AppColors.primary,
+                ),
                 children: [
                   TextSpan(
-                      text: reason,
-                      style: const TextStyle(fontWeight: FontWeight.w700)),
+                    text: reason,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
                   TextSpan(
-                      text: '  ·  $desc',
-                      style: TextStyle(
-                          color: Colors.grey.shade600, fontSize: r.sp(11))),
+                    text: '  ·  $desc',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: r.sp(11),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -13294,8 +15071,12 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
   }
 
   // ── 섹션 타이틀 ──────────────────────────────────────────────
-  Widget _sheetSectionTitle(IconData? icon, String title, Color color,
-      {String? emoji}) {
+  Widget _sheetSectionTitle(
+    IconData? icon,
+    String title,
+    Color color, {
+    String? emoji,
+  }) {
     final r = Responsive.of(context);
     return Row(
       children: [
@@ -13306,9 +15087,14 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
           Icon(icon, size: 16, color: color),
           SizedBox(width: r.w(6)),
         ],
-        Text(title,
-            style: TextStyle(
-                fontSize: r.sp(15), fontWeight: FontWeight.w800, color: color)),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: r.sp(15),
+            fontWeight: FontWeight.w800,
+            color: color,
+          ),
+        ),
       ],
     );
   }
@@ -13330,9 +15116,10 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 4,
-              offset: const Offset(0, 2))
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Row(
@@ -13348,15 +15135,22 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: TextStyle(
-                        fontSize: r.sp(13), fontWeight: FontWeight.w800)),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: r.sp(13),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 SizedBox(height: r.h(3)),
-                Text(content,
-                    style: TextStyle(
-                        fontSize: r.sp(13),
-                        color: AppColors.textSecondary,
-                        height: 1.5)),
+                Text(
+                  content,
+                  style: TextStyle(
+                    fontSize: r.sp(13),
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
+                ),
               ],
             ),
           ),
@@ -13382,9 +15176,10 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 4,
-              offset: const Offset(0, 2))
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Row(
@@ -13400,9 +15195,13 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: TextStyle(
-                        fontSize: r.sp(13), fontWeight: FontWeight.w800)),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: r.sp(13),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 SizedBox(height: r.h(3)),
                 contentWidget,
               ],
@@ -13428,7 +15227,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
       context.loc.t('가슴_cm', '가슴(cm)'),
       context.loc.t('허리_cm', '허리(cm)'),
       context.loc.t('엉덩이_cm', '엉덩이(cm)'),
-      context.loc.t('키_cm', '키(cm)')
+      context.loc.t('키_cm', '키(cm)'),
     ];
     return Container(
       decoration: BoxDecoration(
@@ -13440,22 +15239,28 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
         children: [
           // 테이블 제목
           Container(
-            padding:
-                EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(8)),
+            padding: EdgeInsets.symmetric(
+              horizontal: r.w(12),
+              vertical: r.h(8),
+            ),
             decoration: BoxDecoration(
               color: headerBg,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(9)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(9),
+              ),
             ),
             child: Row(
               children: [
                 Text(emoji, style: TextStyle(fontSize: r.sp(14))),
                 SizedBox(width: r.w(6)),
-                Text(title,
-                    style: TextStyle(
-                        fontSize: r.sp(13),
-                        fontWeight: FontWeight.w700,
-                        color: headerColor)),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: r.sp(13),
+                    fontWeight: FontWeight.w700,
+                    color: headerColor,
+                  ),
+                ),
               ],
             ),
           ),
@@ -13468,14 +15273,17 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                   flex: e.key == 0 ? 3 : 3,
                   child: Padding(
                     padding: EdgeInsets.symmetric(
-                        vertical: r.h(6), horizontal: r.w(4)),
+                      vertical: r.h(6),
+                      horizontal: r.w(4),
+                    ),
                     child: Text(
                       e.value,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          fontSize: r.sp(10),
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white),
+                        fontSize: r.sp(10),
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 );
@@ -13497,7 +15305,9 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     flex: cell.key == 0 ? 3 : 3,
                     child: Padding(
                       padding: EdgeInsets.symmetric(
-                          vertical: r.h(5), horizontal: r.w(4)),
+                        vertical: r.h(5),
+                        horizontal: r.w(4),
+                      ),
                       child: Text(
                         cell.value,
                         textAlign: TextAlign.center,
@@ -13505,8 +15315,9 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                         overflow: TextOverflow.visible,
                         style: TextStyle(
                           fontSize: cell.key == 0 ? 10 : 11,
-                          fontWeight:
-                              cell.key == 0 ? FontWeight.w700 : FontWeight.w400,
+                          fontWeight: cell.key == 0
+                              ? FontWeight.w700
+                              : FontWeight.w400,
                           color: cell.key == 0
                               ? headerColor
                               : AppColors.textPrimary,
@@ -13539,7 +15350,10 @@ class _ToptenTabBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return tabBar;
   }
 
@@ -13700,7 +15514,7 @@ class _Section2FabricTabsWidgetState extends State<_Section2FabricTabsWidget> {
 
   @override
   Widget build(BuildContext context) {
-// ignore: unused_local_variable
+    // ignore: unused_local_variable
     final r = Responsive.of(context);
     final hasGeneral = widget.generalImgs.isNotEmpty;
     final hasSeamless = widget.seamlessImgs.isNotEmpty;
@@ -13717,10 +15531,12 @@ class _Section2FabricTabsWidgetState extends State<_Section2FabricTabsWidget> {
     }
 
     // 양쪽 모두 있을 때 → 탭 UI
-    final currentImgs =
-        _selectedTab == 0 ? widget.generalImgs : widget.seamlessImgs;
-    final currentOnTap =
-        _selectedTab == 0 ? widget.onTapGeneral : widget.onTapSeamless;
+    final currentImgs = _selectedTab == 0
+        ? widget.generalImgs
+        : widget.seamlessImgs;
+    final currentOnTap = _selectedTab == 0
+        ? widget.onTapGeneral
+        : widget.onTapSeamless;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -13783,10 +15599,7 @@ class _Section2FabricTabsWidgetState extends State<_Section2FabricTabsWidget> {
     }
 
     // 1장 이상 모두 슬라이더로 통일 (height:null NetImage 버그 방지)
-    return _SectionImageSliderWidget(
-      imgs: imgs,
-      onTap: (i) => onTap(imgs, i),
-    );
+    return _SectionImageSliderWidget(imgs: imgs, onTap: (i) => onTap(imgs, i));
   }
 }
 
@@ -13817,8 +15630,9 @@ class _FabricTab extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: EdgeInsets.symmetric(vertical: r.h(13)),
           decoration: BoxDecoration(
-            color:
-                isSelected ? activeColor.withValues(alpha: 0.06) : Colors.white,
+            color: isSelected
+                ? activeColor.withValues(alpha: 0.06)
+                : Colors.white,
             border: Border(
               bottom: BorderSide(
                 color: isSelected ? activeColor : Colors.transparent,
@@ -13854,8 +15668,13 @@ class _FabricTab extends StatelessWidget {
 
 /// 외부에서 리뷰 작성 시트를 열기 위한 public 함수
 /// 마이페이지 주문내역 등에서 재활용
-void showWriteReviewSheet(BuildContext context, ProductModel product,
-    {VoidCallback? onSubmitted, String? initialSize, String? initialColor}) {
+void showWriteReviewSheet(
+  BuildContext context,
+  ProductModel product, {
+  VoidCallback? onSubmitted,
+  String? initialSize,
+  String? initialColor,
+}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
