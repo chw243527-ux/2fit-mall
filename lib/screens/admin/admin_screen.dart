@@ -553,38 +553,38 @@ class _AdminScreenState extends State<AdminScreen>
 
   // ignore: unused_element
   Widget _notifStep(String num, String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 3),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 18,
-          height: 18,
-          margin: const EdgeInsets.only(right: 6, top: 1),
-          decoration: const BoxDecoration(
-            color: AppColors.primary,
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              num,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
+        padding: const EdgeInsets.only(bottom: 3),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 18,
+              height: 18,
+              margin: const EdgeInsets.only(right: 6, top: 1),
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  num,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
-          ),
+            Expanded(
+              child: Text(
+                text,
+                style: const TextStyle(fontSize: 12, color: Colors.black87),
+              ),
+            ),
+          ],
         ),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(fontSize: 12, color: Colors.black87),
-          ),
-        ),
-      ],
-    ),
-  );
+      );
 
   /// 앱 시작 시 주요 데이터를 미리 로드해 탭 전환 시 즉시 표시
   Future<void> _prefetchData() async {
@@ -596,10 +596,8 @@ class _AdminScreenState extends State<AdminScreen>
 
     try {
       // 회원 데이터 프리페치
-      final userSnap = await FirebaseFirestore.instance
-          .collection('users')
-          .limit(500)
-          .get();
+      final userSnap =
+          await FirebaseFirestore.instance.collection('users').limit(500).get();
       if (!mounted) return;
       final members = userSnap.docs.map((d) {
         final data = Map<String, dynamic>.from(d.data());
@@ -637,9 +635,8 @@ class _AdminScreenState extends State<AdminScreen>
           createdAt = rawAt.toDate();
         } else {
           final fallback = d['createdAt'];
-          createdAt = fallback is Timestamp
-              ? fallback.toDate()
-              : DateTime.now();
+          createdAt =
+              fallback is Timestamp ? fallback.toDate() : DateTime.now();
         }
 
         // 상태 매핑
@@ -694,8 +691,7 @@ class _AdminScreenState extends State<AdminScreen>
           'adminNote': '',
           'rawRequest': req,
           // 어드민이 업로드한 확정 디자인 이미지
-          'designConfirmedImageUrl':
-              (d['customOptions']
+          'designConfirmedImageUrl': (d['customOptions']
                       as Map<String, dynamic>?)?['designConfirmedImageUrl']
                   as String? ??
               '',
@@ -874,19 +870,19 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   Map<String, dynamic> _colorFromCatalog(Map<String, dynamic> item) => {
-    'id': item['id'] as String? ?? 'c_${DateTime.now().microsecondsSinceEpoch}',
-    'name': item['name'] as String? ?? '이름 없음',
-    'hexCode': item['hexCode'] as String? ?? '#808080',
-    'category': item['category'] as String? ?? '기본색',
-    'hasImage': item['hasImage'] == true,
-    'imageUrl': item['imageUrl'] as String? ?? '',
-    'buttonCard': item['buttonCard'] != false,
-    'active': item['active'] != false,
-  };
+        'id': item['id'] as String? ??
+            'c_${DateTime.now().microsecondsSinceEpoch}',
+        'name': item['name'] as String? ?? '이름 없음',
+        'hexCode': item['hexCode'] as String? ?? '#808080',
+        'category': item['category'] as String? ?? '기본색',
+        'hasImage': item['hasImage'] == true,
+        'imageUrl': item['imageUrl'] as String? ?? '',
+        'buttonCard': item['buttonCard'] != false,
+        'active': item['active'] != false,
+      };
 
   Map<String, dynamic> _sectionFromCatalog(Map<String, dynamic> item) {
-    final key =
-        item['key'] as String? ??
+    final key = item['key'] as String? ??
         'custom_${DateTime.now().microsecondsSinceEpoch}';
     return {
       'key': key,
@@ -923,25 +919,25 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   Map<String, dynamic> _colorForCatalog(Map<String, dynamic> item) => {
-    'id': item['id'],
-    'name': item['name'],
-    'hexCode': item['hexCode'],
-    'category': item['category'],
-    'hasImage': item['hasImage'] == true,
-    'imageUrl': item['imageUrl'] ?? '',
-    'buttonCard': item['buttonCard'] != false,
-    'active': item['active'] != false,
-  };
+        'id': item['id'],
+        'name': item['name'],
+        'hexCode': item['hexCode'],
+        'category': item['category'],
+        'hasImage': item['hasImage'] == true,
+        'imageUrl': item['imageUrl'] ?? '',
+        'buttonCard': item['buttonCard'] != false,
+        'active': item['active'] != false,
+      };
 
   Map<String, dynamic> _sectionForCatalog(Map<String, dynamic> item) => {
-    'key': item['key'],
-    'label': item['label'],
-    'title': item['title'],
-    'description': item['description'] ?? '',
-    'thumbUrl': item['thumbUrl'] ?? '',
-    'active': item['active'] != false,
-    'reserved': _reservedSectionKeys.contains(item['key']),
-  };
+        'key': item['key'],
+        'label': item['label'],
+        'title': item['title'],
+        'description': item['description'] ?? '',
+        'thumbUrl': item['thumbUrl'] ?? '',
+        'active': item['active'] != false,
+        'reserved': _reservedSectionKeys.contains(item['key']),
+      };
 
   Future<bool> _persistContentCatalogs() async {
     try {
@@ -949,12 +945,12 @@ class _AdminScreenState extends State<AdminScreen>
           .collection('app_settings')
           .doc(_contentCatalogDocumentId)
           .set({
-            'schemaVersion': 1,
-            'colors': _colorItems.map(_colorForCatalog).toList(),
-            'sections': _customSections.map(_sectionForCatalog).toList(),
-            'updatedAt': FieldValue.serverTimestamp(),
-            'updatedBy': FirebaseAuth.instance.currentUser?.uid ?? '',
-          }, SetOptions(merge: true));
+        'schemaVersion': 1,
+        'colors': _colorItems.map(_colorForCatalog).toList(),
+        'sections': _customSections.map(_sectionForCatalog).toList(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'updatedBy': FirebaseAuth.instance.currentUser?.uid ?? '',
+      }, SetOptions(merge: true));
       return true;
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
@@ -1512,9 +1508,8 @@ class _AdminScreenState extends State<AdminScreen>
   static const _subTabIndices = {14, 15, 16, 17};
 
   Widget _buildMobileLayout(dynamic user) {
-    final currentLabel = _tabCtrl.index < _tabLabels.length
-        ? _tabLabels[_tabCtrl.index]
-        : '';
+    final currentLabel =
+        _tabCtrl.index < _tabLabels.length ? _tabLabels[_tabCtrl.index] : '';
     return Scaffold(
       backgroundColor: AppColors.background,
       // ── AppBar: 햄버거 + 현재 탭명 + 알림/로그아웃 ──
@@ -2020,9 +2015,8 @@ class _AdminScreenState extends State<AdminScreen>
           0,
           (s, o) => s + o.totalAmount,
         );
-        final personalOrders = allOrders
-            .where((o) => o.orderType == 'personal')
-            .length;
+        final personalOrders =
+            allOrders.where((o) => o.orderType == 'personal').length;
         final groupOrders = allOrders
             .where((o) => o.orderType == 'group' || o.orderType == 'additional')
             .length;
@@ -2440,9 +2434,8 @@ class _AdminScreenState extends State<AdminScreen>
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
-                color: isCurrentPeriod
-                    ? AppColors.info
-                    : AppColors.textSecondary,
+                color:
+                    isCurrentPeriod ? AppColors.info : AppColors.textSecondary,
               ),
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.right,
@@ -2524,10 +2517,10 @@ class _AdminScreenState extends State<AdminScreen>
         var filtered = _orderFilterIdx == 0
             ? allOrders
             : allOrders
-                  .where(
-                    (o) => o.status.label == _orderFilters[_orderFilterIdx],
-                  )
-                  .toList();
+                .where(
+                  (o) => o.status.label == _orderFilters[_orderFilterIdx],
+                )
+                .toList();
         if (_orderSearchQuery.isNotEmpty) {
           final q = _orderSearchQuery.toLowerCase();
           filtered = filtered
@@ -2538,8 +2531,7 @@ class _AdminScreenState extends State<AdminScreen>
               )
               .toList();
         }
-        final allSelected =
-            filtered.isNotEmpty &&
+        final allSelected = filtered.isNotEmpty &&
             filtered.every((o) => _selectedOrderIds.contains(o.id));
         final anySelected = _selectedOrderIds.isNotEmpty;
 
@@ -2744,9 +2736,7 @@ class _AdminScreenState extends State<AdminScreen>
                               ),
                             ),
                           ),
-                          ..._orderFilters
-                              .skip(1)
-                              .map(
+                          ..._orderFilters.skip(1).map(
                                 (s) => ListTile(
                                   title: Text(s),
                                   trailing: _orderFilters[_orderFilterIdx] == s
@@ -2757,8 +2747,8 @@ class _AdminScreenState extends State<AdminScreen>
                                       : null,
                                   onTap: () {
                                     setState(
-                                      () => _orderFilterIdx = _orderFilters
-                                          .indexOf(s),
+                                      () => _orderFilterIdx =
+                                          _orderFilters.indexOf(s),
                                     );
                                     Navigator.pop(context);
                                   },
@@ -2849,14 +2839,14 @@ class _AdminScreenState extends State<AdminScreen>
                             allSelected
                                 ? Icons.check_box_rounded
                                 : _selectedOrderIds.isEmpty
-                                ? Icons.check_box_outline_blank_rounded
-                                : Icons.indeterminate_check_box_rounded,
+                                    ? Icons.check_box_outline_blank_rounded
+                                    : Icons.indeterminate_check_box_rounded,
                             key: ValueKey(
                               allSelected
                                   ? 'all'
                                   : _selectedOrderIds.isEmpty
-                                  ? 'none'
-                                  : 'partial',
+                                      ? 'none'
+                                      : 'partial',
                             ),
                             color: allSelected || _selectedOrderIds.isNotEmpty
                                 ? const Color(0xFF3949AB)
@@ -3282,9 +3272,8 @@ class _AdminScreenState extends State<AdminScreen>
   // ── 예시(샘플) PDF 파일 다운로드 ──
   Future<void> _downloadSamplePdf({bool productionOnly = false}) async {
     const mimeType = 'application/pdf';
-    final fileName = productionOnly
-        ? '2FIT_단체주문_발주용_예시.pdf'
-        : '2FIT_단체주문_고객용_예시.pdf';
+    final fileName =
+        productionOnly ? '2FIT_단체주문_발주용_예시.pdf' : '2FIT_단체주문_고객용_예시.pdf';
     try {
       final bytes = await OrderExcelService.generateSamplePdf(
         productionOnly: productionOnly,
@@ -3372,8 +3361,8 @@ class _AdminScreenState extends State<AdminScreen>
 
           String rangeLabel = range != null
               ? '${range.start.year}.${range.start.month.toString().padLeft(2, "0")}.${range.start.day.toString().padLeft(2, "0")}'
-                    ' ~ '
-                    '${range.end.year}.${range.end.month.toString().padLeft(2, "0")}.${range.end.day.toString().padLeft(2, "0")}'
+                  ' ~ '
+                  '${range.end.year}.${range.end.month.toString().padLeft(2, "0")}.${range.end.day.toString().padLeft(2, "0")}'
               : '전체 기간';
 
           String weekLabel() {
@@ -3971,8 +3960,7 @@ class _AdminScreenState extends State<AdminScreen>
         return;
       }
 
-      final typeTag =
-          {
+      final typeTag = {
             '일일': 'daily',
             '일별': 'day',
             '주별': 'week',
@@ -4357,8 +4345,8 @@ class _AdminScreenState extends State<AdminScreen>
         final newStatus = toProcessing.contains(o)
             ? OrderStatus.processing
             : toShipped.contains(o)
-            ? OrderStatus.shipped
-            : OrderStatus.delivered;
+                ? OrderStatus.shipped
+                : OrderStatus.delivered;
         await FcmService.sendOrderStatusNotification(
           order: o,
           newStatus: newStatus,
@@ -5044,9 +5032,9 @@ class _AdminScreenState extends State<AdminScreen>
                     final fEnd = finalRange.end;
                     final finalOrders =
                         await OrderExcelService.getOrdersByDateRange(
-                          fStart,
-                          fEnd,
-                        );
+                      fStart,
+                      fEnd,
+                    );
 
                     if (!mounted) return;
                     Navigator.of(context, rootNavigator: true).pop();
@@ -5063,15 +5051,14 @@ class _AdminScreenState extends State<AdminScreen>
 
                     final bytes =
                         await OrderExcelService.generateSelectedOrdersPdf(
-                          finalOrders,
-                          DateTime.now(),
-                        );
+                      finalOrders,
+                      DateTime.now(),
+                    );
                     final startStr =
                         '${fStart.year}${fStart.month.toString().padLeft(2, "0")}${fStart.day.toString().padLeft(2, "0")}';
                     final endStr =
                         '${fEnd.year}${fEnd.month.toString().padLeft(2, "0")}${fEnd.day.toString().padLeft(2, "0")}';
-                    final typeTag =
-                        {
+                    final typeTag = {
                           '일일': 'daily',
                           '일별': 'day',
                           '주별': 'week',
@@ -5190,9 +5177,7 @@ class _AdminScreenState extends State<AdminScreen>
             children: [
               Text('선택된 ${_selectedOrderIds.length}건의 주문 상태를 변경합니다.'),
               const SizedBox(height: 16),
-              ..._orderFilters
-                  .skip(1)
-                  .map(
+              ..._orderFilters.skip(1).map(
                     (s) => RadioListTile<String>(
                       value: s,
                       groupValue: selectedStatus,
@@ -5229,11 +5214,9 @@ class _AdminScreenState extends State<AdminScreen>
                       final failedIds = <String>[];
                       for (final orderId in selectedIds) {
                         var succeeded = false;
-                        for (
-                          var attempt = 1;
-                          attempt <= 3 && !succeeded;
-                          attempt++
-                        ) {
+                        for (var attempt = 1;
+                            attempt <= 3 && !succeeded;
+                            attempt++) {
                           try {
                             await OrderService.updateOrderStatusStrict(
                               orderId,
@@ -5312,13 +5295,13 @@ class _AdminScreenState extends State<AdminScreen>
             color: isSelected
                 ? const Color(0xFF3949AB)
                 : isGroup
-                ? AppColors.primary.withValues(alpha: 0.3)
-                : AppColors.border,
+                    ? AppColors.primary.withValues(alpha: 0.3)
+                    : AppColors.border,
             width: isSelected
                 ? 1.5
                 : isGroup
-                ? 1.5
-                : 1,
+                    ? 1.5
+                    : 1,
           ),
           boxShadow: isSelected
               ? []
@@ -5340,8 +5323,8 @@ class _AdminScreenState extends State<AdminScreen>
                 color: isSelected
                     ? const Color(0xFFE8EAF6)
                     : isGroup
-                    ? const Color(0xFFF3E5F5)
-                    : const Color(0xFFFAFAFA),
+                        ? const Color(0xFFF3E5F5)
+                        : const Color(0xFFFAFAFA),
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(14),
                 ),
@@ -5439,8 +5422,8 @@ class _AdminScreenState extends State<AdminScreen>
                                 order.userName.isNotEmpty
                                     ? order.userName
                                     : (opts?['managerName']?.toString() ??
-                                          opts?['manager']?.toString() ??
-                                          '주문자 없음'),
+                                        opts?['manager']?.toString() ??
+                                        '주문자 없음'),
                                 style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -5477,8 +5460,8 @@ class _AdminScreenState extends State<AdminScreen>
                           order.items.isNotEmpty
                               ? '${order.items.map((i) => i.productName).join(', ')} (${order.items.length}종)'
                               : (opts?['teamName']?.toString() ??
-                                    opts?['productName']?.toString() ??
-                                    '상품 정보 없음'),
+                                  opts?['productName']?.toString() ??
+                                  '상품 정보 없음'),
                           style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary,
@@ -5938,16 +5921,15 @@ class _AdminScreenState extends State<AdminScreen>
                             final typeLabel = order.orderType == 'additional'
                                 ? '추가제작'
                                 : order.orderType == 'group'
-                                ? '단체'
-                                : '개인';
+                                    ? '단체'
+                                    : '개인';
                             final typeColor = order.orderType == 'additional'
                                 ? const Color(0xFFC62828)
                                 : order.orderType == 'group'
-                                ? AppColors.primary
-                                : AppColors.info;
+                                    ? AppColors.primary
+                                    : AppColors.info;
                             // 표시할 사이즈: '단체'/'GROUP'은 의미없는 값이므로 숨김
-                            final displaySize =
-                                (item.size == '단체' ||
+                            final displaySize = (item.size == '단체' ||
                                     item.size == 'GROUP' ||
                                     item.size.isEmpty)
                                 ? null
@@ -6142,9 +6124,9 @@ class _AdminScreenState extends State<AdminScreen>
                               );
                               if (!mounted) return;
                               context.read<OrderProvider>().updateOrderStatus(
-                                currentOrder.id,
-                                OrderStatus.confirmed,
-                              );
+                                    currentOrder.id,
+                                    OrderStatus.confirmed,
+                                  );
                               FcmService.sendOrderStatusNotification(
                                 userId: currentOrder.userId,
                                 orderId: currentOrder.id,
@@ -6411,7 +6393,8 @@ class _AdminScreenState extends State<AdminScreen>
                                     height: 1.4,
                                   ),
                                 ),
-                                if ((order.customOptions!['designRevisionRequest']
+                                if ((order.customOptions![
+                                            'designRevisionRequest']
                                         as Map)['color'] !=
                                     null)
                                   Text(
@@ -6496,54 +6479,51 @@ class _AdminScreenState extends State<AdminScreen>
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
-                            children:
-                                [
-                                  '블랙',
-                                  '화이트',
-                                  '네이비',
-                                  '그레이',
-                                  '레드',
-                                  '블루',
-                                  '그린',
-                                  '퍼플',
-                                  '오렌지',
-                                  '베이지',
-                                ].map((c) {
-                                  final isSel = selectedColor == c;
-                                  return GestureDetector(
-                                    onTap: () =>
-                                        setSheet(() => selectedColor = c),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isSel
-                                            ? AppColors.info
-                                            : Colors.white,
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: isSel
-                                              ? AppColors.info
-                                              : AppColors.border,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        c,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: isSel
-                                              ? Colors.white
-                                              : AppColors.textPrimary,
-                                          fontWeight: isSel
-                                              ? FontWeight.w700
-                                              : FontWeight.w400,
-                                        ),
-                                      ),
+                            children: [
+                              '블랙',
+                              '화이트',
+                              '네이비',
+                              '그레이',
+                              '레드',
+                              '블루',
+                              '그린',
+                              '퍼플',
+                              '오렌지',
+                              '베이지',
+                            ].map((c) {
+                              final isSel = selectedColor == c;
+                              return GestureDetector(
+                                onTap: () => setSheet(() => selectedColor = c),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        isSel ? AppColors.info : Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: isSel
+                                          ? AppColors.info
+                                          : AppColors.border,
                                     ),
-                                  );
-                                }).toList(),
+                                  ),
+                                  child: Text(
+                                    c,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isSel
+                                          ? Colors.white
+                                          : AppColors.textPrimary,
+                                      fontWeight: isSel
+                                          ? FontWeight.w700
+                                          : FontWeight.w400,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
                         ],
 
@@ -6715,10 +6695,10 @@ class _AdminScreenState extends State<AdminScreen>
                                     // 1) 확정 이미지 Storage 업로드
                                     final uploadUrl =
                                         await StorageService.uploadBannerImage(
-                                          bannerId:
-                                              'design_confirmed/${order.id}_${DateTime.now().millisecondsSinceEpoch}',
-                                          imageBytes: confirmedImageBytes!,
-                                        );
+                                      bannerId:
+                                          'design_confirmed/${order.id}_${DateTime.now().millisecondsSinceEpoch}',
+                                      imageBytes: confirmedImageBytes!,
+                                    );
                                     if (uploadUrl == null) {
                                       throw Exception('이미지 업로드 실패');
                                     }
@@ -6732,23 +6712,22 @@ class _AdminScreenState extends State<AdminScreen>
                                         .collection('orders')
                                         .doc(order.id)
                                         .update({
-                                          'designRevisionRequest.status':
-                                              'responded',
-                                          'designRevisionRequest.respondedAt':
-                                              DateTime.now().toIso8601String(),
-                                          'designRevisionRequest.adminMemo':
-                                              memoCtrl.text.trim(),
-                                          'customOptions.designRevisionResponse':
-                                              {
-                                                'memo': memoCtrl.text.trim(),
-                                                'color': selectedColor,
-                                                'respondedAt': DateTime.now()
-                                                    .toIso8601String(),
-                                                'status': 'responded',
-                                              },
-                                          'customOptions.designConfirmedImageUrl':
-                                              uploadUrl,
-                                        });
+                                      'designRevisionRequest.status':
+                                          'responded',
+                                      'designRevisionRequest.respondedAt':
+                                          DateTime.now().toIso8601String(),
+                                      'designRevisionRequest.adminMemo':
+                                          memoCtrl.text.trim(),
+                                      'customOptions.designRevisionResponse': {
+                                        'memo': memoCtrl.text.trim(),
+                                        'color': selectedColor,
+                                        'respondedAt':
+                                            DateTime.now().toIso8601String(),
+                                        'status': 'responded',
+                                      },
+                                      'customOptions.designConfirmedImageUrl':
+                                          uploadUrl,
+                                    });
                                     // TAB8 목록 상태도 '완료'로 업데이트
                                     final reqIdx = _designRequests.indexWhere(
                                       (r) =>
@@ -7137,26 +7116,24 @@ class _AdminScreenState extends State<AdminScreen>
                                 final p = entry.value;
                                 final isEven = i % 2 == 0;
                                 final gender = p['gender']?.toString() ?? '';
-                                final genderLabel =
-                                    gender == '남자' ||
+                                final genderLabel = gender == '남자' ||
                                         gender == 'male' ||
                                         gender == 'M'
                                     ? '남'
                                     : gender == '여자' ||
-                                          gender == 'female' ||
-                                          gender == 'F'
-                                    ? '여'
-                                    : (gender.isEmpty ? '-' : gender);
+                                            gender == 'female' ||
+                                            gender == 'F'
+                                        ? '여'
+                                        : (gender.isEmpty ? '-' : gender);
                                 final sizeType =
                                     p['sizeType']?.toString() ?? '';
-                                final ageLabel =
-                                    sizeType == '주니어' ||
+                                final ageLabel = sizeType == '주니어' ||
                                         sizeType.toLowerCase() == 'junior'
                                     ? '주니어'
                                     : sizeType == '성인' ||
-                                          sizeType.toLowerCase() == 'adult'
-                                    ? '성인'
-                                    : (sizeType.isEmpty ? '-' : sizeType);
+                                            sizeType.toLowerCase() == 'adult'
+                                        ? '성인'
+                                        : (sizeType.isEmpty ? '-' : sizeType);
                                 final isMale = genderLabel == '남';
                                 final isJunior = ageLabel == '주니어';
                                 return Container(
@@ -7491,9 +7468,9 @@ class _AdminScreenState extends State<AdminScreen>
                             );
                             if (!mounted) return;
                             context.read<OrderProvider>().updateOrderStatus(
-                              currentOrder.id,
-                              OrderStatus.confirmed,
-                            );
+                                  currentOrder.id,
+                                  OrderStatus.confirmed,
+                                );
                             FcmService.sendOrderStatusNotification(
                               userId: currentOrder.userId,
                               orderId: currentOrder.id,
@@ -7588,14 +7565,13 @@ class _AdminScreenState extends State<AdminScreen>
   // ── 단체주문 다운로드 파일명: 주문날짜_팀명 ──
   String _groupOrderFileStem(OrderModel order) {
     final opts = order.customOptions ?? {};
-    final rawTeam =
-        (opts['teamName']?.toString().trim().isNotEmpty == true
+    final rawTeam = (opts['teamName']?.toString().trim().isNotEmpty == true
             ? opts['teamName']?.toString()
             : order.groupName?.trim().isNotEmpty == true
-            ? order.groupName
-            : order.userName.trim().isNotEmpty
-            ? order.userName
-            : order.id) ??
+                ? order.groupName
+                : order.userName.trim().isNotEmpty
+                    ? order.userName
+                    : order.id) ??
         order.id;
     final teamName = rawTeam
         .replaceAll(RegExp(r'[\\/:*?"<>|]'), '_')
@@ -7819,11 +7795,11 @@ class _AdminScreenState extends State<AdminScreen>
       final bytes = await OrderExcelService.generateGroupOrderPdf(order);
       final teamName =
           (order.customOptions?['teamName'] as String?)?.trim().isNotEmpty ==
-              true
-          ? (order.customOptions?['teamName'] as String).trim()
-          : (order.groupName?.trim().isNotEmpty == true
-                ? order.groupName!
-                : order.id);
+                  true
+              ? (order.customOptions?['teamName'] as String).trim()
+              : (order.groupName?.trim().isNotEmpty == true
+                  ? order.groupName!
+                  : order.id);
       final fileName = '단체주문_${_groupOrderFileStem(order)}.pdf';
       const mimeType = 'application/pdf';
 
@@ -7923,11 +7899,11 @@ class _AdminScreenState extends State<AdminScreen>
       // ignore: unused_local_variable
       final teamName =
           (order.customOptions?['teamName'] as String?)?.trim().isNotEmpty ==
-              true
-          ? (order.customOptions?['teamName'] as String).trim()
-          : (order.groupName?.trim().isNotEmpty == true
-                ? order.groupName!
-                : order.id);
+                  true
+              ? (order.customOptions?['teamName'] as String).trim()
+              : (order.groupName?.trim().isNotEmpty == true
+                  ? order.groupName!
+                  : order.id);
       final fileName = '추가제작_${_groupOrderFileStem(order)}.pdf';
       const mimeType = 'application/pdf';
 
@@ -8111,17 +8087,15 @@ class _AdminScreenState extends State<AdminScreen>
     var filtered = _productCategoryFilter == '전체'
         ? List<ProductModel>.from(allProducts)
         : allProducts
-              .where((p) => matchesCategory(p, _productCategoryFilter))
-              .toList();
+            .where((p) => matchesCategory(p, _productCategoryFilter))
+            .toList();
     if (_productSearchQuery.isNotEmpty) {
       final q = _productSearchQuery.toLowerCase();
-      filtered = filtered
-          .where((p) => p.name.toLowerCase().contains(q))
-          .toList();
+      filtered =
+          filtered.where((p) => p.name.toLowerCase().contains(q)).toList();
     }
 
-    final allSelected =
-        filtered.isNotEmpty &&
+    final allSelected = filtered.isNotEmpty &&
         filtered.every((p) => _selectedProductIds.contains(p.id));
     final anySelected = _selectedProductIds.isNotEmpty;
 
@@ -8274,8 +8248,8 @@ class _AdminScreenState extends State<AdminScreen>
                       allSelected
                           ? Icons.check_box_rounded
                           : _selectedProductIds.isEmpty
-                          ? Icons.check_box_outline_blank_rounded
-                          : Icons.indeterminate_check_box_rounded,
+                              ? Icons.check_box_outline_blank_rounded
+                              : Icons.indeterminate_check_box_rounded,
                       color: AppColors.primary,
                       size: 18,
                     ),
@@ -8962,9 +8936,9 @@ class _AdminScreenState extends State<AdminScreen>
                                               Container(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                      horizontal: 10,
-                                                      vertical: 4,
-                                                    ),
+                                                  horizontal: 10,
+                                                  vertical: 4,
+                                                ),
                                                 decoration: BoxDecoration(
                                                   color: accent,
                                                   borderRadius:
@@ -9122,13 +9096,14 @@ class _AdminScreenState extends State<AdminScreen>
                                           : () async {
                                               final reordered =
                                                   List<BannerModel>.from(
-                                                    banners,
-                                                  );
+                                                banners,
+                                              );
                                               final moved = reordered.removeAt(
                                                 i,
                                               );
                                               reordered.insert(i - 1, moved);
-                                              await BannerService.reorderBanners(
+                                              await BannerService
+                                                  .reorderBanners(
                                                 reordered,
                                               );
                                             },
@@ -9143,13 +9118,14 @@ class _AdminScreenState extends State<AdminScreen>
                                           : () async {
                                               final reordered =
                                                   List<BannerModel>.from(
-                                                    banners,
-                                                  );
+                                                banners,
+                                              );
                                               final moved = reordered.removeAt(
                                                 i,
                                               );
                                               reordered.insert(i + 1, moved);
-                                              await BannerService.reorderBanners(
+                                              await BannerService
+                                                  .reorderBanners(
                                                 reordered,
                                               );
                                             },
@@ -9192,7 +9168,8 @@ class _AdminScreenState extends State<AdminScreen>
                                             TextButton(
                                               onPressed: () async {
                                                 Navigator.pop(context);
-                                                await BannerService.deleteBanner(
+                                                await BannerService
+                                                    .deleteBanner(
                                                   b.id,
                                                 );
                                                 if (mounted) {
@@ -9292,8 +9269,7 @@ class _AdminScreenState extends State<AdminScreen>
                 return name.contains(q) || email.contains(q);
               }).toList();
 
-        final allSelected =
-            members.isNotEmpty &&
+        final allSelected = members.isNotEmpty &&
             members.every(
               (m) => _selectedMemberIds.contains(
                 m['uid'] as String? ?? m['id'] as String? ?? '',
@@ -9367,8 +9343,8 @@ class _AdminScreenState extends State<AdminScreen>
                           allSelected
                               ? Icons.check_box_rounded
                               : _selectedMemberIds.isEmpty
-                              ? Icons.check_box_outline_blank_rounded
-                              : Icons.indeterminate_check_box_rounded,
+                                  ? Icons.check_box_outline_blank_rounded
+                                  : Icons.indeterminate_check_box_rounded,
                           color: AppColors.primary,
                           size: 18,
                         ),
@@ -9551,24 +9527,23 @@ class _AdminScreenState extends State<AdminScreen>
                         final isSelected = _selectedMemberIds.contains(
                           memberId,
                         );
-                        final grade =
-                            m['memberTier'] as String? ??
+                        final grade = m['memberTier'] as String? ??
                             m['grade'] as String? ??
                             '일반';
                         final isBlocked = m['isBlocked'] as bool? ?? false;
                         final gradeColor = grade == 'VIP' || grade == 'vip'
                             ? AppColors.accent
                             : grade == '신규' || grade == 'bronze'
-                            ? AppColors.info
-                            : AppColors.textSecondary;
+                                ? AppColors.info
+                                : AppColors.textSecondary;
                         final name = m['name'] as String? ?? '이름없음';
                         final email = m['email'] as String? ?? '';
                         final createdAt = m['createdAt'] is Timestamp
                             ? (m['createdAt'] as Timestamp).toDate()
                             : m['createdAt'] is String
-                            ? DateTime.tryParse(m['createdAt'] as String) ??
-                                  DateTime(2000)
-                            : DateTime(2000);
+                                ? DateTime.tryParse(m['createdAt'] as String) ??
+                                    DateTime(2000)
+                                : DateTime(2000);
                         final joinDate =
                             '${createdAt.year}.${createdAt.month.toString().padLeft(2, '0')}.${createdAt.day.toString().padLeft(2, '0')}';
                         final isAdmin = m['isAdmin'] as bool? ?? false;
@@ -9587,15 +9562,15 @@ class _AdminScreenState extends State<AdminScreen>
                               color: isSelected
                                   ? const Color(0xFFE8EAF6)
                                   : isBlocked
-                                  ? const Color(0xFFFFF3F3)
-                                  : Colors.white,
+                                      ? const Color(0xFFFFF3F3)
+                                      : Colors.white,
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
                                 color: isSelected
                                     ? AppColors.primary
                                     : isBlocked
-                                    ? const Color(0xFFFFCDD2)
-                                    : AppColors.border,
+                                        ? const Color(0xFFFFCDD2)
+                                        : AppColors.border,
                                 width: isSelected ? 1.5 : 1,
                               ),
                               boxShadow: isSelected
@@ -9681,9 +9656,9 @@ class _AdminScreenState extends State<AdminScreen>
                                             Container(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                    horizontal: 5,
-                                                    vertical: 2,
-                                                  ),
+                                                horizontal: 5,
+                                                vertical: 2,
+                                              ),
                                               decoration: BoxDecoration(
                                                 color: AppColors.primary
                                                     .withValues(alpha: 0.1),
@@ -9705,9 +9680,9 @@ class _AdminScreenState extends State<AdminScreen>
                                             Container(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                    horizontal: 5,
-                                                    vertical: 2,
-                                                  ),
+                                                horizontal: 5,
+                                                vertical: 2,
+                                              ),
                                               decoration: BoxDecoration(
                                                 color: AppColors.error
                                                     .withValues(alpha: 0.1),
@@ -9969,9 +9944,8 @@ class _AdminScreenState extends State<AdminScreen>
                               content: Text(
                                 success ? '✅ 알림이 발송되었습니다' : '⚠️ 알림 발송 실패',
                               ),
-                              backgroundColor: success
-                                  ? AppColors.success
-                                  : AppColors.error,
+                              backgroundColor:
+                                  success ? AppColors.success : AppColors.error,
                             ),
                           );
                         }
@@ -10561,16 +10535,16 @@ class _AdminScreenState extends State<AdminScreen>
 
   // ignore: unused_element
   Widget _fl(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Text(
-      text,
-      style: const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textSecondary,
-      ),
-    ),
-  );
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      );
 
   // ignore: unused_element
   Widget _ff(
@@ -10944,41 +10918,41 @@ class _AdminScreenState extends State<AdminScreen>
                               color: useLocalVideo
                                   ? AppColors.info.withValues(alpha: 0.05)
                                   : (banner.videoUrl ==
-                                            'assets/images/banner_video.mp4'
-                                        ? AppColors.success.withValues(
-                                            alpha: 0.05,
-                                          )
-                                        : (banner.videoUrl?.isNotEmpty == true
-                                              ? AppColors.warning.withValues(
-                                                  alpha: 0.05,
-                                                )
-                                              : Colors.grey.shade100)),
+                                          'assets/images/banner_video.mp4'
+                                      ? AppColors.success.withValues(
+                                          alpha: 0.05,
+                                        )
+                                      : (banner.videoUrl?.isNotEmpty == true
+                                          ? AppColors.warning.withValues(
+                                              alpha: 0.05,
+                                            )
+                                          : Colors.grey.shade100)),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               useLocalVideo
                                   ? '편집 영상 선택됨'
                                   : (banner.videoUrl ==
-                                            'assets/images/banner_video.mp4'
-                                        ? '편집 영상 사용 중'
-                                        : (banner.videoUrl?.isNotEmpty == true
-                                              ? 'Firebase 영상'
-                                              : '영상 없음')),
+                                          'assets/images/banner_video.mp4'
+                                      ? '편집 영상 사용 중'
+                                      : (banner.videoUrl?.isNotEmpty == true
+                                          ? 'Firebase 영상'
+                                          : '영상 없음')),
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                                 color: useLocalVideo
                                     ? AppColors.info.withValues(alpha: 0.82)
                                     : (banner.videoUrl ==
-                                              'assets/images/banner_video.mp4'
-                                          ? AppColors.success.withValues(
-                                              alpha: 0.82,
-                                            )
-                                          : (banner.videoUrl?.isNotEmpty == true
-                                                ? AppColors.warning.withValues(
-                                                    alpha: 0.82,
-                                                  )
-                                                : Colors.grey.shade600)),
+                                            'assets/images/banner_video.mp4'
+                                        ? AppColors.success.withValues(
+                                            alpha: 0.82,
+                                          )
+                                        : (banner.videoUrl?.isNotEmpty == true
+                                            ? AppColors.warning.withValues(
+                                                alpha: 0.82,
+                                              )
+                                            : Colors.grey.shade600)),
                               ),
                             ),
                           ),
@@ -11247,23 +11221,23 @@ class _AdminScreenState extends State<AdminScreen>
                           String? uploadedVideoUrl;
                           await for (final progress
                               in StorageService.uploadBannerVideoWithProgress(
-                                bannerId: '${banner.id}_vid',
-                                videoBytes: pickedVideoBytes!,
-                                fileName: pickedVideoName!,
-                                onComplete: (url) {
-                                  uploadedVideoUrl = url;
-                                },
-                                onError: (e) {
-                                  if (ctx.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('동영상 업로드 실패: $e'),
-                                        backgroundColor: AppColors.error,
-                                      ),
-                                    );
-                                  }
-                                },
-                              )) {
+                            bannerId: '${banner.id}_vid',
+                            videoBytes: pickedVideoBytes!,
+                            fileName: pickedVideoName!,
+                            onComplete: (url) {
+                              uploadedVideoUrl = url;
+                            },
+                            onError: (e) {
+                              if (ctx.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('동영상 업로드 실패: $e'),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                              }
+                            },
+                          )) {
                             setDlg(() => uploadProgress = progress);
                           }
                           if (uploadedVideoUrl != null) {
@@ -11793,9 +11767,8 @@ class _AdminScreenState extends State<AdminScreen>
       textColor = AppColors.error.withValues(alpha: 0.82);
     } else {
       // 현재 노출 중
-      final endStr = endDate != null
-          ? '~${endDate.month}/${endDate.day}'
-          : '~상시';
+      final endStr =
+          endDate != null ? '~${endDate.month}/${endDate.day}' : '~상시';
       label = '📅 $endStr';
       bgColor = const Color(0xFFE8F5E9);
       textColor = AppColors.success;
@@ -12486,9 +12459,9 @@ class _AdminScreenState extends State<AdminScreen>
 
                 if (mounted) {
                   context.read<OrderProvider>().updateOrderStatus(
-                    orderId,
-                    newStatus,
-                  );
+                        orderId,
+                        newStatus,
+                      );
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -12801,9 +12774,8 @@ class _AdminScreenState extends State<AdminScreen>
                     content: Text(
                       isBlocked ? '$name 차단이 해제되었습니다' : '$name 계정이 차단되었습니다',
                     ),
-                    backgroundColor: isBlocked
-                        ? AppColors.success
-                        : AppColors.error,
+                    backgroundColor:
+                        isBlocked ? AppColors.success : AppColors.error,
                   ),
                 );
               }
@@ -12981,9 +12953,8 @@ class _AdminScreenState extends State<AdminScreen>
                                 ? '$name 회원에게 ${amount.toString()}P가 적립되었습니다'
                                 : '포인트 적립에 실패했습니다',
                           ),
-                          backgroundColor: ok
-                              ? AppColors.success
-                              : AppColors.error,
+                          backgroundColor:
+                              ok ? AppColors.success : AppColors.error,
                         ),
                       );
                     },
@@ -13062,8 +13033,8 @@ class _AdminScreenState extends State<AdminScreen>
                       AdminWebNotifier.isGranted
                           ? '알림 ON'
                           : AdminWebNotifier.permissionStatus == 'denied'
-                          ? '알림 차단됨'
-                          : '알림 허용',
+                              ? '알림 차단됨'
+                              : '알림 허용',
                       style: TextStyle(
                         fontSize: 11,
                         color: AdminWebNotifier.isGranted
@@ -13132,9 +13103,7 @@ class _AdminScreenState extends State<AdminScreen>
                         ),
                       )
                     else
-                      ...notifications
-                          .take(10)
-                          .map(
+                      ...notifications.take(10).map(
                             (n) => _notifItem(
                               n.type == 'chat'
                                   ? Icons.chat_rounded
@@ -13410,9 +13379,9 @@ class _AdminScreenState extends State<AdminScreen>
       '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
 
   String _fmtPrice(double p) => p.toInt().toString().replaceAllMapped(
-    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-    (m) => '${m[1]},',
-  );
+        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+        (m) => '${m[1]},',
+      );
 
   // ══════════════════════════════════════════════
   // TAB 7 : 채팅 상담 관리 (Firestore 실시간)
@@ -13634,8 +13603,8 @@ class _AdminScreenState extends State<AdminScreen>
                         _chatFilterTab == 'completed'
                             ? '완료된 상담이 없습니다'
                             : _chatFilterTab == 'blocked'
-                            ? '차단된 사용자가 없습니다'
-                            : '아직 채팅 문의가 없습니다',
+                                ? '차단된 사용자가 없습니다'
+                                : '아직 채팅 문의가 없습니다',
                         style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.textSecondary,
@@ -13653,8 +13622,8 @@ class _AdminScreenState extends State<AdminScreen>
                   final timeStr = diff.inMinutes < 60
                       ? '${diff.inMinutes}분 전'
                       : diff.inHours < 24
-                      ? '${diff.inHours}시간 전'
-                      : '${diff.inDays}일 전';
+                          ? '${diff.inHours}시간 전'
+                          : '${diff.inDays}일 전';
                   final isSelected = room.id == _selectedRoomId;
                   return InkWell(
                     onTap: () {
@@ -13671,10 +13640,10 @@ class _AdminScreenState extends State<AdminScreen>
                         color: room.isBlocked
                             ? const Color(0xFFFFF3F3)
                             : room.isCompleted
-                            ? AppColors.surfaceGray
-                            : isSelected
-                            ? AppColors.primary.withValues(alpha: 0.05)
-                            : Colors.white,
+                                ? AppColors.surfaceGray
+                                : isSelected
+                                    ? AppColors.primary.withValues(alpha: 0.05)
+                                    : Colors.white,
                         border: Border(
                           bottom: BorderSide(
                             color: AppColors.border.withValues(alpha: 0.5),
@@ -13690,8 +13659,9 @@ class _AdminScreenState extends State<AdminScreen>
                                 backgroundColor: room.isBlocked
                                     ? AppColors.error.withValues(alpha: 0.15)
                                     : room.isCompleted
-                                    ? Colors.grey.withValues(alpha: 0.15)
-                                    : AppColors.primary.withValues(alpha: 0.15),
+                                        ? Colors.grey.withValues(alpha: 0.15)
+                                        : AppColors.primary
+                                            .withValues(alpha: 0.15),
                                 child: Text(
                                   room.userName.characters.first,
                                   style: TextStyle(
@@ -13700,8 +13670,8 @@ class _AdminScreenState extends State<AdminScreen>
                                     color: room.isBlocked
                                         ? AppColors.error
                                         : room.isCompleted
-                                        ? Colors.grey
-                                        : AppColors.primary,
+                                            ? Colors.grey
+                                            : AppColors.primary,
                                   ),
                                 ),
                               ),
@@ -13779,15 +13749,15 @@ class _AdminScreenState extends State<AdminScreen>
                                   room.isBlocked
                                       ? '차단된 사용자'
                                       : room.lastMessage.isEmpty
-                                      ? '새 채팅이 시작됐습니다'
-                                      : room.lastMessage,
+                                          ? '새 채팅이 시작됐습니다'
+                                          : room.lastMessage,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: room.isBlocked
                                         ? AppColors.error.withValues(alpha: 0.7)
                                         : room.unreadCount > 0
-                                        ? AppColors.textPrimary
-                                        : AppColors.textSecondary,
+                                            ? AppColors.textPrimary
+                                            : AppColors.textSecondary,
                                     fontWeight: room.unreadCount > 0
                                         ? FontWeight.w600
                                         : FontWeight.w400,
@@ -13866,9 +13836,8 @@ class _AdminScreenState extends State<AdminScreen>
               : AppColors.surfaceGray,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected
-                ? color.withValues(alpha: 0.5)
-                : Colors.transparent,
+            color:
+                isSelected ? color.withValues(alpha: 0.5) : Colors.transparent,
           ),
         ),
         child: Row(
@@ -14471,8 +14440,8 @@ class _AdminScreenState extends State<AdminScreen>
                                 color: m.isUser
                                     ? AppColors.primary
                                     : (isSystem
-                                          ? const Color(0xFFEAF2FF)
-                                          : AppColors.surfaceGray),
+                                        ? const Color(0xFFEAF2FF)
+                                        : AppColors.surfaceGray),
                                 borderRadius: BorderRadius.only(
                                   topLeft: const Radius.circular(14),
                                   topRight: const Radius.circular(14),
@@ -14493,16 +14462,16 @@ class _AdminScreenState extends State<AdminScreen>
                                       m.isUser
                                           ? '고객'
                                           : (isSystem
-                                                ? '자동 안내'
-                                                : '판매자 · ${m.senderName}'),
+                                              ? '자동 안내'
+                                              : '판매자 · ${m.senderName}'),
                                       style: TextStyle(
                                         fontSize: 10,
                                         fontWeight: FontWeight.w700,
                                         color: m.isUser
                                             ? Colors.white70
                                             : (isSystem
-                                                  ? AppColors.info
-                                                  : AppColors.textSecondary),
+                                                ? AppColors.info
+                                                : AppColors.textSecondary),
                                       ),
                                     ),
                                   ),
@@ -14547,51 +14516,50 @@ class _AdminScreenState extends State<AdminScreen>
               color: AppColors.surfaceGray,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                children:
-                    [
-                          '안녕하세요! 2FIT 고객센터입니다 😊',
-                          '확인 후 빠르게 연락드리겠습니다.',
-                          '단체주문은 최소 5인 이상입니다.',
-                          '제작기간은 약 2~3주 소요됩니다.',
-                          '추가 문의사항이 있으시면 말씀해 주세요!',
-                        ]
-                        .map(
-                          (tpl) => GestureDetector(
-                            onTap: () {
-                              replyCtrl.text = tpl;
-                              replyCtrl.selection = TextSelection.fromPosition(
-                                TextPosition(offset: tpl.length),
-                              );
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.only(
-                                right: 6,
-                                top: 5,
-                                bottom: 5,
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: AppColors.border),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  tpl.length > 16
-                                      ? '${tpl.substring(0, 16)}…'
-                                      : tpl,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
+                children: [
+                  '안녕하세요! 2FIT 고객센터입니다 😊',
+                  '확인 후 빠르게 연락드리겠습니다.',
+                  '단체주문은 최소 5인 이상입니다.',
+                  '제작기간은 약 2~3주 소요됩니다.',
+                  '추가 문의사항이 있으시면 말씀해 주세요!',
+                ]
+                    .map(
+                      (tpl) => GestureDetector(
+                        onTap: () {
+                          replyCtrl.text = tpl;
+                          replyCtrl.selection = TextSelection.fromPosition(
+                            TextPosition(offset: tpl.length),
+                          );
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(
+                            right: 6,
+                            top: 5,
+                            bottom: 5,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: Center(
+                            child: Text(
+                              tpl.length > 16
+                                  ? '${tpl.substring(0, 16)}…'
+                                  : tpl,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ),
-                        )
-                        .toList(),
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
             ),
             // 답장 입력 (Enter 전송 지원)
@@ -14904,8 +14872,7 @@ class _AdminScreenState extends State<AdminScreen>
     for (final product in products) {
       if (seenProductIds.add(product.id)) dropdownProducts.add(product);
     }
-    final selectedId =
-        _sectionSelectedProductId != null &&
+    final selectedId = _sectionSelectedProductId != null &&
             products.any((product) => product.id == _sectionSelectedProductId)
         ? _sectionSelectedProductId
         : null;
@@ -15030,15 +14997,15 @@ class _AdminScreenState extends State<AdminScreen>
                                           fit: BoxFit.cover,
                                           errorBuilder: (_, __, ___) =>
                                               Container(
-                                                width: 32,
-                                                height: 32,
-                                                color: AppColors.surfaceGray,
-                                                child: const Icon(
-                                                  Icons.checkroom_rounded,
-                                                  size: 16,
-                                                  color: AppColors.border,
-                                                ),
-                                              ),
+                                            width: 32,
+                                            height: 32,
+                                            color: AppColors.surfaceGray,
+                                            child: const Icon(
+                                              Icons.checkroom_rounded,
+                                              size: 16,
+                                              color: AppColors.border,
+                                            ),
+                                          ),
                                         )
                                       : Container(
                                           width: 32,
@@ -15181,10 +15148,10 @@ class _AdminScreenState extends State<AdminScreen>
                     itemCount: sectionsForProduct.length,
                     onReorder: (oldIndex, newIndex) =>
                         _reorderDisplayedSections(
-                          sectionsForProduct,
-                          oldIndex,
-                          newIndex,
-                        ),
+                      sectionsForProduct,
+                      oldIndex,
+                      newIndex,
+                    ),
                     buildDefaultDragHandles: true,
                     itemBuilder: (_, i) {
                       final sec = sectionsForProduct[i];
@@ -15207,17 +15174,17 @@ class _AdminScreenState extends State<AdminScreen>
                               onUpdated: () => setState(() {}),
                               onSaveSettings: (title, description) =>
                                   _saveSectionSettingsByKey(
-                                    key,
-                                    selectedProduct.id,
-                                    title,
-                                    description,
-                                  ),
+                                key,
+                                selectedProduct.id,
+                                title,
+                                description,
+                              ),
                               onMoveUp: () => _moveSectionByKey(key, -1),
                               onMoveDown: () => _moveSectionByKey(key, 1),
                               onArchive: () =>
                                   _reservedSectionKeys.contains(key)
-                                  ? _toggleSectionActiveByKey(key)
-                                  : _confirmDeleteSectionByKey(key),
+                                      ? _toggleSectionActiveByKey(key)
+                                      : _confirmDeleteSectionByKey(key),
                             ),
                           ],
                         ),
@@ -15421,9 +15388,8 @@ class _AdminScreenState extends State<AdminScreen>
                       // 카탈로그에만 저장하지 않고 현재 상품에도 즉시 연결합니다.
                       // 이미지 없이 설명만 입력한 경우에도 상세페이지에 표시되도록
                       // sectionDescriptions를 상품 문서에 저장합니다.
-                      final adminProducts = context
-                          .read<ProductProvider>()
-                          .adminProducts;
+                      final adminProducts =
+                          context.read<ProductProvider>().adminProducts;
                       ProductModel? connectedProduct;
                       for (final product in adminProducts) {
                         if (product.id == _sectionSelectedProductId) {
@@ -15431,9 +15397,8 @@ class _AdminScreenState extends State<AdminScreen>
                           break;
                         }
                       }
-                      connectedProduct ??= adminProducts.isNotEmpty
-                          ? adminProducts.first
-                          : null;
+                      connectedProduct ??=
+                          adminProducts.isNotEmpty ? adminProducts.first : null;
                       if (connectedProduct != null) {
                         if (desc.isNotEmpty) {
                           await context
@@ -15448,10 +15413,10 @@ class _AdminScreenState extends State<AdminScreen>
                           await context
                               .read<ProductProvider>()
                               .updateSectionImages(
-                                connectedProduct!.id,
-                                newKey,
-                                [imageUrl],
-                              );
+                            connectedProduct!.id,
+                            newKey,
+                            [imageUrl],
+                          );
                         }
                       }
                       if (ctx.mounted) Navigator.pop(ctx);
@@ -15537,10 +15502,10 @@ class _AdminScreenState extends State<AdminScreen>
     if (index < 0) {
       await _saveSectionTitleByKey(key, trimmedTitle);
       await context.read<ProductProvider>().updateSectionDescription(
-        productId,
-        key,
-        description.trim(),
-      );
+            productId,
+            key,
+            description.trim(),
+          );
       return;
     }
     final before = Map<String, dynamic>.from(_customSections[index]);
@@ -15829,10 +15794,9 @@ class _AdminScreenState extends State<AdminScreen>
     final filtered = _colorCategoryFilter == '전체'
         ? _colorItems
         : _colorItems
-              .where((c) => c['category'] == _colorCategoryFilter)
-              .toList();
-    final allSelected =
-        filtered.isNotEmpty &&
+            .where((c) => c['category'] == _colorCategoryFilter)
+            .toList();
+    final allSelected = filtered.isNotEmpty &&
         filtered.every((c) => _selectedColorIds.contains(c['id'] as String));
     final anySelected = _selectedColorIds.isNotEmpty;
 
@@ -16102,11 +16066,11 @@ class _AdminScreenState extends State<AdminScreen>
                             physics: const NeverScrollableScrollPhysics(),
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: crossCount,
-                                  crossAxisSpacing: 10,
-                                  mainAxisSpacing: 10,
-                                  childAspectRatio: 0.85,
-                                ),
+                              crossAxisCount: crossCount,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              childAspectRatio: 0.85,
+                            ),
                             itemCount: filtered.length,
                             itemBuilder: (_, i) {
                               final c = filtered[i];
@@ -16151,10 +16115,9 @@ class _AdminScreenState extends State<AdminScreen>
                                           ClipRRect(
                                             borderRadius:
                                                 const BorderRadius.vertical(
-                                                  top: Radius.circular(11),
-                                                ),
-                                            child:
-                                                hasImage &&
+                                              top: Radius.circular(11),
+                                            ),
+                                            child: hasImage &&
                                                     (c['imageUrl'] as String)
                                                         .isNotEmpty
                                                 ? NetImage(
@@ -16167,24 +16130,24 @@ class _AdminScreenState extends State<AdminScreen>
                                                     height: 90,
                                                     width: double.infinity,
                                                     color: hexColor,
-                                                    child:
-                                                        hexColor.computeLuminance() >
+                                                    child: hexColor
+                                                                .computeLuminance() >
                                                             0.5
                                                         ? Icon(
                                                             Icons.circle,
                                                             size: 30,
                                                             color: Colors.black
                                                                 .withValues(
-                                                                  alpha: 0.1,
-                                                                ),
+                                                              alpha: 0.1,
+                                                            ),
                                                           )
                                                         : Icon(
                                                             Icons.circle,
                                                             size: 30,
                                                             color: Colors.white
                                                                 .withValues(
-                                                                  alpha: 0.1,
-                                                                ),
+                                                              alpha: 0.1,
+                                                            ),
                                                           ),
                                                   ),
                                           ),
@@ -16216,9 +16179,9 @@ class _AdminScreenState extends State<AdminScreen>
                                                             0xFF1A1A2E,
                                                           )
                                                         : Colors.grey
-                                                              .withValues(
-                                                                alpha: 0.5,
-                                                              ),
+                                                            .withValues(
+                                                            alpha: 0.5,
+                                                          ),
                                                   ),
                                                 ),
                                                 child: isSelected
@@ -16238,9 +16201,9 @@ class _AdminScreenState extends State<AdminScreen>
                                             child: Container(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                    horizontal: 6,
-                                                    vertical: 2,
-                                                  ),
+                                                horizontal: 6,
+                                                vertical: 2,
+                                              ),
                                               decoration: BoxDecoration(
                                                 color: active
                                                     ? AppColors.success
@@ -16326,19 +16289,20 @@ class _AdminScreenState extends State<AdminScreen>
                                                 children: [
                                                   if (hasImage)
                                                     Container(
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            horizontal: 5,
-                                                            vertical: 2,
-                                                          ),
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        horizontal: 5,
+                                                        vertical: 2,
+                                                      ),
                                                       decoration: BoxDecoration(
                                                         color: const Color(
                                                           0xFFE3F2FD,
                                                         ),
                                                         borderRadius:
-                                                            BorderRadius.circular(
-                                                              4,
-                                                            ),
+                                                            BorderRadius
+                                                                .circular(
+                                                          4,
+                                                        ),
                                                       ),
                                                       child: const Text(
                                                         '이미지',
@@ -16354,19 +16318,20 @@ class _AdminScreenState extends State<AdminScreen>
                                                     const SizedBox(width: 3),
                                                   if (buttonCard)
                                                     Container(
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            horizontal: 5,
-                                                            vertical: 2,
-                                                          ),
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        horizontal: 5,
+                                                        vertical: 2,
+                                                      ),
                                                       decoration: BoxDecoration(
                                                         color: const Color(
                                                           0xFFE8F5E9,
                                                         ),
                                                         borderRadius:
-                                                            BorderRadius.circular(
-                                                              4,
-                                                            ),
+                                                            BorderRadius
+                                                                .circular(
+                                                          4,
+                                                        ),
                                                       ),
                                                       child: const Text(
                                                         '카드',
@@ -16399,17 +16364,17 @@ class _AdminScreenState extends State<AdminScreen>
                                                 onTap: () =>
                                                     _showEditColorDialog(c),
                                                 child: Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        vertical: 5,
-                                                      ),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    vertical: 5,
+                                                  ),
                                                   decoration: BoxDecoration(
                                                     color:
                                                         AppColors.surfaceGray,
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                          6,
-                                                        ),
+                                                      6,
+                                                    ),
                                                   ),
                                                   child: const Row(
                                                     mainAxisAlignment:
@@ -16451,43 +16416,42 @@ class _AdminScreenState extends State<AdminScreen>
                                                       TextButton(
                                                         onPressed: () =>
                                                             Navigator.pop(
-                                                              context,
-                                                            ),
+                                                          context,
+                                                        ),
                                                         child: const Text('취소'),
                                                       ),
                                                       ElevatedButton(
-                                                        style:
-                                                            ElevatedButton.styleFrom(
-                                                              backgroundColor:
-                                                                  const Color(
-                                                                    0xFFE53935,
-                                                                  ),
-                                                              foregroundColor:
-                                                                  Colors.white,
-                                                            ),
+                                                        style: ElevatedButton
+                                                            .styleFrom(
+                                                          backgroundColor:
+                                                              const Color(
+                                                            0xFFE53935,
+                                                          ),
+                                                          foregroundColor:
+                                                              Colors.white,
+                                                        ),
                                                         onPressed: () async {
-                                                          final removed =
-                                                              Map<
-                                                                String,
-                                                                dynamic
-                                                              >.from(c);
+                                                          final removed = Map<
+                                                              String,
+                                                              dynamic>.from(c);
                                                           setState(
                                                             () => _colorItems
                                                                 .removeWhere(
-                                                                  (item) =>
-                                                                      item['id'] ==
-                                                                      id,
-                                                                ),
+                                                              (item) =>
+                                                                  item['id'] ==
+                                                                  id,
+                                                            ),
                                                           );
                                                           final saved =
                                                               await _persistContentCatalogs();
                                                           if (!saved) {
                                                             if (mounted) {
                                                               setState(
-                                                                () => _colorItems
-                                                                    .add(
-                                                                      removed,
-                                                                    ),
+                                                                () =>
+                                                                    _colorItems
+                                                                        .add(
+                                                                  removed,
+                                                                ),
                                                               );
                                                             }
                                                             return;
@@ -16496,7 +16460,8 @@ class _AdminScreenState extends State<AdminScreen>
                                                             Navigator.pop(
                                                               context,
                                                             );
-                                                            ScaffoldMessenger.of(
+                                                            ScaffoldMessenger
+                                                                .of(
                                                               context,
                                                             ).showSnackBar(
                                                               SnackBar(
@@ -16505,8 +16470,8 @@ class _AdminScreenState extends State<AdminScreen>
                                                                 ),
                                                                 backgroundColor:
                                                                     const Color(
-                                                                      0xFFE53935,
-                                                                    ),
+                                                                  0xFFE53935,
+                                                                ),
                                                               ),
                                                             );
                                                           }
@@ -17073,10 +17038,9 @@ class _AdminScreenState extends State<AdminScreen>
     final filtered = _designRequestFilter == '전체'
         ? _designRequests
         : _designRequests
-              .where((r) => r['status'] == _designRequestFilter)
-              .toList();
-    final allSelected =
-        filtered.isNotEmpty &&
+            .where((r) => r['status'] == _designRequestFilter)
+            .toList();
+    final allSelected = filtered.isNotEmpty &&
         filtered.every(
           (r) => _selectedDesignRequestIds.contains(r['id'] as String),
         );
@@ -17190,8 +17154,8 @@ class _AdminScreenState extends State<AdminScreen>
                     final count = status == '전체'
                         ? _designRequests.length
                         : _designRequests
-                              .where((r) => r['status'] == status)
-                              .length;
+                            .where((r) => r['status'] == status)
+                            .length;
                     return Padding(
                       padding: const EdgeInsets.only(right: 6),
                       child: GestureDetector(
@@ -17398,9 +17362,8 @@ class _AdminScreenState extends State<AdminScreen>
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isSelected
-                              ? AppColors.primary
-                              : AppColors.border,
+                          color:
+                              isSelected ? AppColors.primary : AppColors.border,
                           width: isSelected ? 2 : 1,
                         ),
                         boxShadow: [
@@ -17526,21 +17489,21 @@ class _AdminScreenState extends State<AdminScreen>
                                               req['colorName'] as String? ?? '';
                                           final adjustedHex =
                                               req['adjustedColorHex']
-                                                  as String? ??
-                                              '';
+                                                      as String? ??
+                                                  '';
                                           final teamName =
                                               req['teamName'] as String? ?? '';
                                           final fabricName =
                                               req['fabricName'] as String? ??
-                                              '';
+                                                  '';
                                           final printType =
                                               req['printType'] as String? ?? '';
                                           final memo =
                                               req['memo'] as String? ?? '';
                                           final personChanges =
                                               req['personChanges']
-                                                  as List<dynamic>? ??
-                                              [];
+                                                      as List<dynamic>? ??
+                                                  [];
                                           return Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
@@ -17608,8 +17571,8 @@ class _AdminScreenState extends State<AdminScreen>
                                                     ),
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                          8,
-                                                        ),
+                                                      8,
+                                                    ),
                                                   ),
                                                   child: Column(
                                                     crossAxisAlignment:
@@ -17633,46 +17596,46 @@ class _AdminScreenState extends State<AdminScreen>
                                                             '사이즈 변경 (${personChanges.length}명)',
                                                             style:
                                                                 const TextStyle(
-                                                                  fontSize: 11,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w800,
-                                                                  color: Color(
-                                                                    0xFF00695C,
-                                                                  ),
-                                                                ),
+                                                              fontSize: 11,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w800,
+                                                              color: Color(
+                                                                0xFF00695C,
+                                                              ),
+                                                            ),
                                                           ),
                                                         ],
                                                       ),
                                                       const SizedBox(height: 4),
-                                                      ...personChanges.take(5).map((
+                                                      ...personChanges
+                                                          .take(5)
+                                                          .map((
                                                         ch,
                                                       ) {
                                                         final m = ch as Map;
                                                         final idx =
                                                             m['index'] ?? '';
-                                                        final name =
-                                                            m['name']
+                                                        final name = m['name']
                                                                 as String? ??
                                                             '';
-                                                        final before =
-                                                            m['before']
+                                                        final before = m[
+                                                                    'before']
                                                                 as String? ??
                                                             '';
-                                                        final after =
-                                                            m['after']
+                                                        final after = m['after']
                                                                 as String? ??
                                                             '';
                                                         return Text(
                                                           '$idx번${name.isNotEmpty ? " $name" : ""}: $before → $after',
                                                           style:
                                                               const TextStyle(
-                                                                fontSize: 11,
-                                                                color: Color(
-                                                                  0xFF1A1A1A,
-                                                                ),
-                                                                height: 1.5,
-                                                              ),
+                                                            fontSize: 11,
+                                                            color: Color(
+                                                              0xFF1A1A1A,
+                                                            ),
+                                                            height: 1.5,
+                                                          ),
                                                         );
                                                       }),
                                                       if (personChanges.length >
@@ -17681,11 +17644,11 @@ class _AdminScreenState extends State<AdminScreen>
                                                           '외 ${personChanges.length - 5}명 더...',
                                                           style:
                                                               const TextStyle(
-                                                                fontSize: 10,
-                                                                color: Color(
-                                                                  0xFF888888,
-                                                                ),
-                                                              ),
+                                                            fontSize: 10,
+                                                            color: Color(
+                                                              0xFF888888,
+                                                            ),
+                                                          ),
                                                         ),
                                                     ],
                                                   ),
@@ -17705,8 +17668,8 @@ class _AdminScreenState extends State<AdminScreen>
                                                     ),
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                          8,
-                                                        ),
+                                                      8,
+                                                    ),
                                                     border: Border.all(
                                                       color: const Color(
                                                         0xFFFFCC02,
@@ -17731,12 +17694,12 @@ class _AdminScreenState extends State<AdminScreen>
                                                           memo,
                                                           style:
                                                               const TextStyle(
-                                                                fontSize: 11,
-                                                                color: Color(
-                                                                  0xFF1A1A1A,
-                                                                ),
-                                                                height: 1.5,
-                                                              ),
+                                                            fontSize: 11,
+                                                            color: Color(
+                                                              0xFF1A1A1A,
+                                                            ),
+                                                            height: 1.5,
+                                                          ),
                                                         ),
                                                       ),
                                                     ],
@@ -17825,7 +17788,7 @@ class _AdminScreenState extends State<AdminScreen>
                                         // Firestore에서 주문 불러와 이미지 업로드 다이얼로그 열기
                                         final orderId =
                                             req['orderId'] as String? ??
-                                            req['id'] as String;
+                                                req['id'] as String;
                                         try {
                                           final doc = await FirebaseFirestore
                                               .instance
@@ -17835,11 +17798,11 @@ class _AdminScreenState extends State<AdminScreen>
                                           if (!doc.exists || !context.mounted) {
                                             return;
                                           }
-                                          final order =
-                                              OrderService.parseOrderFromFirestore(
-                                                doc.data()!,
-                                                docId: orderId,
-                                              );
+                                          final order = OrderService
+                                              .parseOrderFromFirestore(
+                                            doc.data()!,
+                                            docId: orderId,
+                                          );
                                           _showDesignRevisionAdminSheet(order);
                                         } catch (e) {
                                           if (!context.mounted) return;
@@ -17922,69 +17885,72 @@ class _AdminScreenState extends State<AdminScreen>
     String label,
     String value,
     Color? dotColor,
-  ) => Padding(
-    padding: const EdgeInsets.only(top: 3),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Icon(icon, size: 12, color: AppColors.textSecondary),
-        const SizedBox(width: 4),
-        Text(
-          '$label: ',
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        if (dotColor != null) ...[
-          Container(
-            width: 10,
-            height: 10,
-            margin: const EdgeInsets.only(right: 4),
-            decoration: BoxDecoration(
-              color: dotColor,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.grey.shade300),
+  ) =>
+      Padding(
+        padding: const EdgeInsets.only(top: 3),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(icon, size: 12, color: AppColors.textSecondary),
+            const SizedBox(width: 4),
+            Text(
+              '$label: ',
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary,
+              ),
             ),
-          ),
-        ],
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 11, color: AppColors.textPrimary),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 2,
-          ),
+            if (dotColor != null) ...[
+              Container(
+                width: 10,
+                height: 10,
+                margin: const EdgeInsets.only(right: 4),
+                decoration: BoxDecoration(
+                  color: dotColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+              ),
+            ],
+            Expanded(
+              child: Text(
+                value,
+                style:
+                    const TextStyle(fontSize: 11, color: AppColors.textPrimary),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 
   Widget _drActionBtn(
     String label,
     Color color,
     Future<void> Function() onTap,
-  ) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 7),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        label,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: color,
+  ) =>
+      GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 7),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   Color _getDesignStatusColor(String status) {
     switch (status) {
@@ -18044,9 +18010,9 @@ class _AdminScreenState extends State<AdminScreen>
           .collection('orders')
           .doc(orderId)
           .update({
-            'designRevisionRequest.status': fsStatus,
-            'designRevisionRequest.handledAt': FieldValue.serverTimestamp(),
-          });
+        'designRevisionRequest.status': fsStatus,
+        'designRevisionRequest.handledAt': FieldValue.serverTimestamp(),
+      });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -18095,12 +18061,12 @@ class _AdminScreenState extends State<AdminScreen>
                     .collection('orders')
                     .doc(orderId)
                     .update({
-                      'designRevisionRequest.archived': true,
-                      'designRevisionRequest.archivedAt':
-                          FieldValue.serverTimestamp(),
-                      'designRevisionRequest.archivedBy':
-                          FirebaseAuth.instance.currentUser?.uid ?? '',
-                    });
+                  'designRevisionRequest.archived': true,
+                  'designRevisionRequest.archivedAt':
+                      FieldValue.serverTimestamp(),
+                  'designRevisionRequest.archivedBy':
+                      FirebaseAuth.instance.currentUser?.uid ?? '',
+                });
                 if (!mounted) return;
                 setState(
                   () => _designRequests.removeWhere(
@@ -18180,10 +18146,10 @@ class _AdminScreenState extends State<AdminScreen>
                     .collection('orders')
                     .doc(orderId)
                     .update({
-                      'designRevisionRequest.adminNote': note,
-                      'designRevisionRequest.noteUpdatedAt':
-                          FieldValue.serverTimestamp(),
-                    });
+                  'designRevisionRequest.adminNote': note,
+                  'designRevisionRequest.noteUpdatedAt':
+                      FieldValue.serverTimestamp(),
+                });
                 if (ctx.mounted) Navigator.pop(ctx);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -18302,10 +18268,10 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
       }
       if (!mounted) return;
       await context.read<ProductProvider>().updateSectionImages(
-        widget.product.id,
-        widget.sectionKey,
-        current,
-      );
+            widget.product.id,
+            widget.sectionKey,
+            current,
+          );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -18334,10 +18300,10 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
     if (url.isEmpty) return;
     final current = List<String>.from(_imgs)..add(url);
     await context.read<ProductProvider>().updateSectionImages(
-      widget.product.id,
-      widget.sectionKey,
-      current,
-    );
+          widget.product.id,
+          widget.sectionKey,
+          current,
+        );
     _urlCtrl.clear();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -18354,10 +18320,10 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
   Future<void> _deleteImage(int index) async {
     final current = List<String>.from(_imgs)..removeAt(index);
     await context.read<ProductProvider>().updateSectionImages(
-      widget.product.id,
-      widget.sectionKey,
-      current,
-    );
+          widget.product.id,
+          widget.sectionKey,
+          current,
+        );
     _refresh();
   }
 
@@ -18408,10 +18374,10 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
     current[index] = current[index - 1];
     current[index - 1] = tmp;
     await context.read<ProductProvider>().updateSectionImages(
-      widget.product.id,
-      widget.sectionKey,
-      current,
-    );
+          widget.product.id,
+          widget.sectionKey,
+          current,
+        );
     _refresh();
   }
 
@@ -18424,10 +18390,10 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
     current[index] = current[index + 1];
     current[index + 1] = tmp;
     await context.read<ProductProvider>().updateSectionImages(
-      widget.product.id,
-      widget.sectionKey,
-      current,
-    );
+          widget.product.id,
+          widget.sectionKey,
+          current,
+        );
     _refresh();
   }
 
@@ -18436,18 +18402,17 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
     super.initState();
     _titleCtrl = TextEditingController(text: widget.sectionTitle);
     _descriptionCtrl = TextEditingController(
-      text:
-          widget.product.sectionDescriptions[widget.sectionKey] ??
+      text: widget.product.sectionDescriptions[widget.sectionKey] ??
           widget.sectionDescription,
     );
   }
 
   Future<void> _saveProductDescription() async {
     final ok = await context.read<ProductProvider>().updateSectionDescription(
-      widget.product.id,
-      widget.sectionKey,
-      _descriptionCtrl.text,
-    );
+          widget.product.id,
+          widget.sectionKey,
+          _descriptionCtrl.text,
+        );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -18549,8 +18514,8 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                             color: _expanded
                                 ? Colors.white.withValues(alpha: 0.65)
                                 : hasImages
-                                ? AppColors.success
-                                : AppColors.textSecondary,
+                                    ? AppColors.success
+                                    : AppColors.textSecondary,
                           ),
                         ),
                       ],
@@ -18593,9 +18558,8 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                       ),
                       child: Icon(
                         Icons.keyboard_arrow_up_rounded,
-                        color: _expanded
-                            ? Colors.white
-                            : AppColors.textSecondary,
+                        color:
+                            _expanded ? Colors.white : AppColors.textSecondary,
                         size: 18,
                       ),
                     ),
@@ -18614,9 +18578,8 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                       ),
                       child: Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        color: _expanded
-                            ? Colors.white
-                            : AppColors.textSecondary,
+                        color:
+                            _expanded ? Colors.white : AppColors.textSecondary,
                         size: 18,
                       ),
                     ),
@@ -18706,9 +18669,9 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                       onPressed: widget.onSaveSettings == null
                           ? _saveProductDescription
                           : () => widget.onSaveSettings!(
-                              _titleCtrl.text,
-                              _descriptionCtrl.text,
-                            ),
+                                _titleCtrl.text,
+                                _descriptionCtrl.text,
+                              ),
                       icon: const Icon(Icons.save_rounded, size: 16),
                       label: const Text('섹션 수정 저장'),
                     ),
@@ -18940,8 +18903,8 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                                       isBase64
                                           ? '[로컬 업로드 이미지]'
                                           : url.length > 40
-                                          ? '${url.substring(0, 40)}...'
-                                          : url,
+                                              ? '${url.substring(0, 40)}...'
+                                              : url,
                                       style: const TextStyle(
                                         fontSize: 10,
                                         color: AppColors.textSecondary,
@@ -18959,9 +18922,8 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                               children: [
                                 // 위로
                                 IconButton(
-                                  onPressed: idx > 0
-                                      ? () => _moveUp(idx)
-                                      : null,
+                                  onPressed:
+                                      idx > 0 ? () => _moveUp(idx) : null,
                                   icon: Icon(
                                     Icons.keyboard_arrow_up_rounded,
                                     color: idx > 0
@@ -19157,8 +19119,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   ];
 
   // ── 싱글렛세트A타입 고정 상품내용 (싱글렛유니폼세트와 동일)
-  static const String _singletSetADesc =
-      '2FIT 싱글렛 A타입 유니폼 세트입니다.\n'
+  static const String _singletSetADesc = '2FIT 싱글렛 A타입 유니폼 세트입니다.\n'
       '싱글렛(상의) + 타이즈(하의)로 구성된 단체 경기복 세트.\n\n'
       '소재: 78% Nylon, 22% Spandex / 4-way Stretch\n'
       '심리스(무봉제) 설계로 피부 마찰 최소화 및 편안한 착용감.\n'
@@ -19583,9 +19544,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
           ? '타이즈 $_selTightsSub'
           : _selSubCat,
       price: price,
-      originalPrice: (origPrice != null && origPrice > price)
-          ? origPrice
-          : null,
+      originalPrice:
+          (origPrice != null && origPrice > price) ? origPrice : null,
       description: _descCtrl.text.trim(),
       images: images,
       sizes: _sizesCtrl.text
@@ -19613,9 +19573,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       // 신상품 ON → 만료일 = 등록일+60일 자동 세팅 / OFF → null
       newExpiresAt: _isNew
           ? (_newExpiresAt ??
-                (widget.existing?.createdAt ?? DateTime.now()).add(
-                  const Duration(days: 60),
-                ))
+              (widget.existing?.createdAt ?? DateTime.now()).add(
+                const Duration(days: 60),
+              ))
           : null,
       isSale: _isSale,
       isFreeShipping: _isFreeShip,
@@ -19629,17 +19589,18 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       },
       stockData: _buildStockData(),
       stockCount: _selectedColors.isNotEmpty && _selectedSizes.isNotEmpty
-          ? _buildStockData().values
-                .expand((colorMap) => colorMap.values)
-                .fold(0, (total, qty) => total + qty)
+          ? _buildStockData()
+              .values
+              .expand((colorMap) => colorMap.values)
+              .fold(0, (total, qty) => total + qty)
           : _sizeStockCtrls.isEmpty
-          ? (int.tryParse(_stockCtrl.text) ?? 100)
-          : _sizeStockCtrls.entries
-                .where((e) => !_soldOutSizes.contains(e.key))
-                .fold(
-                  0,
-                  (total, e) => total + (int.tryParse(e.value.text) ?? 0),
-                ),
+              ? (int.tryParse(_stockCtrl.text) ?? 100)
+              : _sizeStockCtrls.entries
+                  .where((e) => !_soldOutSizes.contains(e.key))
+                  .fold(
+                    0,
+                    (total, e) => total + (int.tryParse(e.value.text) ?? 0),
+                  ),
       soldOutSizes: _soldOutSizes.toList(),
       isActive: _isActive,
       createdAt: widget.existing?.createdAt ?? DateTime.now(),
@@ -19714,8 +19675,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     _isEdit
                         ? Icons.edit_outlined
                         : widget.isCopy
-                        ? Icons.copy_all_rounded
-                        : Icons.add_box_outlined,
+                            ? Icons.copy_all_rounded
+                            : Icons.add_box_outlined,
                     color: Colors.white,
                     size: 20,
                   ),
@@ -19724,8 +19685,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     _isEdit
                         ? '상품 수정'
                         : widget.isCopy
-                        ? '상품 복사 (새 상품 등록)'
-                        : '새 상품 등록',
+                            ? '상품 복사 (새 상품 등록)'
+                            : '새 상품 등록',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -19783,12 +19744,12 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                 ),
                               )
                             : _nameTranslations.isNotEmpty
-                            ? const Icon(
-                                Icons.translate,
-                                color: Color(0xFF4CAF50),
-                                size: 20,
-                              )
-                            : null,
+                                ? const Icon(
+                                    Icons.translate,
+                                    color: Color(0xFF4CAF50),
+                                    size: 20,
+                                  )
+                                : null,
                       ),
                     ),
                     // 번역 미리보기
@@ -19904,9 +19865,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                     if (v == '단체주문') _isGroupOnly = true;
                                     final subs =
                                         CategoryService.subCatMap[v] ?? [];
-                                    _selSubCat = subs.isNotEmpty
-                                        ? subs.first
-                                        : '';
+                                    _selSubCat =
+                                        subs.isNotEmpty ? subs.first : '';
                                     _selTightsSub = '';
                                     // 신규 등록 시 카테고리별 설명 자동입력
                                     if (!_isEdit) {
@@ -19943,8 +19903,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                 value: _currentSubCats.contains(_selSubCat)
                                     ? _selSubCat
                                     : (_currentSubCats.isNotEmpty
-                                          ? _currentSubCats.first
-                                          : null),
+                                        ? _currentSubCats.first
+                                        : null),
                                 isExpanded: true,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 14,
@@ -20056,9 +20016,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                 s,
                                 style: TextStyle(
                                   fontSize: 12,
-                                  fontWeight: sel
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
+                                  fontWeight:
+                                      sel ? FontWeight.w700 : FontWeight.w500,
                                   color: sel ? Colors.white : AppColors.primary,
                                 ),
                               ),
@@ -20198,8 +20157,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                             label: Text(
                               _isUploading
                                   ? (_uploadStatus.isNotEmpty
-                                        ? _uploadStatus
-                                        : '처리 중...')
+                                      ? _uploadStatus
+                                      : '처리 중...')
                                   : '이미지 파일 선택',
                             ),
                             style: ElevatedButton.styleFrom(
@@ -20341,10 +20300,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                   onTap: isPending
                                       ? null
                                       : () => showImageLightbox(
-                                          context,
-                                          _images,
-                                          initialIndex: i,
-                                        ),
+                                            context,
+                                            _images,
+                                            initialIndex: i,
+                                          ),
                                   child: Container(
                                     width: 90,
                                     height: 90,
@@ -20365,10 +20324,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                               fit: BoxFit.cover,
                                               errorBuilder: (_, __, ___) =>
                                                   const Icon(
-                                                    Icons.broken_image,
-                                                    size: 32,
-                                                    color: Colors.grey,
-                                                  ),
+                                                Icons.broken_image,
+                                                size: 32,
+                                                color: Colors.grey,
+                                              ),
                                             )
                                           : NetImage(img, fit: BoxFit.cover),
                                     ),
@@ -20615,15 +20574,12 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                           Expanded(
                             child: Text(
                               () {
-                                final isSingletSet =
-                                    _selCat == '세트' ||
+                                final isSingletSet = _selCat == '세트' ||
                                     _selSubCat.contains('싱글렛세트');
-                                final isSingletTop =
-                                    !isSingletSet &&
+                                final isSingletTop = !isSingletSet &&
                                     (_selCat == '상의' ||
                                         _selSubCat.contains('싱글렛'));
-                                final isTaiz =
-                                    _selSubCat.contains('타이즈') ||
+                                final isTaiz = _selSubCat.contains('타이즈') ||
                                     _selCat == '하의';
                                 if (isSingletSet) {
                                   return '자동: 상의 폴리에스터 92%/라이크라 8% + 하의 나일론 75%/라이크라 25%';
@@ -20756,8 +20712,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                           final hexVal = c['hex'] as int;
                           final isSelected = _selectedColors.contains(name);
                           // isFree: twoFitColors의 isFree 필드 사용 (블랙·퍼플네이비 = 기본가)
-                          final isFree =
-                              (c['isFree'] as bool?) ??
+                          final isFree = (c['isFree'] as bool?) ??
                               (name == '블랙' || name == '퍼플네이비');
                           // isLight: computeLuminance 기반 (> 0.35 → 어두운 텍스트)
                           // Flutter Color.computeLuminance()와 동일한 WCAG 2.1 알고리즘
@@ -20786,8 +20741,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                 border: Border.all(
                                   color: isSelected
                                       ? (isLight
-                                            ? AppColors.textPrimary
-                                            : Colors.white)
+                                          ? AppColors.textPrimary
+                                          : Colors.white)
                                       : AppColors.border,
                                   width: isSelected ? 2.5 : 1,
                                 ),
@@ -20838,11 +20793,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                       style: TextStyle(
                                         fontSize: 9,
                                         fontWeight: FontWeight.w600,
-                                        color:
-                                            (isLight
-                                                    ? AppColors.textPrimary
-                                                    : Colors.white)
-                                                .withValues(alpha: 0.8),
+                                        color: (isLight
+                                                ? AppColors.textPrimary
+                                                : Colors.white)
+                                            .withValues(alpha: 0.8),
                                       ),
                                     ),
                                 ],
@@ -20910,17 +20864,18 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                             color: _isGroupOnly && _isReadyMade
                                 ? const Color(0xFFF3E5F5)
                                 : _isGroupOnly
-                                ? const Color(0xFFEDE7F6)
-                                : const Color(0xFFE0F2F1),
+                                    ? const Color(0xFFEDE7F6)
+                                    : const Color(0xFFE0F2F1),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: _isGroupOnly && _isReadyMade
                                   ? const Color(0xFFCE93D8)
                                   : _isGroupOnly
-                                  ? const Color(
-                                      0xFF9C27B0,
-                                    ).withValues(alpha: 0.4)
-                                  : AppColors.primary.withValues(alpha: 0.4),
+                                      ? const Color(
+                                          0xFF9C27B0,
+                                        ).withValues(alpha: 0.4)
+                                      : AppColors.primary
+                                          .withValues(alpha: 0.4),
                             ),
                           ),
                           child: Column(
@@ -21089,9 +21044,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            onPressed: (_isSaving || _isUploading)
-                                ? null
-                                : _save,
+                            onPressed:
+                                (_isSaving || _isUploading) ? null : _save,
                             child: _isSaving
                                 ? const SizedBox(
                                     height: 20,
@@ -21102,46 +21056,48 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                     ),
                                   )
                                 : _isUploading
-                                ? const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      SizedBox(
-                                        height: 16,
-                                        width: 16,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white70,
-                                        ),
+                                    ? const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            height: 16,
+                                            width: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            '업로드 중...',
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.save_rounded,
+                                            size: 16,
+                                            color: Colors.white,
+                                          ),
+                                          SizedBox(width: 6),
+                                          Text(
+                                            '저장',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 15,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        '업로드 중...',
-                                        style: TextStyle(
-                                          color: Colors.white70,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.save_rounded,
-                                        size: 16,
-                                        color: Colors.white,
-                                      ),
-                                      SizedBox(width: 6),
-                                      Text(
-                                        '저장',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                           ),
                         ),
                       ],
@@ -21202,12 +21158,12 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
 
   // ── 헬퍼 위젯
   Widget _lbl(String t) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Text(
-      t,
-      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-    ),
-  );
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Text(
+          t,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+        ),
+      );
 
   // ── 사이즈 선택 칩 UI (성인 / 주니어 그룹)
   Widget _buildSizeSelector() {
@@ -21259,26 +21215,27 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     }
 
     Widget groupLabel(String label, IconData icon, Color color) => Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Icon(icon, size: 13, color: color),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            children: [
+              Icon(icon, size: 13, color: color),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child:
+                    Container(height: 1, color: color.withValues(alpha: 0.2)),
+              ),
+            ],
           ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Container(height: 1, color: color.withValues(alpha: 0.2)),
-          ),
-        ],
-      ),
-    );
+        );
 
     Widget sizeChip(String s, Color activeColor) {
       final sel = _selectedSizes.contains(s);
@@ -21543,12 +21500,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: isSoldOut
-                              ? Colors.white
-                              : AppColors.textPrimary,
-                          decoration: isSoldOut
-                              ? TextDecoration.lineThrough
-                              : null,
+                          color:
+                              isSoldOut ? Colors.white : AppColors.textPrimary,
+                          decoration:
+                              isSoldOut ? TextDecoration.lineThrough : null,
                           decorationColor: Colors.white,
                         ),
                       ),
@@ -21655,9 +21610,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     }
     final validColors = _selectedColors.toSet();
     final validSizes = _selectedSizes.toSet();
-    final oldPrices = _colorPriceCtrls.keys
-        .where((c) => !validColors.contains(c))
-        .toList();
+    final oldPrices =
+        _colorPriceCtrls.keys.where((c) => !validColors.contains(c)).toList();
     for (final color in oldPrices) {
       _colorPriceCtrls[color]?.dispose();
       _colorPriceCtrls.remove(color);
@@ -21682,7 +21636,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
           for (final color in _selectedColors)
             color:
                 int.tryParse(_stockDataCtrls['$size::$color']?.text ?? '0') ??
-                0,
+                    0,
         },
     };
   }
@@ -21846,9 +21800,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       }
     }
     // 제거된 사이즈 컨트롤러 정리
-    final removed = _sizeStockCtrls.keys
-        .where((s) => !_selectedSizes.contains(s))
-        .toList();
+    final removed =
+        _sizeStockCtrls.keys.where((s) => !_selectedSizes.contains(s)).toList();
     for (final s in removed) {
       _sizeStockCtrls[s]?.dispose();
       _sizeStockCtrls.remove(s);
@@ -21981,9 +21934,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
                             color: isSoldOut ? AppColors.error : Colors.white,
-                            decoration: isSoldOut
-                                ? TextDecoration.lineThrough
-                                : null,
+                            decoration:
+                                isSoldOut ? TextDecoration.lineThrough : null,
                           ),
                         ),
                       ),
@@ -22311,84 +22263,84 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   }
 
   Widget _translationRow(String flag, String text) => Padding(
-    padding: const EdgeInsets.only(top: 2),
-    child: Row(
-      children: [
-        Text(
-          flag,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
-          ),
+        padding: const EdgeInsets.only(top: 2),
+        child: Row(
+          children: [
+            Text(
+              flag,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                text,
+                style: const TextStyle(fontSize: 12, color: AppColors.primary),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(fontSize: 12, color: AppColors.primary),
-          ),
-        ),
-      ],
-    ),
-  );
+      );
 
   Widget _field(
     TextEditingController c,
     String hint, {
     TextInputType type = TextInputType.text,
-  }) => TextField(
-    controller: c,
-    keyboardType: type,
-    decoration: InputDecoration(
-      hintText: hint,
-      filled: true,
-      fillColor: AppColors.surfaceGray,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide.none,
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      isDense: true,
-    ),
-    onChanged: (_) => _scheduleAutoSave(),
-  );
+  }) =>
+      TextField(
+        controller: c,
+        keyboardType: type,
+        decoration: InputDecoration(
+          hintText: hint,
+          filled: true,
+          fillColor: AppColors.surfaceGray,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          isDense: true,
+        ),
+        onChanged: (_) => _scheduleAutoSave(),
+      );
 
   Widget _chip(
     String label,
     bool val,
     ValueChanged<bool>? onChanged, {
     Color? ac,
-  }) => FilterChip(
-    label: Text(
-      label,
-      style: TextStyle(
-        fontSize: 12,
-        color: val ? Colors.white : AppColors.textSecondary,
-      ),
-    ),
-    selected: val,
-    onSelected: onChanged,
-    selectedColor: ac ?? AppColors.primary,
-    backgroundColor: onChanged == null
-        ? const Color(0xFFE8D5F5)
-        : AppColors.surfaceGray,
-    checkmarkColor: Colors.white,
-    side: BorderSide.none,
-    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-  );
+  }) =>
+      FilterChip(
+        label: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: val ? Colors.white : AppColors.textSecondary,
+          ),
+        ),
+        selected: val,
+        onSelected: onChanged,
+        selectedColor: ac ?? AppColors.primary,
+        backgroundColor:
+            onChanged == null ? const Color(0xFFE8D5F5) : AppColors.surfaceGray,
+        checkmarkColor: Colors.white,
+        side: BorderSide.none,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+      );
 
   /// 신상품 칩 — ON 시 "신상품 · ~MM/DD까지" 라벨 표시
   Widget _newChip() {
     // 만료일: 이미 저장된 값 우선, 없으면 오늘+60일
-    final expires =
-        _newExpiresAt ??
+    final expires = _newExpiresAt ??
         (widget.existing?.createdAt ?? DateTime.now()).add(
           const Duration(days: 60),
         );
-    final expiresLabel = _isNew
-        ? '신상품 · ${expires.month}/${expires.day}까지'
-        : '신상품';
+    final expiresLabel =
+        _isNew ? '신상품 · ${expires.month}/${expires.day}까지' : '신상품';
     return FilterChip(
       label: Text(
         expiresLabel,
@@ -22895,7 +22847,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                             NoticeThemeHelper.themeEmoji[previewTheme] ?? '📢';
                         final label =
                             NoticeThemeHelper.themeLabel[previewTheme] ??
-                            '일반공지';
+                                '일반공지';
                         final autoUrl = NoticeThemeHelper.autoImageUrl(
                           previewTheme,
                         );
@@ -22978,8 +22930,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                           color: AppColors.surfaceGray,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color:
-                                pickedImageBytes != null ||
+                            color: pickedImageBytes != null ||
                                     imageCtrl.text.isNotEmpty
                                 ? AppColors.primaryLight
                                 : AppColors.border,
@@ -22995,39 +22946,39 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                                 ),
                               )
                             : imageCtrl.text.isNotEmpty
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(9),
-                                child: NetImage(
-                                  imageCtrl.text,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.add_photo_alternate_rounded,
-                                    size: 40,
-                                    color: AppColors.textHint,
-                                  ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    '탭하여 이미지 선택',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: AppColors.textSecondary,
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(9),
+                                    child: NetImage(
+                                      imageCtrl.text,
+                                      fit: BoxFit.cover,
                                     ),
+                                  )
+                                : const Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.add_photo_alternate_rounded,
+                                        size: 40,
+                                        color: AppColors.textHint,
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        '탭하여 이미지 선택',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'JPG / PNG 권장',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.textHint,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'JPG / PNG 권장',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textHint,
-                                    ),
-                                  ),
-                                ],
-                              ),
                       ),
                     ),
 
@@ -23046,36 +22997,35 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                                         isUploading = true;
                                         uploadProgress = 0.0;
                                       });
-                                      final noticeId =
-                                          existing?.id ??
+                                      final noticeId = existing?.id ??
                                           'notice_${DateTime.now().millisecondsSinceEpoch}';
-                                      await for (final p
-                                          in StorageService.uploadNoticeImageWithProgress(
-                                            noticeId: noticeId,
-                                            imageBytes: pickedImageBytes!,
-                                            fileName:
-                                                pickedFileName ?? 'notice.jpg',
-                                            onComplete: (url) {
-                                              setD(() {
-                                                uploadedUrl = url;
-                                                imageCtrl.text = url;
-                                                isUploading = false;
-                                                pickedImageBytes = null;
-                                                autoImage =
-                                                    false; // ← 업로드 완료 시 자동이미지 OFF
-                                              });
-                                            },
-                                            onError: (e) {
-                                              setD(() => isUploading = false);
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('업로드 실패: $e'),
-                                                ),
-                                              );
-                                            },
-                                          )) {
+                                      await for (final p in StorageService
+                                          .uploadNoticeImageWithProgress(
+                                        noticeId: noticeId,
+                                        imageBytes: pickedImageBytes!,
+                                        fileName:
+                                            pickedFileName ?? 'notice.jpg',
+                                        onComplete: (url) {
+                                          setD(() {
+                                            uploadedUrl = url;
+                                            imageCtrl.text = url;
+                                            isUploading = false;
+                                            pickedImageBytes = null;
+                                            autoImage =
+                                                false; // ← 업로드 완료 시 자동이미지 OFF
+                                          });
+                                        },
+                                        onError: (e) {
+                                          setD(() => isUploading = false);
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text('업로드 실패: $e'),
+                                            ),
+                                          );
+                                        },
+                                      )) {
                                         setD(() => uploadProgress = p);
                                       }
                                     },
@@ -23285,18 +23235,17 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                 final finalImageUrl = (uploadedUrl?.trim().isNotEmpty ?? false)
                     ? uploadedUrl!.trim()
                     : imageCtrl.text.trim().isNotEmpty
-                    ? imageCtrl.text.trim()
-                    : autoImage
-                    ? NoticeThemeHelper.autoImageUrl(finalTheme)
-                    : '';
+                        ? imageCtrl.text.trim()
+                        : autoImage
+                            ? NoticeThemeHelper.autoImageUrl(finalTheme)
+                            : '';
 
                 final titleChanged =
                     existing != null && existing.titleKo != title;
                 final contentChanged =
                     existing != null && existing.contentKo != content;
                 final notice = NoticeModel(
-                  id:
-                      existing?.id ??
+                  id: existing?.id ??
                       'notice_${DateTime.now().millisecondsSinceEpoch}',
                   titleKo: title,
                   contentKo: content,
@@ -23581,59 +23530,59 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                     ),
                   )
                 : notices.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryLight.withValues(
-                              alpha: 0.07,
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryLight.withValues(
+                                  alpha: 0.07,
+                                ),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.campaign_outlined,
+                                size: 48,
+                                color: AppColors.primaryLight,
+                              ),
                             ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.campaign_outlined,
-                            size: 48,
-                            color: AppColors.primaryLight,
-                          ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              '등록된 공지사항이 없습니다',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              '\'새 공지 등록\' 버튼을 눌러 첫 번째 공지를 작성해보세요',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          '등록된 공지사항이 없습니다',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          '\'새 공지 등록\' 버튼을 눌러 첫 번째 공지를 작성해보세요',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-                    itemCount: notices.length,
-                    itemBuilder: (ctx, i) {
-                      final n = notices[i];
-                      return _NoticeCard(
-                        notice: n,
-                        onEdit: () => _openEditor(existing: n),
-                        onDelete: () => _confirmDelete(n),
-                        onToggleActive: () => context
-                            .read<NoticeProvider>()
-                            .toggleNoticeActive(n.id),
-                      );
-                    },
-                  ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                        itemCount: notices.length,
+                        itemBuilder: (ctx, i) {
+                          final n = notices[i];
+                          return _NoticeCard(
+                            notice: n,
+                            onEdit: () => _openEditor(existing: n),
+                            onDelete: () => _confirmDelete(n),
+                            onToggleActive: () => context
+                                .read<NoticeProvider>()
+                                .toggleNoticeActive(n.id),
+                          );
+                        },
+                      ),
           ),
         ],
       ),
@@ -23927,9 +23876,8 @@ class _NoticeBadge extends StatelessWidget {
       bgColor = const Color(0xFFFFEBEE);
       textColor = AppColors.error.withValues(alpha: 0.82);
     } else {
-      final endStr = endDate != null
-          ? '~${endDate!.month}/${endDate!.day}'
-          : '~상시';
+      final endStr =
+          endDate != null ? '~${endDate!.month}/${endDate!.day}' : '~상시';
       label = '📅 $endStr';
       bgColor = const Color(0xFFE8F5E9);
       textColor = AppColors.success;
@@ -24272,7 +24220,8 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                         if (newIdx > oldIdx) newIdx--;
                                         final item = list.removeAt(oldIdx);
                                         list.insert(newIdx, item);
-                                        await CategoryService.reorderSubCategories(
+                                        await CategoryService
+                                            .reorderSubCategories(
                                           _selectedMain!,
                                           list,
                                         );

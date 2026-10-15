@@ -74,8 +74,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     final isSinglet = label.contains('싱글렛') || label.contains('singlet');
     if (!isSinglet) return false;
 
-    final isSet =
-        label.contains('싱글렛세트') ||
+    final isSet = label.contains('싱글렛세트') ||
         label.contains('싱글렛 세트') ||
         label.contains('singlet set');
     final isTights = label.contains('타이즈') || label.contains('tights');
@@ -373,9 +372,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     super.dispose();
   }
 
-  String _fmt(double p) => p
-      .toStringAsFixed(0)
-      .replaceAllMapped(
+  String _fmt(double p) => p.toStringAsFixed(0).replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
         (m) => '${m[1]},',
       );
@@ -1030,11 +1027,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   }
 
   Widget _imagePlaceholder() => Container(
-    color: AppColors.border,
-    child: const Center(
-      child: Icon(Icons.image_outlined, size: 80, color: AppColors.border),
-    ),
-  );
+        color: AppColors.border,
+        child: const Center(
+          child: Icon(Icons.image_outlined, size: 80, color: AppColors.border),
+        ),
+      );
 
   // ══ 상품 공유 ══
   void _shareProduct(ProductModel product) {
@@ -1044,8 +1041,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     final price = product.price > 0
         ? '₩${product.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원'
         : '';
-    final text =
-        '''[2FIT MALL] ${product.name}
+    final text = '''[2FIT MALL] ${product.name}
 $price
 $productUrl
 
@@ -1401,8 +1397,8 @@ $productUrl
     final r = Responsive.of(context);
     final discount =
         product.originalPrice != null && product.originalPrice! > product.price
-        ? ((1 - product.price / product.originalPrice!) * 100).round()
-        : 0;
+            ? ((1 - product.price / product.originalPrice!) * 100).round()
+            : 0;
     final isAdmin = context.read<UserProvider>().isAdmin;
 
     return Container(
@@ -1718,20 +1714,19 @@ $productUrl
 
   // ── 탑텐 스타일: 색상 원형 그리드 선택 UI ──
   Widget _buildToptenColorSection(ProductModel product) {
-    String selectedColor = product.colors.isNotEmpty
-        ? product.colors.first
-        : '';
+    String selectedColor =
+        product.colors.isNotEmpty ? product.colors.first : '';
     // 골지 텍스처 적용 대상: 타이즈, 단체주문 하의, 5부, 2.5부
     final sub = product.subCategory;
     final name = product.name;
     final showRib =
         _isSingletGroupProduct(product) && product.category == '하의' ||
-        sub.contains(context.loc.t('타이즈', '타이즈')) ||
-        name.contains(context.loc.t('타이즈', '타이즈')) ||
-        sub.contains(context.loc.t('k_5부', '5부')) ||
-        name.contains(context.loc.t('k_5부', '5부')) ||
-        sub.contains(context.loc.t('k_25부', '2.5부')) ||
-        name.contains(context.loc.t('k_25부', '2.5부'));
+            sub.contains(context.loc.t('타이즈', '타이즈')) ||
+            name.contains(context.loc.t('타이즈', '타이즈')) ||
+            sub.contains(context.loc.t('k_5부', '5부')) ||
+            name.contains(context.loc.t('k_5부', '5부')) ||
+            sub.contains(context.loc.t('k_25부', '2.5부')) ||
+            name.contains(context.loc.t('k_25부', '2.5부'));
 
     return StatefulBuilder(
       builder: (ctx, setSt) {
@@ -2051,9 +2046,8 @@ $productUrl
                       style: TextStyle(
                         fontSize: r.sp(13),
                         fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
-                        color: sel
-                            ? AppColors.primary
-                            : AppColors.textSecondary,
+                        color:
+                            sel ? AppColors.primary : AppColors.textSecondary,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -2093,21 +2087,17 @@ $productUrl
     final customMaterial = product.material.trim();
     final hasCustomMaterial =
         customMaterial.isNotEmpty && !legacyDefaults.contains(customMaterial);
-    final isSingletSet =
-        product.category == '세트' ||
+    final isSingletSet = product.category == '세트' ||
         label.contains('싱글렛세트') ||
         label.contains('싱글렛 세트');
-    final isSingletOrRoundTee =
-        !isSingletSet &&
+    final isSingletOrRoundTee = !isSingletSet &&
         (label.contains('싱글렛') ||
             label.contains('라운드티') ||
             label.contains('라운드 티'));
-    final isGoljiTights =
-        label.contains('골지타이즈') ||
+    final isGoljiTights = label.contains('골지타이즈') ||
         label.contains('골지 타이즈') ||
         (product.category == '하의' && label.contains('골지'));
-    final isPearlWear =
-        label.contains('크롭탑') ||
+    final isPearlWear = label.contains('크롭탑') ||
         label.contains('크롭 탑') ||
         label.contains('삼각') ||
         label.contains('원피스');
@@ -2139,19 +2129,16 @@ $productUrl
     final name = product.name;
 
     // ── 카테고리 판별 헬퍼 ──────────────────────────────────────
-    final isSingletSet =
-        cat == context.loc.t('세트', '세트') ||
+    final isSingletSet = cat == context.loc.t('세트', '세트') ||
         sub.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         name.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         name.contains(context.loc.t('싱글렛 세트', '싱글렛 세트'));
     // ignore: unused_local_variable
-    final isSingletTop =
-        !isSingletSet &&
+    final isSingletTop = !isSingletSet &&
         (cat == context.loc.t('상의', '상의') ||
             sub.contains(context.loc.t('싱글렛', '싱글렛')) ||
             name.contains(context.loc.t('싱글렛', '싱글렛')));
-    final isTaiz =
-        sub.contains(context.loc.t('타이즈', '타이즈')) ||
+    final isTaiz = sub.contains(context.loc.t('타이즈', '타이즈')) ||
         name.contains(context.loc.t('타이즈', '타이즈')) ||
         cat == context.loc.t('하의', '하의');
     final isGroupOnly = _isSingletGroupProduct(product);
@@ -2240,8 +2227,7 @@ $productUrl
       );
     } else {
       // 기성품: 타이즈·5부·2.5부는 골지, 그 외(숏츠 등)는 단색
-      final isRibBottom =
-          sub.contains(context.loc.t('타이즈', '타이즈')) ||
+      final isRibBottom = sub.contains(context.loc.t('타이즈', '타이즈')) ||
           name.contains(context.loc.t('타이즈', '타이즈')) ||
           sub.contains(context.loc.t('k_5부', '5부')) ||
           name.contains(context.loc.t('k_5부', '5부')) ||
@@ -2276,16 +2262,16 @@ $productUrl
       final lengthLabel = sub.contains('9부')
           ? '9부'
           : sub.contains(context.loc.t('k_5부', '5부'))
-          ? '5부'
-          : sub.contains(context.loc.t('k_4부', '4부'))
-          ? '4부'
-          : sub.contains(context.loc.t('k_3부', '3부'))
-          ? '3부'
-          : sub.contains(context.loc.t('k_25부', '2.5부'))
-          ? '2.5부'
-          : sub.contains(context.loc.t('숏쇼츠', '숏쇼츠'))
-          ? context.loc.t('숏쇼츠', '숏쇼츠')
-          : null;
+              ? '5부'
+              : sub.contains(context.loc.t('k_4부', '4부'))
+                  ? '4부'
+                  : sub.contains(context.loc.t('k_3부', '3부'))
+                      ? '3부'
+                      : sub.contains(context.loc.t('k_25부', '2.5부'))
+                          ? '2.5부'
+                          : sub.contains(context.loc.t('숏쇼츠', '숏쇼츠'))
+                              ? context.loc.t('숏쇼츠', '숏쇼츠')
+                              : null;
       if (lengthLabel != null) bottomLengthValue = lengthLabel;
     }
 
@@ -2628,26 +2614,26 @@ $productUrl
   // 세탁 주의사항 리스트
   // static const → runtime loc.t 사용, getter로 대체
   List<String> get _washingTips => [
-    context.loc.t(
-      '세제를_풀어_놓은_물에_담가_두지_마시고',
-      '세제를 풀어 놓은 물에 담가 두지 마시고 세탁 시 수축 및 변형 방지를 위해 찬물 세탁을 권장합니다.',
-    ),
-    context.loc.t('땀과_물에_젖었을_경우_즉시_세탁', '땀과 물에 젖었을 경우 즉시 세탁하십시오.'),
-    context.loc.t('세탁_시_지퍼나_단추를_잠근_상태', '세탁 시 지퍼나 단추를 잠근 상태에서 세탁하여 주십시오.'),
-    context.loc.t('흰색_제품과_유색_제품은_반드시', '흰색 제품과 유색 제품은 반드시 구분하여 별도 세탁하십시오.'),
-    context.loc.t(
-      '이염_방지를_위해_색상이_있는_옷',
-      '이염 방지를 위해 색상이 있는 옷은 단독 세탁 권장 드리며, 염소, xs백 제품은 사용하지 않는 것을 권장 드립니다.',
-    ),
-    context.loc.t(
-      '탈수_시_약하게_짜시고_탈수_후',
-      '탈수 시 약하게 짜시고 탈수 후 뭉친 상태로 두시면 이염이 될 수 있으니 바로 건조하여 주십시오.',
-    ),
-    context.loc.t(
-      '열풍_건조는_제품_수축의_원인',
-      '열풍 건조는 제품 수축의 원인이 될 수 있으므로 열풍 건조를 하지 마십시오.',
-    ),
-  ];
+        context.loc.t(
+          '세제를_풀어_놓은_물에_담가_두지_마시고',
+          '세제를 풀어 놓은 물에 담가 두지 마시고 세탁 시 수축 및 변형 방지를 위해 찬물 세탁을 권장합니다.',
+        ),
+        context.loc.t('땀과_물에_젖었을_경우_즉시_세탁', '땀과 물에 젖었을 경우 즉시 세탁하십시오.'),
+        context.loc.t('세탁_시_지퍼나_단추를_잠근_상태', '세탁 시 지퍼나 단추를 잠근 상태에서 세탁하여 주십시오.'),
+        context.loc.t('흰색_제품과_유색_제품은_반드시', '흰색 제품과 유색 제품은 반드시 구분하여 별도 세탁하십시오.'),
+        context.loc.t(
+          '이염_방지를_위해_색상이_있는_옷',
+          '이염 방지를 위해 색상이 있는 옷은 단독 세탁 권장 드리며, 염소, xs백 제품은 사용하지 않는 것을 권장 드립니다.',
+        ),
+        context.loc.t(
+          '탈수_시_약하게_짜시고_탈수_후',
+          '탈수 시 약하게 짜시고 탈수 후 뭉친 상태로 두시면 이염이 될 수 있으니 바로 건조하여 주십시오.',
+        ),
+        context.loc.t(
+          '열풍_건조는_제품_수축의_원인',
+          '열풍 건조는 제품 수축의 원인이 될 수 있으므로 열풍 건조를 하지 마십시오.',
+        ),
+      ];
 
   // ── 최하단 WASHING TIP 독립 섹션 (탑텐 스타일) ──
   Widget _buildWashingTipSection(ProductModel product) {
@@ -2940,9 +2926,8 @@ $productUrl
               Icon(
                 item['icon'] as IconData,
                 size: 15,
-                color: isHighlight
-                    ? AppColors.success
-                    : AppColors.textSecondary,
+                color:
+                    isHighlight ? AppColors.success : AppColors.textSecondary,
               ),
               SizedBox(width: r.w(10)),
               SizedBox(
@@ -2961,9 +2946,8 @@ $productUrl
                   item['value'] as String,
                   style: TextStyle(
                     fontSize: r.sp(12),
-                    color: isHighlight
-                        ? AppColors.success
-                        : AppColors.textPrimary,
+                    color:
+                        isHighlight ? AppColors.success : AppColors.textPrimary,
                     fontWeight: isHighlight ? FontWeight.w700 : FontWeight.w500,
                     height: 1.4,
                   ),
@@ -3055,12 +3039,10 @@ $productUrl
 
   /// 타이즈 또는 싱글렛세트만 하의 색상 선택 배너 표시
   bool _showBottomColorBadge(ProductModel p) {
-    final isTaiz =
-        p.category == '하의' ||
+    final isTaiz = p.category == '하의' ||
         p.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
         p.name.contains(context.loc.t('타이즈', '타이즈'));
-    final isSingletSet =
-        p.category == '세트' ||
+    final isSingletSet = p.category == '세트' ||
         p.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         p.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트'));
     return isTaiz || isSingletSet;
@@ -3071,13 +3053,11 @@ $productUrl
   Widget _buildColorInfoBadge(ProductModel product) {
     final r = Responsive.of(context);
     // 타이즈와 싱글렛세트 모두 "하의 색상 선택" 표시
-    final isTaiz =
-        product.category == '하의' ||
+    final isTaiz = product.category == '하의' ||
         product.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
         product.name.contains(context.loc.t('타이즈', '타이즈'));
-    final label = isTaiz
-        ? context.loc.t('타이즈', '타이즈')
-        : context.loc.t('기성품', '기성품');
+    final label =
+        isTaiz ? context.loc.t('타이즈', '타이즈') : context.loc.t('기성품', '기성품');
     final subtitle = isTaiz
         ? context.loc.t('색상을 선택하세요 19가지', '색상을 선택하세요 (19가지)')
         : context.loc.t(
@@ -3191,8 +3171,7 @@ $productUrl
     final r = Responsive.of(context);
     const lengths = AppConstants.bottomLengths;
     final product = widget.product;
-    final isSingletSet =
-        (product.category == '세트' &&
+    final isSingletSet = (product.category == '세트' &&
             (product.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
                 product.subCategory.contains(
                   context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트'),
@@ -3398,15 +3377,15 @@ $productUrl
                     color: !isAllowed
                         ? AppColors.surfaceGray
                         : sel
-                        ? AppColors.primary
-                        : const Color(0xFFF7F8FA),
+                            ? AppColors.primary
+                            : const Color(0xFFF7F8FA),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: !isAllowed
                           ? AppColors.border
                           : sel
-                          ? AppColors.primary
-                          : AppColors.border,
+                              ? AppColors.primary
+                              : AppColors.border,
                       width: sel ? 1.5 : 1,
                     ),
                   ),
@@ -3421,8 +3400,8 @@ $productUrl
                           color: !isAllowed
                               ? AppColors.textHint
                               : sel
-                              ? Colors.white
-                              : AppColors.primary,
+                                  ? Colors.white
+                                  : AppColors.primary,
                         ),
                       ),
                     ],
@@ -3457,9 +3436,8 @@ $productUrl
         onTap: () => setState(() {
           _singletGender = code;
           // 성별 선택 시 하의길이 자동 선택 (싱글렛세트: 남=5부, 여=2.5부)
-          _selectedBottomLength = code == context.loc.t('남', '남')
-              ? '5부'
-              : '2.5부';
+          _selectedBottomLength =
+              code == context.loc.t('남', '남') ? '5부' : '2.5부';
         }),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
@@ -3629,8 +3607,7 @@ $productUrl
 
     // ── 카테고리 판별 ──────────────────────────────────────────────
     // 싱글렛 A타입세트: 세트 카테고리 + subCategory/name에 싱글렛+A타입 포함
-    final isSingletATypeSet =
-        (product.category == context.loc.t('세트', '세트') &&
+    final isSingletATypeSet = (product.category == context.loc.t('세트', '세트') &&
             product.subCategory.contains(
               context.loc.t('싱글렛_a타입세트', '싱글렛 A타입세트'),
             )) ||
@@ -3640,15 +3617,13 @@ $productUrl
             product.name.contains(context.loc.t('a타입', 'A타입')));
 
     // 타이즈 / 하의 전체 (싱글렛세트 제외)
-    final isTaiz =
-        !isSingletATypeSet &&
+    final isTaiz = !isSingletATypeSet &&
         (product.category == context.loc.t('하의', '하의') ||
             product.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
             product.name.contains(context.loc.t('타이즈', '타이즈')));
 
     // 트레이닝세트: 세트 카테고리 + 트레이닝 포함
-    final isTrainingSet =
-        !isSingletATypeSet &&
+    final isTrainingSet = !isSingletATypeSet &&
         ((product.category == context.loc.t('세트', '세트') &&
                 product.subCategory.contains(
                   context.loc.t('트레이닝세트', '트레이닝세트'),
@@ -3667,8 +3642,7 @@ $productUrl
         !_isSingletGroupProduct(product) && _showBottomColorBadge(product);
 
     // 싱글렛세트 여부: 상의+하의 세트라서 "하의 색상 선택"으로 표기
-    final isSingletSet =
-        product.category == '세트' ||
+    final isSingletSet = product.category == '세트' ||
         product.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         product.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트'));
 
@@ -4302,9 +4276,8 @@ $productUrl
                         vertical: r.h(10),
                       ),
                       decoration: BoxDecoration(
-                        color: sel
-                            ? AppColors.textPrimary
-                            : AppColors.background,
+                        color:
+                            sel ? AppColors.textPrimary : AppColors.background,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: sel ? AppColors.textPrimary : AppColors.border,
@@ -4801,10 +4774,10 @@ $productUrl
                 setState(() => _sectionImages[sectionKey] = newList);
                 // 백그라운드 저장 (나중에)
                 context.read<ProductProvider>().updateSectionImages(
-                  widget.product.id,
-                  sectionKey,
-                  newList,
-                );
+                      widget.product.id,
+                      sectionKey,
+                      newList,
+                    );
               },
               children: imgs.asMap().entries.map((e) {
                 // ignore: unused_local_variable
@@ -4902,10 +4875,10 @@ $productUrl
                   });
                   // 백그라운드 저장 (나중에)
                   context.read<ProductProvider>().updateSectionImages(
-                    widget.product.id,
-                    sectionKey,
-                    newList,
-                  );
+                        widget.product.id,
+                        sectionKey,
+                        newList,
+                      );
                   // Firebase Storage URL이면 Storage에서도 삭제
                   if (deletedUrl.startsWith(
                         'https://firebasestorage.googleapis.com',
@@ -5136,10 +5109,10 @@ $productUrl
 
       // 6) Firestore 자동 저장
       final ok = await context.read<ProductProvider>().updateSectionImages(
-        productId,
-        sectionKey,
-        finalUrls,
-      );
+            productId,
+            sectionKey,
+            finalUrls,
+          );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -5212,10 +5185,10 @@ $productUrl
         pickedFiles: pickedFiles,
         onSave: (finalUrls) async {
           await context.read<ProductProvider>().updateSectionImages(
-            widget.product.id,
-            sectionKey,
-            finalUrls,
-          );
+                widget.product.id,
+                sectionKey,
+                finalUrls,
+              );
           if (!mounted) return;
           setState(() {
             if (finalUrls.isEmpty) {
@@ -5767,9 +5740,8 @@ $productUrl
 
     final r = Responsive.of(context);
     final orderIndex = _sectionOrder.indexOf(sectionKey);
-    final sectionNumber = (orderIndex >= 0 ? orderIndex + 1 : 1)
-        .toString()
-        .padLeft(2, '0');
+    final sectionNumber =
+        (orderIndex >= 0 ? orderIndex + 1 : 1).toString().padLeft(2, '0');
 
     // 고객 상세페이지는 상품 이미지 자체가 주인공이 되도록
     // 순백 배경, 얇은 구분선, 작은 섹션 번호만 사용하는 미니멀 스타일입니다.
@@ -6023,7 +5995,7 @@ $productUrl
 
   /// 기성품별 히어로 카피입니다. 상품명에 따라 개별 타이틀·서브 문구를 우선 적용합니다.
   ({String label, String headline, String accent, String copy})
-  _generalEditorialCopy(ProductModel product) {
+      _generalEditorialCopy(ProductModel product) {
     final name = product.name;
 
     if (_isSingletGroupProduct(product)) {
@@ -6909,8 +6881,7 @@ $productUrl
     required String adminLabel,
     required bool isAdmin,
   }) {
-    final images =
-        _sectionImages[sectionKey] ??
+    final images = _sectionImages[sectionKey] ??
         _sectionImages[_canonicalSectionKey(sectionKey)] ??
         const <String>[];
     if (!isAdmin && images.isEmpty) return const SizedBox.shrink();
@@ -7129,8 +7100,7 @@ $productUrl
 
   Widget _storedSectionDescription(String sectionKey) {
     final canonicalKey = _canonicalSectionKey(sectionKey);
-    final productDescription =
-        _productSectionDescriptions[sectionKey] ??
+    final productDescription = _productSectionDescriptions[sectionKey] ??
         _productSectionDescriptions[canonicalKey];
     final description = productDescription?.trim() ?? '';
     if (description.isEmpty) return const SizedBox.shrink();
@@ -7237,87 +7207,85 @@ $productUrl
                 .asMap()
                 .entries
                 .map((entry) {
-                  final r = Responsive.of(context);
+              final r = Responsive.of(context);
 
-                  final i = entry.key;
-                  final t = entry.value;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (i > 0)
-                        const Divider(height: 1, color: Color(0xFFE8E8E8)),
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: r.h(18)),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: 28,
-                              child: Text(
-                                '0${i + 1}',
-                                style: TextStyle(
-                                  fontSize: r.sp(11),
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.border,
-                                  letterSpacing: 1,
+              final i = entry.key;
+              final t = entry.value;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (i > 0) const Divider(height: 1, color: Color(0xFFE8E8E8)),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: r.h(18)),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 28,
+                          child: Text(
+                            '0${i + 1}',
+                            style: TextStyle(
+                              fontSize: r.sp(11),
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.border,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: r.w(12)),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: r.w(7),
+                                  vertical: r.h(3),
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                child: Text(
+                                  t['label']!,
+                                  style: TextStyle(
+                                    fontSize: r.sp(9),
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textSecondary,
+                                    letterSpacing: 1.2,
+                                  ),
                                 ),
                               ),
-                            ),
-                            SizedBox(width: r.w(12)),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: r.w(7),
-                                      vertical: r.h(3),
-                                    ),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      t['label']!,
-                                      style: TextStyle(
-                                        fontSize: r.sp(9),
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.textSecondary,
-                                        letterSpacing: 1.2,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(height: r.h(8)),
-                                  Text(
-                                    t['desc']!,
-                                    style: TextStyle(
-                                      fontSize: r.sp(14),
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.primary,
-                                      height: 1.3,
-                                    ),
-                                  ),
-                                  SizedBox(height: r.h(5)),
-                                  Text(
-                                    t['sub']!,
-                                    style: TextStyle(
-                                      fontSize: r.sp(12),
-                                      color: const Color(0xFF777777),
-                                      height: 1.6,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
+                              SizedBox(height: r.h(8)),
+                              Text(
+                                t['desc']!,
+                                style: TextStyle(
+                                  fontSize: r.sp(14),
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.primary,
+                                  height: 1.3,
+                                ),
                               ),
-                            ),
-                          ],
+                              SizedBox(height: r.h(5)),
+                              Text(
+                                t['sub']!,
+                                style: TextStyle(
+                                  fontSize: r.sp(12),
+                                  color: const Color(0xFF777777),
+                                  height: 1.6,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  );
-                })
-                .toList(),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
           ),
         ),
 
@@ -7740,34 +7708,34 @@ $productUrl
           ),
           SizedBox(height: r.h(30)),
           ...notices.asMap().entries.map(
-            (entry) => Padding(
-              padding: EdgeInsets.only(bottom: r.h(9)),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    (entry.key + 1).toString().padLeft(2, '0'),
-                    style: TextStyle(
-                      color: AppColors.accent,
-                      fontSize: r.sp(10),
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  SizedBox(width: r.w(9)),
-                  Expanded(
-                    child: Text(
-                      entry.value,
-                      style: TextStyle(
-                        fontSize: r.sp(11),
-                        color: AppColors.textSecondary,
-                        height: 1.55,
+                (entry) => Padding(
+                  padding: EdgeInsets.only(bottom: r.h(9)),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        (entry.key + 1).toString().padLeft(2, '0'),
+                        style: TextStyle(
+                          color: AppColors.accent,
+                          fontSize: r.sp(10),
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
-                    ),
+                      SizedBox(width: r.w(9)),
+                      Expanded(
+                        child: Text(
+                          entry.value,
+                          style: TextStyle(
+                            fontSize: r.sp(11),
+                            color: AppColors.textSecondary,
+                            height: 1.55,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
         ],
       ),
     );
@@ -7788,13 +7756,13 @@ $productUrl
           _RibTableHeader(headers: headers),
           // 데이터 행
           ...rows.asMap().entries.map(
-            (e) => _RibTableRow(
-              values: e.value,
-              isEven: e.key.isEven,
-              isLast: e.key == rows.length - 1,
-              isSizeCol: true,
-            ),
-          ),
+                (e) => _RibTableRow(
+                  values: e.value,
+                  isEven: e.key.isEven,
+                  isLast: e.key == rows.length - 1,
+                  isSizeCol: true,
+                ),
+              ),
         ],
       ),
     );
@@ -7985,9 +7953,8 @@ $productUrl
               separatorBuilder: (_, __) => SizedBox(width: r.w(10)),
               itemBuilder: (_, index) {
                 final sibling = siblings[index];
-                final colorLabel = sibling.colors.isEmpty
-                    ? ''
-                    : sibling.colors.join(' · ');
+                final colorLabel =
+                    sibling.colors.isEmpty ? '' : sibling.colors.join(' · ');
                 return SizedBox(
                   width: r.isMobile ? 128 : 150,
                   child: GestureDetector(
@@ -8271,14 +8238,12 @@ $productUrl
     if (_isSingletGroupProduct(p) || p.isReadyMade) return true;
 
     // 1) 타이즈 / 하의 카테고리 전체
-    final isTights =
-        p.category == context.loc.t('하의', '하의') ||
+    final isTights = p.category == context.loc.t('하의', '하의') ||
         p.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
         p.name.contains(context.loc.t('타이즈', '타이즈'));
 
     // 2) 싱글렛 A타입세트 (세트 카테고리)
-    final isSingletATypeSet =
-        (p.category == context.loc.t('세트', '세트') &&
+    final isSingletATypeSet = (p.category == context.loc.t('세트', '세트') &&
             p.subCategory.contains(context.loc.t('싱글렛_a타입세트', '싱글렛 A타입세트'))) ||
         p.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
         (p.category == context.loc.t('세트', '세트') &&
@@ -8286,32 +8251,28 @@ $productUrl
             p.name.contains(context.loc.t('a타입', 'A타입')));
 
     // 3) 트레이닝세트 (세트 카테고리)
-    final isTrainingSet =
-        (p.category == context.loc.t('세트', '세트') &&
+    final isTrainingSet = (p.category == context.loc.t('세트', '세트') &&
             p.subCategory.contains(context.loc.t('트레이닝세트', '트레이닝세트'))) ||
         p.subCategory.contains(context.loc.t('트레이닝세트', '트레이닝세트')) ||
         (p.category == context.loc.t('세트', '세트') &&
             p.name.contains(context.loc.t('트레이닝', '트레이닝')));
 
     // 4) 싱글렛 A타입 (상의 카테고리)
-    final isSingletA =
-        (p.category == context.loc.t('상의', '상의') &&
+    final isSingletA = (p.category == context.loc.t('상의', '상의') &&
             p.subCategory.contains(context.loc.t('싱글렛_a타입', '싱글렛 A타입'))) ||
         (p.category == context.loc.t('상의', '상의') &&
             p.name.contains(context.loc.t('싱글렛', '싱글렛')) &&
             p.name.contains(context.loc.t('a타입', 'A타입')));
 
     // 5) 싱글렛 B타입 (상의 카테고리)
-    final isSingletB =
-        (p.category == context.loc.t('상의', '상의') &&
+    final isSingletB = (p.category == context.loc.t('상의', '상의') &&
             p.subCategory.contains(context.loc.t('싱글렛_b타입', '싱글렛 B타입'))) ||
         (p.category == context.loc.t('상의', '상의') &&
             p.name.contains(context.loc.t('싱글렛', '싱글렛')) &&
             p.name.contains(context.loc.t('b타입', 'B타입')));
 
     // 6) 라운드티 (상의 카테고리)
-    final isRoundTee =
-        (p.category == context.loc.t('상의', '상의') &&
+    final isRoundTee = (p.category == context.loc.t('상의', '상의') &&
             p.subCategory.contains(context.loc.t('라운드', '라운드'))) ||
         (p.category == context.loc.t('상의', '상의') &&
             p.name.contains(context.loc.t('라운드', '라운드')) &&
@@ -8435,8 +8396,8 @@ $productUrl
                                   setState(
                                     () => _singletGender =
                                         g == context.loc.t('남성', '남성')
-                                        ? '남'
-                                        : '여',
+                                            ? '남'
+                                            : '여',
                                   );
                                 }),
                                 child: AnimatedContainer(
@@ -8500,71 +8461,70 @@ $productUrl
                         SizedBox(height: r.h(8)),
                         // A타입(레이서백) 카드 제거 → B타입(스쿱넥)만 표시
                         Row(
-                          children:
-                              [
-                                {
-                                  'type': 'B',
-                                  'label': loc.singletTypeB,
-                                  'desc': loc.singletTypeBDesc,
-                                },
-                              ].map((t) {
-                                final r = Responsive.of(context);
+                          children: [
+                            {
+                              'type': 'B',
+                              'label': loc.singletTypeB,
+                              'desc': loc.singletTypeBDesc,
+                            },
+                          ].map((t) {
+                            final r = Responsive.of(context);
 
-                                final isSelected = _singletType == t['type'];
-                                return Expanded(
-                                  child: GestureDetector(
-                                    onTap: () => setSheetState(() {
-                                      setState(() => _singletType = t['type']!);
-                                    }),
-                                    child: AnimatedContainer(
-                                      duration: const Duration(
-                                        milliseconds: 150,
-                                      ),
-                                      margin: EdgeInsets.only(right: r.w(8)),
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: r.h(10),
-                                        horizontal: r.w(12),
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? AppColors.primary
-                                            : Colors.white,
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? AppColors.primary
-                                              : AppColors.border,
-                                          width: isSelected ? 2 : 1,
-                                        ),
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Text(
-                                            t['label']!,
-                                            style: TextStyle(
-                                              fontSize: r.sp(13),
-                                              fontWeight: FontWeight.w800,
-                                              color: isSelected
-                                                  ? Colors.white
-                                                  : AppColors.textPrimary,
-                                            ),
-                                          ),
-                                          Text(
-                                            t['desc']!,
-                                            style: TextStyle(
-                                              fontSize: r.sp(11),
-                                              fontWeight: FontWeight.w500,
-                                              color: isSelected
-                                                  ? Colors.white70
-                                                  : AppColors.textSecondary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                            final isSelected = _singletType == t['type'];
+                            return Expanded(
+                              child: GestureDetector(
+                                onTap: () => setSheetState(() {
+                                  setState(() => _singletType = t['type']!);
+                                }),
+                                child: AnimatedContainer(
+                                  duration: const Duration(
+                                    milliseconds: 150,
+                                  ),
+                                  margin: EdgeInsets.only(right: r.w(8)),
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: r.h(10),
+                                    horizontal: r.w(12),
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? AppColors.primary
+                                        : Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : AppColors.border,
+                                      width: isSelected ? 2 : 1,
                                     ),
                                   ),
-                                );
-                              }).toList(),
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        t['label']!,
+                                        style: TextStyle(
+                                          fontSize: r.sp(13),
+                                          fontWeight: FontWeight.w800,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      Text(
+                                        t['desc']!,
+                                        style: TextStyle(
+                                          fontSize: r.sp(11),
+                                          fontWeight: FontWeight.w500,
+                                          color: isSelected
+                                              ? Colors.white70
+                                              : AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
                         ),
                       ],
                     ),
@@ -8774,8 +8734,7 @@ $productUrl
       final existingData = existing.data();
       // 아직 발송되지 않은 신청을 다시 저장하면서 대기 상태를 초기화하지 않습니다.
       // 사용자가 반복 클릭해도 신청 1건만 유지되어 중복 알림을 방지합니다.
-      final alreadyWaiting =
-          existing.exists &&
+      final alreadyWaiting = existing.exists &&
           existingData != null &&
           existingData['notified'] != true &&
           existingData['isNotified'] != true;
@@ -8914,8 +8873,7 @@ $productUrl
             product: product,
             isBuyNow: isBuyNow,
             calcExtraForColor: (color) => _calcExtraForColor(product, color),
-            hideColorExtraPrice:
-                product.isReadyMade &&
+            hideColorExtraPrice: product.isReadyMade &&
                 (product.category.contains('상의') ||
                     product.subCategory.contains('싱글렛') ||
                     product.name.contains('싱글렛')) &&
@@ -8932,8 +8890,7 @@ $productUrl
 
   // 현재 선택된 색상의 추가금액 계산
   double _calcExtraForColor(ProductModel product, String color) {
-    final isSingletReadyMade =
-        product.isReadyMade &&
+    final isSingletReadyMade = product.isReadyMade &&
         (product.category.contains('상의') ||
             product.subCategory.contains('싱글렛') ||
             product.name.contains('싱글렛')) &&
@@ -8962,12 +8919,12 @@ $productUrl
     // ignore: unused_local_variable
     final extra = _calcExtraForColor(product, color);
     context.read<CartProvider>().addItem(
-      product,
-      size,
-      color,
-      quantity: qty,
-      extraPrice: extra,
-    );
+          product,
+          size,
+          color,
+          quantity: qty,
+          extraPrice: extra,
+        );
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -9051,8 +9008,7 @@ $productUrl
 
   /// 하의길이 비교 섹션 표시 여부: 하의 카테고리 또는 싱글렛세트만 표시
   bool _isBottomOrSingletSetProduct(ProductModel p) {
-    final isSingletSet =
-        (p.category == context.loc.t('세트', '세트') &&
+    final isSingletSet = (p.category == context.loc.t('세트', '세트') &&
             (p.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
                 p.subCategory.contains(
                   context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트'),
@@ -9063,8 +9019,7 @@ $productUrl
         (p.category == context.loc.t('세트', '세트') &&
             p.name.contains(context.loc.t('싱글렛', '싱글렛')));
 
-    final isBottom =
-        p.category == context.loc.t('하의', '하의') ||
+    final isBottom = p.category == context.loc.t('하의', '하의') ||
         p.subCategory == context.loc.t('타이즈', '타이즈') ||
         p.name.contains(context.loc.t('타이즈', '타이즈')) ||
         p.subCategory.contains(context.loc.t('레깅스', '레깅스')) ||
@@ -9180,10 +9135,10 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
         final mime = ext.endsWith('.png')
             ? 'image/png'
             : ext.endsWith('.gif')
-            ? 'image/gif'
-            : ext.endsWith('.webp')
-            ? 'image/webp'
-            : 'image/jpeg';
+                ? 'image/gif'
+                : ext.endsWith('.webp')
+                    ? 'image/webp'
+                    : 'image/jpeg';
         final b64 = 'data:$mime;base64,${base64Encode(bytes)}';
         _convertedBase64.add(b64);
         if (mounted) setState(() {});
@@ -9419,11 +9374,11 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                     child: GridView.builder(
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 6,
-                            mainAxisSpacing: 6,
-                            childAspectRatio: 1.0,
-                          ),
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 6,
+                        mainAxisSpacing: 6,
+                        childAspectRatio: 1.0,
+                      ),
                       itemCount: _allImages.length,
                       itemBuilder: (_, i) {
                         final r = Responsive.of(context);
@@ -9582,14 +9537,14 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                                   'Storage 업로드 중...',
                                 )
                               : _allImages.isEmpty
-                              ? context.loc.t('저장 이미지 없음', '저장 (이미지 없음)')
-                              : '${_allImages.length}장 저장하기',
+                                  ? context.loc.t('저장 이미지 없음', '저장 (이미지 없음)')
+                                  : '${_allImages.length}장 저장하기',
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
                               (_allImages.isEmpty && !_isUploadingSave)
-                              ? Colors.grey
-                              : AppColors.primary,
+                                  ? Colors.grey
+                                  : AppColors.primary,
                           foregroundColor: Colors.white,
                           padding: EdgeInsets.symmetric(vertical: r.h(12)),
                           elevation: 0,
@@ -9618,7 +9573,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
 class _ReadyMadePurchaseSheet extends StatefulWidget {
   final ProductModel product;
   final void Function(String length, String size, String color, int qty)
-  onConfirm;
+      onConfirm;
   final String? initialSize;
   final String? initialColor;
 
@@ -9867,8 +9822,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
     final juniorSizes = allSizes.where((s) => _isJuniorSizeLabel(s)).toList();
     final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
 
-    final isBottom =
-        _isSingletASet ||
+    final isBottom = _isSingletASet ||
         widget.product.category == context.loc.t('하의', '하의') ||
         widget.product.subCategory == context.loc.t('타이즈', '타이즈') ||
         widget.product.name.contains(context.loc.t('타이즈', '타이즈'));
@@ -10173,9 +10127,8 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                               : '두툼하고 탄탄함',
                           style: TextStyle(
                             fontSize: r.sp(10),
-                            color: sel
-                                ? Colors.white70
-                                : AppColors.textSecondary,
+                            color:
+                                sel ? Colors.white70 : AppColors.textSecondary,
                           ),
                         ),
                       ],
@@ -10200,9 +10153,8 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.remove_circle_outline),
-                onPressed: _quantity > 1
-                    ? () => setState(() => _quantity--)
-                    : null,
+                onPressed:
+                    _quantity > 1 ? () => setState(() => _quantity--) : null,
               ),
               Text(
                 '$_quantity',
@@ -10226,11 +10178,11 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             child: ElevatedButton(
               onPressed: _canConfirm
                   ? () => widget.onConfirm(
-                      _autoLength ?? '-',
-                      _selectedSize!,
-                      _selectedColor!,
-                      _quantity,
-                    )
+                        _autoLength ?? '-',
+                        _selectedSize!,
+                        _selectedColor!,
+                        _quantity,
+                      )
                   : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -10370,49 +10322,47 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
           // 사이즈 선택 그리드 (성인/주니어 구분)
           Builder(
             builder: (context) {
-              final adultSizes = sizes
-                  .where((s) => !_isJuniorSizeLabel(s))
-                  .toList();
-              final juniorSizes = sizes
-                  .where((s) => _isJuniorSizeLabel(s))
-                  .toList();
+              final adultSizes =
+                  sizes.where((s) => !_isJuniorSizeLabel(s)).toList();
+              final juniorSizes =
+                  sizes.where((s) => _isJuniorSizeLabel(s)).toList();
               final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
 
               Widget chipWrap(List<String> list, Color activeColor) => Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: list.map((s) {
-                  final r = Responsive.of(context);
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: list.map((s) {
+                      final r = Responsive.of(context);
 
-                  final sel = _selectedSize == s;
-                  return GestureDetector(
-                    onTap: () => setState(() => _selectedSize = s),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 130),
-                      width: 64,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: sel ? activeColor : Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: sel ? activeColor : AppColors.border,
-                          width: sel ? 2 : 1,
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          s,
-                          style: TextStyle(
-                            fontSize: r.sp(14),
-                            fontWeight: FontWeight.w700,
-                            color: sel ? Colors.white : AppColors.primary,
+                      final sel = _selectedSize == s;
+                      return GestureDetector(
+                        onTap: () => setState(() => _selectedSize = s),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 130),
+                          width: 64,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: sel ? activeColor : Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: sel ? activeColor : AppColors.border,
+                              width: sel ? 2 : 1,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              s,
+                              style: TextStyle(
+                                fontSize: r.sp(14),
+                                fontWeight: FontWeight.w700,
+                                color: sel ? Colors.white : AppColors.primary,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    }).toList(),
                   );
-                }).toList(),
-              );
 
               if (hasBoth) {
                 final r = Responsive.of(context);
@@ -10605,8 +10555,8 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
                     _selectedSize == null
                         ? context.loc.t('사이즈를 선택해주세요', '사이즈를 선택해주세요')
                         : (widget.isBuyNow
-                              ? context.loc.t('바로 결제하기', '바로 결제하기')
-                              : context.loc.t('장바구니에 담기', '장바구니에 담기')),
+                            ? context.loc.t('바로 결제하기', '바로 결제하기')
+                            : context.loc.t('장바구니에 담기', '장바구니에 담기')),
                     style: TextStyle(
                       fontSize: r.sp(15),
                       fontWeight: FontWeight.w800,
@@ -10755,8 +10705,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   List<String> get _allSizes {
     final raw = widget.product.sizes;
     if (raw.isNotEmpty) return raw;
-    final isJunior =
-        widget.product.name.contains('주니어') ||
+    final isJunior = widget.product.name.contains('주니어') ||
         widget.product.name.contains('Jr') ||
         widget.product.subCategory.contains(context.loc.t('주니어', '주니어'));
     return isJunior ? AppConstants.juniorSizes : AppConstants.adultSizes;
@@ -10804,10 +10753,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   int _totalQty() => _items.fold(0, (s, e) => s + (e['qty'] as int));
   int _totalPrice() => _items.fold(0, (s, e) {
-    final base = (widget.product.price as num).toInt();
-    final extra = (e['extra'] as num).toInt();
-    return s + (base + extra) * (e['qty'] as int);
-  });
+        final base = (widget.product.price as num).toInt();
+        final extra = (e['extra'] as num).toInt();
+        return s + (base + extra) * (e['qty'] as int);
+      });
 
   String _fmt(int v) {
     final s = v.toString();
@@ -10827,8 +10776,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
     // 기성품 하의: 주머니 제거 선택 시 -10,000원
     final pocketDiscount =
         _isReadyMadeBottom && !_isTightsShorts && _removePocket
-        ? -10000.0
-        : 0.0;
+            ? -10000.0
+            : 0.0;
     setState(() {
       final sizeLabel = _isSetProduct
           ? context.loc.t('상의 _  하의 _', '상의 $_topSize / 하의 $_bottomSize')
@@ -10935,8 +10884,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     isGroup
                         ? '단체주문 가능 상품을 추천해 드려요.'
                         : isFunctional
-                        ? '기능성 상품을 추천해 드려요.'
-                        : '함께 보면 좋은 상품을 추천해 드려요.',
+                            ? '기능성 상품을 추천해 드려요.'
+                            : '함께 보면 좋은 상품을 추천해 드려요.',
                     style: const TextStyle(color: AppColors.textSecondary),
                   ),
                 ),
@@ -12033,15 +11982,17 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                             InkWell(
                                               onTap: (item['qty'] as int) > 1
                                                   ? () => setState(
-                                                      () => _items[idx]['qty'] =
-                                                          (item['qty'] as int) -
-                                                          1,
-                                                    )
+                                                        () => _items[idx]
+                                                                ['qty'] =
+                                                            (item['qty']
+                                                                    as int) -
+                                                                1,
+                                                      )
                                                   : null,
                                               borderRadius:
                                                   const BorderRadius.horizontal(
-                                                    left: Radius.circular(6),
-                                                  ),
+                                                left: Radius.circular(6),
+                                              ),
                                               child: Container(
                                                 width: 28,
                                                 height: 28,
@@ -12051,8 +12002,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                                   size: 13,
                                                   color:
                                                       (item['qty'] as int) > 1
-                                                      ? AppColors.primary
-                                                      : AppColors.border,
+                                                          ? AppColors.primary
+                                                          : AppColors.border,
                                                 ),
                                               ),
                                             ),
@@ -12076,8 +12027,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                               ),
                                               borderRadius:
                                                   const BorderRadius.horizontal(
-                                                    right: Radius.circular(6),
-                                                  ),
+                                                right: Radius.circular(6),
+                                              ),
                                               child: Container(
                                                 width: 28,
                                                 height: 28,
@@ -12161,7 +12112,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                       child: ElevatedButton(
                         onPressed: _canAddItem
                             ? () =>
-                                  _addCurrentAndProceed(buyNow: widget.isBuyNow)
+                                _addCurrentAndProceed(buyNow: widget.isBuyNow)
                             : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.border,
@@ -12173,8 +12124,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         child: Text(
                           _canAddItem
                               ? (widget.isBuyNow
-                                    ? context.loc.t('바로구매', '바로구매')
-                                    : context.loc.t('장바구니_담기', '장바구니 담기'))
+                                  ? context.loc.t('바로구매', '바로구매')
+                                  : context.loc.t('장바구니_담기', '장바구니 담기'))
                               : context.loc.t(
                                   '사이즈와_색상을_선택해주세요',
                                   '사이즈와 색상을 선택해주세요',
@@ -12367,15 +12318,15 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
           color: isSoldOut
               ? AppColors.surfaceGray
               : isSelected
-              ? activeColor
-              : Colors.white,
+                  ? activeColor
+                  : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSoldOut
                 ? AppColors.border
                 : isSelected
-                ? activeColor
-                : AppColors.border,
+                    ? activeColor
+                    : AppColors.border,
           ),
         ),
         child: Column(
@@ -12388,8 +12339,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                 color: isSoldOut
                     ? AppColors.textHint
                     : isSelected
-                    ? Colors.white
-                    : AppColors.primary,
+                        ? Colors.white
+                        : AppColors.primary,
                 decoration: isSoldOut ? TextDecoration.lineThrough : null,
                 decorationColor: AppColors.textSecondary,
                 decorationThickness: 2,
@@ -12479,8 +12430,7 @@ class _QuickSizeColorSelectSheetState
   void initState() {
     super.initState();
     _selectedSize = widget.initialSize;
-    _selectedColor =
-        widget.initialColor ??
+    _selectedColor = widget.initialColor ??
         (widget.product.colors.isNotEmpty ? widget.product.colors.first : null);
   }
 
@@ -12504,8 +12454,7 @@ class _QuickSizeColorSelectSheetState
     final sizes = widget.product.sizes;
     // 골지 텍스처: 싱글렛세트 또는 타이즈(하의) 상품에만 적용
     final p = widget.product;
-    final isSingletSetHere =
-        (p.category == context.loc.t('세트', '세트') &&
+    final isSingletSetHere = (p.category == context.loc.t('세트', '세트') &&
             (p.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
                 p.subCategory.contains(
                   context.loc.t('싱글렛_a타입세트', '싱글렛 A타입세트'),
@@ -12515,8 +12464,7 @@ class _QuickSizeColorSelectSheetState
         p.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
         (p.category == context.loc.t('세트', '세트') &&
             p.name.contains(context.loc.t('싱글렛', '싱글렛')));
-    final isBottom =
-        isSingletSetHere ||
+    final isBottom = isSingletSetHere ||
         p.category == context.loc.t('하의', '하의') ||
         p.subCategory == context.loc.t('타이즈', '타이즈') ||
         p.name.contains(context.loc.t('타이즈', '타이즈'));
@@ -12588,49 +12536,47 @@ class _QuickSizeColorSelectSheetState
             SizedBox(height: r.h(10)),
             Builder(
               builder: (context) {
-                final adultSizes = sizes
-                    .where((s) => !_isJuniorSizeLabel(s))
-                    .toList();
-                final juniorSizes = sizes
-                    .where((s) => _isJuniorSizeLabel(s))
-                    .toList();
+                final adultSizes =
+                    sizes.where((s) => !_isJuniorSizeLabel(s)).toList();
+                final juniorSizes =
+                    sizes.where((s) => _isJuniorSizeLabel(s)).toList();
                 final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
 
                 Widget chipWrap(List<String> list, Color activeColor) => Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: list.map((s) {
-                    final r = Responsive.of(context);
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: list.map((s) {
+                        final r = Responsive.of(context);
 
-                    final sel = _selectedSize == s;
-                    return GestureDetector(
-                      onTap: () => setState(() => _selectedSize = s),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 130),
-                        width: 64,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: sel ? activeColor : Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: sel ? activeColor : AppColors.border,
-                            width: sel ? 2 : 1,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            s,
-                            style: TextStyle(
-                              fontSize: r.sp(14),
-                              fontWeight: FontWeight.w700,
-                              color: sel ? Colors.white : AppColors.primary,
+                        final sel = _selectedSize == s;
+                        return GestureDetector(
+                          onTap: () => setState(() => _selectedSize = s),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 130),
+                            width: 64,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: sel ? activeColor : Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: sel ? activeColor : AppColors.border,
+                                width: sel ? 2 : 1,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                s,
+                                style: TextStyle(
+                                  fontSize: r.sp(14),
+                                  fontWeight: FontWeight.w700,
+                                  color: sel ? Colors.white : AppColors.primary,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
+                        );
+                      }).toList(),
                     );
-                  }).toList(),
-                );
 
                 if (hasBoth) {
                   final r = Responsive.of(context);
@@ -12806,9 +12752,8 @@ class _QuickSizeColorSelectSheetState
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _canConfirm
-                      ? AppColors.primary
-                      : AppColors.border,
+                  backgroundColor:
+                      _canConfirm ? AppColors.primary : AppColors.border,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(vertical: r.h(16)),
                   elevation: 0,
@@ -12818,10 +12763,10 @@ class _QuickSizeColorSelectSheetState
                 ),
                 onPressed: _canConfirm
                     ? () => widget.onConfirm(
-                        _selectedSize!,
-                        _selectedColor!,
-                        _quantity,
-                      )
+                          _selectedSize!,
+                          _selectedColor!,
+                          _quantity,
+                        )
                     : null,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -13155,9 +13100,8 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
               style: TextStyle(
                 fontSize: r.sp(12),
                 fontWeight: FontWeight.w900,
-                color: selected
-                    ? AppColors.textPrimary
-                    : AppColors.textSecondary,
+                color:
+                    selected ? AppColors.textPrimary : AppColors.textSecondary,
                 letterSpacing: 1.1,
               ),
             ),
@@ -13185,13 +13129,13 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
       children: [
         _RibTableHeader(headers: headers),
         ...rows.asMap().entries.map(
-          (entry) => _RibTableRow(
-            values: entry.value,
-            isEven: entry.key.isEven,
-            isLast: entry.key == rows.length - 1,
-            isSizeCol: true,
-          ),
-        ),
+              (entry) => _RibTableRow(
+                values: entry.value,
+                isEven: entry.key.isEven,
+                isLast: entry.key == rows.length - 1,
+                isSizeCol: true,
+              ),
+            ),
       ],
     );
   }
@@ -13292,7 +13236,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
         final avg = reviews.isEmpty
             ? 0.0
             : reviews.map((r) => r.rating).reduce((a, b) => a + b) /
-                  reviews.length;
+                reviews.length;
         final myReview = currentUid != null
             ? reviews.where((r) => r.userId == currentUid).firstOrNull
             : null;
@@ -13867,9 +13811,8 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
         final review = ReviewModel(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           userId: user.id,
-          userName: user.name.isNotEmpty
-              ? user.name
-              : user.email.split('@').first,
+          userName:
+              user.name.isNotEmpty ? user.name : user.email.split('@').first,
           productId: widget.product.id,
           rating: _rating,
           content: _contentCtrl.text.trim(),
@@ -14933,9 +14876,8 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _checked
-                            ? _purple
-                            : AppColors.textHint,
+                        backgroundColor:
+                            _checked ? _purple : AppColors.textHint,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -14950,8 +14892,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                                   builder: (_) => GroupOrderFormScreen(
                                     product: widget.product,
                                     initialCount: 5,
-                                    isBottomOrder:
-                                        widget.product.category ==
+                                    isBottomOrder: widget.product.category ==
                                             context.loc.t('하의', '하의') ||
                                         (widget.product.subCategory.contains(
                                               context.loc.t('타이즈', '타이즈'),
@@ -15315,9 +15256,8 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                         overflow: TextOverflow.visible,
                         style: TextStyle(
                           fontSize: cell.key == 0 ? 10 : 11,
-                          fontWeight: cell.key == 0
-                              ? FontWeight.w700
-                              : FontWeight.w400,
+                          fontWeight:
+                              cell.key == 0 ? FontWeight.w700 : FontWeight.w400,
                           color: cell.key == 0
                               ? headerColor
                               : AppColors.textPrimary,
@@ -15531,12 +15471,10 @@ class _Section2FabricTabsWidgetState extends State<_Section2FabricTabsWidget> {
     }
 
     // 양쪽 모두 있을 때 → 탭 UI
-    final currentImgs = _selectedTab == 0
-        ? widget.generalImgs
-        : widget.seamlessImgs;
-    final currentOnTap = _selectedTab == 0
-        ? widget.onTapGeneral
-        : widget.onTapSeamless;
+    final currentImgs =
+        _selectedTab == 0 ? widget.generalImgs : widget.seamlessImgs;
+    final currentOnTap =
+        _selectedTab == 0 ? widget.onTapGeneral : widget.onTapSeamless;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -15630,9 +15568,8 @@ class _FabricTab extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: EdgeInsets.symmetric(vertical: r.h(13)),
           decoration: BoxDecoration(
-            color: isSelected
-                ? activeColor.withValues(alpha: 0.06)
-                : Colors.white,
+            color:
+                isSelected ? activeColor.withValues(alpha: 0.06) : Colors.white,
             border: Border(
               bottom: BorderSide(
                 color: isSelected ? activeColor : Colors.transparent,
