@@ -146,7 +146,7 @@ class NetImage extends StatelessWidget {
 /// 웹 전용 이미지 위젯
 /// Image.network의 ResizeImage(cacheWidth/cacheHeight)로 Flutter 엔진 메모리 캐시 활용
 /// width/height는 항상 유한한 값 또는 null로 전달되어야 함 (infinity 금지)
-class _WebImage extends StatefulWidget {
+class _WebImage extends StatelessWidget {
   final String url;
   final double? width;
   final double? height;
@@ -164,127 +164,35 @@ class _WebImage extends StatefulWidget {
   });
 
   @override
-  State<_WebImage> createState() => _WebImageState();
-}
-
-class _WebImageState extends State<_WebImage> {
-  late ImageProvider _provider;
-  bool _loaded = false;
-  bool _error = false;
-  ImageStream? _stream;
-  ImageStreamListener? _listener;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadImage();
-  }
-
-  @override
-  void didUpdateWidget(_WebImage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.url != widget.url ||
-        oldWidget.width != widget.width ||
-        oldWidget.height != widget.height) {
-      _loaded = false;
-      _error = false;
-      _loadImage();
-    }
-  }
-
-  void _loadImage() {
-    if (_stream != null && _listener != null) {
-      _stream!.removeListener(_listener!);
-    }
-    final rawW = widget.width;
-    final rawH = widget.height;
-
-    // 화면 표시 크기 기준으로 디코딩해 메모리 사용량과 스크롤 중 작업량을 제한
-    final devicePixelRatio =
-        WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
-    final dpr = devicePixelRatio.clamp(1.0, 2.0);
-
-    final w = (rawW != null && rawW.isFinite && rawW > 0)
-        ? ((rawW * dpr).clamp(1, 1600)).toInt()
-        : null;
-    final h = (rawH != null && rawH.isFinite && rawH > 0)
-        ? ((rawH * dpr).clamp(1, 1600)).toInt()
-        : null;
-
-    _provider = ResizeImage.resizeIfNeeded(
-      w,
-      h,
-      NetworkImage(widget.url),
-    );
-
-    final stream = _provider.resolve(ImageConfiguration.empty);
-    final listener = ImageStreamListener(
-      (_, __) {
-        if (mounted) setState(() => _loaded = true);
-      },
-      onError: (_, __) {
-        if (mounted) setState(() => _error = true);
-      },
-    );
-    _stream = stream;
-    _listener = listener;
-    stream.addListener(listener);
-  }
-
-  @override
-  void dispose() {
-    if (_stream != null && _listener != null) {
-      _stream!.removeListener(_listener!);
-    }
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (_error) {
-      return Container(
-        width: widget.width,
-        height: widget.height,
-        color: widget.backgroundColor ?? AppColors.surfaceGray,
+    // Safari에서는 ResizeImage + cross-origin Firebase Storage URL 조합이
+    // 이미지 디코딩에 실패할 수 있습니다. 원본 URL을 Image.network에 직접
+    // 전달하면 iOS Safari와 Chromium이 동일한 경로로 이미지를 로드합니다.
+    return Image.network(
+      url,
+      width: width,
+      height: height,
+      fit: fit,
+      alignment: alignment,
+      filterQuality: FilterQuality.low,
+      gaplessPlayback: true,
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        if (wasSynchronouslyLoaded || frame != null) return child;
+        return _ShimmerBox(
+          width: width,
+          height: height,
+          backgroundColor: backgroundColor,
+        );
+      },
+      errorBuilder: (context, error, stackTrace) => Container(
+        width: width,
+        height: height,
+        color: backgroundColor ?? AppColors.surfaceGray,
         child: const Center(
           child: Icon(Icons.broken_image_outlined,
               color: AppColors.border, size: 28),
         ),
-      );
-    }
-
-    return Stack(
-      fit: StackFit.expand,
-      clipBehavior: Clip.antiAlias,
-      children: [
-        // shimmer - 로딩 중에만 표시
-        if (!_loaded)
-          SizedBox.expand(
-            child: _ShimmerBox(
-              width: widget.width,
-              height: widget.height,
-              backgroundColor: widget.backgroundColor,
-            ),
-          ),
-        // 실제 이미지 - 로드 완료 후 페이드인
-        AnimatedOpacity(
-          opacity: _loaded ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 200),
-          child: SizedBox.expand(
-            child: FittedBox(
-              fit: widget.fit,
-              clipBehavior: Clip.hardEdge,
-              child: Image(
-                image: _provider,
-                fit: widget.fit,
-                alignment: widget.alignment,
-                filterQuality: FilterQuality.low,
-                gaplessPlayback: true,
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

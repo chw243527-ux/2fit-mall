@@ -180,7 +180,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       final snapshot = await FirebaseFirestore.instance
           .collection('app_settings')
           .doc('admin_content_catalog')
-          .get();
+          .get(const GetOptions(source: Source.server));
       if (!mounted) return;
       final rawSections = snapshot.data()?['sections'];
       if (rawSections is List) {
@@ -5728,7 +5728,10 @@ $productUrl
     // 섹션 본문은 반드시 현재 상품에 저장된 내용만 사용합니다.
     // 전역 카탈로그 설명은 관리자 편집용 기본 문구일 뿐, 다른 상품의
     // 상세페이지에 콘텐츠로 상속되면 안 됩니다.
-    final description = (_productSectionDescriptions[sectionKey] ?? '').trim();
+    final description = (_productSectionDescriptions[sectionKey] ??
+            _sectionDescriptions[sectionKey] ??
+            '')
+        .trim();
     final title =
         (_sectionTitles[sectionKey] ?? _sectionLabels[sectionKey] ?? sectionKey)
             .trim();

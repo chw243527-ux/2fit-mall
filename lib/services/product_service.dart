@@ -981,7 +981,10 @@ class ProductService {
   /// 관리자 이미지 업로드 후 일반 사용자가 최신 sectionImages를 볼 때 사용
   static Future<ProductModel?> getProductByIdFresh(String id) async {
     try {
-      final doc = await _db.collection('products').doc(id).get();
+      final doc = await _db
+          .collection('products')
+          .doc(id)
+          .get(const GetOptions(source: Source.server));
       if (doc.exists) {
         final data = doc.data()!;
         // Firestore 문서 data()에는 doc.id가 포함되지 않으므로 명시적 추가
