@@ -259,18 +259,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         ..addAll(widget.product.sectionDescriptions);
       _sectionImagesLoaded = false;
       _refreshSectionImagesFromFirestore();
-    } else if (!_sectionImagesLoaded) {
-      // 아직 Firestore 로드가 완료되지 않은 경우, 새 product 데이터로 임시 업데이트
+    } else {
+      // 같은 상품의 관리자 저장 내용도 즉시 동기화합니다.
       final incoming = widget.product.sectionImages;
-      if (incoming.isNotEmpty) {
-        bool changed = false;
-        for (final key in incoming.keys) {
-          if (_sectionImages[key] != incoming[key]) {
-            _sectionImages[key] = List<String>.from(incoming[key]!);
-            changed = true;
-          }
+      final incomingDescriptions = widget.product.sectionDescriptions;
+      var descriptionChanged = false;
+      if (_productSectionDescriptions.length != incomingDescriptions.length ||
+          incomingDescriptions.entries.any((entry) =>
+              _productSectionDescriptions[entry.key] != entry.value)) {
+        _productSectionDescriptions
+          ..clear()
+          ..addAll(incomingDescriptions);
+        descriptionChanged = true;
+      }
+      var imagesChanged = false;
+      for (final key in incoming.keys) {
+        if (_sectionImages[key]?.join() != incoming[key]?.join()) {
+          _sectionImages[key] = List<String>.from(incoming[key]!);
+          imagesChanged = true;
         }
-        if (changed) setState(() {});
+      }
+      if (imagesChanged || descriptionChanged) {
+        setState(() {});
       }
     }
   }
@@ -286,13 +296,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
       // Firestore 로드 실패(null)여도 Provider 캐시의 최신값으로 폴백
       final freshImages = fresh?.sectionImages ?? widget.product.sectionImages;
+      bool changed = false;
       if (fresh != null) {
+        final previousDescriptions =
+            Map<String, String>.from(_productSectionDescriptions);
         _productSectionDescriptions
           ..clear()
           ..addAll(fresh.sectionDescriptions);
+        if (previousDescriptions.length != fresh.sectionDescriptions.length ||
+            fresh.sectionDescriptions.entries.any((entry) =>
+                previousDescriptions[entry.key] != entry.value)) {
+          changed = true;
+        }
       }
-
-      bool changed = false;
 
       // ── 메인 상품 이미지 갱신 (Firestore fresh 우선, picsum/placeholder 제거)
       if (fresh != null) {
@@ -5029,6 +5045,8 @@ $productUrl
     };
     final sections = _sectionOrder
         .where((key) => !legacySectionKeys.contains(key))
+        .where((key) =>
+            _activeSectionKeys.isEmpty || _activeSectionKeys.contains(key))
         .map((key) => _buildManagedOnlySection(key, isAdmin))
         .whereType<Widget>()
         .toList();

@@ -1973,6 +1973,9 @@ class _AdminScreenState extends State<AdminScreen>
                       _quickActionRow(Icons.image_rounded, '배너 추가',
                           AppColors.success, () => _tabCtrl.animateTo(9)),
                       const SizedBox(height: 6),
+                      _quickActionRow(Icons.layers_rounded, '상세페이지 섹션 관리',
+                          AppColors.accent, () => _tabCtrl.animateTo(15)),
+                      const SizedBox(height: 6),
                       _quickActionRow(
                           Icons.chat_rounded, '고객 채팅', AppColors.primary, () {
                         Navigator.push(
@@ -12858,6 +12861,41 @@ class _AdminScreenState extends State<AdminScreen>
                           setState(() => _customSections.remove(newSection));
                         }
                         return;
+                      }
+                      // 섹션관리에서 상품이 연결된 상태로 새 섹션을 등록하면
+                      // 카탈로그에만 저장하지 않고 현재 상품에도 즉시 연결합니다.
+                      // 이미지 없이 설명만 입력한 경우에도 상세페이지에 표시되도록
+                      // sectionDescriptions를 상품 문서에 저장합니다.
+                      final adminProducts =
+                          context.read<ProductProvider>().adminProducts;
+                      ProductModel? connectedProduct;
+                      for (final product in adminProducts) {
+                        if (product.id == _sectionSelectedProductId) {
+                          connectedProduct = product;
+                          break;
+                        }
+                      }
+                      connectedProduct ??=
+                          adminProducts.isNotEmpty ? adminProducts.first : null;
+                      if (connectedProduct != null) {
+                        if (desc.isNotEmpty) {
+                          await context
+                              .read<ProductProvider>()
+                              .updateSectionDescription(
+                                connectedProduct!.id,
+                                newKey,
+                                desc,
+                              );
+                        }
+                        if (imageUrl != null && imageUrl.isNotEmpty) {
+                          await context
+                              .read<ProductProvider>()
+                              .updateSectionImages(
+                                connectedProduct!.id,
+                                newKey,
+                                [imageUrl],
+                              );
+                        }
                       }
                       if (ctx.mounted) Navigator.pop(ctx);
                       if (mounted) {
