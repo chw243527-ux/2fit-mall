@@ -139,7 +139,7 @@ class CategoryService {
     final mains = List<String>.from(mainCategories)..add(name);
     final middles = _copy(middleCatMap)..[name] = ['일반'];
     final subs = _copy(_cachedSubCatMap ?? _defaultSubs())
-      ..[_key(name, '일반')] = [name];
+      ..[_key(name, '일반')] = <String>[];
     await _saveAndCache(mains, middles, subs);
   }
 

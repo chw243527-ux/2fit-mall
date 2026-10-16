@@ -19427,8 +19427,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
 
     // 하위카테고리 초기값 보정
     final subs = _currentSubCats;
-    if (_selSubCat.isEmpty || !subs.contains(_selSubCat)) {
-      _selSubCat = subs.isNotEmpty ? subs.first : '';
+    if (subs.isEmpty) {
+      _selSubCat = '';
+    } else if (_selSubCat.isEmpty || !subs.contains(_selSubCat)) {
+      _selSubCat = subs.first;
     }
     // 타이즈 하위분류 복원
     if (_selCat == '하의' && _selSubCat == '타이즈') {
@@ -20094,7 +20096,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEEF2FF),
+                              color: _currentSubCats.isEmpty
+                                  ? AppColors.surfaceGray
+                                  : const Color(0xFFEEF2FF),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: const Color(
@@ -20106,9 +20110,19 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                               child: DropdownButton<String>(
                                 value: _currentSubCats.contains(_selSubCat)
                                     ? _selSubCat
-                                    : (_currentSubCats.isNotEmpty
-                                        ? _currentSubCats.first
-                                        : null),
+                                    : null,
+                                hint: Text(
+                                  _currentSubCats.isEmpty
+                                      ? '소분류 없음 (선택사항)'
+                                      : '소분류 선택',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: _currentSubCats.isEmpty
+                                        ? AppColors.textHint
+                                        : AppColors.textSecondary,
+                                  ),
+                                ),
                                 isExpanded: true,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 14,
@@ -24320,7 +24334,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                     GestureDetector(
                                       onTap: () => _deleteMainCat(cat),
                                       child: Icon(
-                                        Icons.close_rounded,
+                                        Icons.delete_outline_rounded,
                                         size: 14,
                                         color: isSelected
                                             ? Colors.white54
@@ -24950,11 +24964,11 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
-          '카테고리 삭제',
+          '대분류 삭제',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: Text(
-          '"$cat" 카테고리와 소분류를 모두 삭제합니다.\n삭제 후 이 카테고리의 상품은 카테고리가 유지되지만 목록에서 선택 불가합니다.',
+          '"$cat" 대분류와 연결된 중분류·소분류를 모두 삭제합니다.\n이미 등록된 상품의 카테고리 정보는 유지되지만, 이후 상품등록에서는 선택할 수 없습니다.',
         ),
         actions: [
           TextButton(
@@ -24976,6 +24990,9 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
         setState(() {
           if (_selectedMain == cat) {
             _selectedMain = CategoryService.mainCategories.firstOrNull;
+            _selectedMiddle = _selectedMain == null
+                ? null
+                : CategoryService.middleCatsFor(_selectedMain!).firstOrNull;
           }
         });
         ScaffoldMessenger.of(context).showSnackBar(
