@@ -68,6 +68,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   /// 싱글렛 단품은 기존 상세 카피를 사용하고, 싱글렛세트는 타이즈 하의
   /// 상품만 기존 본문을 사용합니다. 그 외 상품은 관리 섹션 기반의
   /// 화이트 미니멀 상세페이지를 사용합니다.
+  // ignore: unused_element
   bool _useLegacySingletEditorial(ProductModel product) {
     final label = '${product.category} ${product.subCategory} ${product.name}'
         .toLowerCase();
@@ -124,6 +125,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   final Map<String, String> _sectionLabels = {};
   final Map<String, String> _sectionTitles = {};
   final Set<String> _activeSectionKeys = {};
+  // 관리자 카탈로그를 읽었는지 여부와 활성 섹션이 0개인 상태를 구분합니다.
+  bool _sectionCatalogConfigured = false;
   final List<String> _sectionOrder = [
     's1',
     's2',
@@ -182,6 +185,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           .doc('admin_content_catalog')
           .get(const GetOptions(source: Source.server));
       if (!mounted) return;
+      _sectionCatalogConfigured = true;
       final rawSections = snapshot.data()?['sections'];
       if (rawSections is List) {
         final orderedKeys = <String>[];
@@ -217,6 +221,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       if (mounted) setState(() {});
     } catch (_) {
       // 저장된 설명을 읽지 못하면 기존 기본 문구를 유지합니다.
+      _sectionCatalogConfigured = true;
       _sectionCatalogLoaded = true;
     }
   }
@@ -5649,25 +5654,18 @@ $productUrl
   }
 
   /// 모든 상품에 공통 적용하는 에디토리얼 상세페이지 래퍼입니다.
-  /// 한정 수량은 기성품 싱글렛에만 표시하고, 나머지는 동일한 시각 언어만 유지합니다.
+  /// 섹션관리와 고객 상세페이지가 항상 같은 제목·설명·이미지·순서를
+  /// 사용하도록 관리자 콘텐츠 카탈로그를 단일 원본으로 사용합니다.
   Widget _buildEditorialProductDetail(ProductModel product, bool isAdmin) {
-    if (_useLegacySingletEditorial(product)) {
-      // 싱글렛 계열은 기존에 저장된 상품별 콘텐츠를 유지하되,
-      // 렌더링은 새 화이트 미니멀 스타일을 사용합니다.
-      // 기존 레이아웃에 포함되지 않던 사용자 정의 섹션은 하단에 이어 붙입니다.
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildStoredEditorialProductDetail(product, isAdmin),
-          _buildAdditionalRegisteredSections(isAdmin),
-        ],
-      );
-    }
+    // 과거 상품 유형별 레거시 레이아웃은 관리자 카탈로그와 다른
+    // 제목·설명·순서를 렌더링할 수 있으므로 더 이상 고객 화면의 원본으로
+    // 사용하지 않습니다. 모든 상품이 동일한 관리 섹션 경로를 사용합니다.
     return _buildManagedOnlyEditorial(product, isAdmin);
   }
 
   /// 기존 싱글렛 상세 레이아웃에 포함되지 않은 사용자 정의 섹션을 표시합니다.
   /// 기본 섹션은 기존 화면에서 이미 렌더링하므로 중복 표시하지 않습니다.
+  // ignore: unused_element
   Widget _buildAdditionalRegisteredSections(bool isAdmin) {
     const legacySectionKeys = <String>{
       's1',
@@ -5710,7 +5708,7 @@ $productUrl
         .where((key) => key != 's6') // 사이즈표는 별도 공통 영역에서 유지
         .where(
           (key) =>
-              _activeSectionKeys.isEmpty || _activeSectionKeys.contains(key),
+              !_sectionCatalogConfigured || _activeSectionKeys.contains(key),
         )
         .map((key) => _buildManagedOnlySection(key, isAdmin))
         .whereType<Widget>()
