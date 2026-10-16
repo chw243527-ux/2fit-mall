@@ -183,6 +183,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
             ],
             body: Column(
               children: [
+                _buildCategoryHierarchy(),
                 _buildSortBar(),
                 Expanded(
                   child: TabBarView(
@@ -218,6 +219,83 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
             ),
           ),
         ));
+  }
+
+  /// 대분류 페이지 안에서 현재 대분류의 중분류·소분류를 표시합니다.
+  /// 소분류를 누르면 해당 상품 탭으로 바로 이동합니다.
+  Widget _buildCategoryHierarchy() {
+    final groups = <String, List<MapEntry<int, SubCategory>>>{};
+    for (var i = 1; i < widget.subCategories.length; i++) {
+      final sub = widget.subCategories[i];
+      final middle = sub.middleName ?? '일반';
+      groups.putIfAbsent(middle, () => []).add(MapEntry(i, sub));
+    }
+    if (groups.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+      color: const Color(0xFFF8F8F8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '분류 안내',
+            style: TextStyle(
+              color: _greyDim,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...groups.entries.map(
+            (group) => Padding(
+              padding: const EdgeInsets.only(bottom: 7),
+              child: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 6,
+                runSpacing: 5,
+                children: [
+                  Text(
+                    group.key,
+                    style: const TextStyle(
+                      color: _white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const Text('›', style: TextStyle(color: _greyDim)),
+                  ...group.value.map(
+                    (entry) => InkWell(
+                      onTap: () => _tabController.animateTo(entry.key),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 9, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: _surface,
+                          border: Border.all(color: _border),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          entry.value.rawName ?? entry.value.name,
+                          style: const TextStyle(
+                            color: _grey,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // ── 우측 카테고리 드로어 ──
@@ -951,6 +1029,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                       child: Column(
                         children: [
                           _buildPcTopBar(),
+                          _buildCategoryHierarchy(),
                           const SizedBox(height: 16),
                           Expanded(
                             child: TabBarView(

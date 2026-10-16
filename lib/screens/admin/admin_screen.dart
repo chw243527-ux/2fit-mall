@@ -19975,8 +19975,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     ),
                     const SizedBox(height: 14),
 
-                    // ── 상위·중위·하위 카테고리
-                    _lbl('카테고리 (상위 → 중위 → 하위)'),
+                    // ── 대분류·중분류·소분류 카테고리
+                    _lbl('카테고리 (대분류 → 중분류 → 소분류)'),
                     Row(
                       children: [
                         // 메인 카테고리
@@ -20040,7 +20040,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                           onTap: () => _showAddMainCatDialog(),
                         ),
                         const SizedBox(width: 10),
-                        // 중위 카테고리
+                        // 중분류
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(
@@ -20090,7 +20090,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        // 하위 카테고리
+                        // 소분류
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(
@@ -20159,10 +20159,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                             ),
                           ),
                         ),
-                        // 하위 카테고리 직접 추가 버튼
+                        // 소분류 직접 추가 버튼
                         const SizedBox(width: 6),
                         _catAddBtn(
-                          tooltip: '하위 카테고리 추가',
+                          tooltip: '소분류 추가',
                           onTap: () => _showAddSubCatDialog(),
                         ),
                       ],
@@ -22373,7 +22373,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     }
   }
 
-  /// 하위 카테고리 직접 추가 다이얼로그
+  /// 소분류 직접 추가 다이얼로그
   Future<void> _showAddSubCatDialog() async {
     final ctrl = TextEditingController();
     final result = await showDialog<String>(
@@ -22390,7 +22390,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '"$_selCat" 하위 카테고리 추가',
+                '"$_selCat" 소분류 추가',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -22460,7 +22460,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('이미 존재하는 하위 카테고리입니다: $result')));
+        ).showSnackBar(SnackBar(content: Text('이미 존재하는 소분류입니다: $result')));
       }
       return;
     }
@@ -22469,7 +22469,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       setState(() => _selSubCat = result);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('"$_selCat" → "$result" 하위 카테고리 추가됨'),
+          content: Text('"$_selCat" → "$result" 소분류 추가됨'),
           backgroundColor: const Color(0xFF3F51B5),
         ),
       );
@@ -24305,7 +24305,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                       ),
                                     ),
                                     IconButton(
-                                      tooltip: '상위 카테고리 편집',
+                                      tooltip: '대분류 편집',
                                       onPressed: () => _editMainCat(cat),
                                       icon: Icon(
                                         Icons.edit_rounded,
@@ -24339,7 +24339,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                 ),
               ),
               SizedBox(width: isMobile ? 0 : 16, height: isMobile ? 16 : 0),
-              // ── 오른쪽: 중위·하위 카테고리 목록
+              // ── 오른쪽: 중위·소분류 목록
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -24350,7 +24350,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                           const Icon(Icons.account_tree_rounded,
                               size: 16, color: Color(0xFF7E57C2)),
                           const SizedBox(width: 6),
-                          const Text('중위 카테고리',
+                          const Text('중분류',
                               style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
@@ -24380,19 +24380,19 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                             ),
                           ),
                           IconButton(
-                              tooltip: '중위 카테고리 추가',
+                              tooltip: '중분류 추가',
                               onPressed: _showAddMiddleCatDialog,
                               icon: const Icon(Icons.add_circle_outline,
                                   color: Color(0xFF7E57C2))),
                           IconButton(
-                              tooltip: '중위 카테고리 편집',
+                              tooltip: '중분류 편집',
                               onPressed: _selectedMiddle == null
                                   ? null
                                   : () => _editMiddleCat(_selectedMiddle!),
                               icon: const Icon(Icons.edit_rounded,
                                   color: Color(0xFF7E57C2))),
                           IconButton(
-                              tooltip: '중위 카테고리 삭제',
+                              tooltip: '중분류 삭제',
                               onPressed: _selectedMiddle == null
                                   ? null
                                   : () => _deleteMiddleCat(_selectedMiddle!),
@@ -24413,8 +24413,8 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                         Expanded(
                           child: Text(
                             _selectedMain != null
-                                ? '"$_selectedMain" › "$_selectedMiddle" 하위 카테고리'
-                                : '하위 카테고리',
+                                ? '"$_selectedMain" › "$_selectedMiddle" 소분류'
+                                : '소분류',
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -24488,7 +24488,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                           ),
                                           const SizedBox(height: 8),
                                           const Text(
-                                            '하위 카테고리가 없습니다',
+                                            '소분류가 없습니다',
                                             style: TextStyle(
                                               color: AppColors.textHint,
                                             ),
@@ -24770,7 +24770,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
   }
 
   Future<void> _editMainCat(String oldName) async {
-    final value = await _promptCategoryName('상위 카테고리 편집', oldName);
+    final value = await _promptCategoryName('대분류 편집', oldName);
     if (!mounted || value == null || value.isEmpty || value == oldName) return;
     try {
       await CategoryService.renameMainCategory(oldName, value);
@@ -24785,7 +24785,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
 
   Future<void> _showAddMiddleCatDialog() async {
     if (_selectedMain == null) return;
-    final value = await _promptCategoryName('중위 카테고리 추가', '');
+    final value = await _promptCategoryName('중분류 추가', '');
     if (!mounted || value == null || value.isEmpty) return;
     if (CategoryService.middleCatsFor(_selectedMain!).contains(value)) return;
     await CategoryService.addMiddleCategory(_selectedMain!, value);
@@ -24794,7 +24794,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
 
   Future<void> _editMiddleCat(String oldName) async {
     if (_selectedMain == null) return;
-    final value = await _promptCategoryName('중위 카테고리 편집', oldName);
+    final value = await _promptCategoryName('중분류 편집', oldName);
     if (!mounted || value == null || value.isEmpty || value == oldName) return;
     await CategoryService.renameMiddleCategory(_selectedMain!, oldName, value);
     if (mounted) setState(() => _selectedMiddle = value);
@@ -24808,8 +24808,8 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('중위 카테고리 삭제'),
-        content: Text('"$name"과 그 하위 카테고리를 삭제할까요?'),
+        title: const Text('중분류 삭제'),
+        content: Text('"$name"과 그 소분류를 삭제할까요?'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -24828,7 +24828,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
     }
   }
 
-  // ── 하위 카테고리 추가 다이얼로그
+  // ── 소분류 추가 다이얼로그
   Future<void> _showAddSubCatDialog() async {
     if (_selectedMain == null) return;
     final ctrl = TextEditingController();
@@ -24846,7 +24846,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '"$_selectedMain" 하위 카테고리 추가',
+                '"$_selectedMain" 소분류 추가',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -24926,7 +24926,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
         setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('"$_selectedMain" → "$result" 하위 카테고리 추가됨'),
+            content: Text('"$_selectedMain" → "$result" 소분류 추가됨'),
             backgroundColor: const Color(0xFF3F51B5),
           ),
         );
@@ -24954,7 +24954,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: Text(
-          '"$cat" 카테고리와 하위 카테고리를 모두 삭제합니다.\n삭제 후 이 카테고리의 상품은 카테고리가 유지되지만 목록에서 선택 불가합니다.',
+          '"$cat" 카테고리와 소분류를 모두 삭제합니다.\n삭제 후 이 카테고리의 상품은 카테고리가 유지되지만 목록에서 선택 불가합니다.',
         ),
         actions: [
           TextButton(
@@ -24997,7 +24997,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
     }
   }
 
-  // ── 하위 카테고리 이름 수정
+  // ── 소분류 이름 수정
   Future<void> _editSubCat(String oldName) async {
     if (_selectedMain == null) return;
     final ctrl = TextEditingController(text: oldName);
@@ -25006,7 +25006,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
-          '하위 카테고리 수정',
+          '소분류 수정',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: SizedBox(
@@ -25015,7 +25015,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
             controller: ctrl,
             autofocus: true,
             decoration: InputDecoration(
-              labelText: '하위 카테고리 이름',
+              labelText: '소분류 이름',
               filled: true,
               fillColor: AppColors.surfaceGray,
               border: OutlineInputBorder(
@@ -25068,7 +25068,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
         setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('하위 카테고리 이름이 "$newName"으로 수정되었습니다.'),
+            content: Text('소분류 이름이 "$newName"으로 수정되었습니다.'),
             backgroundColor: const Color(0xFF3F51B5),
           ),
         );
@@ -25085,17 +25085,17 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
     }
   }
 
-  // ── 하위 카테고리 삭제 확인
+  // ── 소분류 삭제 확인
   Future<void> _deleteSubCat(String sub) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
-          '하위 카테고리 삭제',
+          '소분류 삭제',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
-        content: Text('"$_selectedMain" → "$sub" 하위 카테고리를 삭제합니다.'),
+        content: Text('"$_selectedMain" → "$sub" 소분류를 삭제합니다.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -25117,7 +25117,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
         setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('"$sub" 하위 카테고리 삭제됨'),
+            content: Text('"$sub" 소분류 삭제됨'),
             backgroundColor: AppColors.error,
           ),
         );

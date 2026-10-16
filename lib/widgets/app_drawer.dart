@@ -38,7 +38,7 @@ class SubCategory {
   final String filter; // 메인 카테고리 (Firestore category 값)
   final String? tag;
   final String? rawName; // 다국어 표시명과 분리된 Firestore 원문값
-  final String? middleName; // 중위 카테고리 원문값
+  final String? middleName; // 중분류 원문값
 
   const SubCategory({
     required this.name,
@@ -139,7 +139,7 @@ class _AppDrawerState extends State<AppDrawer> {
       context.read<LanguageProvider>().triggerTranslation();
     });
     // 드로어를 열 때마다 Firestore의 최신 카테고리를 확인합니다.
-    // 관리자에서 하위 카테고리 순서·추가·삭제를 변경한 뒤에도
+    // 관리자에서 소분류 순서·추가·삭제를 변경한 뒤에도
     // 앱을 완전히 재시작하지 않고 다음 드로어 오픈 시 반영됩니다.
     CategoryService.load().then((_) {
       if (mounted) setState(() {});
