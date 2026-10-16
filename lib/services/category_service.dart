@@ -57,10 +57,11 @@ class CategoryService {
           main: List<String>.from(defaultMiddleCategories),
       };
   static Map<String, List<String>> _defaultSubs() => {
+        // 기본 하위 카테고리는 일반 중위 카테고리에만 둡니다.
+        // 기성품·단체주문은 관리자가 필요에 따라 별도로 등록합니다.
         for (final main in defaultMainCategories)
-          for (final middle in defaultMiddleCategories)
-            _key(main, middle):
-                List<String>.from(defaultSubCatMap[main] ?? const []),
+          _key(main, '일반'):
+              List<String>.from(defaultSubCatMap[main] ?? const []),
       };
 
   static Future<void> load() async {

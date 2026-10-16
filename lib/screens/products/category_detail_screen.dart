@@ -83,7 +83,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     super.dispose();
   }
 
-  List<ProductModel> _getProducts(String filter, {String? subName}) {
+  List<ProductModel> _getProducts(String filter,
+      {String? subName, String? middleName}) {
     final provider = context.watch<ProductProvider>();
     // provider.products는 다른 화면에서 선택한 카테고리로 이미 필터됐을 수
     // 있으므로, 카테고리 화면에서는 항상 전체 활성 원본에서 다시 필터링합니다.
@@ -98,6 +99,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       all = List.from(allCached);
     } else {
       all = allCached.where((p) => p.category == filter).toList();
+      if (middleName != null && middleName.isNotEmpty && middleName != '일반') {
+        all = all.where((p) => p.middleCategory == middleName).toList();
+      }
       if (subName != null &&
           subName.isNotEmpty &&
           !subName.startsWith(context.loc.t('전체', '전체')) &&
@@ -196,6 +200,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                       final products = _getProducts(
                         sub.filter,
                         subName: sub.rawName ?? sub.name,
+                        middleName: sub.middleName,
                       );
                       return RefreshIndicator(
                         color: _white,
@@ -963,6 +968,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                                 final products = _getProducts(
                                   sub.filter,
                                   subName: sub.rawName ?? sub.name,
+                                  middleName: sub.middleName,
                                 );
                                 return RefreshIndicator(
                                   color: _white,

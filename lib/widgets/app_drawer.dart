@@ -38,12 +38,14 @@ class SubCategory {
   final String filter; // 메인 카테고리 (Firestore category 값)
   final String? tag;
   final String? rawName; // 다국어 표시명과 분리된 Firestore 원문값
+  final String? middleName; // 중위 카테고리 원문값
 
   const SubCategory({
     required this.name,
     required this.filter,
     this.tag,
     this.rawName,
+    this.middleName,
   });
 }
 
@@ -79,22 +81,30 @@ Color _colorFor(String cat) {
 
 /// CategoryService 기반 동적 카테고리 목록 생성
 /// - 메인: CategoryService.mainCategories
-/// - 서브: CategoryService.subCatsFor(mainCat)
+/// - 중위·하위: CategoryService.middleCatsFor/subCatsFor
 /// - 첫 번째 탭은 항상 "전체 {mainCat}" (전체탭)
 List<CategoryData> getCategories(AppLocalizations loc) {
   return CategoryService.mainCategories.map((mainCat) {
-    final subs = CategoryService.subCatsFor(mainCat);
     // 카테고리명 번역 적용
     final translatedMain = loc.t(mainCat, mainCat);
     final allTabName = loc.t('전체 $mainCat', '전체 $mainCat');
     final subList = <SubCategory>[
       SubCategory(name: allTabName, filter: mainCat), // 전체탭
-      ...subs.map((s) => SubCategory(
-            name: loc.t(s, s),
-            filter: mainCat,
-            rawName: s,
-          )),
     ];
+    for (final middle in CategoryService.middleCatsFor(mainCat)) {
+      for (final sub in CategoryService.subCatsFor(mainCat, middle)) {
+        final translatedSub = loc.t(sub, sub);
+        final displayName = middle == '일반'
+            ? translatedSub
+            : '${loc.t(middle, middle)} · $translatedSub';
+        subList.add(SubCategory(
+          name: displayName,
+          filter: mainCat,
+          rawName: sub,
+          middleName: middle,
+        ));
+      }
+    }
     return CategoryData(
       name: translatedMain,
       icon: _iconFor(mainCat),
