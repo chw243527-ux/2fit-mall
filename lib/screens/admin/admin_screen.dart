@@ -12182,7 +12182,14 @@ class _AdminScreenState extends State<AdminScreen>
     _showProductFormDialog(p, isCopy: true);
   }
 
-  void _showProductFormDialog(ProductModel? existing, {bool isCopy = false}) {
+  Future<void> _showProductFormDialog(
+    ProductModel? existing, {
+    bool isCopy = false,
+  }) async {
+    // 관리자 카테고리 탭과 동일한 Firestore 원본을 사용합니다.
+    // 로드가 끝나기 전에 폼을 열면 이전 캐시의 상·하위 목록이 보일 수 있습니다.
+    await CategoryService.load();
+    if (!mounted) return;
     showDialog(
       context: context,
       barrierDismissible: false,

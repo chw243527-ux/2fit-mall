@@ -23,6 +23,9 @@ class ProductListScreen extends StatefulWidget {
   /// 베스트(인기순) 정렬 자동 적용
   final bool initialOnlyBest;
 
+  /// 기성품 상품만 표시
+  final bool initialOnlyReadyMade;
+
   /// IndexedStack 안에 있을 때 뒤로가기 콜백 (홈탭 이동)
   final VoidCallback? onBack;
 
@@ -33,6 +36,7 @@ class ProductListScreen extends StatefulWidget {
     this.initialSortBy,
     this.initialOnlyNew = false,
     this.initialOnlyBest = false,
+    this.initialOnlyReadyMade = false,
     this.onBack,
   });
 
@@ -55,6 +59,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   // 추가 필터
   bool _onlyNew = false;
   bool _onlyBest = false;
+  bool _onlyReadyMade = false;
   bool _onlySale = false;
   bool _onlyFreeShip = false;
   // 서브카테고리 필터
@@ -103,6 +108,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       _onlyBest = true;
       _sortBy = context.loc.t('인기순', '인기순');
     }
+    if (widget.initialOnlyReadyMade) _onlyReadyMade = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 언어 변경 시 번역 트리거
       context.read<LanguageProvider>().triggerTranslation();
@@ -116,7 +122,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         return;
       }
       // 베스트/신상품 탭은 전체 상품을 로드해야 함
-      final cat = (_onlyBest || _onlyNew)
+      final cat = (_onlyBest || _onlyNew || _onlyReadyMade)
           ? context.loc.t('전체', '전체')
           : (_selectedCategory.isEmpty
               ? context.loc.t('전체', '전체')
@@ -164,6 +170,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     }
     if (_onlySale) list = list.where((p) => p.isSale).toList();
     if (_onlyFreeShip) list = list.where((p) => p.isFreeShipping).toList();
+    if (_onlyReadyMade) list = list.where((p) => p.isReadyMade).toList();
     // 신상품은 등록일 기준 최신순을 항상 우선합니다.
     // 초기 상품 캐시 순서에 의존하면 새 상품이 뒤로 밀릴 수 있습니다.
     if (_onlyNew) {

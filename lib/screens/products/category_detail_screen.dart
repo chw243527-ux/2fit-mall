@@ -193,8 +193,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                           ),
                         );
                       }
-                      final products =
-                          _getProducts(sub.filter, subName: sub.name);
+                      final products = _getProducts(
+                        sub.filter,
+                        subName: sub.rawName ?? sub.name,
+                      );
                       return RefreshIndicator(
                         color: _white,
                         backgroundColor: _card,
@@ -958,8 +960,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                                         strokeWidth: 1.5),
                                   );
                                 }
-                                final products =
-                                    _getProducts(sub.filter, subName: sub.name);
+                                final products = _getProducts(
+                                  sub.filter,
+                                  subName: sub.rawName ?? sub.name,
+                                );
                                 return RefreshIndicator(
                                   color: _white,
                                   backgroundColor: _card,

@@ -5812,6 +5812,7 @@ class _HomeScreenState extends State<HomeScreen>
       category: context.loc.t('상의', '상의'),
       viewAllLabel: loc.viewAll,
       isHorizontal: true,
+      isReadyMadeCategory: true,
     );
   }
 
@@ -5877,8 +5878,8 @@ class _HomeScreenState extends State<HomeScreen>
     required String category,
     required String viewAllLabel,
     bool isHorizontal = true,
-    bool isNewCategory =
-        false, // 신상품 섹션이면 true → CategoryDetailScreen(신상품 필터)로 이동
+    bool isNewCategory = false, // 신상품 섹션이면 true → CategoryDetailScreen(신상품)로 이동
+    bool isReadyMadeCategory = false,
   }) {
     final r = Responsive.of(context);
     if (products.isEmpty) return const SizedBox.shrink();
@@ -5954,8 +5955,10 @@ class _HomeScreenState extends State<HomeScreen>
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) =>
-                                ProductListScreen(initialCategory: category),
+                            builder: (_) => ProductListScreen(
+                              initialCategory: category,
+                              initialOnlyReadyMade: isReadyMadeCategory,
+                            ),
                           ));
                     }
                   },
@@ -6043,7 +6046,8 @@ class _HomeScreenState extends State<HomeScreen>
                               context,
                               MaterialPageRoute(
                                 builder: (_) => ProductListScreen(
-                                    initialCategory: category),
+                                    initialCategory: category,
+                                    initialOnlyReadyMade: isReadyMadeCategory),
                               ));
                         }
                       },

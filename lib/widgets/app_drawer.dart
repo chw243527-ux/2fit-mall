@@ -37,8 +37,14 @@ class SubCategory {
   final String name; // 표시 이름 (= Firestore subCategory 값과 동일)
   final String filter; // 메인 카테고리 (Firestore category 값)
   final String? tag;
+  final String? rawName; // 다국어 표시명과 분리된 Firestore 원문값
 
-  const SubCategory({required this.name, required this.filter, this.tag});
+  const SubCategory({
+    required this.name,
+    required this.filter,
+    this.tag,
+    this.rawName,
+  });
 }
 
 // ── 메인 카테고리별 아이콘·색상 매핑 ──────────────
@@ -83,7 +89,11 @@ List<CategoryData> getCategories(AppLocalizations loc) {
     final allTabName = loc.t('전체 $mainCat', '전체 $mainCat');
     final subList = <SubCategory>[
       SubCategory(name: allTabName, filter: mainCat), // 전체탭
-      ...subs.map((s) => SubCategory(name: loc.t(s, s), filter: mainCat)),
+      ...subs.map((s) => SubCategory(
+            name: loc.t(s, s),
+            filter: mainCat,
+            rawName: s,
+          )),
     ];
     return CategoryData(
       name: translatedMain,
