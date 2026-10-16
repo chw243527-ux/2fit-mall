@@ -1930,41 +1930,58 @@ class _AdminScreenState extends State<AdminScreen>
   // 현재 탭 인덱스에 맞는 위젯만 빌드 (핵심 렌더링 메서드)
   // ══════════════════════════════════════════════
   Widget _buildCurrentTab(int index) {
-    // Stack+Offstage: 모든 탭을 미리 빌드해두고 보이기/숨기기만 전환
-    // 새 순서: 0대시보드 1주문관리 2디자인요청 3배송관리 4채팅상담
-    //          5재고관리  6상품관리  7교환/반품  8리뷰관리  9배너관리
-    //          10직원관리 11회원관리 12공지관리 13매출통계 14카테고리관리 15섹션관리 16쿠폰관리 17색상관리 18단체주문관리 19정산·매입관리 20환불내역
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Offstage(offstage: index != 0, child: _buildDashboard()),
-        Offstage(offstage: index != 1, child: _buildOrderManagement()),
-        Offstage(offstage: index != 2, child: _buildDesignRequests()),
-        Offstage(offstage: index != 3, child: const AdminDeliveryTab()),
-        Offstage(offstage: index != 4, child: _buildChatManagement()),
-        Offstage(
-          offstage: index != 5,
-          child: AdminInventoryTab(
-            adminId: FirebaseAuth.instance.currentUser?.uid ?? 'admin',
-          ),
-        ),
-        Offstage(offstage: index != 6, child: _buildProductManagement()),
-        Offstage(offstage: index != 7, child: const AdminExchangeTab()),
-        Offstage(offstage: index != 8, child: const AdminReviewTab()),
-        Offstage(offstage: index != 9, child: _buildBannerManagement()),
-        Offstage(offstage: index != 10, child: const AdminStaffTab()),
-        Offstage(offstage: index != 11, child: _buildMemberManagement()),
-        Offstage(offstage: index != 12, child: _buildNoticeManagement()),
-        Offstage(offstage: index != 13, child: const AdminSalesStatsTab()),
-        Offstage(offstage: index != 14, child: const _CategoryManagementTab()),
-        Offstage(offstage: index != 15, child: _buildSectionManagement()),
-        Offstage(offstage: index != 16, child: const AdminCouponTab()),
-        Offstage(offstage: index != 17, child: _buildColorManagement()),
-        Offstage(offstage: index != 18, child: const AdminGroupOrderTab()),
-        Offstage(offstage: index != 19, child: const AdminSettlementTab()),
-        Offstage(offstage: index != 20, child: const AdminRefundHistoryTab()),
-      ],
-    );
+    // 숨겨진 탭까지 동시에 빌드하면 iPhone Safari에서 섹션관리의
+    // ReorderableListView·Firestore 데이터가 진입 전에 렌더링될 수 있습니다.
+    // 현재 탭만 지연 생성해 화면별 렌더링 예외가 전체 페이지 재시작으로
+    // 번지지 않도록 합니다.
+    switch (index) {
+      case 0:
+        return _buildDashboard();
+      case 1:
+        return _buildOrderManagement();
+      case 2:
+        return _buildDesignRequests();
+      case 3:
+        return const AdminDeliveryTab();
+      case 4:
+        return _buildChatManagement();
+      case 5:
+        return AdminInventoryTab(
+          adminId: FirebaseAuth.instance.currentUser?.uid ?? 'admin',
+        );
+      case 6:
+        return _buildProductManagement();
+      case 7:
+        return const AdminExchangeTab();
+      case 8:
+        return const AdminReviewTab();
+      case 9:
+        return _buildBannerManagement();
+      case 10:
+        return const AdminStaffTab();
+      case 11:
+        return _buildMemberManagement();
+      case 12:
+        return _buildNoticeManagement();
+      case 13:
+        return const AdminSalesStatsTab();
+      case 14:
+        return const _CategoryManagementTab();
+      case 15:
+        return _buildSectionManagement();
+      case 16:
+        return const AdminCouponTab();
+      case 17:
+        return _buildColorManagement();
+      case 18:
+        return const AdminGroupOrderTab();
+      case 19:
+        return const AdminSettlementTab();
+      case 20:
+        return const AdminRefundHistoryTab();
+      default:
+        return _buildDashboard();
+    }
   }
 
   // ══════════════════════════════════════════════
