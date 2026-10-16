@@ -882,14 +882,16 @@ class _AdminScreenState extends State<AdminScreen>
       };
 
   Map<String, dynamic> _sectionFromCatalog(Map<String, dynamic> item) {
-    final key = item['key'] as String? ??
-        'custom_${DateTime.now().microsecondsSinceEpoch}';
+    final rawKey = item['key']?.toString().trim() ?? '';
+    final key = rawKey.isNotEmpty
+        ? rawKey
+        : 'custom_${DateTime.now().microsecondsSinceEpoch}';
     return {
       'key': key,
-      'label': item['label'] as String? ?? '섹션',
-      'title': item['title'] as String? ?? '이름 없는 섹션',
-      'description': item['description'] as String? ?? '',
-      'thumbUrl': item['thumbUrl'] as String? ?? '',
+      'label': item['label']?.toString() ?? '섹션',
+      'title': item['title']?.toString() ?? '이름 없는 섹션',
+      'description': item['description']?.toString() ?? '',
+      'thumbUrl': item['thumbUrl']?.toString() ?? '',
       'active': item['active'] != false,
       'icon': _sectionIconForKey(key),
     };
@@ -14923,9 +14925,23 @@ class _AdminScreenState extends State<AdminScreen>
   // TAB 6 : 섹션 관리
   // ══════════════════════════════════════════════
   List<Map<String, dynamic>> _sectionsForProduct(ProductModel? product) {
-    final result = _customSections
-        .map((section) => Map<String, dynamic>.from(section))
-        .toList();
+    final result = <Map<String, dynamic>>[];
+    final knownKeys = <String>{};
+    for (final rawSection in _customSections) {
+      final section = Map<String, dynamic>.from(rawSection);
+      final key = section['key']?.toString().trim() ?? '';
+      if (key.isEmpty || !knownKeys.add(key)) continue;
+      result.add({
+        ...section,
+        'key': key,
+        'label': section['label']?.toString() ?? '섹션',
+        'title': section['title']?.toString() ?? '이름 없는 섹션',
+        'description': section['description']?.toString() ?? '',
+        'icon': section['icon'] is IconData
+            ? section['icon'] as IconData
+            : _sectionIconForKey(key),
+      });
+    }
     if (product == null) return result;
 
     const fallbackTitles = <String, String>{
@@ -14938,7 +14954,6 @@ class _AdminScreenState extends State<AdminScreen>
       's5': '골지 원단 색상',
       's6': '사이즈 차트',
     };
-    final knownKeys = result.map((section) => section['key']).toSet();
     for (final entry in product.sectionImages.entries) {
       final key = entry.key.trim();
       if (key.isEmpty || entry.value.isEmpty || knownKeys.contains(key)) {
