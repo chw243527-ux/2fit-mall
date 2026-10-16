@@ -2318,8 +2318,10 @@ $productUrl
             labelSub: context.loc.t('제품_기본_정보', '제품 기본 정보'),
             content: _toptenInfoTable([
               (context.loc.t('제품명', '제품명'), product.localizedName(_lang)),
+              if (product.middleCategory.isNotEmpty)
+                (context.loc.t('중위 카테고리', '중위 카테고리'), product.middleCategory),
               if (product.subCategory.isNotEmpty)
-                (context.loc.t('분류', '분류'), product.subCategory),
+                (context.loc.t('하위 카테고리', '하위 카테고리'), product.subCategory),
               (context.loc.t('상품코드', '상품코드'), productCode),
               (context.loc.t('시즌', '시즌'), 'SS26'),
               // 하의길이 행: 해당 카테고리만

@@ -8709,7 +8709,7 @@ class _AdminScreenState extends State<AdminScreen>
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${p.category} · ${_fmtPrice(p.price)}원',
+                      '${p.category} › ${p.middleCategory.isEmpty ? '일반' : p.middleCategory} › ${p.subCategory.isEmpty ? '미분류' : p.subCategory} · ${_fmtPrice(p.price)}원',
                       style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.textSecondary,
@@ -19219,6 +19219,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
 
   // ── 카테고리
   String _selCat = '상의';
+  String _selMiddleCat = '일반';
   String _selSubCat = '';
   String _selTightsSub = ''; // 타이즈 하위분류 (9부/5부/4부/3부/2.5부/숏쇼츠)
 
@@ -19335,6 +19336,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   List<String> get _mainCategories => CategoryService.mainCategories;
 
   List<String> get _currentSubCats => CategoryService.subCatsFor(_selCat);
+  List<String> get _currentMiddleCats => const ['일반', '기성품', '단체주문'];
 
   @override
   void initState() {
@@ -19390,6 +19392,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     }
 
     _selCat = e?.category ?? '상의';
+    _selMiddleCat = e?.middleCategory ?? '';
     _selSubCat = e?.subCategory ?? '';
     _imageItems = (e?.images ?? [])
         .map((url) => <String, dynamic>{'url': url, 'pending': false})
@@ -19402,6 +19405,11 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     _isGroup = e?.isGroup ?? false;
     _isReadyMade = e?.isReadyMade ?? false;
     _isActive = e?.isActive ?? true;
+    if (!_currentMiddleCats.contains(_selMiddleCat)) {
+      _selMiddleCat = e?.isGroupOnly == true || e?.category == '단체주문'
+          ? '단체주문'
+          : (e?.isReadyMade == true ? '기성품' : '일반');
+    }
 
     // 기존 상품의 색상 복원
     if (e != null) {
@@ -19673,6 +19681,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       name: productName,
       productCode: _productCodeCtrl.text.trim(),
       category: _selCat,
+      middleCategory: _selMiddleCat,
       // 타이즈인 경우 서브카테고리에 길이 포함 (예: "타이즈 9부")
       subCategory: _selSubCat == '타이즈' && _selTightsSub.isNotEmpty
           ? '타이즈 $_selTightsSub'
@@ -19960,8 +19969,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     ),
                     const SizedBox(height: 14),
 
-                    // ── 카테고리 + 하위카테고리
-                    _lbl('카테고리'),
+                    // ── 상위·중위·하위 카테고리
+                    _lbl('카테고리 (상위 → 중위 → 하위)'),
                     Row(
                       children: [
                         // 메인 카테고리
@@ -19994,6 +20003,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                   if (v == null) return;
                                   setState(() {
                                     _selCat = v;
+                                    _selMiddleCat = v == '단체주문'
+                                        ? '단체주문'
+                                        : (_isReadyMade ? '기성품' : '일반');
                                     // 단체주문 카테고리 선택 시 단체전용 자동 ON
                                     // 다른 카테고리로 변경해도 단체전용은 유지 (사용자가 직접 OFF 가능)
                                     if (v == '단체주문') _isGroupOnly = true;
@@ -20020,6 +20032,48 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                           onTap: () => _showAddMainCatDialog(),
                         ),
                         const SizedBox(width: 10),
+                        // 중위 카테고리
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF3F0FF),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: const Color(0xFF7E57C2)
+                                    .withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value:
+                                    _currentMiddleCats.contains(_selMiddleCat)
+                                        ? _selMiddleCat
+                                        : _currentMiddleCats.first,
+                                isExpanded: true,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                borderRadius: BorderRadius.circular(10),
+                                items: _currentMiddleCats
+                                    .map((m) => DropdownMenuItem(
+                                          value: m,
+                                          child: Text(
+                                            m,
+                                            overflow: TextOverflow.ellipsis,
+                                            style:
+                                                const TextStyle(fontSize: 12),
+                                          ),
+                                        ))
+                                    .toList(),
+                                onChanged: (v) {
+                                  if (v == null) return;
+                                  setState(() => _selMiddleCat = v);
+                                  _scheduleAutoSave();
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
                         // 하위 카테고리
                         Expanded(
                           child: Container(
@@ -20967,12 +21021,22 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                         }, ac: AppColors.info),
                         // 단체전용 칩 — 카테고리 무관, 단순 ON/OFF만 (카테고리 변경 없음)
                         _chip('단체전용', _isGroupOnly, (v) {
-                          setState(() => _isGroupOnly = v);
+                          setState(() {
+                            _isGroupOnly = v;
+                            if (v) _selMiddleCat = '단체주문';
+                          });
                           _scheduleAutoSave();
                         }, ac: AppColors.primary),
                         _chip('기성품', _isReadyMade, (v) {
                           setState(() {
                             _isReadyMade = v;
+                            if (v && !_isGroupOnly) {
+                              _selMiddleCat = '기성품';
+                            } else if (!v &&
+                                _selMiddleCat == '기성품' &&
+                                !_isGroupOnly) {
+                              _selMiddleCat = '일반';
+                            }
                             // 기성품 ON/OFF 시 카테고리 변경 없음 — 현재 카테고리 그대로 유지
                             // (단체전용도 ON 상태면 단체주문 카테고리 유지)
                           });

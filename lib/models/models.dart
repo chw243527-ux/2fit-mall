@@ -8,6 +8,7 @@ class ProductModel {
   final String id;
   final String name;
   final String category;
+  final String middleCategory; // 중위 카테고리
   final String subCategory; // 하위 카테고리 (예: '롱 레깅스', '숏 레깅스')
   final double price;
   final double? originalPrice;
@@ -82,6 +83,7 @@ class ProductModel {
     required this.id,
     required this.name,
     required this.category,
+    this.middleCategory = '',
     this.subCategory = '',
     required this.price,
     this.originalPrice,
@@ -180,6 +182,7 @@ class ProductModel {
     String? id,
     String? name,
     String? category,
+    String? middleCategory,
     String? subCategory,
     double? price,
     double? originalPrice,
@@ -228,6 +231,7 @@ class ProductModel {
       id: id ?? this.id,
       name: name ?? this.name,
       category: category ?? this.category,
+      middleCategory: middleCategory ?? this.middleCategory,
       subCategory: subCategory ?? this.subCategory,
       price: price ?? this.price,
       originalPrice: originalPrice ?? this.originalPrice,
@@ -285,6 +289,7 @@ class ProductModel {
       id: id,
       name: name,
       category: category,
+      middleCategory: middleCategory,
       subCategory: subCategory,
       price: price,
       originalPrice: originalPrice,
@@ -442,6 +447,7 @@ class ProductModel {
       id: json['id'] as String,
       name: json['name'] as String,
       category: json['category'] as String,
+      middleCategory: json['middleCategory'] as String? ?? '',
       subCategory: json['subCategory'] as String? ?? '',
       price: parseDouble(json['price']),
       originalPrice: json['originalPrice'] != null
@@ -518,6 +524,7 @@ class ProductModel {
       'id': id,
       'name': name,
       'category': category,
+      'middleCategory': middleCategory,
       'subCategory': subCategory,
       'price': price,
       'originalPrice': originalPrice,
