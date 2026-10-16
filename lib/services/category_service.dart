@@ -1,6 +1,4 @@
-// category_service.dart — Firestore 기반 카테고리 관리 서비스
-// app_settings/categories 문서에 메인·하위 카테고리를 저장/로드
-
+// category_service.dart — Firestore 기반 3단계 카테고리 관리 서비스
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
@@ -9,8 +7,7 @@ class CategoryService {
   static DocumentReference get _doc =>
       _db.collection('app_settings').doc('categories');
 
-  // ── 기본(내장) 카테고리 ─────────────────────────────────────
-  static const List<String> defaultMainCategories = [
+  static const defaultMainCategories = [
     '상의',
     '하의',
     '세트',
@@ -20,7 +17,7 @@ class CategoryService {
     '이벤트',
     '단체주문',
   ];
-
+  static const defaultMiddleCategories = ['일반', '기성품', '단체주문'];
   static const Map<String, List<String>> defaultSubCatMap = {
     '상의': [
       'NEW 심리스 싱글렛 A',
@@ -37,15 +34,9 @@ class CategoryService {
       '롱 슬리브',
       '맨투맨',
       '후드집업',
-      '트레이닝 집업',
+      '트레이닝 집업'
     ],
-    '하의': [
-      '타이즈',
-      '남성 5부',
-      '여성 2.5부',
-      '숏츠',
-      '트레이닝바지',
-    ],
+    '하의': ['타이즈', '남성 5부', '여성 2.5부', '숏츠', '트레이닝바지'],
     '세트': ['싱글렛세트A타입', '트레이닝복세트'],
     '아우터': ['바람막이', '다운패딩', '다운조끼패딩', '롱패딩'],
     '스킨슈트': ['스킨슈트'],
@@ -54,213 +45,248 @@ class CategoryService {
     '단체주문': ['싱글렛세트A타입', '싱글렛 B타입', '스킨슈트', '트레이닝복세트', '기타'],
   };
 
-  // ── 인메모리 캐시 ───────────────────────────────────────────
   static List<String>? _cachedMainCats;
+  static Map<String, List<String>>? _cachedMiddleCatMap;
   static Map<String, List<String>>? _cachedSubCatMap;
+  static String _key(String main, String middle) => '$main::$middle';
+  static Map<String, List<String>> _copy(Map<String, List<String>> source) => {
+        for (final e in source.entries) e.key: List<String>.from(e.value),
+      };
+  static Map<String, List<String>> _defaultMiddles() => {
+        for (final main in defaultMainCategories)
+          main: List<String>.from(defaultMiddleCategories),
+      };
+  static Map<String, List<String>> _defaultSubs() => {
+        for (final main in defaultMainCategories)
+          for (final middle in defaultMiddleCategories)
+            _key(main, middle):
+                List<String>.from(defaultSubCatMap[main] ?? const []),
+      };
 
-  // ── Firestore에서 로드 ──────────────────────────────────────
   static Future<void> load() async {
     try {
       final snap = await _doc.get();
-      if (snap.exists) {
-        final data = snap.data() as Map<String, dynamic>;
-        // Firestore에 저장된 값 우선 사용
-        final rawMain = data['mainCategories'];
-        final rawSubs = data['subCatMap'];
-        if (rawMain != null) {
-          _cachedMainCats = List<String>.from(rawMain as List);
-        }
-        if (rawSubs != null) {
-          final subMap = rawSubs as Map<String, dynamic>;
-          _cachedSubCatMap = subMap.map(
-            (k, v) => MapEntry(k, List<String>.from(v as List)),
-          );
-        }
-        // 기본 카테고리 중 Firestore에 없는 항목은 추가하지 않음 (관리자가 삭제한 것 존중)
-      } else {
-        // 문서 없으면 기본값으로 초기화 후 저장 (최초 1회)
-        final cats = List<String>.from(defaultMainCategories);
-        final subs = Map<String, List<String>>.from(defaultSubCatMap.map(
-          (k, v) => MapEntry(k, List<String>.from(v)),
-        ));
-        await _saveToFirestore(cats, subs);
-        _cachedMainCats = cats;
+      if (!snap.exists) {
+        final mains = List<String>.from(defaultMainCategories);
+        final middles = _defaultMiddles();
+        final subs = _defaultSubs();
+        await _save(mains, middles, subs);
+        _cachedMainCats = mains;
+        _cachedMiddleCatMap = middles;
         _cachedSubCatMap = subs;
+        return;
       }
-    } catch (e) {
+      final data = snap.data() as Map<String, dynamic>;
+      final rawMain = data['mainCategories'];
+      _cachedMainCats = rawMain is List
+          ? rawMain.map((e) => e.toString()).toList()
+          : List<String>.from(defaultMainCategories);
+      final middles = <String, List<String>>{};
+      final rawMiddles = data['middleCatMap'];
+      if (rawMiddles is Map) {
+        rawMiddles.forEach((k, v) {
+          if (v is List) {
+            middles[k.toString()] = v.map((e) => e.toString()).toList();
+          }
+        });
+      }
+      final subs = <String, List<String>>{};
+      final rawSubs = data['subCatMap'];
+      if (rawSubs is Map) {
+        rawSubs.forEach((k, v) {
+          if (v is List) {
+            subs[k.toString()] = v.map((e) => e.toString()).toList();
+          }
+        });
+      }
+      for (final main in _cachedMainCats!) {
+        middles.putIfAbsent(main, () => ['일반']);
+        if (middles[main]!.isEmpty) middles[main]!.add('일반');
+        // 기존 main -> sub 구조를 main::일반 구조로 자동 변환
+        final legacy = subs.remove(main);
+        if (legacy != null) subs[_key(main, '일반')] = legacy;
+        for (final middle in middles[main]!) {
+          subs.putIfAbsent(_key(main, middle), () => <String>[]);
+        }
+      }
+      _cachedMiddleCatMap = middles;
+      _cachedSubCatMap = subs;
+    } catch (_) {
       debugPrint('client_operation_failed');
       _cachedMainCats ??= List<String>.from(defaultMainCategories);
-      _cachedSubCatMap ??= Map<String, List<String>>.from(defaultSubCatMap.map(
-        (k, v) => MapEntry(k, List<String>.from(v)),
-      ));
+      _cachedMiddleCatMap ??= _defaultMiddles();
+      _cachedSubCatMap ??= _defaultSubs();
     }
   }
 
-  // ── 기본값으로 강제 초기화 (카테고리 리셋) ─────────────────
-  static Future<void> resetToDefaults() async {
-    final cats = List<String>.from(defaultMainCategories);
-    final subs = Map<String, List<String>>.from(defaultSubCatMap.map(
-      (k, v) => MapEntry(k, List<String>.from(v)),
-    ));
-    await _saveToFirestore(cats, subs);
-    _cachedMainCats = cats;
-    _cachedSubCatMap = subs;
-  }
-
-  // ── getter (캐시 우선, 없으면 기본값) ───────────────────────
   static List<String> get mainCategories =>
       _cachedMainCats ?? List<String>.from(defaultMainCategories);
+  static Map<String, List<String>> get middleCatMap =>
+      _cachedMiddleCatMap ?? _defaultMiddles();
+  static List<String> middleCatsFor(String main) =>
+      List<String>.from(middleCatMap[main] ?? const ['일반']);
+  static Map<String, List<String>> get subCatMap => {
+        for (final main in mainCategories) main: subCatsFor(main),
+      };
+  static List<String> subCatsFor(String main, [String middle = '일반']) =>
+      List<String>.from(_cachedSubCatMap?[_key(main, middle)] ??
+          _cachedSubCatMap?[main] ??
+          const []);
 
-  static Map<String, List<String>> get subCatMap =>
-      _cachedSubCatMap ??
-      Map<String, List<String>>.from(defaultSubCatMap.map(
-        (k, v) => MapEntry(k, List<String>.from(v)),
-      ));
-
-  static List<String> subCatsFor(String mainCat) => subCatMap[mainCat] ?? [];
-
-  // ── 메인 카테고리 추가 ─────────────────────────────────────
   static Future<void> addMainCategory(String name) async {
-    final prevCats = _cachedMainCats;
-    final prevSubs = _cachedSubCatMap;
-    final cats = List<String>.from(mainCategories);
-    if (cats.contains(name)) return;
-    cats.add(name);
-    final subs = Map<String, List<String>>.from(subCatMap);
-    subs[name] = [name]; // 기본 하위카테고리: 메인과 동일한 이름
-    // 캐시 선반영 후 저장 시도 (실패 시 롤백)
-    _cachedMainCats = cats;
-    _cachedSubCatMap = subs;
-    try {
-      await _saveToFirestore(cats, subs);
-    } catch (e) {
-      // Firestore 저장 실패 → 캐시 롤백
-      _cachedMainCats = prevCats;
-      _cachedSubCatMap = prevSubs;
-      debugPrint('client_operation_failed');
-      rethrow;
-    }
+    if (mainCategories.contains(name)) return;
+    final mains = List<String>.from(mainCategories)..add(name);
+    final middles = _copy(middleCatMap)..[name] = ['일반'];
+    final subs = _copy(_cachedSubCatMap ?? _defaultSubs())
+      ..[_key(name, '일반')] = [name];
+    await _saveAndCache(mains, middles, subs);
   }
 
-  // ── 메인 카테고리 삭제 ─────────────────────────────────────
+  static Future<void> renameMainCategory(String oldName, String newName) async {
+    final value = newName.trim();
+    if (value.isEmpty || oldName == value || mainCategories.contains(value)) {
+      return;
+    }
+    final mains = List<String>.from(mainCategories);
+    final i = mains.indexOf(oldName);
+    if (i < 0) return;
+    mains[i] = value;
+    final middles = _copy(middleCatMap);
+    middles[value] = middles.remove(oldName) ?? ['일반'];
+    final subs = <String, List<String>>{};
+    for (final e in (_cachedSubCatMap ?? {}).entries) {
+      final prefix = '$oldName::';
+      final key = e.key.startsWith(prefix)
+          ? '$value::${e.key.substring(prefix.length)}'
+          : e.key == oldName
+              ? value
+              : e.key;
+      subs[key] = List<String>.from(e.value);
+    }
+    await _saveAndCache(mains, middles, subs);
+  }
+
   static Future<void> removeMainCategory(String name) async {
-    final prevCats = _cachedMainCats;
-    final prevSubs = _cachedSubCatMap;
-    final cats = List<String>.from(mainCategories)..remove(name);
-    final subs = Map<String, List<String>>.from(subCatMap)..remove(name);
-    _cachedMainCats = cats;
-    _cachedSubCatMap = subs;
-    try {
-      await _saveToFirestore(cats, subs);
-    } catch (e) {
-      _cachedMainCats = prevCats;
-      _cachedSubCatMap = prevSubs;
-      debugPrint('client_operation_failed');
-      rethrow;
-    }
+    final mains = List<String>.from(mainCategories)..remove(name);
+    final middles = _copy(middleCatMap)..remove(name);
+    final subs = _copy(_cachedSubCatMap ?? {})
+      ..removeWhere((key, _) => key.startsWith('$name::'))
+      ..remove(name);
+    await _saveAndCache(mains, middles, subs);
   }
 
-  // ── 하위 카테고리 추가 ─────────────────────────────────────
-  static Future<void> addSubCategory(String mainCat, String subName) async {
-    final prevSubs = _cachedSubCatMap;
-    final subs = Map<String, List<String>>.from(subCatMap);
-    final list = List<String>.from(subs[mainCat] ?? []);
-    if (list.contains(subName)) return;
-    list.add(subName);
-    subs[mainCat] = list;
-    _cachedSubCatMap = subs;
-    try {
-      await _saveToFirestore(List<String>.from(mainCategories), subs);
-    } catch (e) {
-      _cachedSubCatMap = prevSubs;
-      debugPrint('client_operation_failed');
-      rethrow;
-    }
+  static Future<void> addMiddleCategory(String main, String name) async {
+    final value = name.trim();
+    if (value.isEmpty) return;
+    final middles = _copy(middleCatMap);
+    final list = List<String>.from(middles[main] ?? ['일반']);
+    if (list.contains(value)) return;
+    list.add(value);
+    middles[main] = list;
+    final subs = _copy(_cachedSubCatMap ?? {})..[_key(main, value)] = [];
+    await _saveAndCache(List<String>.from(mainCategories), middles, subs);
   }
 
-  // ── 하위 카테고리 삭제 ─────────────────────────────────────
-  static Future<void> removeSubCategory(String mainCat, String subName) async {
-    final prevSubs = _cachedSubCatMap;
-    final subs = Map<String, List<String>>.from(subCatMap);
-    final list = List<String>.from(subs[mainCat] ?? [])..remove(subName);
-    subs[mainCat] = list;
-    _cachedSubCatMap = subs;
-    try {
-      await _saveToFirestore(List<String>.from(mainCategories), subs);
-    } catch (e) {
-      _cachedSubCatMap = prevSubs;
-      debugPrint('client_operation_failed');
-      rethrow;
-    }
+  static Future<void> renameMiddleCategory(
+      String main, String oldName, String newName) async {
+    final value = newName.trim();
+    final list = middleCatsFor(main);
+    if (value.isEmpty || oldName == value || list.contains(value)) return;
+    final i = list.indexOf(oldName);
+    if (i < 0) return;
+    list[i] = value;
+    final middles = _copy(middleCatMap)..[main] = list;
+    final subs = _copy(_cachedSubCatMap ?? {})
+      ..[_key(main, value)] = (_cachedSubCatMap?[_key(main, oldName)] ?? [])
+      ..remove(_key(main, oldName));
+    await _saveAndCache(List<String>.from(mainCategories), middles, subs);
   }
 
-  // ── 하위 카테고리 이름 변경 ────────────────────────────────
+  static Future<void> removeMiddleCategory(String main, String name) async {
+    final list = middleCatsFor(main);
+    if (list.length <= 1) return;
+    list.remove(name);
+    final middles = _copy(middleCatMap)..[main] = list;
+    final subs = _copy(_cachedSubCatMap ?? {})..remove(_key(main, name));
+    await _saveAndCache(List<String>.from(mainCategories), middles, subs);
+  }
+
+  static Future<void> addSubCategory(String main, String name,
+      [String middle = '일반']) async {
+    final key = _key(main, middle);
+    final subs = _copy(_cachedSubCatMap ?? {})
+      ..[key] = List<String>.from(_cachedSubCatMap?[key] ?? []);
+    if (subs[key]!.contains(name)) return;
+    subs[key]!.add(name);
+    await _saveAndCache(
+        List<String>.from(mainCategories), _copy(middleCatMap), subs);
+  }
+
+  static Future<void> removeSubCategory(String main, String name,
+      [String middle = '일반']) async {
+    final key = _key(main, middle);
+    final list = List<String>.from(_cachedSubCatMap?[key] ?? [])..remove(name);
+    final subs = _copy(_cachedSubCatMap ?? {})..[key] = list;
+    await _saveAndCache(
+        List<String>.from(mainCategories), _copy(middleCatMap), subs);
+  }
+
   static Future<void> renameSubCategory(
-      String mainCat, String oldName, String newName) async {
-    final prevSubs = _cachedSubCatMap;
-    final trimmed = newName.trim();
-    if (trimmed.isEmpty || oldName == trimmed) return;
-    final subs = Map<String, List<String>>.from(subCatMap);
-    final list = List<String>.from(subs[mainCat] ?? []);
-    final index = list.indexOf(oldName);
-    if (index < 0 || list.contains(trimmed)) return;
-    list[index] = trimmed;
-    subs[mainCat] = list;
+      String main, String oldName, String newName,
+      [String middle = '일반']) async {
+    final value = newName.trim();
+    final key = _key(main, middle);
+    final list = List<String>.from(_cachedSubCatMap?[key] ?? []);
+    final i = list.indexOf(oldName);
+    if (value.isEmpty || i < 0 || (value != oldName && list.contains(value))) {
+      return;
+    }
+    list[i] = value;
+    final subs = _copy(_cachedSubCatMap ?? {})..[key] = list;
+    await _saveAndCache(
+        List<String>.from(mainCategories), _copy(middleCatMap), subs);
+  }
+
+  static Future<void> reorderSubCategories(String main, List<String> order,
+      [String middle = '일반']) async {
+    final subs = _copy(_cachedSubCatMap ?? {})
+      ..[_key(main, middle)] = List<String>.from(order);
+    await _saveAndCache(
+        List<String>.from(mainCategories), _copy(middleCatMap), subs);
+  }
+
+  static Future<void> reorderMainCategories(List<String> order) async =>
+      _saveAndCache(List<String>.from(order), _copy(middleCatMap),
+          _copy(_cachedSubCatMap ?? {}));
+
+  static Future<void> resetToDefaults() async {
+    final mains = List<String>.from(defaultMainCategories);
+    final middles = _defaultMiddles();
+    final subs = _defaultSubs();
+    await _saveAndCache(mains, middles, subs);
+  }
+
+  static Future<void> _saveAndCache(List<String> mains,
+      Map<String, List<String>> middles, Map<String, List<String>> subs) async {
+    await _save(mains, middles, subs);
+    _cachedMainCats = mains;
+    _cachedMiddleCatMap = middles;
     _cachedSubCatMap = subs;
-    try {
-      await _saveToFirestore(List<String>.from(mainCategories), subs);
-    } catch (e) {
-      _cachedSubCatMap = prevSubs;
-      debugPrint('client_operation_failed');
-      rethrow;
-    }
   }
 
-  // ── 하위 카테고리 순서 변경 ────────────────────────────────
-  static Future<void> reorderSubCategories(
-      String mainCat, List<String> newOrder) async {
-    final prevSubs = _cachedSubCatMap;
-    final subs = Map<String, List<String>>.from(subCatMap);
-    subs[mainCat] = newOrder;
-    _cachedSubCatMap = subs;
-    try {
-      await _saveToFirestore(List<String>.from(mainCategories), subs);
-    } catch (e) {
-      _cachedSubCatMap = prevSubs;
-      debugPrint('client_operation_failed');
-      rethrow;
-    }
-  }
-
-  // ── 메인 카테고리 순서 변경 ────────────────────────────────
-  static Future<void> reorderMainCategories(List<String> newOrder) async {
-    final prevCats = _cachedMainCats;
-    _cachedMainCats = newOrder;
-    try {
-      await _saveToFirestore(
-          newOrder, Map<String, List<String>>.from(subCatMap));
-    } catch (e) {
-      _cachedMainCats = prevCats;
-      debugPrint('client_operation_failed');
-      rethrow;
-    }
-  }
-
-  // ── Firestore 저장 (내부) ──────────────────────────────────
-  static Future<void> _saveToFirestore(
-    List<String> cats,
-    Map<String, List<String>> subs,
-  ) async {
+  static Future<void> _save(List<String> mains,
+      Map<String, List<String>> middles, Map<String, List<String>> subs) async {
     await _doc.set({
-      'mainCategories': cats,
+      'mainCategories': mains,
+      'middleCatMap': middles,
       'subCatMap': subs,
-      'updatedAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp()
     });
   }
 
-  // ── 캐시 초기화 (강제 리로드용) ───────────────────────────
   static void clearCache() {
     _cachedMainCats = null;
+    _cachedMiddleCatMap = null;
     _cachedSubCatMap = null;
   }
 }

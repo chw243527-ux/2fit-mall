@@ -19335,8 +19335,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   // 현재 메인카테고리 목록 (CategoryService에서 가져옴)
   List<String> get _mainCategories => CategoryService.mainCategories;
 
-  List<String> get _currentSubCats => CategoryService.subCatsFor(_selCat);
-  List<String> get _currentMiddleCats => const ['일반', '기성품', '단체주문'];
+  List<String> get _currentMiddleCats => CategoryService.middleCatsFor(_selCat);
+  List<String> get _currentSubCats =>
+      CategoryService.subCatsFor(_selCat, _selMiddleCat);
 
   @override
   void initState() {
@@ -19406,9 +19407,14 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     _isReadyMade = e?.isReadyMade ?? false;
     _isActive = e?.isActive ?? true;
     if (!_currentMiddleCats.contains(_selMiddleCat)) {
-      _selMiddleCat = e?.isGroupOnly == true || e?.category == '단체주문'
-          ? '단체주문'
-          : (e?.isReadyMade == true ? '기성품' : '일반');
+      _selMiddleCat = _currentMiddleCats.contains(
+              e?.isGroupOnly == true || e?.category == '단체주문'
+                  ? '단체주문'
+                  : (e?.isReadyMade == true ? '기성품' : '일반'))
+          ? (e?.isGroupOnly == true || e?.category == '단체주문'
+              ? '단체주문'
+              : (e?.isReadyMade == true ? '기성품' : '일반'))
+          : (_currentMiddleCats.isNotEmpty ? _currentMiddleCats.first : '');
     }
 
     // 기존 상품의 색상 복원
@@ -20009,8 +20015,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                     // 단체주문 카테고리 선택 시 단체전용 자동 ON
                                     // 다른 카테고리로 변경해도 단체전용은 유지 (사용자가 직접 OFF 가능)
                                     if (v == '단체주문') _isGroupOnly = true;
-                                    final subs =
-                                        CategoryService.subCatMap[v] ?? [];
+                                    final subs = CategoryService.subCatsFor(
+                                      v,
+                                      _selMiddleCat,
+                                    );
                                     _selSubCat =
                                         subs.isNotEmpty ? subs.first : '';
                                     _selTightsSub = '';
@@ -20066,7 +20074,15 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                     .toList(),
                                 onChanged: (v) {
                                   if (v == null) return;
-                                  setState(() => _selMiddleCat = v);
+                                  setState(() {
+                                    _selMiddleCat = v;
+                                    final subs = CategoryService.subCatsFor(
+                                      _selCat,
+                                      v,
+                                    );
+                                    _selSubCat =
+                                        subs.isNotEmpty ? subs.first : '';
+                                  });
                                   _scheduleAutoSave();
                                 },
                               ),
@@ -22439,7 +22455,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       ),
     );
     if (result == null || result.isEmpty) return;
-    final existing = CategoryService.subCatsFor(_selCat);
+    final existing = CategoryService.subCatsFor(_selCat, _selMiddleCat);
     if (existing.contains(result)) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -22448,7 +22464,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       }
       return;
     }
-    await CategoryService.addSubCategory(_selCat, result);
+    await CategoryService.addSubCategory(_selCat, result, _selMiddleCat);
     if (mounted) {
       setState(() => _selSubCat = result);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -24112,6 +24128,7 @@ class _CategoryManagementTab extends StatefulWidget {
 class _CategoryManagementTabState extends State<_CategoryManagementTab> {
   bool _loading = true;
   String? _selectedMain; // 현재 선택된 메인 카테고리 (하위 보기용)
+  String? _selectedMiddle;
 
   @override
   void initState() {
@@ -24138,6 +24155,9 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       setState(() {
         _loading = false;
         _selectedMain ??= CategoryService.mainCategories.firstOrNull;
+        _selectedMiddle ??= _selectedMain == null
+            ? null
+            : CategoryService.middleCatsFor(_selectedMain!).firstOrNull;
       });
     }
   }
@@ -24148,8 +24168,11 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       return const Center(child: CircularProgressIndicator());
     }
     final mainCats = CategoryService.mainCategories;
-    final subCats = _selectedMain != null
-        ? CategoryService.subCatsFor(_selectedMain!)
+    final middleCats = _selectedMain != null
+        ? CategoryService.middleCatsFor(_selectedMain!)
+        : <String>[];
+    final subCats = _selectedMain != null && _selectedMiddle != null
+        ? CategoryService.subCatsFor(_selectedMain!, _selectedMiddle!)
         : <String>[];
 
     return Padding(
@@ -24240,7 +24263,12 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                             final isSelected = _selectedMain == cat;
                             return GestureDetector(
                               key: ValueKey(cat),
-                              onTap: () => setState(() => _selectedMain = cat),
+                              onTap: () => setState(() {
+                                _selectedMain = cat;
+                                _selectedMiddle =
+                                    CategoryService.middleCatsFor(cat)
+                                        .firstOrNull;
+                              }),
                               child: Container(
                                 margin: const EdgeInsets.symmetric(
                                   horizontal: 6,
@@ -24276,6 +24304,19 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                         ),
                                       ),
                                     ),
+                                    IconButton(
+                                      tooltip: '상위 카테고리 편집',
+                                      onPressed: () => _editMainCat(cat),
+                                      icon: Icon(
+                                        Icons.edit_rounded,
+                                        size: 14,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppColors.primary,
+                                      ),
+                                      padding: const EdgeInsets.all(3),
+                                      constraints: const BoxConstraints(),
+                                    ),
                                     GestureDetector(
                                       onTap: () => _deleteMainCat(cat),
                                       child: Icon(
@@ -24298,11 +24339,69 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                 ),
               ),
               SizedBox(width: isMobile ? 0 : 16, height: isMobile ? 16 : 0),
-              // ── 오른쪽: 하위 카테고리 목록
+              // ── 오른쪽: 중위·하위 카테고리 목록
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (_selectedMain != null) ...[
+                      Row(
+                        children: [
+                          const Icon(Icons.account_tree_rounded,
+                              size: 16, color: Color(0xFF7E57C2)),
+                          const SizedBox(width: 6),
+                          const Text('중위 카테고리',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF7E57C2))),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: middleCats.contains(_selectedMiddle)
+                                  ? _selectedMiddle
+                                  : middleCats.firstOrNull,
+                              isDense: true,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: const Color(0xFFF3F0FF),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 8),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide.none),
+                              ),
+                              items: middleCats
+                                  .map((m) => DropdownMenuItem(
+                                      value: m, child: Text(m)))
+                                  .toList(),
+                              onChanged: (v) =>
+                                  setState(() => _selectedMiddle = v),
+                            ),
+                          ),
+                          IconButton(
+                              tooltip: '중위 카테고리 추가',
+                              onPressed: _showAddMiddleCatDialog,
+                              icon: const Icon(Icons.add_circle_outline,
+                                  color: Color(0xFF7E57C2))),
+                          IconButton(
+                              tooltip: '중위 카테고리 편집',
+                              onPressed: _selectedMiddle == null
+                                  ? null
+                                  : () => _editMiddleCat(_selectedMiddle!),
+                              icon: const Icon(Icons.edit_rounded,
+                                  color: Color(0xFF7E57C2))),
+                          IconButton(
+                              tooltip: '중위 카테고리 삭제',
+                              onPressed: _selectedMiddle == null
+                                  ? null
+                                  : () => _deleteMiddleCat(_selectedMiddle!),
+                              icon: const Icon(Icons.delete_outline,
+                                  color: AppColors.error)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     Row(
                       children: [
                         const Icon(
@@ -24314,7 +24413,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                         Expanded(
                           child: Text(
                             _selectedMain != null
-                                ? '"$_selectedMain" 하위 카테고리'
+                                ? '"$_selectedMain" › "$_selectedMiddle" 하위 카테고리'
                                 : '하위 카테고리',
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -24422,6 +24521,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                             .reorderSubCategories(
                                           _selectedMain!,
                                           list,
+                                          _selectedMiddle ?? '일반',
                                         );
                                         if (mounted) setState(() {});
                                       },
@@ -24646,6 +24746,88 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
     }
   }
 
+  Future<String?> _promptCategoryName(String title, String initial) async {
+    final ctrl = TextEditingController(text: initial);
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: '카테고리 이름'),
+          onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+              child: const Text('저장')),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _editMainCat(String oldName) async {
+    final value = await _promptCategoryName('상위 카테고리 편집', oldName);
+    if (!mounted || value == null || value.isEmpty || value == oldName) return;
+    try {
+      await CategoryService.renameMainCategory(oldName, value);
+      if (mounted) setState(() => _selectedMain = value);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('저장 실패: $e')));
+      }
+    }
+  }
+
+  Future<void> _showAddMiddleCatDialog() async {
+    if (_selectedMain == null) return;
+    final value = await _promptCategoryName('중위 카테고리 추가', '');
+    if (!mounted || value == null || value.isEmpty) return;
+    if (CategoryService.middleCatsFor(_selectedMain!).contains(value)) return;
+    await CategoryService.addMiddleCategory(_selectedMain!, value);
+    if (mounted) setState(() => _selectedMiddle = value);
+  }
+
+  Future<void> _editMiddleCat(String oldName) async {
+    if (_selectedMain == null) return;
+    final value = await _promptCategoryName('중위 카테고리 편집', oldName);
+    if (!mounted || value == null || value.isEmpty || value == oldName) return;
+    await CategoryService.renameMiddleCategory(_selectedMain!, oldName, value);
+    if (mounted) setState(() => _selectedMiddle = value);
+  }
+
+  Future<void> _deleteMiddleCat(String name) async {
+    if (_selectedMain == null ||
+        CategoryService.middleCatsFor(_selectedMain!).length <= 1) {
+      return;
+    }
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('중위 카테고리 삭제'),
+        content: Text('"$name"과 그 하위 카테고리를 삭제할까요?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('취소')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('삭제')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await CategoryService.removeMiddleCategory(_selectedMain!, name);
+    if (mounted) {
+      setState(() => _selectedMiddle =
+          CategoryService.middleCatsFor(_selectedMain!).firstOrNull);
+    }
+  }
+
   // ── 하위 카테고리 추가 다이얼로그
   Future<void> _showAddSubCatDialog() async {
     if (_selectedMain == null) return;
@@ -24729,7 +24911,8 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       ),
     );
     if (result == null || result.isEmpty || !mounted) return;
-    final existing = CategoryService.subCatsFor(_selectedMain!);
+    final existing =
+        CategoryService.subCatsFor(_selectedMain!, _selectedMiddle ?? '일반');
     if (existing.contains(result)) {
       ScaffoldMessenger.of(
         context,
@@ -24737,7 +24920,8 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       return;
     }
     try {
-      await CategoryService.addSubCategory(_selectedMain!, result);
+      await CategoryService.addSubCategory(
+          _selectedMain!, result, _selectedMiddle ?? '일반');
       if (mounted) {
         setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
@@ -24869,7 +25053,8 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       return;
     }
     final newName = result.trim();
-    final existing = CategoryService.subCatsFor(_selectedMain!);
+    final existing =
+        CategoryService.subCatsFor(_selectedMain!, _selectedMiddle ?? '일반');
     if (existing.contains(newName)) {
       ScaffoldMessenger.of(
         context,
@@ -24877,7 +25062,8 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       return;
     }
     try {
-      await CategoryService.renameSubCategory(_selectedMain!, oldName, newName);
+      await CategoryService.renameSubCategory(
+          _selectedMain!, oldName, newName, _selectedMiddle ?? '일반');
       if (mounted) {
         setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
@@ -24925,7 +25111,8 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
     );
     if (ok != true || !mounted) return;
     try {
-      await CategoryService.removeSubCategory(_selectedMain!, sub);
+      await CategoryService.removeSubCategory(
+          _selectedMain!, sub, _selectedMiddle ?? '일반');
       if (mounted) {
         setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
