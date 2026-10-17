@@ -76,7 +76,9 @@ class WinterCollectionScreen extends StatelessWidget {
                         crossAxisCount: columns,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 20,
-                        childAspectRatio: 0.70,
+                        // 이미지 아래 배지·상품명·가격이 모두 보이도록
+                        // 카드 높이를 확보합니다.
+                        childAspectRatio: 0.56,
                       ),
                     );
                   },
@@ -98,39 +100,17 @@ class WinterCollectionScreen extends StatelessWidget {
 
   Widget _buildHero(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 16 / 7,
+      aspectRatio: 16 / 9,
       child: Stack(
         fit: StackFit.expand,
         children: [
           Image.asset(
             'assets/images/winter/winter_new_arrivals_banner.png',
-            fit: BoxFit.cover,
+            // 첨부한 16:9 디자인의 텍스트·상품이 잘리지 않도록
+            // 원본 비율을 그대로 표시합니다.
+            fit: BoxFit.contain,
             errorBuilder: (_, __, ___) => const ColoredBox(
               color: Color(0xFF101C2B),
-            ),
-          ),
-          Positioned(
-            left: 24,
-            right: 24,
-            bottom: 18,
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: OutlinedButton.icon(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        const ProductListScreen(initialCategory: '전체'),
-                  ),
-                ),
-                icon: const Icon(Icons.arrow_forward_rounded, size: 16),
-                label: const Text('전체 상품 보기'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.white70),
-                  backgroundColor: Colors.black26,
-                ),
-              ),
             ),
           ),
         ],
