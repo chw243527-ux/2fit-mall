@@ -5060,6 +5060,10 @@ class _HomeScreenState extends State<HomeScreen>
     final videoUrl =
         banner.videoUrl?.isNotEmpty == true ? banner.videoUrl : null;
     final imageUrl = banner.imageUrl;
+    // 겨울 배너는 제목과 CTA가 이미지 안에 포함된 완성형 디자인입니다.
+    // 앱에서 별도 오버레이를 추가하면 모바일에서 문구가 겹치므로 제외합니다.
+    final imageContainsCopy =
+        imageUrl == 'assets/images/winter/winter_new_arrivals_banner.png';
 
     // CTA 아이콘
     final ctaIcon = switch (banner.btnAction) {
@@ -5158,21 +5162,23 @@ class _HomeScreenState extends State<HomeScreen>
             child: imageUrl.startsWith('assets/')
                 ? Image.asset(
                     imageUrl,
-                    fit: BoxFit.cover,
+                    // 모바일에서도 이미지 좌우의 디자인과 문구가 잘리지 않도록
+                    // 원본 비율을 그대로 유지합니다.
+                    fit: BoxFit.contain,
                     alignment: Alignment.center,
                     width: double.infinity,
                     height: double.infinity,
                   )
                 : NetImage(
                     imageUrl,
-                    fit: BoxFit.cover,
+                    fit: imageContainsCopy ? BoxFit.contain : BoxFit.cover,
                     alignment: Alignment.center,
                     width: double.infinity,
                     height: double.infinity,
                   ),
           ),
           // ── 텍스트/CTA: 이미지 로딩과 무관하게 즉시 표시 ──
-          overlayWidget,
+          if (!imageContainsCopy) overlayWidget,
         ],
       );
     }
