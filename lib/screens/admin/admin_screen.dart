@@ -24331,6 +24331,19 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                       padding: const EdgeInsets.all(3),
                                       constraints: const BoxConstraints(),
                                     ),
+                                    IconButton(
+                                      tooltip: '대분류 복사',
+                                      onPressed: () => _copyMainCat(cat),
+                                      icon: Icon(
+                                        Icons.copy_rounded,
+                                        size: 14,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppColors.primary,
+                                      ),
+                                      padding: const EdgeInsets.all(3),
+                                      constraints: const BoxConstraints(),
+                                    ),
                                     GestureDetector(
                                       onTap: () => _deleteMainCat(cat),
                                       child: Icon(
@@ -24404,6 +24417,13 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                   ? null
                                   : () => _editMiddleCat(_selectedMiddle!),
                               icon: const Icon(Icons.edit_rounded,
+                                  color: Color(0xFF7E57C2))),
+                          IconButton(
+                              tooltip: '중분류 복사',
+                              onPressed: _selectedMiddle == null
+                                  ? null
+                                  : () => _copyMiddleCat(_selectedMiddle!),
+                              icon: const Icon(Icons.copy_rounded,
                                   color: Color(0xFF7E57C2))),
                           IconButton(
                               tooltip: '중분류 삭제',
@@ -24586,6 +24606,21 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                                     _editSubCat(sub),
                                                 icon: const Icon(
                                                   Icons.edit_rounded,
+                                                  size: 15,
+                                                  color: Color(0xFF3F51B5),
+                                                ),
+                                                padding: const EdgeInsets.all(
+                                                  4,
+                                                ),
+                                                constraints:
+                                                    const BoxConstraints(),
+                                              ),
+                                              IconButton(
+                                                tooltip: '소분류 복사',
+                                                onPressed: () =>
+                                                    _copySubCat(sub),
+                                                icon: const Icon(
+                                                  Icons.copy_rounded,
                                                   size: 15,
                                                   color: Color(0xFF3F51B5),
                                                 ),
@@ -24797,6 +24832,33 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
     }
   }
 
+  Future<void> _copyMainCat(String sourceName) async {
+    final value = await _promptCategoryName('대분류 복사', '$sourceName 복사본');
+    if (!mounted || value == null || value.isEmpty) return;
+    if (CategoryService.mainCategories.contains(value)) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('이미 존재합니다: $value')));
+      return;
+    }
+    try {
+      await CategoryService.copyMainCategory(sourceName, value);
+      if (mounted) {
+        setState(() {
+          _selectedMain = value;
+          _selectedMiddle = CategoryService.middleCatsFor(value).firstOrNull;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('대분류와 중·소분류를 함께 복사했습니다: $value')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('복사 실패: $e')));
+      }
+    }
+  }
+
   Future<void> _showAddMiddleCatDialog() async {
     if (_selectedMain == null) return;
     final value = await _promptCategoryName('중분류 추가', '');
@@ -24812,6 +24874,32 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
     if (!mounted || value == null || value.isEmpty || value == oldName) return;
     await CategoryService.renameMiddleCategory(_selectedMain!, oldName, value);
     if (mounted) setState(() => _selectedMiddle = value);
+  }
+
+  Future<void> _copyMiddleCat(String sourceName) async {
+    if (_selectedMain == null) return;
+    final value = await _promptCategoryName('중분류 복사', '$sourceName 복사본');
+    if (!mounted || value == null || value.isEmpty) return;
+    if (CategoryService.middleCatsFor(_selectedMain!).contains(value)) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('이미 존재합니다: $value')));
+      return;
+    }
+    try {
+      await CategoryService.copyMiddleCategory(
+          _selectedMain!, sourceName, value);
+      if (mounted) {
+        setState(() => _selectedMiddle = value);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('중분류와 소분류를 함께 복사했습니다: $value')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('복사 실패: $e')));
+      }
+    }
   }
 
   Future<void> _deleteMiddleCat(String name) async {
@@ -25098,6 +25186,34 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
             backgroundColor: AppColors.error,
           ),
         );
+      }
+    }
+  }
+
+  Future<void> _copySubCat(String sourceName) async {
+    if (_selectedMain == null || _selectedMiddle == null) return;
+    final value = await _promptCategoryName('소분류 복사', '$sourceName 복사본');
+    if (!mounted || value == null || value.isEmpty) return;
+    final existing =
+        CategoryService.subCatsFor(_selectedMain!, _selectedMiddle!);
+    if (existing.contains(value)) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('이미 존재합니다: $value')));
+      return;
+    }
+    try {
+      await CategoryService.copySubCategory(
+          _selectedMain!, _selectedMiddle!, sourceName, value);
+      if (mounted) {
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('소분류를 복사했습니다: $value')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('복사 실패: $e')));
       }
     }
   }

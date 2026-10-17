@@ -167,6 +167,24 @@ class CategoryService {
     await _saveAndCache(mains, middles, subs);
   }
 
+  static Future<void> copyMainCategory(
+      String sourceName, String newName) async {
+    final value = newName.trim();
+    if (value.isEmpty || mainCategories.contains(value)) return;
+    final mains = List<String>.from(mainCategories)..add(value);
+    final middles = _copy(middleCatMap)
+      ..[value] = List<String>.from(middleCatMap[sourceName] ?? ['일반']);
+    final subs = _copy(_cachedSubCatMap ?? {});
+    for (final middle in middles[value]!) {
+      subs[_key(value, middle)] = List<String>.from(
+        _cachedSubCatMap?[_key(sourceName, middle)] ??
+            _cachedSubCatMap?[sourceName] ??
+            const <String>[],
+      );
+    }
+    await _saveAndCache(mains, middles, subs);
+  }
+
   static Future<void> removeMainCategory(String name) async {
     final mains = List<String>.from(mainCategories)..remove(name);
     final middles = _copy(middleCatMap)..remove(name);
@@ -212,6 +230,22 @@ class CategoryService {
     await _saveAndCache(List<String>.from(mainCategories), middles, subs);
   }
 
+  static Future<void> copyMiddleCategory(
+      String main, String sourceName, String newName) async {
+    final value = newName.trim();
+    final list = middleCatsFor(main);
+    if (value.isEmpty || list.contains(value) || !list.contains(sourceName)) {
+      return;
+    }
+    list.add(value);
+    final middles = _copy(middleCatMap)..[main] = list;
+    final subs = _copy(_cachedSubCatMap ?? {})
+      ..[_key(main, value)] = List<String>.from(
+        _cachedSubCatMap?[_key(main, sourceName)] ?? const <String>[],
+      );
+    await _saveAndCache(List<String>.from(mainCategories), middles, subs);
+  }
+
   static Future<void> addSubCategory(String main, String name,
       [String middle = '일반']) async {
     final key = _key(main, middle);
@@ -252,6 +286,20 @@ class CategoryService {
       [String middle = '일반']) async {
     final subs = _copy(_cachedSubCatMap ?? {})
       ..[_key(main, middle)] = List<String>.from(order);
+    await _saveAndCache(
+        List<String>.from(mainCategories), _copy(middleCatMap), subs);
+  }
+
+  static Future<void> copySubCategory(
+      String main, String middle, String sourceName, String newName) async {
+    final value = newName.trim();
+    final key = _key(main, middle);
+    final list = List<String>.from(_cachedSubCatMap?[key] ?? []);
+    if (value.isEmpty || list.contains(value) || !list.contains(sourceName)) {
+      return;
+    }
+    list.add(value);
+    final subs = _copy(_cachedSubCatMap ?? {})..[key] = list;
     await _saveAndCache(
         List<String>.from(mainCategories), _copy(middleCatMap), subs);
   }
