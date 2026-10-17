@@ -64,6 +64,25 @@ class _HomeScreenState extends State<HomeScreen>
   static const Duration _videoBannerInterval = Duration(seconds: 10);
   static const Duration _imageBannerInterval = Duration(seconds: 5);
 
+  // 현재 메인에 노출할 겨울 신상품 대표 배너.
+  // Firestore에 기존 배너가 있어도 이 로컬 자산을 우선 표시해
+  // 관리자 등록 상태나 네트워크 캐시와 관계없이 동일한 디자인을 보여줍니다.
+  static const List<BannerModel> _winterMainBanners = [
+    BannerModel(
+      id: 'winter_puffer_main',
+      order: 0,
+      title: '겨울 신상품',
+      tag: 'WINTER NEW ARRIVALS',
+      titleKo: '겨울 신상품\n화이트 패딩',
+      titleEn: 'WINTER NEW\nARRIVALS',
+      ctaKo: '기획전 보러가기',
+      ctaEn: 'VIEW COLLECTION',
+      imageUrl: 'assets/images/winter/winter_new_arrivals_banner.png',
+      accentColor: 0xFF263238,
+      btnAction: 5,
+    ),
+  ];
+
   // 카테고리 정의 (key 기반, 다국어 텍스트는 loc에서)
   List<Map<String, dynamic>> _getCategoryItems(AppLocalizations loc) => [
         {
@@ -250,10 +269,7 @@ class _HomeScreenState extends State<HomeScreen>
   final GlobalKey<ScaffoldState> _pcScaffoldKey = GlobalKey<ScaffoldState>();
 
   Widget _buildPcLayout(AppLocalizations loc) {
-    final bannerProv = context.watch<BannerProvider>();
-    final activeBanners = bannerProv.activeBanners.isEmpty
-        ? <BannerModel>[]
-        : _withEliteOrderBanner(bannerProv.activeBanners);
+    const activeBanners = _winterMainBanners;
 
     // 배너 위젯 (뷰포트 전체 높이 — TopBar 제외)
     final bannerWidget = activeBanners.isEmpty
@@ -1421,6 +1437,14 @@ class _HomeScreenState extends State<HomeScreen>
                   // 쿠폰 다운로드 팝업
                   _showBannerCouponPopup(b.couponId);
                   break;
+                case 5:
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const WinterCollectionScreen(),
+                    ),
+                  );
+                  break;
                 default:
                   Navigator.push(
                       context,
@@ -1512,6 +1536,16 @@ class _HomeScreenState extends State<HomeScreen>
                         MaterialPageRoute(
                             builder: (_) => const ProductListScreen(
                                 initialCategory: '전체'))),
+                  )
+                else if (b.imageUrl.startsWith('assets/'))
+                  GestureDetector(
+                    onTap: onTap,
+                    child: Image.asset(
+                      b.imageUrl,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
                   )
                 else if (b.imageUrl.isNotEmpty)
                   GestureDetector(
@@ -3368,10 +3402,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 모바일 풀스크린 배너 (헤더 오버레이 포함) ──
   Widget _buildCompactBanner(AppLocalizations loc) {
-    final bannerProv = context.watch<BannerProvider>();
-    final activeBanners = bannerProv.activeBanners.isEmpty
-        ? <BannerModel>[]
-        : _withEliteOrderBanner(bannerProv.activeBanners);
+    const activeBanners = _winterMainBanners;
     final mq = MediaQuery.of(context);
     final screenW = mq.size.width;
     // ── 배너 높이: 항상 화면 너비 기준 16:9 정비율 ──
@@ -4853,10 +4884,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ────────────────────────────────────────────
   // ignore: unused_element
   Widget _buildBannerSection(AppLocalizations loc) {
-    final bannerProv = context.watch<BannerProvider>();
-    final activeBanners = bannerProv.activeBanners.isEmpty
-        ? <BannerModel>[]
-        : _withEliteOrderBanner(bannerProv.activeBanners);
+    const activeBanners = _winterMainBanners;
 
     // 배너: 모바일 → 화면 전체 높이, 태블릿/PC → 16:9 비율
     final mq = MediaQuery.of(context);
@@ -5137,13 +5165,21 @@ class _HomeScreenState extends State<HomeScreen>
           const ColoredBox(color: AppColors.textPrimary),
           GestureDetector(
             onTap: onTap,
-            child: NetImage(
-              imageUrl,
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
-              width: double.infinity,
-              height: double.infinity,
-            ),
+            child: imageUrl.startsWith('assets/')
+                ? Image.asset(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    width: double.infinity,
+                    height: double.infinity,
+                  )
+                : NetImage(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
           ),
           // ── 텍스트/CTA: 이미지 로딩과 무관하게 즉시 표시 ──
           overlayWidget,
