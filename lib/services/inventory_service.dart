@@ -61,8 +61,12 @@ class InventoryService {
   }
 
   static String _generateCode(String productId) {
-    final hash = productId.hashCode.abs() % 100000000;
-    return hash.toString().padLeft(8, '0');
+    var hash = 2166136261;
+    for (final unit in productId.codeUnits) {
+      hash ^= unit;
+      hash = (hash * 16777619) & 0x7fffffff;
+    }
+    return (10000000 + (hash % 90000000)).toString();
   }
 
   // ─────────────────────────────────────────────

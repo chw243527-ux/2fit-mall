@@ -826,7 +826,67 @@ class ProductService {
   /// 관리자 전용: isActive 필터 없이 모든 상품 반환
   static Future<List<ProductModel>> getAllProductsForAdmin() async {
     await _loadFromFirestoreAll();
+    await _backfillMissingProductCodes();
     return List.from(_allProducts);
+  }
+
+  /// 상품 ID에서 재현 가능한 8자리 상품번호를 생성합니다.
+  /// Dart의 String.hashCode는 실행 환경에 따라 달라질 수 있으므로 사용하지 않습니다.
+  static String generateProductCode(String productId, {Set<String>? reserved}) {
+    var hash = 2166136261;
+    for (final unit in productId.codeUnits) {
+      hash ^= unit;
+      hash = (hash * 16777619) & 0x7fffffff;
+    }
+    var number = 10000000 + (hash % 90000000);
+    final used = reserved ?? <String>{};
+    var code = number.toString();
+    while (used.contains(code)) {
+      number = number >= 99999999 ? 10000000 : number + 1;
+      code = number.toString();
+    }
+    return code;
+  }
+
+  /// 기존 상품 중 상품번호가 비어 있는 문서에만 번호를 채웁니다.
+  /// 이미 사용 중인 번호는 보존하고, 신규 번호는 중복되지 않게 배정합니다.
+  static Future<int> _backfillMissingProductCodes() async {
+    final used = <String>{
+      for (final product in _allProducts)
+        if (product.productCode.trim().isNotEmpty) product.productCode.trim(),
+    };
+    final missing = _allProducts
+        .where((product) => product.productCode.trim().isEmpty)
+        .toList();
+    if (missing.isEmpty) return 0;
+
+    final batch = _db.batch();
+    final generated = <String, String>{};
+    for (final product in missing) {
+      final code = generateProductCode(product.id, reserved: used);
+      used.add(code);
+      generated[product.id] = code;
+      batch.update(_db.collection('products').doc(product.id), {
+        'productCode': code,
+      });
+    }
+    await batch.commit();
+
+    for (var i = 0; i < _allProducts.length; i++) {
+      final product = _allProducts[i];
+      final code = generated[product.id];
+      if (code == null) continue;
+      _allProducts[i] = product.copyWith(productCode: code);
+      final activeIndex = _products.indexWhere((p) => p.id == product.id);
+      if (activeIndex >= 0) {
+        _products[activeIndex] =
+            _products[activeIndex].copyWith(productCode: code);
+      }
+    }
+    _cache = List.from(_products);
+    await _persistToLocal();
+    if (kDebugMode) debugPrint('✅ 누락 상품번호 ${generated.length}개 자동 보정 완료');
+    return generated.length;
   }
 
   static final List<ProductModel> _allProducts = [];
@@ -1086,9 +1146,20 @@ class ProductService {
     if (!_loaded) await _loadFromFirestore();
     // 상품등록에서 입력한 재고·색상·단체주문 옵션을 누락하지 않고 그대로 보존합니다.
     // 활성 상품과 초기 재고 기본값만 안전하게 보정합니다.
+    final code = product.productCode.trim().isNotEmpty
+        ? product.productCode.trim()
+        : generateProductCode(
+            product.id,
+            reserved: {
+              for (final existing in _allProducts)
+                if (existing.productCode.trim().isNotEmpty)
+                  existing.productCode.trim(),
+            },
+          );
     final safeProduct = product.copyWith(
       isActive: true,
       stockCount: product.stockCount > 0 ? product.stockCount : 100,
+      productCode: code,
     );
     _products.add(safeProduct);
     _allProducts.add(safeProduct); // 관리자 목록에도 즉시 반영
@@ -1110,6 +1181,10 @@ class ProductService {
 
   static Future<bool> updateProduct(ProductModel updated) async {
     if (!_loaded) await _loadFromFirestore();
+    final code = updated.productCode.trim().isNotEmpty
+        ? updated.productCode.trim()
+        : generateProductCode(updated.id);
+    updated = updated.copyWith(productCode: code);
     final idx = _products.indexWhere((p) => p.id == updated.id);
     // ── sectionImages 보존: 업데이트 데이터에 sectionImages가 비어있으면
     //    캐시에 있는 기존 sectionImages를 그대로 사용 (덮어쓰기 방지)

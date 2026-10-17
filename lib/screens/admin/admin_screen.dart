@@ -19717,11 +19717,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       if (mounted) setState(() => _descTranslations = descTranslations);
     }
 
-    // productCode 비어있으면 자동 생성 (상품ID 기반 8자리)
+    // productCode 비어있으면 공통 로직으로 안정적인 8자리 상품번호를 생성합니다.
     if (_productCodeCtrl.text.trim().isEmpty) {
-      final autoCode = (_tempProductId.hashCode.abs() % 100000000)
-          .toString()
-          .padLeft(8, '0');
+      final autoCode = ProductService.generateProductCode(_tempProductId);
       _productCodeCtrl.text = autoCode;
     }
 
