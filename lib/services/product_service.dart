@@ -849,6 +849,13 @@ class ProductService {
         return ProductModel.fromJson(data);
       }).toList();
 
+      // 관리자 상품관리에서는 최근 등록 상품이 먼저 보이도록 정렬합니다.
+      // Firestore의 기본 문서 순서는 등록 순서를 보장하지 않으므로 명시적으로 정렬합니다.
+      all.sort((a, b) {
+        final byCreatedAt = b.createdAt.compareTo(a.createdAt);
+        return byCreatedAt != 0 ? byCreatedAt : b.id.compareTo(a.id);
+      });
+
       _allProducts.clear();
       _allProducts.addAll(all);
       // 활성 상품은 일반 캐시도 갱신
