@@ -20,6 +20,7 @@ import '../products/product_detail_screen.dart';
 import '../products/category_detail_screen.dart';
 import '../orders/group_order_only_screen.dart';
 import '../orders/order_guide_screen.dart';
+import '../promotions/winter_collection_screen.dart';
 import '../admin/admin_screen.dart';
 import '../../services/analytics_service.dart';
 import '../chat/chat_screen.dart';
@@ -5047,6 +5048,7 @@ class _HomeScreenState extends State<HomeScreen>
       1 => Icons.local_fire_department_rounded,
       2 => Icons.groups_rounded,
       4 => Icons.menu_book_rounded,
+      5 => Icons.ac_unit_rounded,
       _ => Icons.arrow_forward_rounded,
     };
 
@@ -5072,6 +5074,14 @@ class _HomeScreenState extends State<HomeScreen>
           break;
         case 4:
           _showEliteOrderGuideDialog();
+          break;
+        case 5:
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const WinterCollectionScreen(),
+            ),
+          );
           break;
         default:
           Navigator.push(

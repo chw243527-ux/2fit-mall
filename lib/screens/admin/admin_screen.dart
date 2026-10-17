@@ -10774,6 +10774,7 @@ class _AdminScreenState extends State<AdminScreen>
     final titleEnCtrl = TextEditingController(text: banner.titleEn);
     final ctaKoCtrl = TextEditingController(text: banner.ctaKo);
     final ctaEnCtrl = TextEditingController(text: banner.ctaEn);
+    int ctaAction = banner.btnAction;
 
     Uint8List? pickedImageBytes;
     Uint8List? pickedVideoBytes;
@@ -10957,6 +10958,25 @@ class _AdminScreenState extends State<AdminScreen>
                     _dlgField(ctaKoCtrl, 'CTA (한국어)'),
                     const SizedBox(height: 8),
                     _dlgField(ctaEnCtrl, 'CTA (영어)'),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<int>(
+                      value: ctaAction,
+                      decoration: const InputDecoration(
+                        labelText: 'CTA 동작',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 0, child: Text('전체 상품 보기')),
+                        DropdownMenuItem(value: 1, child: Text('신상품 보기')),
+                        DropdownMenuItem(value: 2, child: Text('단체주문 상품 보기')),
+                        DropdownMenuItem(value: 3, child: Text('쿠폰 다운로드')),
+                        DropdownMenuItem(value: 4, child: Text('단체주문 안내')),
+                        DropdownMenuItem(value: 5, child: Text('겨울 신상품 기획전')),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) setDlg(() => ctaAction = value);
+                      },
+                    ),
                     const SizedBox(height: 14),
                     // ── 배경 이미지 ──
                     const Align(
@@ -11367,6 +11387,7 @@ class _AdminScreenState extends State<AdminScreen>
                           'titleEn': titleEnCtrl.text,
                           'ctaKo': ctaKoCtrl.text,
                           'ctaEn': ctaEnCtrl.text,
+                          'btnAction': ctaAction,
                           'imageUrl': imageUrl,
                           if (videoUrl != null && videoUrl.isNotEmpty)
                             'videoUrl': videoUrl,
@@ -11415,6 +11436,7 @@ class _AdminScreenState extends State<AdminScreen>
     final titleEnCtrl = TextEditingController();
     final ctaKoCtrl = TextEditingController();
     final ctaEnCtrl = TextEditingController();
+    int ctaAction = 0;
 
     Uint8List? pickedImageBytes;
     bool useLocalVideo = false;
@@ -11476,6 +11498,25 @@ class _AdminScreenState extends State<AdminScreen>
                   _dlgField(ctaKoCtrl, 'CTA (한국어)'),
                   const SizedBox(height: 8),
                   _dlgField(ctaEnCtrl, 'CTA (영어)'),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<int>(
+                    value: ctaAction,
+                    decoration: const InputDecoration(
+                      labelText: 'CTA 동작',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 0, child: Text('전체 상품 보기')),
+                      DropdownMenuItem(value: 1, child: Text('신상품 보기')),
+                      DropdownMenuItem(value: 2, child: Text('단체주문 상품 보기')),
+                      DropdownMenuItem(value: 3, child: Text('쿠폰 다운로드')),
+                      DropdownMenuItem(value: 4, child: Text('단체주문 안내')),
+                      DropdownMenuItem(value: 5, child: Text('겨울 신상품 기획전')),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) setDlg(() => ctaAction = value);
+                    },
+                  ),
                   const SizedBox(height: 14),
                   const Align(
                     alignment: Alignment.centerLeft,
@@ -11828,7 +11869,7 @@ class _AdminScreenState extends State<AdminScreen>
                             ? 'assets/images/banner_video.mp4'
                             : null,
                         accentColor: 0xFFE53935,
-                        btnAction: linkedCouponId != null ? 3 : 0,
+                        btnAction: linkedCouponId != null ? 3 : ctaAction,
                         startDate: scheduleStart,
                         endDate: scheduleEnd,
                         couponId: linkedCouponId,
