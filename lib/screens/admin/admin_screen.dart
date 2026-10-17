@@ -9029,7 +9029,12 @@ class _AdminScreenState extends State<AdminScreen>
                                     fit: StackFit.expand,
                                     children: [
                                       // 배경 이미지
-                                      if (b.imageUrl.isNotEmpty)
+                                      if (b.imageUrl.startsWith('assets/'))
+                                        Image.asset(
+                                          b.imageUrl,
+                                          fit: BoxFit.cover,
+                                        )
+                                      else if (b.imageUrl.isNotEmpty)
                                         NetImage(b.imageUrl, fit: BoxFit.cover)
                                       else
                                         Container(
@@ -9282,10 +9287,19 @@ class _AdminScreenState extends State<AdminScreen>
                                             TextButton(
                                               onPressed: () async {
                                                 Navigator.pop(context);
-                                                await BannerService
-                                                    .deleteBanner(
-                                                  b.id,
-                                                );
+                                                if (b.id ==
+                                                    'winter_puffer_main') {
+                                                  await BannerService
+                                                      .updateBanner(
+                                                    b.id,
+                                                    {'active': false},
+                                                  );
+                                                } else {
+                                                  await BannerService
+                                                      .deleteBanner(
+                                                    b.id,
+                                                  );
+                                                }
                                                 if (mounted) {
                                                   ScaffoldMessenger.of(
                                                     context,
@@ -10819,6 +10833,32 @@ class _AdminScreenState extends State<AdminScreen>
                           color: Colors.white,
                           size: 14,
                         ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
+            if (banner.imageUrl.startsWith('assets/')) {
+              return Stack(
+                children: [
+                  Image.asset(
+                    banner.imageUrl,
+                    width: double.infinity,
+                    height: 130,
+                    fit: BoxFit.cover,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 3),
+                      color: Colors.black38,
+                      child: const Text(
+                        '현재 배너 이미지 · 탭하여 교체',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white, fontSize: 11),
                       ),
                     ),
                   ),

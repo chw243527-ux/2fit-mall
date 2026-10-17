@@ -1975,6 +1975,7 @@ class BannerProvider extends ChangeNotifier {
     // 기본 데이터 없으면 시드 (에러 무시 - 이미 데이터 있으면 스킵됨)
     try {
       await BannerService.seedDefaultBanners();
+      await BannerService.ensureWinterMainBanner();
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
     }

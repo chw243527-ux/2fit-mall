@@ -165,4 +165,38 @@ class BannerService {
       if (kDebugMode) debugPrint('client_operation_failed');
     }
   }
+
+  /// 코드에만 존재하던 겨울 대표 배너를 관리자 관리 대상에 편입합니다.
+  /// 문서가 이미 있으면 관리자에서 수정·숨김 처리한 값을 유지합니다.
+  static Future<void> ensureWinterMainBanner() async {
+    try {
+      final ref = _col.doc('winter_puffer_main');
+      final snap = await ref.get();
+      if (snap.exists) return;
+      final existing = await _col.get();
+      final batch = FirebaseFirestore.instance.batch();
+      for (final doc in existing.docs) {
+        final current = (doc.data()['order'] as num?)?.toInt() ?? 99;
+        batch.update(_col.doc(doc.id), {'order': current + 1});
+      }
+      batch.set(
+          ref,
+          const BannerModel(
+            id: 'winter_puffer_main',
+            order: 0,
+            title: '겨울 신상품 화이트 패딩',
+            tag: 'WINTER NEW ARRIVALS',
+            titleKo: '겨울 신상품\n화이트 패딩',
+            titleEn: 'WINTER NEW\nARRIVALS',
+            ctaKo: '기획전 보러가기',
+            ctaEn: 'VIEW COLLECTION',
+            imageUrl: 'assets/images/winter/winter_new_arrivals_banner.png',
+            accentColor: 0xFF263238,
+            btnAction: 5,
+          ).toFirestore());
+      await batch.commit();
+    } catch (e) {
+      if (kDebugMode) debugPrint('client_operation_failed');
+    }
+  }
 }
