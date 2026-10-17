@@ -190,7 +190,7 @@ class BannerService {
             titleEn: 'WINTER NEW\nARRIVALS',
             ctaKo: '기획전 보러가기',
             ctaEn: 'VIEW COLLECTION',
-            imageUrl: 'assets/images/winter/winter_new_arrivals_banner.png',
+            imageUrl: 'assets/images/winter/winter_new_arrivals_banner.jpg',
             accentColor: 0xFF263238,
             btnAction: 5,
           ).toFirestore());

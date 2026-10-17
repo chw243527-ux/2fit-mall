@@ -105,7 +105,7 @@ class WinterCollectionScreen extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           Image.asset(
-            'assets/images/winter/winter_new_arrivals_banner.png',
+            'assets/images/winter/winter_new_arrivals_banner.jpg',
             // 첨부한 16:9 디자인의 텍스트·상품이 잘리지 않도록
             // 원본 비율을 그대로 표시합니다.
             fit: BoxFit.contain,

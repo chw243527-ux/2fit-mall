@@ -5063,7 +5063,7 @@ class _HomeScreenState extends State<HomeScreen>
     // 겨울 배너는 제목과 CTA가 이미지 안에 포함된 완성형 디자인입니다.
     // 앱에서 별도 오버레이를 추가하면 모바일에서 문구가 겹치므로 제외합니다.
     final imageContainsCopy =
-        imageUrl == 'assets/images/winter/winter_new_arrivals_banner.png';
+        imageUrl == 'assets/images/winter/winter_new_arrivals_banner.jpg';
 
     // CTA 아이콘
     final ctaIcon = switch (banner.btnAction) {
