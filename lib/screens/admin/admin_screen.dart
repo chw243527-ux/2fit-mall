@@ -72,48 +72,56 @@ class _AdminScreenState extends State<AdminScreen>
     {
       'key': 's1',
       'label': '섹션 1',
+      'number': 1,
       'title': '메인 배너',
       'icon': Icons.star_rounded,
     },
     {
       'key': 's2',
       'label': '섹션 2',
+      'number': 2,
       'title': '소재 및 기술',
       'icon': Icons.science_rounded,
     },
     {
       'key': 's2_seamless',
       'label': '섹션 2A',
+      'number': 3,
       'title': '심리스 구조',
       'icon': Icons.all_inclusive_rounded,
     },
     {
       'key': 's2_fiber',
       'label': '섹션 2B',
+      'number': 4,
       'title': '원단 구조',
       'icon': Icons.texture_rounded,
     },
     {
       'key': 's3',
       'label': '섹션 3',
+      'number': 5,
       'title': '스마트 포켓',
       'icon': Icons.shopping_bag_rounded,
     },
     {
       'key': 's4',
       'label': '섹션 4',
+      'number': 6,
       'title': '착용 및 핏 안내',
       'icon': Icons.accessibility_new_rounded,
     },
     {
       'key': 's5',
       'label': '섹션 5',
+      'number': 7,
       'title': '골지 원단 색상',
       'icon': Icons.palette_rounded,
     },
     {
       'key': 's6',
       'label': '섹션 6',
+      'number': 8,
       'title': '사이즈 차트',
       'icon': Icons.table_chart_rounded,
     },
@@ -850,7 +858,16 @@ class _AdminScreenState extends State<AdminScreen>
         if (data['sections'] is List) {
           _customSections
             ..clear()
-            ..addAll(restoredSections.map(_sectionFromCatalog));
+            ..addAll(
+              restoredSections.asMap().entries.map(
+                    (entry) => _sectionFromCatalog({
+                      ...entry.value,
+                      'number': entry.value.containsKey('number')
+                          ? entry.value['number']
+                          : entry.key + 1,
+                    }),
+                  ),
+            );
         }
       });
       if (hasMissingDefault) {
@@ -889,12 +906,19 @@ class _AdminScreenState extends State<AdminScreen>
     return {
       'key': key,
       'label': item['label']?.toString() ?? '섹션',
+      'number': _parseSectionNumber(item['number'], 1),
       'title': item['title']?.toString() ?? '이름 없는 섹션',
       'description': item['description']?.toString() ?? '',
       'thumbUrl': item['thumbUrl']?.toString() ?? '',
       'active': item['active'] != false,
       'icon': _sectionIconForKey(key),
     };
+  }
+
+  int _parseSectionNumber(dynamic raw, int fallback) {
+    final parsed =
+        raw is num ? raw.toInt() : int.tryParse(raw?.toString() ?? '');
+    return parsed != null && parsed > 0 ? parsed : fallback;
   }
 
   IconData _sectionIconForKey(String key) {
@@ -934,6 +958,7 @@ class _AdminScreenState extends State<AdminScreen>
   Map<String, dynamic> _sectionForCatalog(Map<String, dynamic> item) => {
         'key': item['key'],
         'label': item['label'],
+        'number': item['number'],
         'title': item['title'],
         'description': item['description'] ?? '',
         'thumbUrl': item['thumbUrl'] ?? '',
@@ -15040,6 +15065,7 @@ class _AdminScreenState extends State<AdminScreen>
         ...section,
         'key': key,
         'label': section['label']?.toString() ?? '섹션',
+        'number': _parseSectionNumber(section['number'], result.length + 1),
         'title': section['title']?.toString() ?? '이름 없는 섹션',
         'description': section['description']?.toString() ?? '',
         'icon': section['icon'] is IconData
@@ -15069,6 +15095,7 @@ class _AdminScreenState extends State<AdminScreen>
         'label': fallbackTitles.containsKey(key)
             ? '섹션 ${key.replaceAll('s', '')}'
             : '이미지 섹션',
+        'number': result.length + 1,
         'title': fallbackTitles[key] ?? key,
         'description': '',
         'thumbUrl': '',
@@ -15380,6 +15407,8 @@ class _AdminScreenState extends State<AdminScreen>
                             _AdminSectionCard(
                               sectionKey: key,
                               sectionLabel: sec['label'] as String,
+                              sectionNumber:
+                                  (sec['number'] ?? i + 1).toString(),
                               sectionTitle: sec['title'] as String,
                               sectionDescription:
                                   (sec['description'] as String?) ?? '',
@@ -15387,10 +15416,11 @@ class _AdminScreenState extends State<AdminScreen>
                               images: imgs,
                               product: selectedProduct,
                               onUpdated: () => setState(() {}),
-                              onSaveSettings: (title, description) =>
+                              onSaveSettings: (number, title, description) =>
                                   _saveSectionSettingsByKey(
                                 key,
                                 selectedProduct.id,
+                                number,
                                 title,
                                 description,
                               ),
@@ -15585,6 +15615,7 @@ class _AdminScreenState extends State<AdminScreen>
                       final newSection = <String, dynamic>{
                         'key': newKey,
                         'label': '섹션 ${_customSections.length + 1}',
+                        'number': _customSections.length + 1,
                         'title': title,
                         'description': desc,
                         'active': true,
@@ -15677,6 +15708,7 @@ class _AdminScreenState extends State<AdminScreen>
         _customSections.add({
           'key': key,
           'label': '이미지 섹션',
+          'number': _customSections.length + 1,
           'title': trimmed,
           'description': '',
           'thumbUrl': '',
@@ -15708,14 +15740,26 @@ class _AdminScreenState extends State<AdminScreen>
   Future<void> _saveSectionSettingsByKey(
     String key,
     String productId,
+    String number,
     String title,
     String description,
   ) async {
     final index = _customSectionIndex(key);
+    final parsedNumber = _parseSectionNumber(number, index + 1);
     final trimmedTitle = title.trim();
     if (trimmedTitle.isEmpty) return;
     if (index < 0) {
       await _saveSectionTitleByKey(key, trimmedTitle);
+      if (_customSectionIndex(key) >= 0) {
+        final createdIndex = _customSectionIndex(key);
+        setState(() {
+          _customSections[createdIndex] = {
+            ..._customSections[createdIndex],
+            'number': parsedNumber,
+          };
+        });
+        await _persistContentCatalogs();
+      }
       await context.read<ProductProvider>().updateSectionDescription(
             productId,
             key,
@@ -15727,6 +15771,7 @@ class _AdminScreenState extends State<AdminScreen>
     setState(() {
       _customSections[index] = {
         ..._customSections[index],
+        'number': parsedNumber,
         'title': trimmedTitle,
         'description': description.trim(),
       };
@@ -18401,13 +18446,15 @@ class _AdminScreenState extends State<AdminScreen>
 class _AdminSectionCard extends StatefulWidget {
   final String sectionKey;
   final String sectionLabel;
+  final String sectionNumber;
   final String sectionTitle;
   final String sectionDescription;
   final IconData icon;
   final List<String> images;
   final ProductModel product;
   final VoidCallback onUpdated;
-  final Future<void> Function(String title, String description)? onSaveSettings;
+  final Future<void> Function(String number, String title, String description)?
+      onSaveSettings;
   final VoidCallback? onMoveUp;
   final VoidCallback? onMoveDown;
   final VoidCallback? onArchive;
@@ -18415,6 +18462,7 @@ class _AdminSectionCard extends StatefulWidget {
   const _AdminSectionCard({
     required this.sectionKey,
     required this.sectionLabel,
+    required this.sectionNumber,
     required this.sectionTitle,
     this.sectionDescription = '',
     required this.icon,
@@ -18437,12 +18485,14 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
   final _urlCtrl = TextEditingController();
   late final TextEditingController _titleCtrl;
   late final TextEditingController _descriptionCtrl;
+  late final TextEditingController _numberCtrl;
 
   @override
   void dispose() {
     _urlCtrl.dispose();
     _titleCtrl.dispose();
     _descriptionCtrl.dispose();
+    _numberCtrl.dispose();
     super.dispose();
   }
 
@@ -18616,6 +18666,7 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
   void initState() {
     super.initState();
     _titleCtrl = TextEditingController(text: widget.sectionTitle);
+    _numberCtrl = TextEditingController(text: widget.sectionNumber);
     _descriptionCtrl = TextEditingController(
       text: widget.product.sectionDescriptions[widget.sectionKey] ??
           widget.sectionDescription,
@@ -18698,7 +18749,7 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${widget.sectionLabel} · ${widget.sectionTitle}',
+                          '섹션 ${widget.sectionNumber} · ${widget.sectionTitle}',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
@@ -18859,6 +18910,17 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TextField(
+                    controller: _numberCtrl,
+                    keyboardType: TextInputType.number,
+                    maxLines: 1,
+                    decoration: const InputDecoration(
+                      labelText: '섹션 번호',
+                      hintText: '예: 1, 2, 3',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
                     controller: _titleCtrl,
                     maxLines: 1,
                     decoration: const InputDecoration(
@@ -18884,6 +18946,7 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                       onPressed: widget.onSaveSettings == null
                           ? _saveProductDescription
                           : () => widget.onSaveSettings!(
+                                _numberCtrl.text,
                                 _titleCtrl.text,
                                 _descriptionCtrl.text,
                               ),

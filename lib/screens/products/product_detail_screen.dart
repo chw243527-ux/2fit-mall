@@ -124,6 +124,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   final Map<String, String> _productSectionDescriptions = {};
   final Map<String, String> _sectionLabels = {};
   final Map<String, String> _sectionTitles = {};
+  final Map<String, int> _sectionNumbers = {};
   final Set<String> _activeSectionKeys = {};
   // 관리자 카탈로그를 읽었는지 여부와 활성 섹션이 0개인 상태를 구분합니다.
   bool _sectionCatalogConfigured = false;
@@ -206,6 +207,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           }
           if (key.isNotEmpty && title.isNotEmpty) {
             _sectionTitles[key] = title;
+          }
+          if (key.isNotEmpty) {
+            final rawNumber = raw['number'];
+            final parsedNumber = rawNumber is num
+                ? rawNumber.toInt()
+                : int.tryParse(rawNumber?.toString() ?? '');
+            if (parsedNumber != null && parsedNumber > 0) {
+              _sectionNumbers[key] = parsedNumber;
+            }
           }
           if (key.isNotEmpty && description.isNotEmpty) {
             _sectionDescriptions[key] = description;
@@ -5744,7 +5754,9 @@ $productUrl
     final r = Responsive.of(context);
     final orderIndex = _sectionOrder.indexOf(sectionKey);
     final sectionNumber =
-        (orderIndex >= 0 ? orderIndex + 1 : 1).toString().padLeft(2, '0');
+        (_sectionNumbers[sectionKey] ?? (orderIndex >= 0 ? orderIndex + 1 : 1))
+            .toString()
+            .padLeft(2, '0');
 
     final hasSideCopy = images.isNotEmpty && description.isNotEmpty;
 
