@@ -5746,6 +5746,8 @@ $productUrl
     final sectionNumber =
         (orderIndex >= 0 ? orderIndex + 1 : 1).toString().padLeft(2, '0');
 
+    final hasSideCopy = images.isNotEmpty && description.isNotEmpty;
+
     // 고객 상세페이지는 상품 이미지 자체가 주인공이 되도록
     // 순백 배경, 얇은 구분선, 작은 섹션 번호만 사용하는 미니멀 스타일입니다.
     return Container(
@@ -5760,61 +5762,133 @@ $productUrl
             color: AppColors.accent,
             margin: EdgeInsets.only(bottom: r.h(14)),
           ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (isAdmin) ...[
-                Text(
-                  'SECTION $sectionNumber',
-                  style: TextStyle(
-                    color: AppColors.accent,
-                    fontSize: r.sp(10),
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
+          if (hasSideCopy) ...[
+            SizedBox(height: r.h(18)),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceGray,
+                      border: Border.all(color: AppColors.border, width: 0.8),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: EdgeInsets.all(r.w(6)),
+                    child: isAdmin
+                        ? _buildAdminImageSection(sectionKey, title, true)
+                        : _buildSectionImageSlider(sectionKey),
                   ),
                 ),
-                SizedBox(width: r.w(10)),
-              ],
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: r.sp(19),
-                    fontWeight: FontWeight.w800,
-                    height: 1.2,
-                    letterSpacing: -0.25,
+                SizedBox(width: r.w(16)),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: r.h(6)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          sectionNumber,
+                          style: TextStyle(
+                            color: AppColors.accent,
+                            fontSize: r.sp(20),
+                            fontWeight: FontWeight.w900,
+                            height: 1,
+                          ),
+                        ),
+                        SizedBox(height: r.h(8)),
+                        Container(
+                          height: 1.5,
+                          width: r.w(28),
+                          color: AppColors.accent,
+                        ),
+                        SizedBox(height: r.h(12)),
+                        Text(
+                          title,
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: r.sp(16),
+                            fontWeight: FontWeight.w800,
+                            height: 1.25,
+                            letterSpacing: -0.25,
+                          ),
+                        ),
+                        SizedBox(height: r.h(14)),
+                        Text(
+                          description,
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: r.sp(12),
+                            fontWeight: FontWeight.w400,
+                            height: 1.65,
+                            letterSpacing: -0.05,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                ),
+              ],
+            ),
+          ] else ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (isAdmin) ...[
+                  Text(
+                    'SECTION $sectionNumber',
+                    style: TextStyle(
+                      color: AppColors.accent,
+                      fontSize: r.sp(10),
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  SizedBox(width: r.w(10)),
+                ],
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: r.sp(19),
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
+                      letterSpacing: -0.25,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (images.isNotEmpty) ...[
+              SizedBox(height: r.h(18)),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceGray,
+                  border: Border.all(color: AppColors.border, width: 0.8),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: EdgeInsets.all(r.w(6)),
+                child: isAdmin
+                    ? _buildAdminImageSection(sectionKey, title, true)
+                    : _buildSectionImageSlider(sectionKey),
+              ),
+            ],
+            if (description.isNotEmpty) ...[
+              SizedBox(height: r.h(14)),
+              Text(
+                description,
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: r.sp(13),
+                  fontWeight: FontWeight.w400,
+                  height: 1.65,
+                  letterSpacing: -0.05,
                 ),
               ),
             ],
-          ),
-          if (images.isNotEmpty) ...[
-            SizedBox(height: r.h(18)),
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.surfaceGray,
-                border: Border.all(color: AppColors.border, width: 0.8),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: EdgeInsets.all(r.w(6)),
-              child: isAdmin
-                  ? _buildAdminImageSection(sectionKey, title, true)
-                  : _buildSectionImageSlider(sectionKey),
-            ),
-          ],
-          if (description.isNotEmpty) ...[
-            SizedBox(height: r.h(14)),
-            Text(
-              description,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: r.sp(13),
-                fontWeight: FontWeight.w400,
-                height: 1.65,
-                letterSpacing: -0.05,
-              ),
-            ),
           ],
         ],
       ),
