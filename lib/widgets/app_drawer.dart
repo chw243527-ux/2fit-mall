@@ -20,12 +20,14 @@ import '../utils/constants.dart';
 // 카테고리 데이터 모델
 // ──────────────────────────────────────────────
 class CategoryData {
+  final String rawName;
   final String name;
   final IconData icon;
   final Color color;
   final List<SubCategory> subCategories;
 
   const CategoryData({
+    required this.rawName,
     required this.name,
     required this.icon,
     required this.color,
@@ -106,6 +108,7 @@ List<CategoryData> getCategories(AppLocalizations loc) {
       }
     }
     return CategoryData(
+      rawName: mainCat,
       name: translatedMain,
       icon: _iconFor(mainCat),
       color: _colorFor(mainCat),
@@ -129,6 +132,7 @@ class AppDrawer extends StatefulWidget {
 class _AppDrawerState extends State<AppDrawer> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   int? _expandedIndex;
+  final Set<String> _expandedMiddleKeys = <String>{};
   bool _checkingUpdate = false;
 
   @override
@@ -371,61 +375,166 @@ class _AppDrawerState extends State<AppDrawer> {
   }
 
   Widget _buildSubCategories(BuildContext context, CategoryData cat) {
-    return Container(
-      color: AppColors.background,
-      child: Column(
-        children: cat.subCategories.asMap().entries.map((entry) {
-          final tabIndex = entry.key;
-          final sub = entry.value;
-          final isAllTab = tabIndex == 0; // 전체탭
-          return InkWell(
-            splashColor: const Color(0x0F111111),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CategoryDetailScreen(
-                    categoryName: cat.name,
-                    categoryColor: cat.color,
-                    categoryIcon: cat.icon,
-                    subCategories: cat.subCategories,
-                    initialTabIndex: tabIndex,
+    final grouped = <String, List<SubCategory>>{};
+    for (final sub in cat.subCategories.skip(1)) {
+      grouped.putIfAbsent(sub.middleName ?? '일반', () => []).add(sub);
+    }
+
+    void openCategory(int tabIndex) {
+      Navigator.pop(context);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CategoryDetailScreen(
+            categoryName: cat.name,
+            categoryColor: cat.color,
+            categoryIcon: cat.icon,
+            subCategories: cat.subCategories,
+            initialTabIndex: tabIndex,
+          ),
+        ),
+      );
+    }
+
+    Widget buildSubRow(SubCategory sub) {
+      final tabIndex = cat.subCategories.indexOf(sub);
+      return InkWell(
+        splashColor: const Color(0x0F111111),
+        onTap: () => openCategory(tabIndex),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(88, 11, 20, 11),
+          child: Row(
+            children: [
+              Container(width: 2, height: 14, color: AppColors.border),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  sub.rawName == null
+                      ? sub.name
+                      : loc.t(sub.rawName!, sub.rawName!),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                    letterSpacing: 0.2,
                   ),
                 ),
-              );
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                size: 15,
+                color: AppColors.border,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    Widget buildMiddleRow(String middle, List<SubCategory> subs) {
+      final key = '${cat.rawName}::$middle';
+      final isExpanded = _expandedMiddleKeys.contains(key);
+      final translatedMiddle = loc.t(middle, middle);
+      return Column(
+        children: [
+          InkWell(
+            splashColor: const Color(0x0F111111),
+            onTap: () {
+              if (subs.isEmpty) {
+                openCategory(0);
+                return;
+              }
+              setState(() {
+                if (isExpanded) {
+                  _expandedMiddleKeys.remove(key);
+                } else {
+                  _expandedMiddleKeys.add(key);
+                }
+              });
             },
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(52, 12, 20, 12),
+              padding: const EdgeInsets.fromLTRB(52, 13, 20, 13),
               child: Row(
                 children: [
-                  Container(
-                    width: 2,
-                    height: 14,
-                    color: isAllTab
-                        ? cat.color.withValues(alpha: 0.5)
-                        : AppColors.border,
+                  Icon(
+                    Icons.folder_outlined,
+                    size: 17,
+                    color: isExpanded ? cat.color : AppColors.textSecondary,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      sub.name,
+                      translatedMiddle,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight:
-                            isAllTab ? FontWeight.w700 : FontWeight.w500,
-                        color: isAllTab
-                            ? AppColors.textPrimary
-                            : AppColors.textSecondary,
-                        letterSpacing: 0.2,
+                            isExpanded ? FontWeight.w800 : FontWeight.w600,
+                        color: AppColors.textPrimary,
                       ),
+                    ),
+                  ),
+                  Text(
+                    '${subs.length}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textHint,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  AnimatedRotation(
+                    turns: isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 180),
+                    child: const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 18,
+                      color: AppColors.textHint,
                     ),
                   ),
                 ],
               ),
             ),
-          );
-        }).toList(),
+          ),
+          AnimatedCrossFade(
+            firstChild: const SizedBox(width: double.infinity, height: 0),
+            secondChild: Column(children: subs.map(buildSubRow).toList()),
+            crossFadeState: isExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 180),
+          ),
+        ],
+      );
+    }
+
+    return Container(
+      color: AppColors.background,
+      child: Column(
+        children: [
+          InkWell(
+            splashColor: const Color(0x0F111111),
+            onTap: () => openCategory(0),
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(52, 13, 20, 13),
+              child: Row(
+                children: [
+                  Icon(Icons.apps_rounded, size: 17, color: AppColors.accent),
+                  SizedBox(width: 12),
+                  Text(
+                    '전체 보기',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          ...grouped.entries
+              .map((entry) => buildMiddleRow(entry.key, entry.value)),
+        ],
       ),
     );
   }
