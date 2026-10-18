@@ -15317,6 +15317,45 @@ class _AdminScreenState extends State<AdminScreen>
             ],
           ),
         ),
+        // ── 상세페이지 구성 가이드 ──
+        Container(
+          width: double.infinity,
+          margin: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF7F8FC),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '상세페이지 권장 구성',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+              ),
+              SizedBox(height: 5),
+              Text(
+                '대표 이미지·핵심 장점 → 핏 → 소재·디테일 → 색상 → 사이즈 → 배송·교환 안내',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                  height: 1.45,
+                ),
+              ),
+              SizedBox(height: 5),
+              Text(
+                '첫 설명은 누구에게 어떤 점이 좋은지 생활 속 이점으로 작성하고, 비침·두께·신축성·안감·착용 정보는 확인된 사실만 입력하세요. 사이즈는 FREE 표기만 하지 말고 상품별 실측과 측정 방법을 함께 안내합니다.',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
 
         // ── 섹션 카드 목록 ──
         if (selectedProduct == null)
