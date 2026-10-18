@@ -5757,160 +5757,87 @@ $productUrl
         (_sectionNumbers[sectionKey] ?? (orderIndex >= 0 ? orderIndex + 1 : 1))
             .toString()
             .padLeft(2, '0');
+    final sectionLabel = (_sectionLabels[sectionKey] ?? title).trim();
 
-    final hasSideCopy = images.isNotEmpty && description.isNotEmpty;
-    final useEditorialStack = r.isMobile || r.isTablet || r.isPc;
-
-    // 모든 화면에서 참고 시안처럼 이미지가 먼저 충분히 보이고
-    // 제목·설명·스펙이 이미지 아래로 이어지는 세로형 편집 레이아웃을 사용합니다.
-    // 데스크톱·태블릿은 동일한 순서를 유지하되 화면 폭에 맞춰 확장합니다.
+    // 참고 시안의 흐름을 모든 화면 크기에 동일하게 적용합니다.
+    // 번호/라벨 → 제목/카피 → 상세 이미지 세로 나열 → 보충 설명 순서입니다.
     return Container(
       color: Colors.white,
-      padding: EdgeInsets.fromLTRB(r.w(20), r.h(28), r.w(20), r.h(30)),
+      padding: EdgeInsets.fromLTRB(r.w(20), r.h(34), r.w(20), r.h(38)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 2,
-            width: r.w(28),
-            color: AppColors.accent,
-            margin: EdgeInsets.only(bottom: r.h(14)),
-          ),
-          if (hasSideCopy && !useEditorialStack) ...[
-            SizedBox(height: r.h(18)),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceGray,
-                      border: Border.all(color: AppColors.border, width: 0.8),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: EdgeInsets.all(r.w(6)),
-                    child: isAdmin
-                        ? _buildAdminImageSection(sectionKey, title, true)
-                        : _buildSectionImageSlider(sectionKey),
-                  ),
-                ),
-                SizedBox(width: r.w(16)),
-                Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: EdgeInsets.only(top: r.h(6)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          sectionNumber,
-                          style: TextStyle(
-                            color: AppColors.accent,
-                            fontSize: r.sp(20),
-                            fontWeight: FontWeight.w900,
-                            height: 1,
-                          ),
-                        ),
-                        SizedBox(height: r.h(8)),
-                        Container(
-                          height: 1.5,
-                          width: r.w(28),
-                          color: AppColors.accent,
-                        ),
-                        SizedBox(height: r.h(12)),
-                        Text(
-                          title,
-                          style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: r.sp(16),
-                            fontWeight: FontWeight.w800,
-                            height: 1.25,
-                            letterSpacing: -0.25,
-                          ),
-                        ),
-                        SizedBox(height: r.h(14)),
-                        Text(
-                          description,
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: r.sp(12),
-                            fontWeight: FontWeight.w400,
-                            height: 1.65,
-                            letterSpacing: -0.05,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ] else ...[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                if (isAdmin) ...[
-                  Text(
-                    'SECTION $sectionNumber',
-                    style: TextStyle(
-                      color: AppColors.accent,
-                      fontSize: r.sp(10),
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  SizedBox(width: r.w(10)),
-                ],
-                Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: r.sp(19),
-                      fontWeight: FontWeight.w800,
-                      height: 1.2,
-                      letterSpacing: -0.25,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            if (images.isNotEmpty) ...[
-              SizedBox(height: r.h(18)),
-              Container(
-                decoration: useEditorialStack
-                    ? null
-                    : BoxDecoration(
-                        color: AppColors.surfaceGray,
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 0.8,
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                padding: useEditorialStack
-                    ? EdgeInsets.zero
-                    : EdgeInsets.all(r.w(6)),
-                child: isAdmin
-                    ? _buildAdminImageSection(sectionKey, title, true)
-                    : _buildSectionImageSlider(sectionKey),
-              ),
-            ],
-            if (description.isNotEmpty) ...[
-              SizedBox(height: r.h(14)),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
               Text(
-                description,
+                sectionNumber,
                 style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: r.sp(13),
-                  fontWeight: FontWeight.w400,
-                  height: 1.65,
-                  letterSpacing: -0.05,
+                  color: AppColors.accent,
+                  fontSize: r.sp(24),
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                ),
+              ),
+              SizedBox(width: r.w(10)),
+              Expanded(
+                child: Text(
+                  sectionLabel.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: AppColors.textHint,
+                    fontSize: r.sp(10),
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                  ),
                 ),
               ),
             ],
+          ),
+          SizedBox(height: r.h(12)),
+          Container(height: 1.5, width: r.w(34), color: AppColors.accent),
+          SizedBox(height: r.h(14)),
+          Text(
+            title,
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: r.sp(22),
+              fontWeight: FontWeight.w800,
+              height: 1.2,
+              letterSpacing: -0.35,
+            ),
+          ),
+          if (description.isNotEmpty) ...[
+            SizedBox(height: r.h(10)),
+            Text(
+              description,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: r.sp(13),
+                fontWeight: FontWeight.w400,
+                height: 1.7,
+                letterSpacing: -0.05,
+              ),
+            ),
           ],
+          if (images.isNotEmpty) ...[
+            SizedBox(height: r.h(22)),
+            isAdmin
+                ? _buildAdminImageSection(sectionKey, title, true)
+                : _buildSectionImageSlider(sectionKey),
+          ],
+          if (images.isEmpty && description.isEmpty && isAdmin)
+            Padding(
+              padding: EdgeInsets.only(top: r.h(18)),
+              child: Text(
+                '이미지를 등록하면 이 위치에 상세 이미지가 세로로 표시됩니다.',
+                style: TextStyle(
+                  color: AppColors.textHint,
+                  fontSize: r.sp(12),
+                ),
+              ),
+            ),
         ],
       ),
     );
