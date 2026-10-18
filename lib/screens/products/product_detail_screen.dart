@@ -5759,9 +5759,11 @@ $productUrl
             .padLeft(2, '0');
 
     final hasSideCopy = images.isNotEmpty && description.isNotEmpty;
+    final isMobileEditorial = r.isMobile;
 
-    // 고객 상세페이지는 상품 이미지 자체가 주인공이 되도록
-    // 순백 배경, 얇은 구분선, 작은 섹션 번호만 사용하는 미니멀 스타일입니다.
+    // 모바일은 참고 시안처럼 이미지가 화면 폭을 충분히 차지하고
+    // 제목·설명·스펙이 이미지 아래로 이어지는 세로형 편집 레이아웃을 사용합니다.
+    // 데스크톱·태블릿은 이미지 왼쪽/설명 오른쪽 구조를 유지합니다.
     return Container(
       color: Colors.white,
       padding: EdgeInsets.fromLTRB(r.w(20), r.h(28), r.w(20), r.h(30)),
@@ -5774,7 +5776,7 @@ $productUrl
             color: AppColors.accent,
             margin: EdgeInsets.only(bottom: r.h(14)),
           ),
-          if (hasSideCopy) ...[
+          if (hasSideCopy && !isMobileEditorial) ...[
             SizedBox(height: r.h(18)),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -5877,12 +5879,19 @@ $productUrl
             if (images.isNotEmpty) ...[
               SizedBox(height: r.h(18)),
               Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceGray,
-                  border: Border.all(color: AppColors.border, width: 0.8),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: EdgeInsets.all(r.w(6)),
+                decoration: isMobileEditorial
+                    ? null
+                    : BoxDecoration(
+                        color: AppColors.surfaceGray,
+                        border: Border.all(
+                          color: AppColors.border,
+                          width: 0.8,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                padding: isMobileEditorial
+                    ? EdgeInsets.zero
+                    : EdgeInsets.all(r.w(6)),
                 child: isAdmin
                     ? _buildAdminImageSection(sectionKey, title, true)
                     : _buildSectionImageSlider(sectionKey),
