@@ -107,6 +107,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           !subName.startsWith(context.loc.t('전체', '전체')) &&
           subName != filter) {
         all = all.where((p) {
+          // 중분류 자체가 탭으로 노출되는 경우에는 소분류가 아니라
+          // middleCategory 값으로 필터링합니다.
+          // 예: 육상 > 단체주문 > A타입/B타입/크롭
+          if (p.middleCategory.trim() == subName.trim()) return true;
           final sub = p.subCategory;
           if (sub.isEmpty) return false;
           return sub == subName ||
