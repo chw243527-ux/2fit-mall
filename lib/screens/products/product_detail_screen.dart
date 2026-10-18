@@ -15400,118 +15400,37 @@ class _ToptenTabBarDelegate extends SliverPersistentHeaderDelegate {
 }
 
 // ══════════════════════════════════════════════════════════════
-// 섹션 이미지 가로 슬라이더 위젯 (2장 이상일 때 사용)
+// 섹션 이미지 세로 나열 위젯
 // ══════════════════════════════════════════════════════════════
-class _SectionImageSliderWidget extends StatefulWidget {
+class _SectionImageSliderWidget extends StatelessWidget {
   final List<String> imgs;
   final void Function(int index)? onTap; // 탭 → 라이트박스 콜백
   const _SectionImageSliderWidget({required this.imgs, this.onTap});
 
   @override
-  State<_SectionImageSliderWidget> createState() =>
-      _SectionImageSliderWidgetState();
-}
-
-class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
-  late final PageController _ctrl;
-  int _idx = 0;
-
-  // 섹션 등록 이미지는 모든 상품에서 4:5 비율 프레임으로 통일합니다.
-  // width / height = 4 / 5 이므로 height는 width의 1.25배입니다.
-  static const double _detailImageRatio = 1.25;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = PageController();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final imgs = widget.imgs;
-    return LayoutBuilder(
-      builder: (_, constraints) {
-        final r = Responsive.of(context);
-
-        final w = constraints.maxWidth;
-        // 모든 섹션 이미지는 4:5 세로 프레임으로 고정합니다.
-        final pageViewHeight = w * _detailImageRatio;
-
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // ── 이미지 PageView — bounded height 명시 (버그 수정 핵심)
-            SizedBox(
-              width: w,
-              height: pageViewHeight,
-              child: PageView.builder(
-                controller: _ctrl,
-                itemCount: imgs.length,
-                onPageChanged: (i) => setState(() => _idx = i),
-                itemBuilder: (_, i) => GestureDetector(
-                  onTap: () => widget.onTap?.call(i),
-                  child: NetImage(
-                    imgs[i],
-                    width: w,
-                    height: pageViewHeight,
-                    // 원본 비율이 달라도 잘라내지 않고 4:5 프레임 안에 전체 표시
-                    fit: BoxFit.contain,
-                  ),
-                ),
+    final r = Responsive.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < imgs.length; i++) ...[
+          GestureDetector(
+            onTap: () => onTap?.call(i),
+            child: Container(
+              color: const Color(0xFFF9F9F9),
+              margin:
+                  EdgeInsets.only(bottom: i == imgs.length - 1 ? 0 : r.h(10)),
+              child: NetImage(
+                imgs[i],
+                width: double.infinity,
+                // 원본 비율을 유지해 긴 상세 이미지를 잘리지 않게 표시합니다.
+                fit: BoxFit.fitWidth,
               ),
             ),
-            // ── 하단 pill-dot 인디케이터 + 페이지 카운터
-            Container(
-              color: Colors.white,
-              padding: EdgeInsets.fromLTRB(r.w(0), r.h(10), r.w(0), r.h(12)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // pill dots
-                  ...List.generate(imgs.length, (i) {
-                    final r = Responsive.of(context);
-
-                    final active = _idx == i;
-                    return GestureDetector(
-                      onTap: () => _ctrl.animateToPage(
-                        i,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      ),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 220),
-                        margin: EdgeInsets.symmetric(horizontal: r.w(3)),
-                        width: active ? 20 : 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: active ? AppColors.primary : AppColors.border,
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      ),
-                    );
-                  }),
-                  SizedBox(width: r.w(10)),
-                  // 페이지 카운터 텍스트
-                  Text(
-                    '${_idx + 1} / ${imgs.length}',
-                    style: TextStyle(
-                      fontSize: r.sp(11),
-                      color: AppColors.textHint,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
+          ),
+        ],
+      ],
     );
   }
 }
