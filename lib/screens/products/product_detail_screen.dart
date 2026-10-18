@@ -7948,6 +7948,9 @@ $productUrl
   // ═══════════════════════════════════════════════════════════
   Widget _buildSection6SizeChart(ProductModel product, [bool isAdmin = false]) {
     final r = Responsive.of(context);
+    if (_isPaddingSizeChartProduct(product)) {
+      return _buildPaddingSizeChart(product, isAdmin);
+    }
     const adultHeaders = [
       'SIZE',
       'HEIGHT\n(cm)',
@@ -8040,6 +8043,129 @@ $productUrl
             juniorHeaders: juniorHeaders,
             juniorRows: juniorRows,
             loc: loc,
+          ),
+          SizedBox(height: r.h(30)),
+          ...notices.asMap().entries.map(
+                (entry) => Padding(
+                  padding: EdgeInsets.only(bottom: r.h(9)),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        (entry.key + 1).toString().padLeft(2, '0'),
+                        style: TextStyle(
+                          color: AppColors.accent,
+                          fontSize: r.sp(10),
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      SizedBox(width: r.w(9)),
+                      Expanded(
+                        child: Text(
+                          entry.value,
+                          style: TextStyle(
+                            fontSize: r.sp(11),
+                            color: AppColors.textSecondary,
+                            height: 1.55,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+        ],
+      ),
+    );
+  }
+
+  bool _isPaddingSizeChartProduct(ProductModel product) {
+    final searchable = [
+      product.name,
+      product.category,
+      product.middleCategory,
+      product.subCategory,
+    ].join(' ').toLowerCase();
+    return searchable.contains('패딩') ||
+        searchable.contains('padding') ||
+        searchable.contains('puffer');
+  }
+
+  Widget _buildPaddingSizeChart(ProductModel product, bool isAdmin) {
+    final r = Responsive.of(context);
+    const headers = [
+      '라벨\n(신장 기준)',
+      '가슴둘레 단면\n(cm)',
+      '총길이 / 총장\n(cm)',
+      '어깨너비\n(cm)',
+      '소매길이\n(cm)',
+      '추천 한국 사이즈',
+    ];
+    const rows = [
+      ['S (165)', '56', '102', '45', '60', '여성 55 ~ 66'],
+      ['M (170)', '58', '105', '47', '62', '여성 77 / 남성 95'],
+      ['L (175)', '60', '108', '49', '64', '남성 100'],
+      ['XL (180) 📍현재 제품', '63', '112', '51', '65', '남성 105 (XL) 권장'],
+      ['2XL (185)', '66', '115', '53', '66', '남성 110 (XXL)'],
+      ['3XL (190)', '69', '118', '55', '67', '남성 115 이상'],
+    ];
+    final notices = [
+      '실측 치수는 원단 특성 및 측정 방식에 따라 1~3cm가량 오차가 발생할 수 있습니다.',
+      '가슴둘레 단면은 옷을 평평하게 바닥에 펴놓고 양쪽 겨드랑이 밑점 사이를 잰 수치입니다. 전체 둘레를 원하시면 단면 값에 x2를 하시면 됩니다.',
+      context.loc.t(
+        '제품_이미지와_색상은_모니터의_상태에_따라_다소_다르게_보일_수_있습니다',
+        '제품 이미지와 색상은 모니터의 상태에 따라 다르게 보일 수 있습니다.',
+      ),
+    ];
+    return Padding(
+      padding: EdgeInsets.fromLTRB(r.w(20), r.h(56), r.w(20), r.h(50)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isAdmin || (_sectionImages['s6'] ?? []).isNotEmpty) ...[
+            _buildAdminImageSection(
+              's6',
+              context.loc.t('섹션6_사이즈_차트', '섹션6 사이즈 차트'),
+              isAdmin,
+            ),
+            SizedBox(height: r.h(20)),
+          ],
+          _storedSectionDescription('s6'),
+          const Divider(height: 1, color: AppColors.textPrimary),
+          SizedBox(height: r.h(18)),
+          Text(
+            'SIZE\nCHART',
+            style: TextStyle(
+              fontSize: r.sp(32),
+              fontWeight: FontWeight.w900,
+              color: AppColors.textPrimary,
+              height: 1.0,
+              letterSpacing: -0.5,
+            ),
+          ),
+          SizedBox(height: r.h(8)),
+          Text(
+            '패딩·롱패딩 공통 성인 사이즈 기준',
+            style: TextStyle(
+              fontSize: r.sp(11),
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: r.h(24)),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SizedBox(
+              width: r.w(720),
+              child: _SizeChartTabs(
+                adultHeaders: headers,
+                adultRows: rows,
+                juniorHeaders: const [],
+                juniorRows: const [],
+                showJunior: false,
+                loc: loc,
+              ),
+            ),
           ),
           SizedBox(height: r.h(30)),
           ...notices.asMap().entries.map(
@@ -13363,6 +13489,7 @@ class _SizeChartTabs extends StatefulWidget {
   final List<List<String>> adultRows;
   final List<String> juniorHeaders;
   final List<List<String>> juniorRows;
+  final bool showJunior;
   final dynamic loc;
 
   const _SizeChartTabs({
@@ -13370,6 +13497,7 @@ class _SizeChartTabs extends StatefulWidget {
     required this.adultRows,
     required this.juniorHeaders,
     required this.juniorRows,
+    this.showJunior = true,
     required this.loc,
   });
 
@@ -13389,8 +13517,10 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
         Row(
           children: [
             _tabBtn(0, 'ADULT', context.loc.t('성인', '성인')),
-            SizedBox(width: r.w(22)),
-            _tabBtn(1, 'JUNIOR', context.loc.t('주니어', '주니어')),
+            if (widget.showJunior) ...[
+              SizedBox(width: r.w(22)),
+              _tabBtn(1, 'JUNIOR', context.loc.t('주니어', '주니어')),
+            ],
           ],
         ),
         SizedBox(height: r.h(16)),
