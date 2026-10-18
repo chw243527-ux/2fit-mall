@@ -5759,11 +5759,11 @@ $productUrl
             .padLeft(2, '0');
 
     final hasSideCopy = images.isNotEmpty && description.isNotEmpty;
-    final isMobileEditorial = r.isMobile;
+    final useEditorialStack = r.isMobile || r.isTablet || r.isPc;
 
-    // 모바일은 참고 시안처럼 이미지가 화면 폭을 충분히 차지하고
+    // 모든 화면에서 참고 시안처럼 이미지가 먼저 충분히 보이고
     // 제목·설명·스펙이 이미지 아래로 이어지는 세로형 편집 레이아웃을 사용합니다.
-    // 데스크톱·태블릿은 이미지 왼쪽/설명 오른쪽 구조를 유지합니다.
+    // 데스크톱·태블릿은 동일한 순서를 유지하되 화면 폭에 맞춰 확장합니다.
     return Container(
       color: Colors.white,
       padding: EdgeInsets.fromLTRB(r.w(20), r.h(28), r.w(20), r.h(30)),
@@ -5776,7 +5776,7 @@ $productUrl
             color: AppColors.accent,
             margin: EdgeInsets.only(bottom: r.h(14)),
           ),
-          if (hasSideCopy && !isMobileEditorial) ...[
+          if (hasSideCopy && !useEditorialStack) ...[
             SizedBox(height: r.h(18)),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -5879,7 +5879,7 @@ $productUrl
             if (images.isNotEmpty) ...[
               SizedBox(height: r.h(18)),
               Container(
-                decoration: isMobileEditorial
+                decoration: useEditorialStack
                     ? null
                     : BoxDecoration(
                         color: AppColors.surfaceGray,
@@ -5889,7 +5889,7 @@ $productUrl
                         ),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                padding: isMobileEditorial
+                padding: useEditorialStack
                     ? EdgeInsets.zero
                     : EdgeInsets.all(r.w(6)),
                 child: isAdmin
