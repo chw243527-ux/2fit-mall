@@ -409,22 +409,207 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
 
-    final media = MediaQuery.of(context);
-    final screenW = media.size.width;
-    final screenH = media.size.height;
-    // 가로 태블릿은 논리적 너비가 900px 이상이어도 짧은 변이
-    // 900px 미만이므로 PC 2열 레이아웃으로 분기하면 상품 정보와
-    // 하단 장바구니 바가 세로 영역 밖으로 밀릴 수 있습니다.
-    final shortestSide = screenW < screenH ? screenW : screenH;
-    final isPc = screenW >= 900 && shortestSide >= 900;
-    final isTablet = shortestSide >= 600 && shortestSide < 900;
-
-    if (isPc) return _buildPcDetailLayout(context, product, isAdmin);
-    if (isTablet) return _buildTabletDetailLayout(context, product, isAdmin);
-    return _buildMobileDetailLayout(context, product, isAdmin);
+    // 모든 화면에서 동일한 세로형 에디토리얼 상세 템플릿을 사용합니다.
+    // 기존 모바일/태블릿/PC 레이아웃은 구매 기능의 호환성을 위해 남겨두되
+    // 고객 화면의 진입점에서는 더 이상 사용하지 않습니다.
+    return _buildFullEditorialDetailLayout(context, product, isAdmin);
   }
 
-  // ── 모바일 상세 (<600px) — 기존 레이아웃 그대로 ──
+  /// 참고 시안처럼 대표 이미지부터 구매 정보, 디테일, 사이즈, 정책까지
+  /// 한 흐름으로 읽히는 전체 상세페이지 템플릿입니다.
+  Widget _buildFullEditorialDetailLayout(
+    BuildContext context,
+    ProductModel product,
+    bool isAdmin,
+  ) {
+    final r = Responsive.of(context);
+    final width = MediaQuery.of(context).size.width;
+    final maxWidth = width >= 1200
+        ? 980.0
+        : width >= 600
+            ? 820.0
+            : width;
+
+    return wrapWithPopScope(
+      context,
+      Scaffold(
+        backgroundColor: Colors.white,
+        body: Stack(
+          children: [
+            CustomScrollView(
+              controller: _scrollCtrl,
+              cacheExtent: 900,
+              slivers: [
+                _buildSliverAppBarOnly(product),
+                SliverToBoxAdapter(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: maxWidth),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildEditorialHeroGallery(product),
+                          _buildAiImageNoticeBanner(),
+                          KeyedSubtree(
+                            key: _keyDesign,
+                            child: _buildBasicInfo(product),
+                          ),
+                          _buildEditorialLead(product),
+                          RepaintBoundary(
+                            child:
+                                _buildEditorialProductDetail(product, isAdmin),
+                          ),
+                          RepaintBoundary(
+                            key: _keySize,
+                            child: _buildEditorialSizeSection(product, isAdmin),
+                          ),
+                          KeyedSubtree(
+                            key: _keyWashing,
+                            child: _buildWashingTipSection(product),
+                          ),
+                          RepaintBoundary(
+                            key: _keyReview,
+                            child: _buildReviewSection(product),
+                          ),
+                          _buildSameDesignColorRecommendations(product),
+                          const StoreNoticeCard(),
+                          SizedBox(height: r.h(128)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: _buildBottomBar(product),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEditorialHeroGallery(ProductModel product) {
+    final r = Responsive.of(context);
+    final images = _mainImages.isNotEmpty ? _mainImages : product.images;
+    if (images.isEmpty) return _imagePlaceholder();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < images.length; i++)
+          GestureDetector(
+            onTap: () => _showLightbox(product, i),
+            child: Container(
+              color: Colors.white,
+              margin:
+                  EdgeInsets.only(bottom: i == images.length - 1 ? 0 : r.h(2)),
+              child: AspectRatio(
+                aspectRatio: i == 0 ? 0.82 : 1,
+                child: NetImage(
+                  images[i],
+                  fit: BoxFit.contain,
+                  width: double.infinity,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildEditorialLead(ProductModel product) {
+    final r = Responsive.of(context);
+    final copy = _generalEditorialCopy(product);
+    final description = product.localizedDescription(_lang).trim();
+    return Container(
+      color: const Color(0xFFF8F8F6),
+      padding: EdgeInsets.fromLTRB(r.w(24), r.h(46), r.w(24), r.h(48)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '00 / PRODUCT STORY',
+            style: TextStyle(
+              color: AppColors.accent,
+              fontSize: r.sp(10),
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.3,
+            ),
+          ),
+          SizedBox(height: r.h(14)),
+          Text(
+            copy.headline,
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: r.sp(30),
+              fontWeight: FontWeight.w900,
+              height: 1.03,
+              letterSpacing: -1.1,
+            ),
+          ),
+          SizedBox(height: r.h(18)),
+          Text(
+            description.isNotEmpty ? description : copy.copy,
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: r.sp(14),
+              height: 1.75,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEditorialSizeSection(ProductModel product, bool isAdmin) {
+    final r = Responsive.of(context);
+    return Container(
+      color: const Color(0xFFF8F8F6),
+      padding: EdgeInsets.fromLTRB(r.w(24), r.h(42), r.w(24), r.h(48)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '06 / SIZE CONSIDERED',
+            style: TextStyle(
+              color: AppColors.accent,
+              fontSize: r.sp(10),
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.3,
+            ),
+          ),
+          SizedBox(height: r.h(12)),
+          Text(
+            '내 사이즈를\n정확하게 확인하세요.',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: r.sp(25),
+              fontWeight: FontWeight.w900,
+              height: 1.08,
+              letterSpacing: -0.9,
+            ),
+          ),
+          SizedBox(height: r.h(12)),
+          Text(
+            '평소 잘 맞는 옷의 실측과 비교한 후 상품별 사이즈표를 확인해 주세요.',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: r.sp(13),
+              height: 1.65,
+            ),
+          ),
+          SizedBox(height: r.h(22)),
+          _buildSection6SizeChart(product, isAdmin),
+        ],
+      ),
+    );
+  }
+
+  // ── 모바일 상세 (<600px) — 기존 레이아웃 보관본 ──
+  // ignore: unused_element
   Widget _buildMobileDetailLayout(
     BuildContext context,
     ProductModel product,
@@ -521,7 +706,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     );
   }
 
-  // ── 태블릿 상세 (600~899px) — 중앙 정렬 + 최대폭 720 ──
+  // ── 태블릿 상세 (600~899px) — 기존 레이아웃 보관본 ──
+  // ignore: unused_element
   Widget _buildTabletDetailLayout(
     BuildContext context,
     ProductModel product,
@@ -607,7 +793,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     );
   }
 
-  // ── PC 상세 (≥900px) — 2컬럼: 좌 이미지 고정 / 우 정보+스크롤 ──
+  // ── PC 상세 (≥900px) — 기존 레이아웃 보관본 ──
+  // ignore: unused_element
   Widget _buildPcDetailLayout(
     BuildContext context,
     ProductModel product,
