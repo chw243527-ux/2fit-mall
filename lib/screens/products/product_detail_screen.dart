@@ -523,6 +523,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   Widget _buildEditorialLead(ProductModel product) {
     final r = Responsive.of(context);
     final copy = _generalEditorialCopy(product);
+    final profile = _categoryProfile(product);
     final description = product.localizedDescription(_lang).trim();
     return Container(
       color: const Color(0xFFF8F8F6),
@@ -531,7 +532,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '00 / PRODUCT STORY',
+            '00 / ${profile.sectionLabel}',
             style: TextStyle(
               color: AppColors.accent,
               fontSize: r.sp(10),
@@ -552,7 +553,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           ),
           SizedBox(height: r.h(18)),
           Text(
-            description.isNotEmpty ? description : copy.copy,
+            description.isNotEmpty ? description : profile.leadCopy,
             style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: r.sp(14),
@@ -566,6 +567,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   Widget _buildEditorialSizeSection(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
+    final profile = _categoryProfile(product);
     return Container(
       color: const Color(0xFFF8F8F6),
       padding: EdgeInsets.fromLTRB(r.w(24), r.h(42), r.w(24), r.h(48)),
@@ -583,7 +585,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           ),
           SizedBox(height: r.h(12)),
           Text(
-            '내 사이즈를\n정확하게 확인하세요.',
+            profile.sizeHeadline,
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: r.sp(25),
@@ -594,7 +596,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           ),
           SizedBox(height: r.h(12)),
           Text(
-            '평소 잘 맞는 옷의 실측과 비교한 후 상품별 사이즈표를 확인해 주세요.',
+            profile.sizeAdvice,
             style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: r.sp(13),
@@ -1852,13 +1854,29 @@ $productUrl
           // ═══════════════════════════════════════════════
           Padding(
             padding: EdgeInsets.fromLTRB(r.w(16), r.h(10), r.w(16), r.h(10)),
-            child: Text(
-              '시즌 : SS26  |  상품번호 : ${product.productCode.isNotEmpty ? product.productCode.toUpperCase() : product.id.toUpperCase()}',
-              style: TextStyle(
-                fontSize: r.sp(11),
-                color: AppColors.textHint,
-                fontWeight: FontWeight.w400,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '분류 : ${_categoryPath(product)}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: r.sp(11),
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: r.h(4)),
+                Text(
+                  '시즌 : SS26  |  상품번호 : ${product.productCode.isNotEmpty ? product.productCode.toUpperCase() : product.id.toUpperCase()}',
+                  style: TextStyle(
+                    fontSize: r.sp(11),
+                    color: AppColors.textHint,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
             ),
           ),
 
@@ -6206,6 +6224,110 @@ $productUrl
   }
 
   /// 기성품별 히어로 카피입니다. 상품명에 따라 개별 타이틀·서브 문구를 우선 적용합니다.
+  String _categoryPath(ProductModel product) {
+    final main = product.category.trim().isNotEmpty
+        ? product.category.trim()
+        : _inferredMainCategory(product);
+    final middle = product.middleCategory.trim();
+    final sub = product.subCategory.trim();
+    return [
+      main,
+      if (middle.isNotEmpty && middle != '일반') middle,
+      if (sub.isNotEmpty) sub,
+    ].join(' > ');
+  }
+
+  String _inferredMainCategory(ProductModel product) {
+    if (product.category.trim().isNotEmpty && product.category.trim() != '일반') {
+      return product.category.trim();
+    }
+    final text = '${product.name} ${product.subCategory}'.toLowerCase();
+    if (product.isGroupOnly || product.isGroup || text.contains('단체')) {
+      return '단체주문';
+    }
+    if (text.contains('세트')) return '세트';
+    if (text.contains('패딩') || text.contains('바람막이') || text.contains('아우터')) {
+      return '아우터';
+    }
+    if (text.contains('모자') || text.contains('백팩') || text.contains('가방')) {
+      return '악세사리';
+    }
+    if (text.contains('타이즈') ||
+        text.contains('레깅스') ||
+        text.contains('팬츠') ||
+        text.contains('숏츠') ||
+        text.contains('하의')) {
+      return '하의';
+    }
+    return '상의';
+  }
+
+  ({
+    String sectionLabel,
+    String leadCopy,
+    String sizeHeadline,
+    String sizeAdvice
+  }) _categoryProfile(ProductModel product) {
+    final main = _inferredMainCategory(product);
+    final middle =
+        '${product.middleCategory} ${product.subCategory}'.toLowerCase();
+    if (main == '단체주문' || product.isGroupOnly || product.isGroup) {
+      return (
+        sectionLabel: 'TEAM ORDER / CUSTOM MADE',
+        leadCopy: '팀 단위 제작을 위한 상품입니다. 주문 수량·제작 일정·옵션을 상담으로 먼저 확인해 주세요.',
+        sizeHeadline: '팀의 기준에 맞춰\n사이즈를 확인하세요.',
+        sizeAdvice: '참여 인원의 실측을 취합한 후 사이즈표와 비교해 단체 주문을 진행해 주세요.',
+      );
+    }
+    if (main == '하의' || middle.contains('타이즈') || middle.contains('레깅스')) {
+      return (
+        sectionLabel: 'BOTTOMS / FIT GUIDE',
+        leadCopy: '허리와 다리 움직임을 편안하게 잡아주는 하의입니다. 운동 강도와 원하는 기장에 맞춰 선택하세요.',
+        sizeHeadline: '허리와 기장을\n함께 확인하세요.',
+        sizeAdvice: '허리둘레·힙·총장 또는 인심을 평소 잘 맞는 하의와 비교해 주세요.',
+      );
+    }
+    if (main == '세트') {
+      return (
+        sectionLabel: 'SET / COORDINATED FIT',
+        leadCopy:
+            '상의와 하의를 한 번에 맞춰 입을 수 있는 세트 구성입니다. 활동 목적에 맞는 균형 잡힌 실루엣을 제안합니다.',
+        sizeHeadline: '상의와 하의\n사이즈를 각각 확인하세요.',
+        sizeAdvice: '세트 상품은 상의와 하의 실측을 각각 비교해 가장 편안한 조합을 선택해 주세요.',
+      );
+    }
+    if (main == '아우터') {
+      return (
+        sectionLabel: 'OUTER / LAYERING GUIDE',
+        leadCopy: '운동 전후와 일상 레이어링을 고려한 아우터입니다. 이너 착용 여유와 보온감을 함께 확인하세요.',
+        sizeHeadline: '이너 여유까지\n고려해 선택하세요.',
+        sizeAdvice: '평소 착용하는 이너 위에 입었을 때의 어깨·가슴·총장을 비교해 주세요.',
+      );
+    }
+    if (main == '악세사리') {
+      return (
+        sectionLabel: 'ACCESSORIES / DAILY USE',
+        leadCopy: '운동과 일상에 자연스럽게 더하는 액세서리입니다. 사용 목적과 수납·착용감을 중심으로 확인하세요.',
+        sizeHeadline: '사용 목적에 맞는\n규격을 확인하세요.',
+        sizeAdvice: '착용 위치, 깊이, 수납 크기 등 상품별 안내와 실측을 확인해 주세요.',
+      );
+    }
+    if (main == '스킨슈트') {
+      return (
+        sectionLabel: 'SKIN SUIT / PERFORMANCE FIT',
+        leadCopy: '몸의 움직임을 따라 밀착되는 퍼포먼스 웨어입니다. 신축성과 압박감, 활동 범위를 함께 확인하세요.',
+        sizeHeadline: '밀착감과\n신축성을 확인하세요.',
+        sizeAdvice: '신체 치수와 상품 실측을 비교해 원하는 밀착 정도에 맞는 사이즈를 선택해 주세요.',
+      );
+    }
+    return (
+      sectionLabel: 'TOPS / PERFORMANCE FIT',
+      leadCopy: '상체 움직임을 편안하게 받쳐주는 스포츠 상의입니다. 활동 목적과 원하는 핏에 맞춰 선택하세요.',
+      sizeHeadline: '어깨와 가슴 실측을\n정확하게 확인하세요.',
+      sizeAdvice: '평소 잘 맞는 상의의 어깨·가슴 단면·총장을 상품별 실측과 비교해 주세요.',
+    );
+  }
+
   ({String label, String headline, String accent, String copy})
       _generalEditorialCopy(ProductModel product) {
     final name = product.name;
@@ -6336,6 +6458,7 @@ $productUrl
       );
     }
 
+    final profile = _categoryProfile(product);
     if (product.category == '세트') {
       return (
         label: 'PERFORMANCE RUNNING SET',
@@ -6353,10 +6476,10 @@ $productUrl
       );
     }
     return (
-      label: 'PERFORMANCE SPORTSWEAR',
-      headline: 'BUILT FOR\nTHE MOVE.',
+      label: profile.sectionLabel,
+      headline: profile.sectionLabel.split(' / ').first,
       accent: 'DESIGNED FOR MOTION.',
-      copy: '움직임에 집중할 수 있도록 설계한 스포츠웨어. 일상과 운동 사이를 자연스럽게 이어갑니다.',
+      copy: profile.leadCopy,
     );
   }
 
