@@ -8249,7 +8249,7 @@ $productUrl
       '어깨너비\n(cm)',
       '소매길이\n(cm)',
       if (isLoukes) '오리털 충전량\n(g)',
-      '추천 한국 사이즈',
+      '추천 사이즈',
     ];
     final rows = isLoukes
         ? <List<String>>[
