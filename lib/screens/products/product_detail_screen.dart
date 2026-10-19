@@ -629,8 +629,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               cacheExtent: 600,
               slivers: [
                 _buildSliverAppBarOnly(product),
-                SliverToBoxAdapter(child: _buildImageSlider(product)),
-                SliverToBoxAdapter(child: _buildThumbnailBar(product)),
+                SliverToBoxAdapter(child: _buildEditorialHeroGallery(product)),
                 SliverToBoxAdapter(child: _buildAiImageNoticeBanner()),
                 SliverToBoxAdapter(
                   child: KeyedSubtree(
@@ -736,8 +735,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                         color: Colors.white,
                         child: Column(
                           children: [
-                            _buildImageSlider(product),
-                            _buildThumbnailBar(product),
+                            _buildEditorialHeroGallery(product),
+                            const SizedBox.shrink(),
                             _buildAiImageNoticeBanner(),
                             KeyedSubtree(
                               key: _keyDesign,
@@ -886,8 +885,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                         child: SingleChildScrollView(
                           child: Column(
                             children: [
-                              _buildImageSlider(product),
-                              _buildThumbnailBar(product),
+                              _buildEditorialHeroGallery(product),
+                              const SizedBox.shrink(),
                               _buildAiImageNoticeBanner(),
                             ],
                           ),
@@ -1090,6 +1089,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   }
 
   // ── 이미지 슬라이더 (탑텐 스타일: 전체화면형, 하단 바 인디케이터) ──
+  // ignore: unused_element
   Widget _buildImageSlider(ProductModel product) {
     // _mainImages: Firestore fresh 로드 후 갱신된 메인 이미지 (배포 후에도 유지)
     final imgs = _mainImages.isNotEmpty ? _mainImages : product.images;
@@ -1465,6 +1465,7 @@ $productUrl
   }
 
   // ══ 탑텐 스타일: 썸네일 바 (심플 정사각형, 선택 시 검정 테두리) ══
+  // ignore: unused_element
   Widget _buildThumbnailBar(ProductModel product) {
     final r = Responsive.of(context);
     // _mainImages: Firestore fresh 로드 후 갱신된 메인 이미지 사용
@@ -4929,17 +4930,161 @@ $productUrl
 
   // ═══════════════════════════════════════════════════════════
 
-  /// 섹션 이미지 가로 슬라이더 (비로그인/일반 사용자용)
-  /// - 이미지 1장: 풀너비 세로 표시, 탭 → 라이트박스
-  /// - 이미지 2장+: 가로 PageView 슬라이더 + 하단 pill-dot 인디케이터, 탭 → 라이트박스
+  /// 섹션 이미지 세로 목록 (비로그인/일반 사용자용)
+  /// 등록된 이미지 전체를 저장 순서대로 페이지의 세로 흐름에 표시합니다.
+  Widget _buildVerticalDesignImages(
+    List<String> images,
+    bool isAdmin,
+    ProductModel product,
+  ) {
+    final r = Responsive.of(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+        final height = width * 1.08;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < images.length; i++)
+              GestureDetector(
+                onTap: () => _showDesignLightbox(images, i),
+                child: Stack(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      height: height,
+                      margin: EdgeInsets.only(
+                        bottom: i == images.length - 1 ? 0 : r.h(8),
+                      ),
+                      color: Colors.white,
+                      child: images[i].startsWith('data:image')
+                          ? Image.memory(
+                              base64Decode(images[i].split(',').last),
+                              width: width,
+                              height: height,
+                              fit: BoxFit.contain,
+                            )
+                          : Image.network(
+                              images[i],
+                              width: width,
+                              height: height,
+                              fit: BoxFit.contain,
+                              loadingBuilder: (_, child, progress) =>
+                                  progress == null
+                                      ? child
+                                      : const Center(
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: AppColors.primaryLight,
+                                          ),
+                                        ),
+                              errorBuilder: (_, error, stackTrace) =>
+                                  const Center(
+                                child: Icon(Icons.broken_image_outlined,
+                                    color: AppColors.border, size: 28),
+                              ),
+                            ),
+                    ),
+                    Positioned(
+                      right: r.w(8),
+                      bottom: r.h(16),
+                      child: Container(
+                        padding: EdgeInsets.all(r.w(4)),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.55),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Icon(Icons.zoom_in_rounded,
+                            color: Colors.white, size: 14),
+                      ),
+                    ),
+                    if (isAdmin)
+                      Positioned(
+                        right: r.w(8),
+                        top: r.h(8),
+                        child: GestureDetector(
+                          onTap: () async {
+                            final deletedUrl = images[i];
+                            final newList = List<String>.from(images)
+                              ..removeAt(i);
+                            setState(() {
+                              if (newList.isEmpty) {
+                                _sectionImages.remove('design');
+                              } else {
+                                _sectionImages['design'] = newList;
+                              }
+                            });
+                            await context
+                                .read<ProductProvider>()
+                                .updateSectionImages(
+                                    product.id, 'design', newList);
+                            if (deletedUrl.startsWith(
+                                  'https://firebasestorage.googleapis.com',
+                                ) ||
+                                deletedUrl.startsWith(
+                                  'https://storage.googleapis.com',
+                                )) {
+                              StorageService.deleteFile(deletedUrl);
+                            }
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(r.w(4)),
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withValues(alpha: 0.85),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Icon(Icons.close_rounded,
+                                color: Colors.white, size: 13),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildSectionImageSlider(String sectionKey) {
     final imgs = _sectionImages[sectionKey] ?? [];
     if (imgs.isEmpty) return const SizedBox.shrink();
 
-    // 1장 이상 모두 슬라이더로 통일 (height:null NetImage 버그 방지)
-    return _SectionImageSliderWidget(
-      imgs: imgs,
-      onTap: (index) => _openLightbox(imgs, index),
+    final r = Responsive.of(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+        final height = width * 1.08;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var index = 0; index < imgs.length; index++)
+              GestureDetector(
+                onTap: () => _openLightbox(imgs, index),
+                child: Container(
+                  width: double.infinity,
+                  height: height,
+                  color: Colors.white,
+                  margin: EdgeInsets.only(
+                    bottom: index == imgs.length - 1 ? 0 : r.h(8),
+                  ),
+                  child: NetImage(
+                    imgs[index],
+                    width: width,
+                    height: height,
+                    fit: BoxFit.contain,
+                    backgroundColor: Colors.white,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -5572,155 +5717,8 @@ $productUrl
         ),
         SizedBox(height: r.h(10)),
 
-        // ── 이미지가 있을 때: 가로 스크롤 썸네일 ──
-        if (imgs.isNotEmpty)
-          SizedBox(
-            height: 120,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: imgs.length,
-              separatorBuilder: (_, __) => SizedBox(width: r.w(8)),
-              itemBuilder: (_, i) {
-                final r = Responsive.of(context);
-
-                return GestureDetector(
-                  onTap: () => _showDesignLightbox(imgs, i),
-                  child: Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: imgs[i].startsWith('data:image')
-                            ? Image.memory(
-                                base64Decode(imgs[i].split(',').last),
-                                width: 120,
-                                height: 120,
-                                fit: BoxFit.cover,
-                              )
-                            : Image.network(
-                                imgs[i],
-                                width: 120,
-                                height: 120,
-                                fit: BoxFit.cover,
-                                loadingBuilder: (_, child, progress) {
-                                  if (progress == null) return child;
-                                  return Container(
-                                    width: 120,
-                                    height: 120,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[100],
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Center(
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: AppColors.primaryLight,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                errorBuilder: (_, error, __) => Container(
-                                  width: 120,
-                                  height: 120,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[100],
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: Colors.grey[300]!,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.broken_image_outlined,
-                                        color: Colors.grey[400],
-                                        size: 28,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        context.loc.t('이미지_로드_실패', '이미지 로드 실패'),
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.grey[400],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                      ),
-                      // 확대 아이콘 오버레이
-                      Positioned(
-                        right: 4,
-                        bottom: 4,
-                        child: Container(
-                          padding: EdgeInsets.all(r.w(3)),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.55),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Icon(
-                            Icons.zoom_in_rounded,
-                            color: Colors.white,
-                            size: 13,
-                          ),
-                        ),
-                      ),
-                      // 관리자: 삭제 버튼
-                      if (isAdmin)
-                        Positioned(
-                          right: 4,
-                          top: 4,
-                          child: GestureDetector(
-                            onTap: () async {
-                              final deletedUrl = imgs[i];
-                              final newList = List<String>.from(imgs)
-                                ..removeAt(i);
-                              // UI 즉시 반영 (먼저)
-                              setState(() {
-                                if (newList.isEmpty) {
-                                  _sectionImages.remove('design');
-                                } else {
-                                  _sectionImages['design'] = newList;
-                                }
-                              });
-                              // 백그라운드 저장 (나중에)
-                              context
-                                  .read<ProductProvider>()
-                                  .updateSectionImages(
-                                    product.id,
-                                    'design',
-                                    newList,
-                                  );
-                              if (deletedUrl.startsWith(
-                                    'https://firebasestorage.googleapis.com',
-                                  ) ||
-                                  deletedUrl.startsWith(
-                                    'https://storage.googleapis.com',
-                                  )) {
-                                StorageService.deleteFile(deletedUrl);
-                              }
-                            },
-                            child: Container(
-                              padding: EdgeInsets.all(r.w(3)),
-                              decoration: BoxDecoration(
-                                color: AppColors.error.withValues(alpha: 0.85),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Icon(
-                                Icons.close_rounded,
-                                color: Colors.white,
-                                size: 12,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
+        // ── 이미지가 있을 때: 등록 순서대로 세로 나열 ──
+        if (imgs.isNotEmpty) _buildVerticalDesignImages(imgs, isAdmin, product),
 
         // ── 이미지 없을 때 관리자 안내 ──
         if (imgs.isEmpty && isAdmin)
