@@ -2124,13 +2124,13 @@ class AppLocalizations {
       case AppLanguage.korean:
         return '배송 조회는 마이페이지 > 주문내역에서 운송장 번호로 조회하실 수 있습니다.\n한진택배 기준 2~3 영업일 소요됩니다.';
       case AppLanguage.english:
-        return 'You can track your shipment with the tracking number in My Page > Order History.\nTypically takes 2~3 business days via Hanjin Express.';
+        return 'You can track your shipment with the tracking number in My Page > Order History.\nAfter dispatch, delivery typically takes 2–3 business days via Hanjin Express.';
       case AppLanguage.japanese:
-        return 'マイページ > 注文履歴で追跡番号から配送状況を確認できます。\nハンジン宅配便基準で2〜3営業日かかります。';
+        return 'マイページ > 注文履歴で追跡番号から配送状況を確認できます。\n発送後、ハンジン宅配便で通常2〜3営業日かかります。';
       case AppLanguage.chinese:
-        return '可在我的页面 > 订单历史中用运单号查询配送状态。\n韩进快递标准需2~3个工作日。';
+        return '可在我的页面 > 订单历史中用运单号查询配送状态。\n发货后，韩进快递通常需要2～3个工作日送达。';
       case AppLanguage.mongolian:
-        return 'Миний хуудас > Захиалгын түүхэд трекинг дугаараар хянана.\nHanjin Express-ээр 2~3 ажлын өдөр болно.';
+        return 'Миний хуудас > Захиалгын түүхэд трекинг дугаараар хянана.\nИлгээсний дараа Hanjin Express-ээр хүргэлт ихэвчлэн 2–3 ажлын өдөр үргэлжилнэ.';
     }
   }
 
@@ -2169,13 +2169,13 @@ class AppLocalizations {
       case AppLanguage.korean:
         return '기성품은 상품 수령 후 7일 이내 교환·반품이 가능합니다.\n단체 맞춤제작 상품은 단순 변심·사이즈 변경·개인 사유로 교환·반품이 불가합니다.\n단, 의류 자체 불량·오제작·오배송·배송 중 파손은 예외로 합니다.\n신청을 위해 주문번호와 사유를 알려주세요.';
       case AppLanguage.english:
-        return 'Ready-made items can be exchanged or returned within 7 days of receipt.\nCustom group-order items cannot be exchanged or returned due to change of mind, size change, or personal reasons.\nExceptions apply to product defects, production errors, wrong items, or damage during delivery.\nPlease provide your order number and reason to apply.';
+        return 'Ready-made items can be exchanged or returned within 7 days of receipt.\nCustom group-order items cannot be exchanged or returned due to change of mind, size change, or personal reasons.\nExceptions apply to product defects, production errors, wrongly shipped items, or damage during delivery.\nPlease provide your order number and reason to apply.';
       case AppLanguage.japanese:
-        return '既製品は受領後7日以内であれば交換・返品が可能です。\n団体オーダーメイド商品は、都合・サイズ変更など個人的な理由による交換・返品はできません。\n衣類の不良、製作ミス、誤配送、配送中の破損は例外です。\n申請のため、注文番号と理由をお知らせください。';
+        return '既製品は受領後7日以内であれば交換・返品が可能です。\n団体オーダーメイド商品は、自己都合・サイズ変更など個人的な理由による交換・返品はできません。\n衣類の不良、製作ミス、誤配送、配送中の破損は例外です。\n申請のため、注文番号と理由をお知らせください。';
       case AppLanguage.chinese:
-        return '现货商品可在收货后7天内申请换货或退货。\n团体定制商品因个人原因、尺码变更或临时改变想法不可换货/退货。\n商品质量问题、制作错误、错发或运输途中损坏除外。\n请提供订单号和原因申请。';
+        return '现货商品可在收货后7天内申请换货或退货。\n团体定制商品因个人原因（包括改变主意）、尺码变更等情况不可换货/退货。\n商品质量问题、制作错误、错发或运输途中损坏除外。\n请提供订单号和原因申请。';
       case AppLanguage.mongolian:
-        return 'Бэлэн барааг хүлээн авснаас хойш 7 хоногийн дотор солих/буцаах боломжтой.\nБүлгийн захиалгат барааг хувийн шалтгаан, хэмжээ солих эсвэл сэтгэл өөрчлөгдсөн тохиолдолд солих/буцаах боломжгүй.\nБарааны гэмтэл, үйлдвэрлэлийн алдаа, буруу хүргэлт, хүргэлтийн үеийн эвдрэлд үл хамаарна.\nЗахиалгын дугаар болон шалтгааныг мэдэгдэнэ үү.';
+        return 'Бэлэн барааг хүлээн авснаас хойш 7 хоногийн дотор солих/буцаах боломжтой.\nБүлгийн захиалгат барааг хувийн шалтгаан, хэмжээ солих эсвэл сэтгэл өөрчлөгдсөн тохиолдолд солих/буцаах боломжгүй.\nБарааны гэмтэл, үйлдвэрлэлийн алдаа, буруу хүргэлт, хүргэлтийн үеийн эвдрэл гарсан тохиолдолд дээрх нөхцөл хамаарахгүй.\nЗахиалгын дугаар болон шалтгааныг мэдэгдэнэ үү.';
     }
   }
 
@@ -5969,13 +5969,13 @@ class AppLocalizations {
       case AppLanguage.korean:
         return '• 의류 자체 불량 외 교환·환불은 불가합니다.';
       case AppLanguage.english:
-        return '• Exchanges/refunds are only available for product defects.';
+        return '• Custom group-order items cannot be exchanged or returned for personal reasons. Exceptions apply to product defects, production errors, wrongly shipped items, or damage during delivery.';
       case AppLanguage.japanese:
-        return '• 衣類自体の不良以外の交換・返金は不可です。';
+        return '• 団体オーダーメイド商品は、自己都合による交換・返品はできません。不良、製作ミス、誤配送、配送中の破損は例外です。';
       case AppLanguage.chinese:
-        return '• 除产品本身缺陷外，不接受退换货。';
+        return '• 团体定制商品因个人原因不可换货/退货。商品缺陷、制作错误、错发或运输途中损坏除外。';
       case AppLanguage.mongolian:
-        return '• Бүтээгдэхүүний гэмтлээс бусад тохиолдолд солилцоо/буцаалт хийх боломжгүй.';
+        return '• Бүлгийн захиалгат барааг хувийн шалтгаанаар солих/буцаах боломжгүй. Барааны гэмтэл, үйлдвэрлэлийн алдаа, буруу хүргэлт, хүргэлтийн үеийн эвдрэлд дээрх нөхцөл хамаарахгүй.';
     }
   }
 
@@ -5984,13 +5984,13 @@ class AppLocalizations {
       case AppLanguage.korean:
         return '• 커스텀 마킹이 포함된 경우 교환·환불이 불가합니다.';
       case AppLanguage.english:
-        return '• No exchanges/refunds for items with custom markings.';
+        return '• Items with custom markings cannot be exchanged or returned for personal reasons. Exceptions apply to product defects, production errors, wrongly shipped items, or damage during delivery.';
       case AppLanguage.japanese:
-        return '• カスタムマーキングが含まれる場合、交換・返金は不可です。';
+        return '• カスタムマーキング商品は、自己都合による交換・返品はできません。不良、製作ミス、誤配送、配送中の破損は例外です。';
       case AppLanguage.chinese:
-        return '• 含定制标记的商品不接受退换货。';
+        return '• 含定制标记的商品因个人原因不可换货/退货。商品缺陷、制作错误、错发或运输途中损坏除外。';
       case AppLanguage.mongolian:
-        return '• Захиалгат тэмдэглэгээтэй бараанд солилцоо/буцаалт хийх боломжгүй.';
+        return '• Захиалгат тэмдэглэгээтэй барааг хувийн шалтгаанаар солих/буцаах боломжгүй. Барааны гэмтэл, үйлдвэрлэлийн алдаа, буруу хүргэлт, хүргэлтийн үеийн эвдрэлд дээрх нөхцөл хамаарахгүй.';
     }
   }
 
@@ -7918,13 +7918,13 @@ class AppLocalizations {
       case AppLanguage.korean:
         return '• 커스텀(단체) 주문: 의류 자체 불량 외 교환·환불은 불가합니다.';
       case AppLanguage.english:
-        return '• Custom (group) orders: No exchange/return except for product defects.';
+        return '• Custom group orders cannot be exchanged or returned for personal reasons. Exceptions apply to product defects, production errors, wrongly shipped items, or damage during delivery.';
       case AppLanguage.japanese:
-        return '• カスタム（団体）注文：衣類自体の不良以外、交換・返金は不可です。';
+        return '• 団体オーダーメイド商品は、自己都合による交換・返品はできません。不良、製作ミス、誤配送、配送中の破損は例外です。';
       case AppLanguage.chinese:
-        return '• 定制（团体）订单：除服装本身质量问题外，不可换货·退款。';
+        return '• 团体定制订单因个人原因不可换货/退货。服装缺陷、制作错误、错发或运输途中损坏除外。';
       case AppLanguage.mongolian:
-        return '• Захиалгат (бүлгийн) захиалга: Бүтээгдэхүүний гэмтлээс бусад тохиолдолд солих/буцаах боломжгүй.';
+        return '• Бүлгийн захиалгат барааг хувийн шалтгаанаар солих/буцаах боломжгүй. Барааны гэмтэл, үйлдвэрлэлийн алдаа, буруу хүргэлт, хүргэлтийн үеийн эвдрэлд дээрх нөхцөл хамаарахгүй.';
     }
   }
 
@@ -9135,13 +9135,13 @@ class AppLocalizations {
       case AppLanguage.korean:
         return '재고에 따라 2일에서 7일 소요';
       case AppLanguage.english:
-        return 'Ships within 2~3 business days after payment';
+        return 'Ships within 2–7 days depending on stock availability';
       case AppLanguage.japanese:
-        return 'お支払い完了後2〜3営業日以内に発送';
+        return '在庫状況により発送まで2〜7日かかります';
       case AppLanguage.chinese:
-        return '付款完成后2~3个工作日内发货';
+        return '根据库存情况，发货需要2至7天';
       case AppLanguage.mongolian:
-        return 'Төлбөр хийснээс хойш 2~3 ажлын өдрийн дотор илгээнэ';
+        return 'Нөөцийн байдлаас хамааран 2–7 хоногийн дотор илгээнэ';
     }
   }
 
