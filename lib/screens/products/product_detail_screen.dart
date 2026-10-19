@@ -463,7 +463,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                           ),
                           KeyedSubtree(
                             key: _keyInfo,
-                            child: _buildEditorialLead(product),
+                            child: _buildEditorialLead(product, isAdmin),
                           ),
                           RepaintBoundary(
                             child:
@@ -538,7 +538,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     );
   }
 
-  Widget _buildEditorialLead(ProductModel product) {
+  Widget _buildEditorialLead(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
     final copy = _generalEditorialCopy(product);
     final profile = _categoryProfile(product);
@@ -549,15 +549,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '00 / ${profile.sectionLabel}',
-            style: TextStyle(
-              color: AppColors.accent,
-              fontSize: r.sp(10),
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.3,
+          if (isAdmin)
+            Text(
+              '00 / ${profile.sectionLabel}',
+              style: TextStyle(
+                color: AppColors.accent,
+                fontSize: r.sp(10),
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.3,
+              ),
             ),
-          ),
           SizedBox(height: r.h(14)),
           Text(
             copy.headline,
@@ -592,15 +593,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '06 / SIZE CONSIDERED',
-            style: TextStyle(
-              color: AppColors.accent,
-              fontSize: r.sp(10),
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.3,
+          if (isAdmin)
+            Text(
+              '06 / SIZE CONSIDERED',
+              style: TextStyle(
+                color: AppColors.accent,
+                fontSize: r.sp(10),
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.3,
+              ),
             ),
-          ),
           SizedBox(height: r.h(12)),
           Text(
             profile.sizeHeadline,
@@ -5997,16 +5999,18 @@ $productUrl
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                sectionNumber,
-                style: TextStyle(
-                  color: AppColors.accent,
-                  fontSize: r.sp(24),
-                  fontWeight: FontWeight.w900,
-                  height: 1,
+              if (isAdmin) ...[
+                Text(
+                  sectionNumber,
+                  style: TextStyle(
+                    color: AppColors.accent,
+                    fontSize: r.sp(24),
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
                 ),
-              ),
-              SizedBox(width: r.w(10)),
+                SizedBox(width: r.w(10)),
+              ],
               Expanded(
                 child: Text(
                   sectionLabel.toUpperCase(),
@@ -6818,15 +6822,18 @@ $productUrl
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                isGroupOrder ? '01 / CUSTOM OPTIONS' : '01 / MATERIAL & DETAIL',
-                style: TextStyle(
-                  fontSize: r.sp(11),
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.15,
-                  color: AppColors.accent,
+              if (isAdmin)
+                Text(
+                  isGroupOrder
+                      ? '01 / CUSTOM OPTIONS'
+                      : '01 / MATERIAL & DETAIL',
+                  style: TextStyle(
+                    fontSize: r.sp(11),
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.15,
+                    color: AppColors.accent,
+                  ),
                 ),
-              ),
               SizedBox(height: r.h(13)),
               Text(
                 isGroupOrder
@@ -7121,15 +7128,16 @@ $productUrl
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '01 / SEAMLESS DESIGN',
-                style: TextStyle(
-                  fontSize: r.sp(11),
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.15,
-                  color: AppColors.accent,
+              if (isAdmin)
+                Text(
+                  '01 / SEAMLESS DESIGN',
+                  style: TextStyle(
+                    fontSize: r.sp(11),
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.15,
+                    color: AppColors.accent,
+                  ),
                 ),
-              ),
               SizedBox(height: r.h(13)),
               Text(
                 'SEAMLESS,\nBY DESIGN.',
