@@ -473,7 +473,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                             child: _buildReviewSection(product),
                           ),
                           _buildSameDesignColorRecommendations(product),
-                          const StoreNoticeCard(),
                           SizedBox(height: r.h(128)),
                         ],
                       ),
