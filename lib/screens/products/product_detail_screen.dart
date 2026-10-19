@@ -2292,6 +2292,12 @@ $productUrl
     ProductModel product, {
     bool includeEditorial = true,
   }) {
+    if (_isLoukesIvoryDown(product)) {
+      return '겉감: 나일론 88% / 폴리우레탄(스판) 12%\n'
+          '안감: 폴리에스터 100%\n'
+          '몸통 충전재: 화이트 덕다운 90% (솜털 90% / 깃털 10%)\n'
+          '카라 충전재: 폴리에스터 100% 인조솜';
+    }
     // 상품별 에디토리얼 상세 본문이 저장되어 있으면 카테고리 기본 문구보다
     // 우선 표시합니다. 줄바꿈은 상세페이지의 본문 단락으로 유지합니다.
     if (includeEditorial && product.editorialMaterialText.trim().isNotEmpty) {
@@ -6062,6 +6068,12 @@ $productUrl
         : _materialTextForProduct(product, includeEditorial: false);
     final registeredMaterial = product.material.trim();
     final details = [
+      if (_isLoukesIvoryDown(product)) ...[
+        '브랜드: LOUKES (路克士)',
+        '품명: 안티스태틱 무봉제 경량 다운 재킷',
+        '품번: 2261313185',
+        '색상: 아이보리 / 크림 화이트 (象牙白)',
+      ],
       if (product.colors.isNotEmpty)
         '상품별 선택 가능 옵션: ${product.colors.join(' · ')}',
       if (registeredMaterial.isNotEmpty) '소재·혼용률: $registeredMaterial',
@@ -6160,6 +6172,7 @@ $productUrl
                 ),
                 SizedBox(height: r.h(12)),
                 _buildEditorialMaterialSections(material, r),
+                if (_isLoukesIvoryDown(product)) _buildLoukesProductGuide(r),
               ],
             ),
           ),
@@ -6262,6 +6275,16 @@ $productUrl
     return '상의';
   }
 
+  bool _isLoukesIvoryDown(ProductModel product) {
+    final text = '${product.id} ${product.name} ${product.productCode} '
+            '${product.description}'
+        .toLowerCase();
+    return product.id == 'p_1790910132831' ||
+        text.contains('2261313185') ||
+        (text.contains('아이보리') &&
+            (text.contains('스탠드 칼라') || text.contains('경량 다운')));
+  }
+
   ({
     String sectionLabel,
     String leadCopy,
@@ -6331,6 +6354,16 @@ $productUrl
   ({String label, String headline, String accent, String copy})
       _generalEditorialCopy(ProductModel product) {
     final name = product.name;
+
+    if (_isLoukesIvoryDown(product)) {
+      return (
+        label: 'LOUKES / LIGHTWEIGHT DOWN',
+        headline: '안티스태틱 무봉제\n경량 다운 재킷',
+        accent: 'IVORY · REGULAR FIT · DESIGNED FOR MOTION.',
+        copy:
+            '오른쪽 가슴의 스포츠 트랙 와펜과 왼쪽 소매의 대한민국 국기 및 TEAM KOREA 패치가 스포티한 유니폼 감성을 완성합니다. 겨울철 야외 훈련·골프·등산부터 일상까지 가볍고 따뜻하게 착용하기 좋은 아이보리 경량 패딩입니다.',
+      );
+    }
 
     if (_isSingletGroupProduct(product)) {
       return (
@@ -6485,6 +6518,105 @@ $productUrl
 
   /// 상품별 에디토리얼 본문을 동일한 섹션 스타일로 렌더링합니다.
   /// 각 단락의 첫 줄은 강조 제목, 나머지는 동일한 본문 스타일로 표시합니다.
+  Widget _buildLoukesProductGuide(Responsive r) {
+    const points = [
+      ('01', 'PREMIUM WHITE DUCKDOWN', '화이트 덕다운 90% 충전으로 가볍고 따뜻한 보온성을 제공합니다.'),
+      ('02', 'ANTISTATIC', '대전방지 가공으로 겨울철 정전기와 먼지·머리카락 달라붙음을 줄였습니다.'),
+      (
+        '03',
+        'SEAMLESS CONSTRUCTION',
+        '이중 무봉제 압착 공법으로 바늘구멍과 다운 누출을 줄이고 방풍성을 높였습니다.'
+      ),
+      ('04', '12% SPAN', '폴리우레탄 12% 혼방 원단으로 아웃도어 활동 시 편안한 신축성을 제공합니다.'),
+      (
+        '05',
+        'HIDDEN ZIP & INNER POCKET',
+        '히든 지퍼 포켓과 넉넉한 이너 오픈 포켓으로 소지품 수납성을 높였습니다.'
+      ),
+    ];
+    return Padding(
+      padding: EdgeInsets.only(top: r.h(28)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'PRODUCT POINT',
+            style: TextStyle(
+              color: AppColors.accent,
+              fontSize: r.sp(10),
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.15,
+            ),
+          ),
+          SizedBox(height: r.h(12)),
+          ...points.map(
+            (point) => Padding(
+              padding: EdgeInsets.only(bottom: r.h(16)),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    point.$1,
+                    style: TextStyle(
+                      color: AppColors.accent,
+                      fontSize: r.sp(10),
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  SizedBox(width: r.w(10)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          point.$2,
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: r.sp(12),
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        SizedBox(height: r.h(4)),
+                        Text(
+                          point.$3,
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: r.sp(11),
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const Divider(height: 1, color: AppColors.border),
+          SizedBox(height: r.h(22)),
+          Text(
+            'LAUNDRY GUIDE',
+            style: TextStyle(
+              color: AppColors.accent,
+              fontSize: r.sp(10),
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.15,
+            ),
+          ),
+          SizedBox(height: r.h(10)),
+          Text(
+            '드라이클리닝은 피하고 30℃ 이하 찬물 단독 손세탁을 권장합니다. 세탁기 사용 시 지퍼를 끝까지 채우고 세탁망·울코스로 단독 세탁해 주세요. 표백제와 강력 효소 세제는 사용하지 마세요. 건조기는 사용하지 말고 그늘진 평평한 곳에서 자연 건조한 뒤 가볍게 두드려 다운의 볼륨을 회복해 주세요.',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: r.sp(12),
+              height: 1.65,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEditorialMaterialSections(String material, Responsive r) {
     final blocks = material
         .split(RegExp(r'\n\s*\n'))
@@ -8093,24 +8225,46 @@ $productUrl
 
   Widget _buildPaddingSizeChart(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
-    const headers = [
+    final isLoukes = _isLoukesIvoryDown(product);
+    final headers = [
       '라벨\n(신장 기준)',
       '가슴둘레 단면\n(cm)',
       '총길이 / 총장\n(cm)',
       '어깨너비\n(cm)',
       '소매길이\n(cm)',
+      if (isLoukes) '오리털 충전량\n(g)',
       '추천 한국 사이즈',
     ];
-    const rows = [
-      ['S (165)', '56', '102', '45', '60', '여성 55 ~ 66'],
-      ['M (170)', '58', '105', '47', '62', '여성 77 / 남성 95'],
-      ['L (175)', '60', '108', '49', '64', '남성 100'],
-      ['XL (180) 📍현재 제품', '63', '112', '51', '65', '남성 105 (XL) 권장'],
-      ['2XL (185)', '66', '115', '53', '66', '남성 110 (XXL)'],
-      ['3XL (190)', '69', '118', '55', '67', '남성 115 이상'],
-    ];
+    final rows = isLoukes
+        ? <List<String>>[
+            ['S (165)', '52', '66', '43', '60', '77g', '여성 55'],
+            ['M (170)', '54', '68', '44.5', '61.5', '83g', '여성 66 / 남성 90'],
+            ['L (175)', '56', '70', '46', '63', '90g', '남성 95'],
+            [
+              'XL (180) 📍촬영제품',
+              '58.5',
+              '72',
+              '47.5',
+              '64.5',
+              '96g',
+              '남성 100 (정사이즈)'
+            ],
+            ['2XL (185)', '61', '74', '49', '66', '102g', '남성 105'],
+            ['3XL (190)', '63.5', '76', '50.5', '67', '108g', '남성 110'],
+          ]
+        : <List<String>>[
+            ['S (165)', '56', '102', '45', '60', '여성 55 ~ 66'],
+            ['M (170)', '58', '105', '47', '62', '여성 77 / 남성 95'],
+            ['L (175)', '60', '108', '49', '64', '남성 100'],
+            ['XL (180) 📍현재 제품', '63', '112', '51', '65', '남성 105 (XL) 권장'],
+            ['2XL (185)', '66', '115', '53', '66', '남성 110 (XXL)'],
+            ['3XL (190)', '69', '118', '55', '67', '남성 115 이상'],
+          ];
     final notices = [
-      '실측 치수는 원단 특성 및 측정 방식에 따라 1~3cm가량 오차가 발생할 수 있습니다.',
+      isLoukes
+          ? '정사이즈 Regular Fit 기준입니다. 두꺼운 맨투맨을 레이어드하면 한 사이즈 업을 권장합니다.'
+          : '실측 치수는 원단 특성 및 측정 방식에 따라 1~3cm가량 오차가 발생할 수 있습니다.',
+      if (isLoukes) '측정 방법이나 재생산 공정에 따라 1~2cm의 실측 오차가 있을 수 있습니다.',
       '가슴둘레 단면은 옷을 평평하게 바닥에 펴놓고 양쪽 겨드랑이 밑점 사이를 잰 수치입니다. 전체 둘레를 원하시면 단면 값에 x2를 하시면 됩니다.',
       context.loc.t(
         '제품_이미지와_색상은_모니터의_상태에_따라_다소_다르게_보일_수_있습니다',
