@@ -1015,7 +1015,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
           _buildInfoRow(
               Icons.access_time_rounded,
               context.loc.t('일반_배송', '일반 배송'),
-              context.loc.t('결제_완료_후_2_3_영업일', '결제 완료 후 2~3 영업일'),
+              context.loc.t('재고에_따라_2일에서_7일_소요', '재고에 따라 2일에서 7일 소요'),
               AppColors.info),
           const SizedBox(height: 12),
           _buildInfoRow(

@@ -8514,7 +8514,11 @@ $productUrl
             row('도서·산간', '지역에 따라 추가 운임이 발생할 수 있습니다.'),
           ]),
           card('교환·반품·환불 안내', [
-            row('신청 기간', '상품 수령 후 7일 이내, 상품 훼손·사용 전 신청'),
+            row(
+                '신청 기간',
+                isGroup
+                    ? '단체 맞춤제작은 의류 자체 불량·오제작 외 교환·반품 불가'
+                    : '상품 수령 후 7일 이내, 상품 훼손·사용 전 신청'),
             row('반품 주소', '${AppConstants.companyAddress} (접수 전 고객센터 확인)'),
             row('왕복 배송비',
                 '${_fmt(AppConstants.standardShippingFee * 2)}원 (단순 변심 기준)'),
@@ -10720,7 +10724,8 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                 SizedBox(width: r.w(5)),
                 Expanded(
                   child: Text(
-                    context.loc.t('기성품___2_3일_이내_배_8ebadd', '기성품 · 2~3일 이내 배송'),
+                    context.loc
+                        .t('기성품_재고에_따라_2일에서_7일_소요', '기성품 · 재고에 따라 2일에서 7일 소요'),
                     style: TextStyle(
                       fontSize: r.sp(12),
                       fontWeight: FontWeight.w700,

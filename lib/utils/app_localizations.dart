@@ -5772,30 +5772,30 @@ class AppLocalizations {
   String get groupOrderShipping1 {
     switch (language) {
       case AppLanguage.korean:
-        return '• 20만원 이상 구매 시: 무료배송';
+        return '• 30만원 이상 구매 시: 무료배송';
       case AppLanguage.english:
-        return '• Orders over ₩200,000: Free shipping';
+        return '• Orders over ₩300,000: Free shipping';
       case AppLanguage.japanese:
-        return '• 20万ウォン以上のご購入：送料無料';
+        return '• 30万ウォン以上のご購入：送料無料';
       case AppLanguage.chinese:
-        return '• 购买满20万韩元：免费配送';
+        return '• 购买满30万韩元：免费配送';
       case AppLanguage.mongolian:
-        return '• 200,000₩-аас дээш захиалга: Үнэгүй хүргэлт';
+        return '• 300,000₩-аас дээш захиалга: Үнэгүй хүргэлт';
     }
   }
 
   String get groupOrderShipping2 {
     switch (language) {
       case AppLanguage.korean:
-        return '• 20만원 미만: 배송비 별도';
+        return '• 30만원 미만: 배송비 별도';
       case AppLanguage.english:
-        return '• Orders under ₩200,000: Shipping fee applies';
+        return '• Orders under ₩300,000: Shipping fee applies';
       case AppLanguage.japanese:
-        return '• 20万ウォン未満：配送料別途';
+        return '• 30万ウォン未満：配送料別途';
       case AppLanguage.chinese:
-        return '• 购买不足20万韩元：额外收取配送费';
+        return '• 购买不足30万韩元：额外收取配送费';
       case AppLanguage.mongolian:
-        return '• 200,000₩-аас бага захиалга: Тусдаа хүргэлтийн мөнгө';
+        return '• 300,000₩-аас бага захиалга: Тусдаа хүргэлтийн мөнгө';
     }
   }
 
@@ -9133,7 +9133,7 @@ class AppLocalizations {
   String get dispatchDaysInfo {
     switch (language) {
       case AppLanguage.korean:
-        return '결제 완료 후 2~3 영업일 내 발송';
+        return '재고에 따라 2일에서 7일 소요';
       case AppLanguage.english:
         return 'Ships within 2~3 business days after payment';
       case AppLanguage.japanese:
@@ -19008,15 +19008,15 @@ class AppLocalizations {
   String get homeNewSeasonSub {
     switch (language) {
       case AppLanguage.english:
-        return 'Discover the latest collection now · Free shipping over 30,000 KRW';
+        return 'Discover the latest collection now · Free shipping over 300,000 KRW';
       case AppLanguage.japanese:
-        return '最新コレクションを今すぐチェック · 3万円以上送料無料';
+        return '最新コレクションを今すぐチェック · 30万円以上送料無料';
       case AppLanguage.chinese:
-        return '立即发现最新系列 · 满3万韩元免运费';
+        return '立即发现最新系列 · 满30万韩元免运费';
       case AppLanguage.mongolian:
-        return 'Шинэ цуглуулгийг одоо үзнэ үү · 30,000 вонаас дээш үнэгүй хүргэлт';
+        return 'Шинэ цуглуулгийг одоо үзнэ үү · 300,000 вонаас дээш үнэгүй хүргэлт';
       default:
-        return '최신 컬렉션을 지금 바로 만나보세요 · 무료배송 3만원 이상';
+        return '최신 컬렉션을 지금 바로 만나보세요 · 무료배송 30만원 이상';
     }
   }
 
@@ -19143,15 +19143,15 @@ class AppLocalizations {
   String get homeFreeShippingSub {
     switch (language) {
       case AppLanguage.english:
-        return 'Orders over 30,000 KRW';
+        return 'Orders over 300,000 KRW';
       case AppLanguage.japanese:
-        return '3万円以上のご注文';
+        return '30万円以上のご注文';
       case AppLanguage.chinese:
-        return '满3万韩元';
+        return '满30万韩元';
       case AppLanguage.mongolian:
-        return '30,000 вонаас дээш';
+        return '300,000 вонаас дээш';
       default:
-        return '3만원 이상';
+        return '30만원 이상';
     }
   }
 
@@ -24667,7 +24667,7 @@ class AppLocalizations {
       case AppLanguage.mongolian:
         return '2-3 хоногт хүргэнэ (нөөцөөс хамааран нэмэгдэж болно)';
       default:
-        return '2~3일 이내 배송 (재고에 따라 기간이 늘어날 수 있음)';
+        return '재고에 따라 2일에서 7일 소요';
     }
   }
 
@@ -29488,15 +29488,15 @@ class AppLocalizations {
   String get readyMadeDeliveryNote {
     switch (language) {
       case AppLanguage.english:
-        return '🚚 Delivery: 2–3 days (may vary)';
+        return '🚚 Delivery: 2–7 days depending on stock';
       case AppLanguage.japanese:
-        return '🚚 配送：2〜3日（変動あり）';
+        return '🚚 配送：库存情况不同需2至7天';
       case AppLanguage.chinese:
-        return '🚚 配送：2-3天（可能有变动）';
+        return '🚚 配送：根据库存需2至7天';
       case AppLanguage.mongolian:
-        return '🚚 Хүргэлт: 2-3 хоног (өөрчлөгдөж болно)';
+        return '🚚 Хүргэлт: нөөцөөс хамаарч 2-7 хоног';
       default:
-        return '🚚 배송 안내: 2~3일 (변동 가능)';
+        return '🚚 배송 안내: 재고에 따라 2일에서 7일 소요';
     }
   }
 

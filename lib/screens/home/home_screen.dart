@@ -4078,7 +4078,7 @@ class _HomeScreenState extends State<HomeScreen>
           SizedBox(width: r.w(6)),
           Text(
             context.loc
-                .t('🎉 단체 맞춤 제작 · 3만원 이상 무료배송', '🎉 단체 맞춤 제작 · 3만원 이상 무료배송'),
+                .t('🎉 단체 맞춤 제작 · 30만원 이상 무료배송', '🎉 단체 맞춤 제작 · 30만원 이상 무료배송'),
             style: TextStyle(
                 color: Colors.white,
                 fontSize: r.sp(12),
