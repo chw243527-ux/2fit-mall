@@ -66,8 +66,8 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
                             fontWeight: FontWeight.w800)),
                     const SizedBox(height: 8),
                     Text(
-                        context.loc.t('시행일__2025년_3월_2_62b7e9',
-                            '시행일: 2025년 3월 21일  |  최종수정: 2026년 6월 17일'),
+                        context.loc.t('이용약관_시행일__2026년_10월_1일',
+                            '시행일: 2026년 10월 1일  |  최종수정: 2026년 10월 1일'),
                         style: const TextStyle(
                             color: Colors.white70, fontSize: 13)),
                   ],
