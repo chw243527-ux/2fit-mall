@@ -8508,7 +8508,7 @@ $productUrl
                 '배송비',
                 product.isFreeShipping
                     ? '무료배송'
-                    : '${_fmt(AppConstants.standardShippingFee)}원 (3만원 이상 구매 시 무료)'),
+                    : '${_fmt(AppConstants.standardShippingFee)}원 (${_fmt(AppConstants.freeShippingThreshold)}원 이상 구매 시 무료)'),
             row('배송 지연', '주문량·연휴·재고 상황에 따라 출고가 지연되거나 품절될 수 있습니다.'),
             row('도서·산간', '지역에 따라 추가 운임이 발생할 수 있습니다.'),
           ]),
