@@ -8405,7 +8405,7 @@ $productUrl
   Widget _buildShippingReturnNotice(ProductModel product) {
     final r = Responsive.of(context);
     final isGroup = _isGroupOrderProduct(product);
-    final preparation = isGroup ? '제작·검수 후 발송 (상담 시 일정 안내)' : '주문 확인 후 1~3영업일';
+    final preparation = isGroup ? '주문 확정 후 제작·검수, 14~21일 소요' : '주문 확인 후 1~3영업일';
     final manufacturedAt = product.manufacturedAt.trim().isNotEmpty
         ? product.manufacturedAt.trim()
         : '상품별 별도 표기';
