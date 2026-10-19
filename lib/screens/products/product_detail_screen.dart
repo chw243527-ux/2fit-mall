@@ -5987,6 +5987,8 @@ $productUrl
             .toString()
             .padLeft(2, '0');
     final sectionLabel = (_sectionLabels[sectionKey] ?? title).trim();
+    final showSectionLabel =
+        isAdmin || !RegExp(r'^섹션\s*[0-9]+[A-Za-z가-힣]*$').hasMatch(sectionLabel);
 
     // 참고 시안의 흐름을 모든 화면 크기에 동일하게 적용합니다.
     // 번호/라벨 → 제목/카피 → 상세 이미지 세로 나열 → 보충 설명 순서입니다.
@@ -5996,36 +5998,37 @@ $productUrl
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (isAdmin) ...[
-                Text(
-                  sectionNumber,
-                  style: TextStyle(
-                    color: AppColors.accent,
-                    fontSize: r.sp(24),
-                    fontWeight: FontWeight.w900,
-                    height: 1,
+          if (showSectionLabel)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (isAdmin) ...[
+                  Text(
+                    sectionNumber,
+                    style: TextStyle(
+                      color: AppColors.accent,
+                      fontSize: r.sp(24),
+                      fontWeight: FontWeight.w900,
+                      height: 1,
+                    ),
+                  ),
+                  SizedBox(width: r.w(10)),
+                ],
+                Expanded(
+                  child: Text(
+                    sectionLabel.toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.textHint,
+                      fontSize: r.sp(10),
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                    ),
                   ),
                 ),
-                SizedBox(width: r.w(10)),
               ],
-              Expanded(
-                child: Text(
-                  sectionLabel.toUpperCase(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.textHint,
-                    fontSize: r.sp(10),
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
           SizedBox(height: r.h(12)),
           Container(height: 1.5, width: r.w(34), color: AppColors.accent),
           SizedBox(height: r.h(14)),
