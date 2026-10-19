@@ -448,7 +448,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _buildEditorialHeroGallery(product),
+                          _buildImageSlider(product),
+                          _buildThumbnailBar(product),
                           _buildAiImageNoticeBanner(),
                           KeyedSubtree(
                             key: _keyDesign,
@@ -491,6 +492,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     );
   }
 
+  // ignore: unused_element
   Widget _buildEditorialHeroGallery(ProductModel product) {
     final r = Responsive.of(context);
     final images = _mainImages.isNotEmpty ? _mainImages : product.images;
@@ -629,7 +631,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               cacheExtent: 600,
               slivers: [
                 _buildSliverAppBarOnly(product),
-                SliverToBoxAdapter(child: _buildEditorialHeroGallery(product)),
+                SliverToBoxAdapter(child: _buildImageSlider(product)),
+                SliverToBoxAdapter(child: _buildThumbnailBar(product)),
                 SliverToBoxAdapter(child: _buildAiImageNoticeBanner()),
                 SliverToBoxAdapter(
                   child: KeyedSubtree(
@@ -735,8 +738,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                         color: Colors.white,
                         child: Column(
                           children: [
-                            _buildEditorialHeroGallery(product),
-                            const SizedBox.shrink(),
+                            _buildImageSlider(product),
+                            _buildThumbnailBar(product),
                             _buildAiImageNoticeBanner(),
                             KeyedSubtree(
                               key: _keyDesign,
@@ -885,8 +888,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                         child: SingleChildScrollView(
                           child: Column(
                             children: [
-                              _buildEditorialHeroGallery(product),
-                              const SizedBox.shrink(),
+                              _buildImageSlider(product),
+                              _buildThumbnailBar(product),
                               _buildAiImageNoticeBanner(),
                             ],
                           ),
