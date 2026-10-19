@@ -120,7 +120,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
               _buildSection(
                 context.loc.t('제9조_개인정보_보호책임자', '제9조 (개인정보 보호책임자)'),
                 context.loc.t('개인정보_보호책임자_내용',
-                    '• 회사명: ${AppConstants.companyName}\n• 대표자: ${AppConstants.ceoName}\n• 사업장 주소: ${AppConstants.companyAddress}\n• 책임자 이메일: ${AppConstants.customerServiceEmail}\n• 고객센터: ${AppConstants.customerServicePhone}\n\n본 방침은 2025년 3월 21일부터 적용됩니다.'),
+                    '• 회사명: ${AppConstants.companyName}\n• 대표자: ${AppConstants.ceoName}\n• 사업장 주소: ${AppConstants.companyAddress}\n• 책임자 이메일: ${AppConstants.customerServiceEmail}\n• 고객센터: ${AppConstants.customerServicePhone}\n\n본 방침은 2026년 10월 1일부터 적용됩니다.'),
               ),
               _buildSection(
                 context.loc.t('제10조_쿠키_및_자동수집_장치', '제10조 (쿠키 및 자동수집 장치)'),
