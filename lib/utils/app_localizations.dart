@@ -2167,15 +2167,15 @@ class AppLocalizations {
   String get faqReturnAns {
     switch (language) {
       case AppLanguage.korean:
-        return '교환/환불은 기성품 기준 수령 후 7일 이내 가능합니다.\n단, 커스텀(맞춤) 제작 상품은 불량 외 교환/환불이 불가합니다.\n신청을 위해 주문번호와 사유를 알려주세요.';
+        return '기성품은 상품 수령 후 7일 이내 교환·반품이 가능합니다.\n단체 맞춤제작 상품은 단순 변심·사이즈 변경·개인 사유로 교환·반품이 불가합니다.\n단, 의류 자체 불량·오제작·오배송·배송 중 파손은 예외로 합니다.\n신청을 위해 주문번호와 사유를 알려주세요.';
       case AppLanguage.english:
-        return 'Exchange/refund is available within 7 days of receipt (ready-made items).\nHowever, custom (made-to-order) items cannot be exchanged or refunded unless defective.\nPlease provide your order number and reason to apply.';
+        return 'Ready-made items can be exchanged or returned within 7 days of receipt.\nCustom group-order items cannot be exchanged or returned due to change of mind, size change, or personal reasons.\nExceptions apply to product defects, production errors, wrong items, or damage during delivery.\nPlease provide your order number and reason to apply.';
       case AppLanguage.japanese:
-        return '交換・返品は既製品に限り受領後7日以内に可能です。\nただし、カスタム（オーダーメイド）商品は不良品以外は交換・返品不可です。\n申請のため、注文番号と理由をお知らせください。';
+        return '既製品は受領後7日以内であれば交換・返品が可能です。\n団体オーダーメイド商品は、都合・サイズ変更など個人的な理由による交換・返品はできません。\n衣類の不良、製作ミス、誤配送、配送中の破損は例外です。\n申請のため、注文番号と理由をお知らせください。';
       case AppLanguage.chinese:
-        return '收货后7天内可申请换货/退款（现货商品）。\n但定制（定做）商品除质量问题外不可换货/退款。\n请提供订单号和原因申请。';
+        return '现货商品可在收货后7天内申请换货或退货。\n团体定制商品因个人原因、尺码变更或临时改变想法不可换货/退货。\n商品质量问题、制作错误、错发或运输途中损坏除外。\n请提供订单号和原因申请。';
       case AppLanguage.mongolian:
-        return 'Хүлээн авсанаас хойш 7 хоногийн дотор солилт/буцаалт боломжтой (бэлэн бараа).\nГэхдээ захиалгат (тусгай хийсэн) бараанд гологдолоос бусад тохиолдолд хамаарахгүй.\nЗахиалгын дугаар болон шалтгааныг мэдэгдэнэ үү.';
+        return 'Бэлэн барааг хүлээн авснаас хойш 7 хоногийн дотор солих/буцаах боломжтой.\nБүлгийн захиалгат барааг хувийн шалтгаан, хэмжээ солих эсвэл сэтгэл өөрчлөгдсөн тохиолдолд солих/буцаах боломжгүй.\nБарааны гэмтэл, үйлдвэрлэлийн алдаа, буруу хүргэлт, хүргэлтийн үеийн эвдрэлд үл хамаарна.\nЗахиалгын дугаар болон шалтгааныг мэдэгдэнэ үү.';
     }
   }
 

@@ -911,14 +911,14 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               context.loc.t('교환', '교환'),
               AppColors.info,
               context.loc.t('수령_후_7일_이내_교환_가능_n착용_흔적이_없는_상품에_한함',
-                  '수령 후 7일 이내 교환 가능\n착용 흔적이 없는 상품에 한함')),
+                  '기성품: 상품 수령 후 7일 이내 교환·반품 가능\n단체 맞춤제작: 단순 변심·사이즈 변경·개인 사유로 불가 (불량·오제작·오배송·배송 중 파손은 예외)')),
           const SizedBox(height: 12),
           _buildPolicyItem(
               Icons.replay_rounded,
               context.loc.t('환불', '환불'),
               AppColors.warning,
               context.loc.t('수령_후_7일_이내_환불_가능_n커스텀_제작_상품은_환불_불가',
-                  '수령 후 7일 이내 환불 가능\n커스텀 제작 상품은 환불 불가')),
+                  '기성품: 상품 수령 후 7일 이내 반품 가능\n단체 맞춤제작: 단순 변심·사이즈 변경·개인 사유로 반품 불가 (불량·오제작·오배송·배송 중 파손은 예외)')),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(14),
