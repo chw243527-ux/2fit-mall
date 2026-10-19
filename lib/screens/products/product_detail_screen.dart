@@ -15366,7 +15366,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '맞춤 제작 상품으로 교환·환불이 불가합니다.',
+                          '단체 맞춤제작 상품은 단순 변심·사이즈 변경·개인 사유로 교환·반품이 불가합니다.',
                           style: TextStyle(
                             fontSize: r.sp(13),
                             height: 1.7,
@@ -15376,7 +15376,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                         ),
                         SizedBox(height: r.h(2)),
                         Text(
-                          '단, 아래 경우는 교환·환불 가능합니다:',
+                          '단, 아래 경우는 교환·반품 가능합니다:',
                           style: TextStyle(fontSize: r.sp(13), height: 1.7),
                         ),
                         Text(
@@ -15384,11 +15384,11 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                           style: TextStyle(fontSize: r.sp(13), height: 1.7),
                         ),
                         Text(
-                          '  ✔ 주문 내용과 다르게 제작된 경우',
+                          '  ✔ 주문 내용과 다르게 제작된 경우 (오제작)',
                           style: TextStyle(fontSize: r.sp(13), height: 1.7),
                         ),
                         Text(
-                          '  ✔ 배송 중 파손된 경우',
+                          '  ✔ 오배송 또는 배송 중 파손된 경우',
                           style: TextStyle(fontSize: r.sp(13), height: 1.7),
                         ),
                       ],
