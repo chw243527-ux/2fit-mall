@@ -15439,7 +15439,8 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                         _refundStepRow('1', '마이페이지 > 내 주문에서 교환·반품 신청'),
                         _refundStepRow('2', '안내받은 주소로 상품 반송'),
                         _refundStepRow('3', '상품 입고 후 검수 진행'),
-                        _refundStepRow('4', '검수 완료 후 환불 처리 (영업일 1~3일)'),
+                        _refundStepRow('4', '검수 완료 후 내부 환불 처리 (영업일 1~3일)'),
+                        _refundStepRow('5', '결제수단·카드사 반영까지 추가 3~5영업일 소요 가능'),
                         SizedBox(height: r.h(6)),
                         Container(
                           padding: EdgeInsets.symmetric(

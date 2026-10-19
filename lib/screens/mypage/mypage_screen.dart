@@ -11264,7 +11264,8 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
           const SizedBox(height: 8),
           _refundStepTile('1', '상품 반송'),
           _refundStepTile('2', '입고 후 상품 검수 진행'),
-          _refundStepTile('3', '검수 완료 후 환불 처리 (영업일 1~3일)'),
+          _refundStepTile('3', '검수 완료 후 내부 환불 처리 (영업일 1~3일)'),
+          _refundStepTile('4', '결제수단·카드사 반영까지 추가 3~5영업일 소요 가능'),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),

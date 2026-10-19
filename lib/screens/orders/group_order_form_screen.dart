@@ -1619,8 +1619,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 style: const TextStyle(
                     color: Colors.white60, fontSize: 11, height: 1.5)),
             Text(
-                context.loc.t('커스텀_단체__주문__의류__390058',
-                    '▶  커스텀(단체) 주문: 의류 자체 불량 외 교환·환불 불가'),
+                context.loc.t('커스텀_단체_주문_교환_반품_예외_안내',
+                    '▶  단체 맞춤제작: 단순 변심·사이즈 변경·개인 사유로 교환·반품 불가 (불량·오제작·오배송·배송 중 파손은 예외)'),
                 style: const TextStyle(
                     color: Colors.white54, fontSize: 11, height: 1.5)),
           ]),
@@ -7000,8 +7000,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        context.loc
-                            .t('의류_자체_불량_외_교환환불_불가', '의류 자체 불량 외 교환·환불 불가'),
+                        context.loc.t('단체_맞춤제작_교환_반품_예외_안내',
+                            '단체 맞춤제작: 단순 변심·사이즈 변경·개인 사유로 교환·반품 불가 (불량·오제작·오배송·배송 중 파손은 예외)'),
                         style: const TextStyle(
                             fontSize: 13,
                             color: AppColors.error,
@@ -7015,8 +7015,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 Padding(
                   padding: const EdgeInsets.only(left: 4),
                   child: Text(
-                    context.loc.t('커스텀_제작_특성상_옷_자체_하자',
-                        '커스텀 제작 특성상 옷 자체의 하자가 아닌 경우\n교환·환불이 불가합니다.'),
+                    context.loc.t('커스텀_제작_특성상_교환_반품_예외',
+                        '예외 사유로 접수하는 경우 상품 상태와 주문 내용을 확인한 후 교환·반품을 진행합니다.'),
                     style: const TextStyle(
                         fontSize: 11, color: AppColors.error, height: 1.6),
                   ),

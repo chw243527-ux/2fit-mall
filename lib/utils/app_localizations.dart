@@ -5967,7 +5967,7 @@ class AppLocalizations {
   String get groupOrderExchange1 {
     switch (language) {
       case AppLanguage.korean:
-        return '• 의류 자체 불량 외 교환·환불은 불가합니다.';
+        return '• 단체 맞춤제작 상품은 단순 변심·사이즈 변경·개인 사유로 교환·반품이 불가합니다. 단, 의류 자체 불량·오제작·오배송·배송 중 파손은 예외입니다.';
       case AppLanguage.english:
         return '• Custom group-order items cannot be exchanged or returned for personal reasons. Exceptions apply to product defects, production errors, wrongly shipped items, or damage during delivery.';
       case AppLanguage.japanese:
@@ -5982,7 +5982,7 @@ class AppLocalizations {
   String get groupOrderExchange2 {
     switch (language) {
       case AppLanguage.korean:
-        return '• 커스텀 마킹이 포함된 경우 교환·환불이 불가합니다.';
+        return '• 커스텀 마킹 상품은 단순 변심·사이즈 변경·개인 사유로 교환·반품이 불가합니다. 단, 의류 자체 불량·오제작·오배송·배송 중 파손은 예외입니다.';
       case AppLanguage.english:
         return '• Items with custom markings cannot be exchanged or returned for personal reasons. Exceptions apply to product defects, production errors, wrongly shipped items, or damage during delivery.';
       case AppLanguage.japanese:
@@ -7916,7 +7916,7 @@ class AppLocalizations {
   String get groupOrderGuideExchange1 {
     switch (language) {
       case AppLanguage.korean:
-        return '• 커스텀(단체) 주문: 의류 자체 불량 외 교환·환불은 불가합니다.';
+        return '• 단체 맞춤제작 상품은 단순 변심·사이즈 변경·개인 사유로 교환·반품이 불가합니다. 단, 의류 자체 불량·오제작·오배송·배송 중 파손은 예외입니다.';
       case AppLanguage.english:
         return '• Custom group orders cannot be exchanged or returned for personal reasons. Exceptions apply to product defects, production errors, wrongly shipped items, or damage during delivery.';
       case AppLanguage.japanese:
@@ -7931,7 +7931,7 @@ class AppLocalizations {
   String get groupOrderGuideExchange2 {
     switch (language) {
       case AppLanguage.korean:
-        return '• 기성품: 제품 수령 후 7일 이내 교환·환불 가능합니다.';
+        return '• 기성품: 제품 수령 후 7일 이내 교환·반품 가능합니다.';
       case AppLanguage.english:
         return '• Ready-made items: Exchange/return available within 7 days of receipt.';
       case AppLanguage.japanese:

@@ -574,7 +574,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       title:
                           context.loc.t('제7조_개인정보_보호책임자', '제7조 (개인정보 보호책임자)'),
                       content: context.loc.t('개인정보_보호책임자_전체',
-                          '• 책임자: ${AppConstants.ceoName}\n• 이메일: ${AppConstants.customerServiceEmail}\n\n본 방침은 2026년 9월 11일부터 적용됩니다.')),
+                          '• 책임자: ${AppConstants.ceoName}\n• 이메일: ${AppConstants.customerServiceEmail}\n\n본 방침은 2026년 10월 1일부터 적용됩니다.')),
                 ],
               ),
             ),
