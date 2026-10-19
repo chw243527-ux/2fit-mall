@@ -14,6 +14,7 @@ import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../orders/group_order_form_screen.dart';
 import '../orders/group_order_landing_screen.dart';
+import '../chat/chat_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../widgets/image_lightbox.dart';
 import '../../widgets/store_notice_card.dart';
@@ -110,6 +111,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   final GlobalKey _keyInfo = GlobalKey();
   final GlobalKey _keySize = GlobalKey();
   final GlobalKey _keyReview = GlobalKey();
+  final GlobalKey _keyQna = GlobalKey();
+  final GlobalKey _keyNotice = GlobalKey();
   final GlobalKey _keyWashing = GlobalKey();
   final GlobalKey _keyDesign = GlobalKey(); // 디자인 이미지 섹션 스크롤 대상
 
@@ -242,7 +245,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     // 각 섹션의 화면상 Y 위치로 현재 뷰포트에 보이는 섹션을 판별
     // 화면 상단에서 80px 아래를 기준선으로 사용
     const threshold = 80.0;
-    final keys = [_keyInfo, _keySize, _keyWashing, _keyReview];
+    final keys = [_keyInfo, _keyReview, _keyQna];
     int newTab = 0;
     for (int i = keys.length - 1; i >= 0; i--) {
       final ctx = keys[i].currentContext;
@@ -441,6 +444,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               cacheExtent: 900,
               slivers: [
                 _buildSliverAppBarOnly(product),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _ToptenTabBarDelegate(_buildToptenTabBar()),
+                ),
                 SliverToBoxAdapter(
                   child: Center(
                     child: ConstrainedBox(
@@ -452,10 +459,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                           _buildThumbnailBar(product),
                           _buildAiImageNoticeBanner(),
                           KeyedSubtree(
-                            key: _keyDesign,
                             child: _buildBasicInfo(product),
                           ),
-                          _buildEditorialLead(product),
+                          KeyedSubtree(
+                            key: _keyInfo,
+                            child: _buildEditorialLead(product),
+                          ),
                           RepaintBoundary(
                             child:
                                 _buildEditorialProductDetail(product, isAdmin),
@@ -468,9 +477,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                             key: _keyWashing,
                             child: _buildWashingTipSection(product),
                           ),
+                          KeyedSubtree(
+                            key: _keyNotice,
+                            child: _buildShippingReturnNotice(product),
+                          ),
                           RepaintBoundary(
                             key: _keyReview,
                             child: _buildReviewSection(product),
+                          ),
+                          KeyedSubtree(
+                            key: _keyQna,
+                            child: _buildQnaSection(product),
                           ),
                           _buildSameDesignColorRecommendations(product),
                           SizedBox(height: r.h(128)),
@@ -2206,7 +2223,7 @@ $productUrl
     );
   }
 
-  // ── 탑텐 스타일: 상품정보 탭바 (상품정보/사이즈/리뷰/추천/문의) ──
+  // ── 상세페이지 고정 탭 (상세정보/리뷰/Q&A) ──
   // 탭 클릭 → 해당 섹션으로 즉시 스크롤
   void _scrollToSection(GlobalKey key) {
     final ctx = key.currentContext;
@@ -2235,10 +2252,9 @@ $productUrl
 
   Widget _buildToptenTabBar() {
     final tabs = [
-      (context.loc.t('상품정보', '상품정보'), 0, _keyInfo),
-      (context.loc.t('사이즈', '사이즈'), 1, _keySize),
-      (context.loc.t('세탁', '세탁'), 2, _keyWashing),
-      (context.loc.t('리뷰', '리뷰'), 3, _keyReview),
+      (context.loc.t('상세정보', '상세정보'), 0, _keyInfo),
+      (context.loc.t('리뷰', '리뷰'), 1, _keyReview),
+      ('Q&A', 2, _keyQna),
     ];
     return Container(
       color: Colors.white,
@@ -8378,6 +8394,197 @@ $productUrl
                   isSizeCol: true,
                 ),
               ),
+        ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // 참고 쇼핑몰형 필수정보·배송·교환·반품 NOTICE
+  // ═══════════════════════════════════════════════════════════
+  Widget _buildShippingReturnNotice(ProductModel product) {
+    final r = Responsive.of(context);
+    final isGroup = _isGroupOrderProduct(product);
+    final preparation = isGroup ? '제작·검수 후 발송 (상담 시 일정 안내)' : '주문 확인 후 1~3영업일';
+    final manufacturedAt = product.manufacturedAt.trim().isNotEmpty
+        ? product.manufacturedAt.trim()
+        : '상품별 별도 표기';
+    final manufacturer = product.manufacturer.trim().isNotEmpty
+        ? product.manufacturer.trim()
+        : '상품별 상품정보에 따름';
+
+    Widget row(String label, String value) => Padding(
+          padding: EdgeInsets.symmetric(vertical: r.h(7)),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: r.w(92),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: r.sp(12),
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: r.sp(12),
+                    color: AppColors.textPrimary,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+
+    Widget card(String title, List<Widget> children) => Container(
+          margin: EdgeInsets.only(bottom: r.h(12)),
+          padding: EdgeInsets.fromLTRB(r.w(16), r.h(16), r.w(16), r.h(14)),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF7F7F7),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: r.sp(16),
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              SizedBox(height: r.h(8)),
+              ...children,
+            ],
+          ),
+        );
+
+    return Container(
+      color: const Color(0xFFF7F7F7),
+      padding: EdgeInsets.fromLTRB(r.w(16), r.h(28), r.w(16), r.h(18)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'NOTICE',
+            style: TextStyle(
+              fontSize: r.sp(11),
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.5,
+              color: AppColors.accent,
+            ),
+          ),
+          SizedBox(height: r.h(6)),
+          Text(
+            '배송·교환·반품 안내',
+            style: TextStyle(
+              fontSize: r.sp(23),
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          SizedBox(height: r.h(16)),
+          card('상품 필수정보', [
+            row('제조연월', manufacturedAt),
+            row('제조사', manufacturer),
+            row('품질보증기준', '관련 법령 및 소비자분쟁해결기준에 따름'),
+            row(
+                '원산지',
+                product.countryOfOrigin.trim().isNotEmpty
+                    ? product.countryOfOrigin.trim()
+                    : '상품별 별도 표기'),
+          ]),
+          card('배송 안내', [
+            row('상품 준비', preparation),
+            row(
+                '배송비',
+                product.isFreeShipping
+                    ? '무료배송'
+                    : '${_fmt(AppConstants.standardShippingFee)}원 (3만원 이상 구매 시 무료)'),
+            row('배송 지연', '주문량·연휴·재고 상황에 따라 출고가 지연되거나 품절될 수 있습니다.'),
+            row('도서·산간', '지역에 따라 추가 운임이 발생할 수 있습니다.'),
+          ]),
+          card('교환·반품·환불 안내', [
+            row('신청 기간', '상품 수령 후 7일 이내, 상품 훼손·사용 전 신청'),
+            row('반품 주소', '${AppConstants.companyAddress} (접수 전 고객센터 확인)'),
+            row('왕복 배송비',
+                '${_fmt(AppConstants.standardShippingFee * 2)}원 (단순 변심 기준)'),
+            row('포장 방법', '상품과 구성품을 훼손 없이 원래 포장 상태에 가깝게 재포장해 주세요.'),
+            row('주의사항', '사용 흔적, 세탁, 향수·화장품 오염, 구성품 누락 시 교환·반품이 제한될 수 있습니다.'),
+          ]),
+          card('고객센터', [
+            row('전화', AppConstants.customerServicePhone),
+            row('상담시간', AppConstants.customerServiceHours),
+            row('이메일', AppConstants.customerServiceEmail),
+          ]),
+          Text(
+            '상품 특성 및 주문 상태에 따라 배송·교환·반품 조건이 달라질 수 있으니 주문 전 내용을 확인해 주세요.',
+            style: TextStyle(
+              fontSize: r.sp(11),
+              height: 1.55,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQnaSection(ProductModel product) {
+    final r = Responsive.of(context);
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.fromLTRB(r.w(20), r.h(34), r.w(20), r.h(42)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Q&A',
+            style: TextStyle(
+              fontSize: r.sp(11),
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.4,
+              color: AppColors.accent,
+            ),
+          ),
+          SizedBox(height: r.h(10)),
+          Text(
+            '상품 문의',
+            style: TextStyle(
+              fontSize: r.sp(22),
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          SizedBox(height: r.h(10)),
+          Text(
+            '${product.name}의 사이즈, 소재, 배송 일정 등 궁금한 점을 상담해 주세요.',
+            style: TextStyle(
+              fontSize: r.sp(13),
+              height: 1.6,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          SizedBox(height: r.h(18)),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ChatScreen()),
+              ),
+              icon: const Icon(Icons.chat_bubble_outline_rounded),
+              label: const Text('상품 문의하기'),
+            ),
+          ),
         ],
       ),
     );
