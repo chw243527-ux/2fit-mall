@@ -153,6 +153,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     super.initState();
     // 웹 새로고침 뒤에도 현재 상품 상세페이지를 복원합니다.
     saveWebRefreshState('product:${widget.product.id}');
+    saveWebRouteState('/product', {'id': widget.product.id});
     _tabCtrl = TabController(length: 3, vsync: this);
     _sectionImages = Map<String, List<String>>.from(
       widget.product.sectionImages,

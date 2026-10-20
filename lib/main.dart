@@ -188,6 +188,46 @@ Future<void> main() async {
 // 전역 navigatorKey - 브라우저 뒤로가기와 Flutter Navigator 연동
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+/// 웹 새로고침 후 복원할 수 있는 named route만 sessionStorage에 기록합니다.
+/// ProductModel 같은 비직렬화 인자는 저장하지 않고, URL 복원에 필요한 ID·이름만 저장합니다.
+class _WebRouteStateObserver extends NavigatorObserver {
+  void _save(Route<dynamic>? route) {
+    final name = route?.settings.name;
+    if (name == null || name.isEmpty) return;
+    final raw = route!.settings.arguments;
+    final args = <String, String>{};
+    if (raw is Map) {
+      for (final key in ['id', 'name', 'category', 'search']) {
+        final value = raw[key];
+        if (value is String && value.trim().isNotEmpty) {
+          args[key] = value;
+        }
+      }
+    } else if (raw is String && raw.trim().isNotEmpty) {
+      args['value'] = raw;
+    }
+    saveWebRouteState(name, args);
+  }
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _save(route);
+    super.didPush(route, previousRoute);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _save(previousRoute);
+    super.didPop(route, previousRoute);
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    _save(newRoute);
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+  }
+}
+
 class TwoFitMallApp extends StatefulWidget {
   const TwoFitMallApp({super.key});
 
@@ -222,6 +262,7 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
         title: '2FIT MALL',
         debugShowCheckedModeBanner: false,
         navigatorKey: navigatorKey,
+        navigatorObservers: [_WebRouteStateObserver()],
         // 웹에서 마우스/터치 드래그 스크롤 모두 활성화
         scrollBehavior: const _AppScrollBehavior(),
         // ── 전역 반응형 처리 ──────────────────────────────────
@@ -611,21 +652,38 @@ class _AppInitState extends State<_AppInit> {
           if (mounted) navigatorKey.currentState?.pushNamed('/notifications');
         });
       } else if (mounted) {
-        // 웹 브라우저 새로고침으로 앱이 다시 시작돼도 마지막으로 보던
-        // 상품 상세페이지를 홈으로 보내지 않고 그대로 복원합니다.
-        final state = readWebRefreshState();
-        if (state != null && state.startsWith('product:')) {
-          final productId = state.substring('product:'.length).trim();
-          if (productId.isNotEmpty) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
-                navigatorKey.currentState?.pushNamed(
-                  '/product',
-                  arguments: {'id': productId},
-                );
-              }
-            });
+        // 웹 브라우저 새로고침 후 마지막 named route와 필요한 인자를 복원합니다.
+        // 신규 route 상태가 없으면 이전 상품 상세 전용 저장값도 호환합니다.
+        final routeState = readWebRouteState();
+        String? routeName;
+        Map<String, String> routeArgs = {};
+        if (routeState != null && routeState['route'] is String) {
+          routeName = routeState['route'] as String;
+          final rawArgs = routeState['arguments'];
+          if (rawArgs is Map) {
+            routeArgs = rawArgs.map(
+              (key, value) => MapEntry(key.toString(), value.toString()),
+            );
           }
+        } else {
+          final legacyState = readWebRefreshState();
+          if (legacyState != null && legacyState.startsWith('product:')) {
+            final productId = legacyState.substring('product:'.length).trim();
+            if (productId.isNotEmpty) {
+              routeName = '/product';
+              routeArgs = {'id': productId};
+            }
+          }
+        }
+        if (routeName != null && routeName != '/' && routeName != '/home') {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              navigatorKey.currentState?.pushNamed(
+                routeName!,
+                arguments: routeArgs,
+              );
+            }
+          });
         }
       }
     } catch (_) {}

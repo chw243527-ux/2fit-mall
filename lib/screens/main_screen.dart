@@ -20,6 +20,8 @@ import '../widgets/app_drawer.dart';
 import 'orders/order_guide_screen.dart';
 import 'chat/chat_screen.dart';
 import '../utils/responsive.dart';
+import '../utils/web_refresh_state.dart'
+    if (dart.library.html) '../utils/web_refresh_state_html.dart';
 import '../models/models.dart';
 import '../services/wishlist_coupon_service.dart';
 import '../services/in_app_update_service.dart';
@@ -57,7 +59,22 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   void navigateToMyPage() {
     // 탭을 마이페이지(3)로 이동하면서 내부 탭을 "내 주문"(0)으로 리셋
     _myPageKey.currentState?.resetToFirstTab();
-    setState(() => _currentIndex = 3);
+    navigateTo(3);
+  }
+
+  void _saveCurrentTabRoute() {
+    const routes = ['/home', '/products', '/cart-tab', '/mypage'];
+    final index = _currentIndex.clamp(0, routes.length - 1).toInt();
+    final args = <String, String>{};
+    if (index == 1) {
+      if (widget.initialCategory?.trim().isNotEmpty ?? false) {
+        args['category'] = widget.initialCategory!.trim();
+      }
+      if (widget.initialSearch?.trim().isNotEmpty ?? false) {
+        args['search'] = widget.initialSearch!.trim();
+      }
+    }
+    saveWebRouteState(routes[index], args);
   }
 
   void navigateTo(int index) {
@@ -66,6 +83,7 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       _myPageKey.currentState?.resetToFirstTab();
     }
     setState(() => _currentIndex = index);
+    _saveCurrentTabRoute();
     // 탭 전환 시 번역 트리거 (새 화면 텍스트 번역)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<LanguageProvider>().triggerTranslation();
@@ -77,6 +95,7 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _currentIndex = widget.initialIndex;
+    _saveCurrentTabRoute();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final noticeProv = context.read<NoticeProvider>();
       final userProv = context.read<UserProvider>();
@@ -313,7 +332,7 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
           Expanded(
             child: _PcLayout(
               currentIndex: _currentIndex,
-              onTabChanged: (i) => setState(() => _currentIndex = i),
+              onTabChanged: navigateTo,
               initialCategory: widget.initialCategory,
               initialSearch: widget.initialSearch,
             ),
@@ -329,7 +348,7 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         if (_currentIndex != 0) {
-          setState(() => _currentIndex = 0);
+          navigateTo(0);
           return;
         }
         final now = DateTime.now();
@@ -361,16 +380,16 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                     onNavigate: navigateTo,
                   ),
                   ProductListScreen(
-                    onBack: () => setState(() => _currentIndex = 0),
+                    onBack: () => navigateTo(0),
                     initialCategory: widget.initialCategory,
                     searchQuery: widget.initialSearch,
                   ),
                   CartScreen(
-                    onBack: () => setState(() => _currentIndex = 0),
+                    onBack: () => navigateTo(0),
                   ),
                   MyPageScreen(
                     key: _myPageKey,
-                    onBack: () => setState(() => _currentIndex = 0),
+                    onBack: () => navigateTo(0),
                   ),
                 ],
               ),
