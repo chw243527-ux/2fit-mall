@@ -8285,6 +8285,11 @@ $productUrl
         searchable.contains('다운베스트') ||
         searchable.contains('down vest') ||
         searchable.contains('downvest') ||
+        searchable.contains('조끼패딩') ||
+        searchable.contains('패딩조끼') ||
+        searchable.contains('padded vest') ||
+        searchable.contains('puffer vest') ||
+        searchable.contains('vest') ||
         searchable.contains('은이온') ||
         searchable.contains('축열');
   }
