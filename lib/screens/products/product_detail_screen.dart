@@ -8299,7 +8299,7 @@ $productUrl
       '총장\n(cm)',
       '어깨너비\n(cm)',
       '소매길이\n(cm)',
-      '추천 한국 사이즈',
+      '추천 사이즈',
     ];
     final rows = isDownVest
         ? <List<String>>[
@@ -15138,7 +15138,8 @@ class _RibTableRow extends StatelessWidget {
               child: Text(
                 entry.value,
                 textAlign: TextAlign.center,
-                maxLines: 1,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: r.sp(isSize ? 10 : 11),
                   fontWeight: isSize ? FontWeight.w900 : FontWeight.w500,
