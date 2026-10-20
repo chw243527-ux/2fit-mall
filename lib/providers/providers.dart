@@ -1835,6 +1835,25 @@ class ProductProvider extends ChangeNotifier {
     final result = await ProductService.updateSectionDescription(
         productId, sectionKey, description);
     if (!result) return false;
+    // 관리자 목록만 재조회하면 일반 사용자 상세 화면이 이미 들고 있는
+    // _products의 오래된 ProductModel을 계속 사용할 수 있습니다. Firestore
+    // 저장 직후 두 캐시를 함께 갱신해 텍스트만 있는 섹션도 즉시 반영합니다.
+    void updateCachedProduct(List<ProductModel> products) {
+      final index = products.indexWhere((p) => p.id == productId);
+      if (index < 0) return;
+      final product = products[index];
+      final descriptions =
+          Map<String, String>.from(product.sectionDescriptions);
+      if (description.trim().isEmpty) {
+        descriptions.remove(sectionKey);
+      } else {
+        descriptions[sectionKey] = description.trim();
+      }
+      products[index] = product.copyWith(sectionDescriptions: descriptions);
+    }
+
+    updateCachedProduct(_products);
+    updateCachedProduct(_adminProducts);
     await loadAdminProducts();
     notifyListeners();
     return true;

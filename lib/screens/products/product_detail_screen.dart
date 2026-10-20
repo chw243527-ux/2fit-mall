@@ -22,6 +22,8 @@ import '../../services/analytics_service.dart';
 import '../../services/product_service.dart';
 import '../../services/storage_service.dart';
 import '../../utils/navigation_helper.dart';
+import '../../utils/web_refresh_state.dart'
+    if (dart.library.html) '../../utils/web_refresh_state_html.dart';
 import '../main_screen.dart';
 import '../../utils/responsive.dart';
 
@@ -149,6 +151,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   @override
   void initState() {
     super.initState();
+    // 웹 새로고침 뒤에도 현재 상품 상세페이지를 복원합니다.
+    saveWebRefreshState('product:${widget.product.id}');
     _tabCtrl = TabController(length: 3, vsync: this);
     _sectionImages = Map<String, List<String>>.from(
       widget.product.sectionImages,
@@ -228,11 +232,31 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             ..clear()
             ..addAll(orderedKeys);
         }
+        // 카탈로그 저장 직후 상품 문서가 먼저 도착하거나, 구버전
+        // 카탈로그에 사용자 정의 키가 빠져 있어도 상품에 저장된
+        // 설명·이미지 섹션은 고객 화면에 즉시 표시합니다.
+        final productKeys = <String>{
+          ..._productSectionDescriptions.keys,
+          ..._sectionImages.keys,
+        };
+        for (final key in productKeys) {
+          if (key.trim().isEmpty) continue;
+          if (!_sectionOrder.contains(key)) _sectionOrder.add(key);
+          _activeSectionKeys.add(key);
+        }
       }
       _sectionCatalogLoaded = true;
       if (mounted) setState(() {});
     } catch (_) {
       // 저장된 설명을 읽지 못하면 기존 기본 문구를 유지합니다.
+      for (final key in {
+        ..._productSectionDescriptions.keys,
+        ..._sectionImages.keys,
+      }) {
+        if (key.trim().isEmpty) continue;
+        if (!_sectionOrder.contains(key)) _sectionOrder.add(key);
+        _activeSectionKeys.add(key);
+      }
       _sectionCatalogConfigured = true;
       _sectionCatalogLoaded = true;
     }

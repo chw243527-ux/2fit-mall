@@ -13,6 +13,8 @@ import 'firebase_options.dart';
 import 'services/fcm_service.dart';
 import 'utils/theme.dart';
 import 'utils/responsive.dart';
+import 'utils/web_refresh_state.dart'
+    if (dart.library.html) 'utils/web_refresh_state_html.dart';
 import 'providers/providers.dart';
 import 'utils/app_localizations.dart';
 import 'services/auth_service.dart';
@@ -608,6 +610,23 @@ class _AppInitState extends State<_AppInit> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) navigatorKey.currentState?.pushNamed('/notifications');
         });
+      } else if (mounted) {
+        // 웹 브라우저 새로고침으로 앱이 다시 시작돼도 마지막으로 보던
+        // 상품 상세페이지를 홈으로 보내지 않고 그대로 복원합니다.
+        final state = readWebRefreshState();
+        if (state != null && state.startsWith('product:')) {
+          final productId = state.substring('product:'.length).trim();
+          if (productId.isNotEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                navigatorKey.currentState?.pushNamed(
+                  '/product',
+                  arguments: {'id': productId},
+                );
+              }
+            });
+          }
+        }
       }
     } catch (_) {}
   }
