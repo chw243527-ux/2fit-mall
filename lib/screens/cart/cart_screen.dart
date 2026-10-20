@@ -11,6 +11,7 @@ import '../../services/secure_checkout_service.dart';
 import '../../widgets/pc_layout.dart';
 import '../main_screen.dart';
 import '../orders/group_order_form_screen.dart';
+import '../../utils/responsive.dart';
 
 class CartScreen extends StatelessWidget {
   /// IndexedStack 안에 있을 때는 onBack 콜백으로 홈탭 이동,
@@ -36,6 +37,7 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = context.watch<LanguageProvider>().loc;
+    final r = Responsive.of(context);
     // PC 웹이면 PC 전용 레이아웃 사용
     if (isPcWeb(context)) {
       return Consumer<CartProvider>(
@@ -121,16 +123,17 @@ class CartScreen extends StatelessWidget {
               // 상단 안내 바
               Container(
                 color: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: EdgeInsets.symmetric(
+                    horizontal: r.contentGutter, vertical: r.h(10)),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle_outline_rounded,
-                        size: 14, color: AppColors.success),
-                    const SizedBox(width: 6),
+                    Icon(Icons.check_circle_outline_rounded,
+                        size: r.sp(14), color: AppColors.success),
+                    SizedBox(width: r.w(6)),
                     Text(loc.cartOrderSelectedNote,
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary)),
+                        style: TextStyle(
+                            fontSize: r.sp(12),
+                            color: AppColors.textSecondary)),
                   ],
                 ),
               ),
@@ -141,7 +144,7 @@ class CartScreen extends StatelessWidget {
                   onRefresh: () => context.read<ProductProvider>().refresh(),
                   child: ListView.builder(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(r.contentGutter),
                     itemCount: cart.items.length,
                     itemBuilder: (context, index) =>
                         _buildCartItem(context, cart, cart.items[index]),

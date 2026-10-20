@@ -36,6 +36,7 @@ import '../../services/secure_checkout_service.dart';
 import '../../widgets/address_search_widget.dart';
 import 'size_profile_screen.dart';
 import '../../utils/navigation_helper.dart';
+import '../../utils/responsive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -3718,6 +3719,7 @@ class _MobileMyPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final loc = context.watch<LanguageProvider>().loc;
     final user = userProvider.user;
+    final r = Responsive.of(context);
 
     return wrapWithPopScope(
         context,
@@ -3741,8 +3743,8 @@ class _MobileMyPage extends StatelessWidget {
             ),
             automaticallyImplyLeading: false,
             title: Text(context.loc.t('마이페이지', '마이페이지'),
-                style: const TextStyle(
-                    fontSize: 17,
+                style: TextStyle(
+                    fontSize: r.sp(17),
                     fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary)),
           ),
@@ -3774,10 +3776,10 @@ class _MobileMyPage extends StatelessWidget {
                     indicatorColor: const Color(0xFFCE93D8),
                     labelColor: AppColors.textPrimary,
                     unselectedLabelColor: AppColors.textSecondary,
-                    labelStyle: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w500),
-                    unselectedLabelStyle: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w400),
+                    labelStyle: TextStyle(
+                        fontSize: r.sp(13), fontWeight: FontWeight.w500),
+                    unselectedLabelStyle: TextStyle(
+                        fontSize: r.sp(13), fontWeight: FontWeight.w400),
                     tabs: [
                       Tab(text: loc.myOrders),
                       Tab(text: loc.wishlist),

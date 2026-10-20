@@ -13,6 +13,7 @@ import '../notifications/notification_center_screen.dart';
 import 'signup_screen.dart';
 import 'social_phone_onboarding_screen.dart';
 import '../../utils/navigation_helper.dart';
+import '../../utils/responsive.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? redirectPath;
@@ -233,6 +234,7 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   Widget build(BuildContext context) {
     final userProv = context.watch<UserProvider>();
+    final r = Responsive.of(context);
 
     // PC 레이아웃 복원
     if (isPcWeb(context)) return _buildPcLayout(context, userProv, loc);
@@ -256,30 +258,30 @@ class _LoginScreenState extends State<LoginScreen>
               child: SlideTransition(
                 position: _slideAnim,
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  padding: EdgeInsets.symmetric(horizontal: r.contentGutter),
                   child: Form(
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SizedBox(height: 56),
+                        SizedBox(height: r.h(44)),
                         // ── 로고 ──
                         Center(
                           child: Column(
                             children: [
                               Image.asset(
                                 'assets/images/2fit_logo.png',
-                                width: 200,
-                                height: 80,
+                                width: r.value(mobile: 180.0, tablet: 200.0),
+                                height: r.value(mobile: 72.0, tablet: 80.0),
                                 fit: BoxFit.contain,
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: r.h(12)),
                               // ── 언어 선택 버튼 ──
                               const LanguageSelectorWidget(),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 44),
+                        SizedBox(height: r.h(32)),
 
                         // ── 이메일 ──
                         _buildLabel(loc.email),
@@ -301,7 +303,7 @@ class _LoginScreenState extends State<LoginScreen>
                           },
                         ),
                         _buildRememberedEmailChips(),
-                        const SizedBox(height: 16),
+                        SizedBox(height: r.h(14)),
 
                         // ── 비밀번호 ──
                         _buildLabel(loc.password),

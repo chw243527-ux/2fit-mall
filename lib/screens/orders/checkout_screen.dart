@@ -18,6 +18,7 @@ import '../../widgets/pc_layout.dart';
 import '../../utils/navigation_helper.dart';
 import '../../widgets/overseas_rate_sheet.dart';
 import '../chat/chat_screen.dart';
+import '../../utils/responsive.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final CartProvider cart;
@@ -213,6 +214,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     if (isPcWeb(context)) return _buildPcLayout(context);
 
     return wrapWithPopScope(
@@ -231,7 +233,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(r.contentGutter),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
