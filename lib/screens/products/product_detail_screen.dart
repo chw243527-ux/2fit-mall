@@ -8274,48 +8274,94 @@ $productUrl
         searchable.contains('puffer');
   }
 
+  bool _isDownVestSizeChartProduct(ProductModel product) {
+    final searchable = [
+      product.name,
+      product.category,
+      product.middleCategory,
+      product.subCategory,
+    ].join(' ').toLowerCase();
+    return searchable.contains('다운 베스트') ||
+        searchable.contains('다운베스트') ||
+        searchable.contains('down vest') ||
+        searchable.contains('downvest');
+  }
+
   Widget _buildPaddingSizeChart(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
+    final isDownVest = _isDownVestSizeChartProduct(product);
     final isLoukes = _isLoukesIvoryDown(product);
-    final headers = [
-      '라벨\n(신장 기준)',
-      '가슴둘레 단면\n(cm)',
-      '총길이 / 총장\n(cm)',
-      '어깨너비\n(cm)',
-      '소매길이\n(cm)',
-      if (isLoukes) '오리털 충전량\n(g)',
-      '추천 사이즈',
-    ];
-    final rows = isLoukes
-        ? <List<String>>[
-            ['S (165)', '52', '66', '43', '60', '77g', '여성 55'],
-            ['M (170)', '54', '68', '44.5', '61.5', '83g', '여성 66 / 남성 90'],
-            ['L (175)', '56', '70', '46', '63', '90g', '남성 95'],
-            [
-              'XL (180) 📍촬영제품',
-              '58.5',
-              '72',
-              '47.5',
-              '64.5',
-              '96g',
-              '남성 100 (정사이즈)'
-            ],
-            ['2XL (185)', '61', '74', '49', '66', '102g', '남성 105'],
-            ['3XL (190)', '63.5', '76', '50.5', '67', '108g', '남성 110'],
+    final headers = isDownVest
+        ? [
+            '사이즈\n(참고 신장)',
+            '가슴단면\n(cm)',
+            '총장\n(cm)',
+            '어깨너비\n(cm)',
+            '다운 충전량',
+            '추천 사이즈',
           ]
-        : <List<String>>[
-            ['S (165)', '56', '102', '45', '60', '여성 55 ~ 66'],
-            ['M (170)', '58', '105', '47', '62', '여성 77 / 남성 95'],
-            ['L (175)', '60', '108', '49', '64', '남성 100'],
-            ['XL (180) 📍현재 제품', '63', '112', '51', '65', '남성 105 (XL) 권장'],
-            ['2XL (185)', '66', '115', '53', '66', '남성 110 (XXL)'],
-            ['3XL (190)', '69', '118', '55', '67', '남성 115 이상'],
+        : [
+            '라벨\n(신장 기준)',
+            '가슴둘레 단면\n(cm)',
+            '총길이 / 총장\n(cm)',
+            '어깨너비\n(cm)',
+            '소매길이\n(cm)',
+            if (isLoukes) '오리털 충전량\n(g)',
+            '추천 사이즈',
           ];
+    final rows = isDownVest
+        ? <List<String>>[
+            ['S (165cm)', '54', '67', '43', '59g', '여성 55~66 · 루즈핏'],
+            ['M (170cm)', '56', '69', '44.5', '63g', '여성 77 / 남성 90~95'],
+            ['L (175cm)', '58', '71', '46', '70g', '남성 95~100'],
+            [
+              'XL (180cm) · 촬영 제품',
+              '60.5',
+              '73',
+              '47.5',
+              '74g',
+              '남성 100 여유핏~105 정핏',
+            ],
+            ['2XL (185cm)', '63', '75', '49', '78g', '남성 105 · 여유핏'],
+            ['3XL (190cm)', '65.5', '77', '50.5', '82g', '남성 110'],
+          ]
+        : isLoukes
+            ? <List<String>>[
+                ['S (165)', '52', '66', '43', '60', '77g', '여성 55'],
+                ['M (170)', '54', '68', '44.5', '61.5', '83g', '여성 66 / 남성 90'],
+                ['L (175)', '56', '70', '46', '63', '90g', '남성 95'],
+                [
+                  'XL (180) 📍촬영제품',
+                  '58.5',
+                  '72',
+                  '47.5',
+                  '64.5',
+                  '96g',
+                  '남성 100 (정사이즈)'
+                ],
+                ['2XL (185)', '61', '74', '49', '66', '102g', '남성 105'],
+                ['3XL (190)', '63.5', '76', '50.5', '67', '108g', '남성 110'],
+              ]
+            : <List<String>>[
+                ['S (165)', '56', '102', '45', '60', '여성 55 ~ 66'],
+                ['M (170)', '58', '105', '47', '62', '여성 77 / 남성 95'],
+                ['L (175)', '60', '108', '49', '64', '남성 100'],
+                ['XL (180) 📍현재 제품', '63', '112', '51', '65', '남성 105 (XL) 권장'],
+                ['2XL (185)', '66', '115', '53', '66', '남성 110 (XXL)'],
+                ['3XL (190)', '69', '118', '55', '67', '남성 115 이상'],
+              ];
     final notices = [
-      isLoukes
-          ? '정사이즈 Regular Fit 기준입니다. 두꺼운 맨투맨을 레이어드하면 한 사이즈 업을 권장합니다.'
-          : '실측 치수는 원단 특성 및 측정 방식에 따라 1~3cm가량 오차가 발생할 수 있습니다.',
-      if (isLoukes) '측정 방법이나 재생산 공정에 따라 1~2cm의 실측 오차가 있을 수 있습니다.',
+      if (isDownVest)
+        '단위: cm · 가슴은 단면 기준입니다. 다양한 이너 위에 여유롭게 걸치는 레귤러 여유핏으로, 맨투맨·후드티·플리스 위에도 편하게 입을 수 있도록 품과 암홀에 여유를 더했습니다.',
+      if (isDownVest)
+        '사이즈 선택 TIP: 평소 남성 100~105를 착용한다면 XL을 추천합니다. 가슴단면 60.5cm로 가을 상의나 플리스 위에 레이어드하기 좋은 사이즈입니다.',
+      if (!isDownVest && isLoukes)
+        '정사이즈 Regular Fit 기준입니다. 두꺼운 맨투맨을 레이어드하면 한 사이즈 업을 권장합니다.',
+      if (!isDownVest && !isLoukes)
+        '실측 치수는 원단 특성 및 측정 방식에 따라 1~3cm가량 오차가 발생할 수 있습니다.',
+      if (!isDownVest && isLoukes)
+        '측정 방법이나 재생산 공정에 따라 1~2cm의 실측 오차가 있을 수 있습니다.',
+      if (isDownVest) '실측 치수는 원단 특성 및 측정 방식에 따라 1~3cm가량 오차가 발생할 수 있습니다.',
       '가슴둘레 단면은 옷을 평평하게 바닥에 펴놓고 양쪽 겨드랑이 밑점 사이를 잰 수치입니다. 전체 둘레를 원하시면 단면 값에 x2를 하시면 됩니다.',
       context.loc.t(
         '제품_이미지와_색상은_모니터의_상태에_따라_다소_다르게_보일_수_있습니다',
@@ -8350,13 +8396,24 @@ $productUrl
           ),
           SizedBox(height: r.h(8)),
           Text(
-            '패딩·롱패딩 공통 성인 사이즈 기준',
+            isDownVest ? '다양한 이너 위에 여유롭게 걸치는 핏' : '패딩·롱패딩 공통 성인 사이즈 기준',
             style: TextStyle(
               fontSize: r.sp(11),
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w700,
             ),
           ),
+          if (isDownVest) ...[
+            SizedBox(height: r.h(10)),
+            Text(
+              '맨투맨·후드티·플리스 위에도 편하게 입을 수 있도록 품과 암홀에 여유를 더한 레귤러 여유핏입니다.\n단위: cm · 가슴은 단면 기준',
+              style: TextStyle(
+                fontSize: r.sp(12),
+                color: AppColors.textSecondary,
+                height: 1.6,
+              ),
+            ),
+          ],
           SizedBox(height: r.h(24)),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
