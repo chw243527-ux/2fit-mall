@@ -14,7 +14,6 @@ import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../orders/group_order_form_screen.dart';
 import '../orders/group_order_landing_screen.dart';
-import '../chat/chat_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../widgets/image_lightbox.dart';
 import '../../widgets/store_notice_card.dart';
@@ -8593,10 +8592,7 @@ $productUrl
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ChatScreen()),
-              ),
+              onPressed: _openKakaoChannel,
               icon: const Icon(Icons.chat_bubble_outline_rounded),
               label: const Text('상품 문의하기'),
             ),
