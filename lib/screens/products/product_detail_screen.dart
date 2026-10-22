@@ -481,7 +481,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                         children: [
                           _buildImageSlider(product),
                           _buildThumbnailBar(product),
-                          _buildAiImageNoticeBanner(),
                           KeyedSubtree(
                             child: _buildBasicInfo(product),
                           ),
@@ -493,6 +492,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                             child:
                                 _buildEditorialProductDetail(product, isAdmin),
                           ),
+                          _buildAiImageNoticeBanner(),
                           RepaintBoundary(
                             key: _keySize,
                             child: _buildEditorialSizeSection(product, isAdmin),
@@ -675,7 +675,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                 _buildSliverAppBarOnly(product),
                 SliverToBoxAdapter(child: _buildImageSlider(product)),
                 SliverToBoxAdapter(child: _buildThumbnailBar(product)),
-                SliverToBoxAdapter(child: _buildAiImageNoticeBanner()),
                 SliverToBoxAdapter(
                   child: KeyedSubtree(
                     key: _keyDesign,
@@ -718,6 +717,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                     child: _buildEditorialProductDetail(product, isAdmin),
                   ),
                 ),
+                SliverToBoxAdapter(child: _buildAiImageNoticeBanner()),
                 SliverToBoxAdapter(
                   child: RepaintBoundary(
                     key: _keySize,
@@ -782,7 +782,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                           children: [
                             _buildImageSlider(product),
                             _buildThumbnailBar(product),
-                            _buildAiImageNoticeBanner(),
                             KeyedSubtree(
                               key: _keyDesign,
                               child: _buildBasicInfo(product),
@@ -812,6 +811,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                 isAdmin,
                               ),
                             ),
+                            _buildAiImageNoticeBanner(),
                             RepaintBoundary(
                               key: _keySize,
                               child: _buildSection6SizeChart(product, isAdmin),
@@ -932,7 +932,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                             children: [
                               _buildImageSlider(product),
                               _buildThumbnailBar(product),
-                              _buildAiImageNoticeBanner(),
+                              KeyedSubtree(
+                                key: _keyDesign,
+                                child: _buildBasicInfo(product),
+                              ),
                             ],
                           ),
                         ),
@@ -957,10 +960,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                           CrossAxisAlignment.stretch,
                                       children: [
                                         // 기본 정보
-                                        KeyedSubtree(
-                                          key: _keyDesign,
-                                          child: _buildBasicInfo(product),
-                                        ),
                                         // PC에서는 상품 정보 패널 바로 아래에 표시합니다.
                                         _buildBottomBar(product),
                                         _buildSameDesignColorRecommendations(
@@ -1006,6 +1005,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                             isAdmin,
                                           ),
                                         ),
+                                        _buildAiImageNoticeBanner(),
                                         RepaintBoundary(
                                           key: _keySize,
                                           child: _buildSection6SizeChart(
@@ -4987,9 +4987,12 @@ $productUrl
         final width = constraints.maxWidth.isFinite && constraints.maxWidth > 0
             ? constraints.maxWidth
             : MediaQuery.sizeOf(context).width;
-        final height = width * 1.08;
+        // 일반 사용자는 상세 흐름을 빠르게 훑을 수 있도록 축소 표시하고,
+        // 이미지를 탭했을 때만 라이트박스에서 원본 크기로 확대합니다.
+        final displayWidth = isAdmin ? width : width * 0.72;
+        final height = displayWidth * 1.08;
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             for (var i = 0; i < images.length; i++)
               GestureDetector(
@@ -4997,7 +5000,7 @@ $productUrl
                 child: Stack(
                   children: [
                     Container(
-                      width: double.infinity,
+                      width: displayWidth,
                       height: height,
                       margin: EdgeInsets.only(
                         bottom: i == images.length - 1 ? 0 : r.h(8),
@@ -5006,13 +5009,13 @@ $productUrl
                       child: images[i].startsWith('data:image')
                           ? Image.memory(
                               base64Decode(images[i].split(',').last),
-                              width: width,
+                              width: displayWidth,
                               height: height,
                               fit: BoxFit.contain,
                             )
                           : Image.network(
                               images[i],
-                              width: width,
+                              width: displayWidth,
                               height: height,
                               fit: BoxFit.contain,
                               loadingBuilder: (_, child, progress) =>
