@@ -8274,6 +8274,10 @@ $productUrl
         searchable.contains('puffer');
   }
 
+  bool _isQuiltingHoodPaddingProduct(ProductModel product) {
+    return _isQuiltingHoodPaddingProductModel(product);
+  }
+
   bool _isDownVestSizeChartProduct(ProductModel product) {
     final searchable = [
       product.name,
@@ -8296,15 +8300,16 @@ $productUrl
 
   Widget _buildPaddingSizeChart(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
+    final isQuiltingHoodPadding = _isQuiltingHoodPaddingProduct(product);
     final isDownVest = _isDownVestSizeChartProduct(product);
     final isLoukes = _isLoukesIvoryDown(product);
-    final headers = isDownVest
+    final headers = isQuiltingHoodPadding || isDownVest
         ? [
-            '표기 사이즈',
+            isQuiltingHoodPadding ? '쇼핑몰 등록 옵션' : '표기 사이즈',
             '가슴단면\n(cm)',
             '총장\n(cm)',
             '어깨너비\n(cm)',
-            '공식 다운 충전량',
+            isQuiltingHoodPadding ? '오리털 충전량' : '공식 다운 충전량',
             '추천 사이즈',
           ]
         : [
@@ -8315,49 +8320,84 @@ $productUrl
             '소매길이\n(cm)',
             '추천 사이즈',
           ];
-    final rows = isDownVest
+    final rows = isQuiltingHoodPadding
         ? <List<String>>[
-            ['M', '56', '69', '44.5', '55g', '여성 77 / 남성 90 ~ 95'],
-            ['L', '58', '71', '46', '60g', '남성 95 ~ 정 100'],
             [
-              'XL 📍촬영제품',
-              '60.5',
-              '73',
-              '47.5',
-              '65g',
-              '남성 100(여유) ~ 정 105',
+              'S (165)',
+              '❌ 미출시',
+              '❌ 미출시',
+              '❌ 미출시',
+              '❌ 생산 없음',
+              '옵션 제외 필수',
             ],
-            ['2XL', '63', '75', '49', '70g', '남성 105 (여유핏)'],
-            ['3XL', '65.5', '77', '50.5', '75g', '남성 110'],
-            ['4XL', '68', '79', '52', '80g', '남성 115 이상'],
+            ['M (170)', '54.5', '68', '45', '55g', '여성 66~77 / 남성 90~95'],
+            ['L (175)', '56.5', '70', '46.5', '60g', '남성 정 95 ~ 슬림 100'],
+            [
+              'XL (180) 📍촬영제품',
+              '59',
+              '72',
+              '48',
+              '65g',
+              '남성 100 (정사이즈)',
+            ],
+            ['2XL (185)', '61.5', '74', '49.5', '70g', '남성 105'],
+            ['3XL (190)', '64', '76', '51', '75g', '남성 110'],
+            ['4XL (195)', '66.5', '78', '52.5', '80g', '남성 115 이상'],
           ]
-        : isLoukes
+        : isDownVest
             ? <List<String>>[
-                ['S (165)', '52', '66', '43', '60', '여성 55'],
-                ['M (170)', '54', '68', '44.5', '61.5', '여성 66 / 남성 90'],
-                ['L (175)', '56', '70', '46', '63', '남성 95'],
-                ['XL (180) 📍', '58.5', '72', '47.5', '64.5', '남성 100 (정사이즈)'],
-                ['2XL (185)', '61', '74', '49', '66', '남성 105'],
-                ['3XL (190)', '63.5', '76', '50.5', '67', '남성 110'],
+                ['M', '56', '69', '44.5', '55g', '여성 77 / 남성 90 ~ 95'],
+                ['L', '58', '71', '46', '60g', '남성 95 ~ 정 100'],
+                [
+                  'XL 📍촬영제품',
+                  '60.5',
+                  '73',
+                  '47.5',
+                  '65g',
+                  '남성 100(여유) ~ 정 105',
+                ],
+                ['2XL', '63', '75', '49', '70g', '남성 105 (여유핏)'],
+                ['3XL', '65.5', '77', '50.5', '75g', '남성 110'],
+                ['4XL', '68', '79', '52', '80g', '남성 115 이상'],
               ]
-            : <List<String>>[
-                ['S (165)', '56', '102', '45', '60', '여성 55 ~ 66 (루즈핏)'],
-                ['M (170)', '58', '105', '47', '62', '여성 77 / 남성 95'],
-                ['L (175)', '60', '108', '49', '64', '남성 100'],
-                ['XL (180) 📍', '63', '112', '51', '65', '남성 105 (여유핏)'],
-                ['2XL (185)', '66', '115', '53', '66', '남성 110 (XXL)'],
-                ['3XL (190)', '69', '118', '55', '67', '남성 115 이상'],
-              ];
+            : isLoukes
+                ? <List<String>>[
+                    ['S (165)', '52', '66', '43', '60', '여성 55'],
+                    ['M (170)', '54', '68', '44.5', '61.5', '여성 66 / 남성 90'],
+                    ['L (175)', '56', '70', '46', '63', '남성 95'],
+                    [
+                      'XL (180) 📍',
+                      '58.5',
+                      '72',
+                      '47.5',
+                      '64.5',
+                      '남성 100 (정사이즈)'
+                    ],
+                    ['2XL (185)', '61', '74', '49', '66', '남성 105'],
+                    ['3XL (190)', '63.5', '76', '50.5', '67', '남성 110'],
+                  ]
+                : <List<String>>[
+                    ['S (165)', '56', '102', '45', '60', '여성 55 ~ 66 (루즈핏)'],
+                    ['M (170)', '58', '105', '47', '62', '여성 77 / 남성 95'],
+                    ['L (175)', '60', '108', '49', '64', '남성 100'],
+                    ['XL (180) 📍', '63', '112', '51', '65', '남성 105 (여유핏)'],
+                    ['2XL (185)', '66', '115', '53', '66', '남성 110 (XXL)'],
+                    ['3XL (190)', '69', '118', '55', '67', '남성 115 이상'],
+                  ];
     final notices = [
-      if (isDownVest)
+      if (isQuiltingHoodPadding)
+        'S 사이즈는 미출시·생산되지 않아 쇼핑몰 등록 옵션에서 제외해야 합니다. 구매 가능한 옵션은 M~4XL입니다.',
+      if (isQuiltingHoodPadding)
+        '단위: cm · 가슴은 단면 기준입니다. XL(180)은 촬영 제품이며, 실측은 측정 방법에 따라 오차가 발생할 수 있습니다.',
+      if (isDownVest && !isQuiltingHoodPadding)
         '단위: cm · 가슴은 단면 기준입니다. 다양한 이너 위에 여유롭게 걸치는 레귤러 여유핏으로, 맨투맨·후드티·플리스 위에도 편하게 입을 수 있도록 품과 암홀에 여유를 더했습니다.',
-      if (isDownVest)
+      if (isDownVest && !isQuiltingHoodPadding)
         '사이즈 선택 TIP: 평소 남성 100~105를 착용한다면 XL을 추천합니다. 가슴단면 60.5cm로 가을 상의나 플리스 위에 레이어드하기 좋은 사이즈입니다.',
-      if (!isDownVest && isLoukes)
+      if (!isDownVest && !isQuiltingHoodPadding && isLoukes)
         '정사이즈 Regular Fit 기준입니다. 두꺼운 맨투맨을 레이어드하면 한 사이즈 업을 권장합니다.',
-      if (!isDownVest && !isLoukes)
+      if (!isDownVest && !isQuiltingHoodPadding && !isLoukes)
         '실측 치수는 원단 특성 및 측정 방식에 따라 1~3cm가량 오차가 발생할 수 있습니다.',
-      if (!isDownVest && isLoukes)
+      if (!isDownVest && !isQuiltingHoodPadding && isLoukes)
         '측정 방법이나 재생산 공정에 따라 1~2cm의 실측 오차가 있을 수 있습니다.',
       if (isDownVest) '실측 치수는 원단 특성 및 측정 방식에 따라 1~3cm가량 오차가 발생할 수 있습니다.',
       '가슴둘레 단면은 옷을 평평하게 바닥에 펴놓고 양쪽 겨드랑이 밑점 사이를 잰 수치입니다. 전체 둘레를 원하시면 단면 값에 x2를 하시면 됩니다.',
@@ -8394,14 +8434,18 @@ $productUrl
           ),
           SizedBox(height: r.h(8)),
           Text(
-            isDownVest ? '다양한 이너 위에 여유롭게 걸치는 핏' : '패딩·롱패딩 공통 성인 사이즈 기준',
+            isQuiltingHoodPadding
+                ? 'M~4XL 성인 사이즈 기준 · S 미출시'
+                : isDownVest
+                    ? '다양한 이너 위에 여유롭게 걸치는 핏'
+                    : '패딩·롱패딩 공통 성인 사이즈 기준',
             style: TextStyle(
               fontSize: r.sp(11),
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w700,
             ),
           ),
-          if (isDownVest) ...[
+          if (isDownVest && !isQuiltingHoodPadding) ...[
             SizedBox(height: r.h(10)),
             Text(
               '맨투맨·후드티·플리스 위에도 편하게 입을 수 있도록 품과 암홀에 여유를 더한 레귤러 여유핏입니다.\n단위: cm · 가슴은 단면 기준',
@@ -10730,10 +10774,15 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
     final allSizes = rawSizes.isNotEmpty
         ? rawSizes
         : (isJunior ? AppConstants.juniorSizes : AppConstants.adultSizes);
+    final availableSizes = _isQuiltingHoodPaddingProductModel(widget.product)
+        ? allSizes.where((s) => !_isUnavailableQuiltingHoodSize(s)).toList()
+        : allSizes;
 
     // 성인/주니어 분리
-    final adultSizes = allSizes.where((s) => !_isJuniorSizeLabel(s)).toList();
-    final juniorSizes = allSizes.where((s) => _isJuniorSizeLabel(s)).toList();
+    final adultSizes =
+        availableSizes.where((s) => !_isJuniorSizeLabel(s)).toList();
+    final juniorSizes =
+        availableSizes.where((s) => _isJuniorSizeLabel(s)).toList();
     final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
 
     final isBottom = _isSingletASet ||
@@ -10951,7 +11000,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: allSizes.map((s) {
+              children: availableSizes.map((s) {
                 final r = Responsive.of(context);
 
                 final sel = _selectedSize == s;
@@ -11164,7 +11213,11 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
     final bottom = MediaQuery.of(context).padding.bottom;
-    final sizes = widget.product.sizes;
+    final sizes = _isQuiltingHoodPaddingProductModel(widget.product)
+        ? widget.product.sizes
+            .where((s) => !_isUnavailableQuiltingHoodSize(s))
+            .toList()
+        : widget.product.sizes;
 
     return Container(
       padding: EdgeInsets.fromLTRB(r.w(20), r.h(20), r.w(20), bottom + 24),
@@ -13366,7 +13419,11 @@ class _QuickSizeColorSelectSheetState
     final r = Responsive.of(context);
     final loc = context.watch<LanguageProvider>().loc;
     final bottom = MediaQuery.of(context).padding.bottom;
-    final sizes = widget.product.sizes;
+    final sizes = _isQuiltingHoodPaddingProductModel(widget.product)
+        ? widget.product.sizes
+            .where((s) => !_isUnavailableQuiltingHoodSize(s))
+            .toList()
+        : widget.product.sizes;
     // 골지 텍스처: 싱글렛세트 또는 타이즈(하의) 상품에만 적용
     final p = widget.product;
     final isSingletSetHere = (p.category == context.loc.t('세트', '세트') &&
@@ -13933,6 +13990,26 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
       ],
     );
   }
+}
+
+bool _isQuiltingHoodPaddingProductModel(ProductModel product) {
+  final searchable = [
+    product.name,
+    product.category,
+    product.middleCategory,
+    product.subCategory,
+  ].join(' ').toLowerCase();
+  final isQuilting =
+      searchable.contains('퀼팅') || searchable.contains('quilting');
+  final isHood = searchable.contains('후드') || searchable.contains('hood');
+  final isPadding = searchable.contains('패딩') ||
+      searchable.contains('padding') ||
+      searchable.contains('puffer');
+  return isQuilting && isHood && isPadding;
+}
+
+bool _isUnavailableQuiltingHoodSize(String size) {
+  return RegExp(r'^S(?:\s|\(|$)', caseSensitive: false).hasMatch(size.trim());
 }
 
 // ══════════════════════════════════════════════════════════════
