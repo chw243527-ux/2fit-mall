@@ -32,18 +32,18 @@ class StoreNoticeCard extends StatelessWidget {
       return const SizedBox.shrink();
     }
     final r = Responsive.of(context);
-    final horizontal = compact ? r.w(16) : r.w(20);
+    final horizontal = compact ? r.w(14) : r.w(20);
     return Container(
       width: double.infinity,
       margin: EdgeInsets.symmetric(
-        horizontal: compact ? r.w(12) : r.w(16),
-        vertical: compact ? r.h(10) : r.h(14),
+        horizontal: compact ? r.w(10) : r.w(16),
+        vertical: compact ? r.h(8) : r.h(14),
       ),
       padding: EdgeInsets.fromLTRB(
         horizontal,
-        compact ? r.h(14) : r.h(18),
+        compact ? r.h(12) : r.h(18),
         horizontal,
-        compact ? r.h(14) : r.h(18),
+        compact ? r.h(12) : r.h(18),
       ),
       decoration: BoxDecoration(
         color: const Color(0xFFF7F7F5),
@@ -64,31 +64,31 @@ class StoreNoticeCard extends StatelessWidget {
                   '구매 전 꼭 확인해 주세요',
                   style: TextStyle(
                     color: AppColors.primary,
-                    fontSize: r.sp(compact ? 14 : 15),
+                    fontSize: r.sp(compact ? 13.5 : 15),
                     fontWeight: FontWeight.w800,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: r.h(9)),
+            SizedBox(height: r.h(compact ? 7 : 9)),
             Text(
               '상품 주문 전 아래 안내사항을 확인해 주시기 바랍니다.',
               style: TextStyle(
                 color: AppColors.textSecondary,
-                fontSize: r.sp(compact ? 11 : 12),
-                height: 1.45,
+                fontSize: r.sp(compact ? 10.5 : 12),
+                height: compact ? 1.4 : 1.45,
               ),
             ),
-            SizedBox(height: r.h(8)),
+            SizedBox(height: r.h(compact ? 6 : 8)),
             ..._purchaseItems.asMap().entries.map(
                   (entry) => Padding(
-                    padding: EdgeInsets.only(bottom: r.h(5)),
+                    padding: EdgeInsets.only(bottom: r.h(compact ? 4 : 5)),
                     child: Text(
                       '${entry.key + 1}. ${entry.value}',
                       style: TextStyle(
                         color: AppColors.textSecondary,
-                        fontSize: r.sp(compact ? 11 : 12),
-                        height: 1.45,
+                        fontSize: r.sp(compact ? 10.5 : 12),
+                        height: compact ? 1.4 : 1.45,
                       ),
                     ),
                   ),
@@ -96,7 +96,7 @@ class StoreNoticeCard extends StatelessWidget {
           ],
           if (showPurchaseGuide && showAiImageGuide)
             Padding(
-              padding: EdgeInsets.symmetric(vertical: r.h(9)),
+              padding: EdgeInsets.symmetric(vertical: r.h(compact ? 7 : 9)),
               child: const Divider(height: 1, color: AppColors.border),
             ),
           if (showAiImageGuide)
@@ -111,9 +111,9 @@ class StoreNoticeCard extends StatelessWidget {
                     '본 홈페이지와 상세페이지에 사용된 사진은 디자인 이미지를 제외하고 모두 AI로 생성되었습니다. 실제 상품의 색상·질감·핏은 이미지와 다를 수 있으므로 상품 정보와 실측 사이즈를 확인한 후 구매해 주세요.',
                     style: TextStyle(
                       color: AppColors.textPrimary,
-                      fontSize: r.sp(compact ? 11 : 12),
+                      fontSize: r.sp(compact ? 10.5 : 12),
                       fontWeight: FontWeight.w700,
-                      height: 1.5,
+                      height: compact ? 1.4 : 1.5,
                     ),
                   ),
                 ),

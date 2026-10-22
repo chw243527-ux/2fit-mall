@@ -1497,7 +1497,8 @@ $productUrl
 
   // ══ 공통 구매 전 안내 및 AI 이미지 고지 ══
   Widget _buildAiImageNoticeBanner() {
-    return const StoreNoticeCard();
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    return StoreNoticeCard(compact: isMobile);
   }
 
   // ══ 모바일: 메인이미지 아래 디자인 이미지 배너 ══
