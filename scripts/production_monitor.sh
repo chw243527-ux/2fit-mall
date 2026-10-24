@@ -13,6 +13,9 @@ SUMMARY_FILE="${OUT_DIR}/summary.md"
 JSON_FILE="${OUT_DIR}/summary.json"
 STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 FAILURES=0
+# Cloudflare·네트워크의 일시적인 지연으로 단 한 번의 8초 초과가
+# 서비스 장애로 판정되지 않도록 여유 있는 운영 경고 기준을 사용합니다.
+SLOW_RESPONSE_THRESHOLD_MS="${SLOW_RESPONSE_THRESHOLD_MS:-12000}"
 
 printf '# 2FIT Mall Production Monitoring\n\n' > "${SUMMARY_FILE}"
 printf -- '- **Checked at (UTC):** `%s`\n- **Base URL:** `%s`\n\n' "${STARTED_AT}" "${URL}" >> "${SUMMARY_FILE}"
@@ -31,8 +34,8 @@ if curl --retry 3 --retry-delay 2 --retry-all-errors --fail-with-body -sSIL --ma
   code="$(awk -F= '$1=="http_code"{print $2}' "${metrics_file}")"
   total="$(awk -F= '$1=="time_total_ms"{printf "%.0f", $2 * 1000}' "${metrics_file}")"
   check 'HTTPS response' "$([[ "$code" == 2* || "$code" == 3* ]] && echo PASS || echo FAIL)" "HTTP ${code}, ${total} ms"
-  if [[ "${total}" =~ ^[0-9]+$ ]] && (( total > 8000 )); then
-    check 'Response latency' 'FAIL' "${total} ms exceeds 8000 ms"
+  if [[ "${total}" =~ ^[0-9]+$ ]] && (( total > SLOW_RESPONSE_THRESHOLD_MS )); then
+    check 'Response latency' 'FAIL' "${total} ms exceeds ${SLOW_RESPONSE_THRESHOLD_MS} ms"
   else
     check 'Response latency' 'PASS' "${total} ms"
   fi
