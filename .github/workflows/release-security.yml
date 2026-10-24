@@ -53,7 +53,19 @@ jobs:
           PRODUCTION_WEB_URL: ${{ vars.PRODUCTION_WEB_URL || 'https://2fit-mall.co.kr' }}
         run: |
           set -euo pipefail
-          headers="$(curl --retry 4 --retry-delay 3 --retry-all-errors --fail-with-body -sSI --max-time 20 "${PRODUCTION_WEB_URL}")"
+          headers=''
+          for attempt in 1 2 3; do
+            if headers="$(curl --retry 4 --retry-delay 3 --retry-all-errors --fail-with-body -sSI --max-time 20 "${PRODUCTION_WEB_URL}")"; then
+              break
+            fi
+            if [[ "${attempt}" -lt 3 ]]; then
+              echo "Production header check attempt ${attempt} failed; retrying after 15 seconds."
+              sleep 15
+            else
+              echo "Production header check failed after ${attempt} attempts."
+              exit 1
+            fi
+          done
           echo "${headers}"
           echo "${headers}" | grep -qi '^strict-transport-security:'
           echo "${headers}" | grep -qi '^x-content-type-options:'
