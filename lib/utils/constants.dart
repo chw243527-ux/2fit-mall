@@ -13,6 +13,10 @@ class AppConstants {
   static const String companyAddress = '전라북도 남원시 오들1길 97, 205-303';
   static const String companyPostalCode = '55705';
 
+  // Product disclosure defaults
+  static const String productCountryOfOrigin = '중국';
+  static const String productImporter = '2FIT 주식회사';
+
   // Contact
   static const String customerServicePhone = '010-7440-9990';
   static const String eliteAthletePhone = '010-4386-3331';

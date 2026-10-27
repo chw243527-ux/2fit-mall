@@ -6130,8 +6130,8 @@ $productUrl
       if (registeredMaterial.isNotEmpty) '소재·혼용률: $registeredMaterial',
       if (product.manufacturer.trim().isNotEmpty)
         '제조사: ${product.manufacturer.trim()}',
-      if (product.countryOfOrigin.trim().isNotEmpty)
-        '제조국: ${product.countryOfOrigin.trim()}',
+      '제조국: ${AppConstants.productCountryOfOrigin}',
+      '수입자: ${AppConstants.productImporter}',
       if (product.manufacturedAt.trim().isNotEmpty)
         '제조연월: ${product.manufacturedAt.trim()}',
     ];
@@ -6740,8 +6740,8 @@ $productUrl
       if (registeredMaterial.isNotEmpty) '소재·혼용률: $registeredMaterial',
       if (product.manufacturer.trim().isNotEmpty)
         '제조사: ${product.manufacturer.trim()}',
-      if (product.countryOfOrigin.trim().isNotEmpty)
-        '제조국: ${product.countryOfOrigin.trim()}',
+      '제조국: ${AppConstants.productCountryOfOrigin}',
+      '수입자: ${AppConstants.productImporter}',
       if (product.manufacturedAt.trim().isNotEmpty)
         '제조연월: ${product.manufacturedAt.trim()}',
       if (isGroupOrder) '주문 전 제작 일정과 옵션을 상담을 통해 확인해 주세요.',
@@ -8634,12 +8634,10 @@ $productUrl
           card('상품 필수정보', [
             row('제조연월', manufacturedAt),
             row('제조사', manufacturer),
+            row('제조국', AppConstants.productCountryOfOrigin),
+            row('수입자', AppConstants.productImporter),
             row('품질보증기준', '관련 법령 및 소비자분쟁해결기준에 따름'),
-            row(
-                '원산지',
-                product.countryOfOrigin.trim().isNotEmpty
-                    ? product.countryOfOrigin.trim()
-                    : '상품별 별도 표기'),
+            row('원산지', AppConstants.productCountryOfOrigin),
           ]),
           card('배송 안내', [
             row('상품 준비', preparation),

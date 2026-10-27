@@ -19521,7 +19521,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     _materialCtrl = TextEditingController(text: e?.material ?? '');
     _manufacturerCtrl = TextEditingController(text: e?.manufacturer ?? '');
     _countryOfOriginCtrl = TextEditingController(
-      text: e?.countryOfOrigin ?? '',
+      text: AppConstants.productCountryOfOrigin,
     );
     _manufacturedAtCtrl = TextEditingController(text: e?.manufacturedAt ?? '');
     _bottomLengthCtrl = TextEditingController(text: e?.bottomLength ?? '');
