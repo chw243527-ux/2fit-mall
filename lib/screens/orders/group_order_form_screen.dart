@@ -235,7 +235,17 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   }
 
   bool get _isSingletPrintProduct => _productTypeText.contains('싱글렛');
-  bool get _isTightsPrintProduct => _productTypeText.contains('타이즈');
+  bool get _isTightsPrintProduct {
+    final p = widget.product;
+    if (p == null) return false;
+    final text = _productTypeText;
+    // 기존 타이즈 상품 중 일부는 상품명에 "타이즈"가 없고
+    // 하위카테고리(2.5부·5부·9부 등)로만 등록되어 있다.
+    return text.contains('타이즈') ||
+        text.contains('2.5부') ||
+        text.contains('5부') ||
+        text.contains('9부');
+  }
 
   /// 싱글렛·크롭·타이즈 계열은 기존 단체주문 서식을 유지합니다.
   bool get _isExistingSpecialOrderForm =>
