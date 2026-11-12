@@ -236,23 +236,49 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   bool get _isSingletPrintProduct => _productTypeText.contains('싱글렛');
   bool get _isTightsPrintProduct => _productTypeText.contains('타이즈');
+
+  /// 싱글렛·크롭·타이즈 계열은 기존 단체주문 서식을 유지합니다.
+  bool get _isExistingSpecialOrderForm =>
+      _isSingletPrintProduct ||
+      _isTightsPrintProduct ||
+      _productTypeText.contains('크롭');
+
+  /// 위 특수 카테고리를 제외한 일반 의류 단체주문 전용 서식입니다.
+  bool get _isGeneralApparelOrder =>
+      widget.product != null && !_isExistingSpecialOrderForm;
   bool get _keepFullPrintOptions => widget.product != null;
-  int get _maxPrintOptionId => 4;
+  int get _maxPrintOptionId => _isGeneralApparelOrder ? 3 : 4;
+  int get _effectiveMinimumQuantity =>
+      _isGeneralApparelOrder ? 5 : _groupMinimumQuantity;
+  String get _selectedPrintTypeLabel {
+    if (!_isGeneralApparelOrder) return '';
+    const labels = [
+      '로고 변경 (가슴) · 디자인 유지',
+      '로고 변경 (가슴) + 소매 로고 변경',
+      '로고 + 팀명 변경',
+      '로고 + 사이즈 + 팀명 변경',
+    ];
+    return _printType >= 0 && _printType < labels.length
+        ? labels[_printType]
+        : labels.first;
+  }
 
   // 싱글렛·싱글렛 세트: 0~4, 라운드티: 0~3
   bool get _hasTeamName =>
       _keepFullPrintOptions &&
-      _printType >= 1 &&
+      (_isGeneralApparelOrder ? _printType >= 2 : _printType >= 1) &&
       _printType <= _maxPrintOptionId;
   bool get _nameEnabled =>
       _keepFullPrintOptions &&
+      !_isGeneralApparelOrder &&
       (_printType == 3 || _printType == 4) &&
       _totalCount >= 10;
 
   // 인쇄타입별 첨부 섹션 표시 규칙
   // 1번: 둘 다 숨김, 2·4번: 로고만, 3·5번: 디자인+로고
-  bool get _showDesignAttachment => _printType == 2 || _printType == 4;
-  bool get _showLogoAttachment => _printType >= 1;
+  bool get _showDesignAttachment =>
+      !_isGeneralApparelOrder && (_printType == 2 || _printType == 4);
+  bool get _showLogoAttachment => _isGeneralApparelOrder || _printType >= 1;
   OrderModel? get _originalOrder => widget.originalOrder;
 
   /// 허리밴드 옵션 레이블 (중복 선택 반영)
@@ -382,7 +408,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         ? widget.initialPrintType.clamp(0, _maxPrintOptionId)
         : 0;
     // 추가제작은 1장부터 가능하며 신규 단체주문은 관리자 정책을 사용합니다.
-    final minCount = widget.isAdditionalOrder ? 1 : _groupMinimumQuantity;
+    final minCount = widget.isAdditionalOrder ? 1 : _effectiveMinimumQuantity;
     _count = widget.initialCount >= minCount ? widget.initialCount : minCount;
     _countFixed = widget.initialCount >= minCount;
     for (int i = 0; i < _count; i++) {
@@ -402,7 +428,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     setState(() {
       _groupMinimumQuantity = policy.minimumQuantity;
       _groupDiscountRate = policy.discountRate;
-      while (_persons.length < _groupMinimumQuantity) {
+      while (_persons.length < _effectiveMinimumQuantity) {
         _persons.add(_PersonEntry(index: _persons.length));
       }
       _count = _persons.length;
@@ -644,12 +670,15 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   /// 인원 변경 시 선택된 인쇄 옵션이 조건 미달이면 자동 리셋
   void _resetInvalidPrintType() {
-    // 개인 이름 적용 옵션(id=3)은 10명 이상 필요
-    if ((_printType == 3 || _printType == 4) && _totalCount < 10) {
+    // 일반 의류의 팀명 옵션(id=2·3), 기존 특수 서식의 개인 이름 옵션(id=3·4)은 10명 이상 필요
+    final tenOrMoreOption = _isGeneralApparelOrder
+        ? (_printType == 2 || _printType == 3)
+        : (_printType == 3 || _printType == 4);
+    if (tenOrMoreOption && _totalCount < 10) {
       _printType = 0;
     }
     // 나머지 옵션(0~4)은 5명 이상 필요
-    if (_totalCount < _groupMinimumQuantity) {
+    if (_totalCount < _effectiveMinimumQuantity) {
       _printType = 0;
     }
   }
@@ -902,6 +931,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       _showSnack(context.loc.t('색상을_선택해_주세요', '색상을 선택해 주세요.'));
       return false;
     }
+    if (_isGeneralApparelOrder &&
+        !widget.product!.colors.contains(_mainColorName)) {
+      _showSnack('상품에 등록된 색상만 선택할 수 있습니다.');
+      return false;
+    }
     if (_teamNameCtrl.text.trim().isEmpty) {
       _showSnack(context.loc.t('단체명을_입력해_주세요', '단체명을 입력해 주세요.'));
       return false;
@@ -1071,8 +1105,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       _showSnack(context.loc.t('주문_내용을_확인해_주세요', '주문 내용을 확인하고 동의 체크를 해주세요.'));
       return;
     }
-    if (!_isAdditional && _totalCount < _groupMinimumQuantity) {
-      _showSnack('단체주문은 최소 $_groupMinimumQuantity명부터 가능합니다.');
+    if (!_isAdditional && _totalCount < _effectiveMinimumQuantity) {
+      _showSnack('단체주문은 최소 $_effectiveMinimumQuantity명부터 가능합니다.');
       return;
     }
     final userProvider = context.read<UserProvider>();
@@ -1255,6 +1289,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           ? _originalOrder!.status.name
           : null,
       'printType': _printType,
+      if (_isGeneralApparelOrder) ...{
+        'generalApparelOrder': true,
+        'printTypeLabel': _selectedPrintTypeLabel,
+        'logoPlacement': '가슴 기본 · 옵션에 따라 소매 추가',
+      },
       'mainColor': _mainColorName,
       'mainColorCode': selectedColorEntry?['code'] ?? '',
       'mainColorHex':
@@ -1451,7 +1490,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 ] else ...[
                   _buildAllMembersNotice(),
                   if (_showPrintTypeSection) _buildPrintTypeSection(),
-                  if (!_isBottomOnly) _build2FitLogoBanner(),
+                  if (!_isBottomOnly && !_isGeneralApparelOrder)
+                    _build2FitLogoBanner(),
                   if (widget.product != null) _buildProductCard(),
                   if (!_isBottomOnly && _showFabricOption)
                     _buildFabricSection(),
@@ -1702,8 +1742,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           Text(
               context.loc
                   .t('최소_5명_이상_주문_가능합_5c1358',
-                      '최소 $_groupMinimumQuantity명 이상 주문 가능합니다.')
-                  .replaceFirst('5명', '$_groupMinimumQuantity명'),
+                      '최소 $_effectiveMinimumQuantity명 이상 주문 가능합니다.')
+                  .replaceFirst('5명', '$_effectiveMinimumQuantity명'),
               style: const TextStyle(fontSize: 11, color: Colors.grey))
         else
           Text(context.loc.t('1장부터_추가제작_가능합니다', '1장부터 추가제작 가능합니다.'),
@@ -1801,6 +1841,44 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // 인쇄 타입 섹션
   // ══════════════════════════════════════════════
   Widget _buildPrintTypeSection() {
+    if (_isGeneralApparelOrder) {
+      final generalOptions = [
+        {
+          'id': 0,
+          'title': '로고 변경 (가슴) · 디자인 유지',
+          'desc': '5장 이상 선택 가능 · 가슴 로고만 변경하고 상품 디자인은 유지합니다.',
+          'badgeColor': AppColors.info,
+          'condMin': 5,
+          'condLabel': '5장↑',
+        },
+        {
+          'id': 1,
+          'title': '로고 변경 (가슴) + 소매 로고 변경',
+          'desc': '5장 이상 선택 가능 · 가슴 로고와 소매 로고를 함께 변경합니다.',
+          'badgeColor': AppColors.primary,
+          'condMin': 5,
+          'condLabel': '5장↑',
+        },
+        {
+          'id': 2,
+          'title': '로고 + 팀명 변경',
+          'desc': '10장 이상 선택 가능 · 로고와 팀명을 변경합니다.',
+          'badgeColor': const Color(0xFF00838F),
+          'condMin': 10,
+          'condLabel': '10장↑',
+        },
+        {
+          'id': 3,
+          'title': '로고 + 사이즈 + 팀명 변경',
+          'desc': '10장 이상 선택 가능 · 로고·사이즈·팀명 변경을 함께 요청합니다.',
+          'badgeColor': const Color(0xFF6A1B9A),
+          'condMin': 10,
+          'condLabel': '10장↑',
+        },
+      ];
+      return _buildPrintTypeOptionsCard(generalOptions);
+    }
+
     // id, title, desc, badgeColor, condMin (최소 인원), condLabel
     final allOptions = [
       {
@@ -1855,6 +1933,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         .where((opt) => (opt['id'] as int) <= _maxPrintOptionId)
         .toList();
 
+    return _buildPrintTypeOptionsCard(options);
+  }
+
+  Widget _buildPrintTypeOptionsCard(List<Map<String, dynamic>> options) {
     return _card(
       title: context.loc.t('인쇄_타입', '인쇄 타입'),
       icon: Icons.print_rounded,
@@ -2961,65 +3043,169 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         ),
 
         // ② 선택된 색상 표시 배너 + 농도 조절 슬라이더
-        AnimatedSize(
-          duration: const Duration(milliseconds: 200),
-          child: _mainColorName != null
-              ? _buildColorAdjustPanel()
-              : const SizedBox.shrink(),
-        ),
-
-        // ③ 탭바
-        Container(
-          height: 40,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
+        if (!_isGeneralApparelOrder)
+          AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            child: _mainColorName != null
+                ? _buildColorAdjustPanel()
+                : const SizedBox.shrink(),
           ),
-          child: TabBar(
-            controller: _colorTabCtrl,
-            indicator: BoxDecoration(
-              color: _purple,
-              borderRadius: BorderRadius.circular(9),
-              boxShadow: [
-                BoxShadow(
-                    color: _purple.withValues(alpha: 0.3),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2))
+
+        if (_isGeneralApparelOrder) ...[
+          _buildProductRegisteredColors(),
+        ] else ...[
+          // ③ 탭바
+          Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: TabBar(
+              controller: _colorTabCtrl,
+              indicator: BoxDecoration(
+                color: _purple,
+                borderRadius: BorderRadius.circular(9),
+                boxShadow: [
+                  BoxShadow(
+                      color: _purple.withValues(alpha: 0.3),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2))
+                ],
+              ),
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.black54,
+              labelStyle:
+                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+              unselectedLabelStyle:
+                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              dividerColor: Colors.transparent,
+              padding: const EdgeInsets.all(4),
+              tabs: [
+                Tab(text: context.loc.t('기성_19색', '기성 19색')),
+                Tab(text: context.loc.t('추가_색상', '추가 색상')),
+                Tab(text: context.loc.t('HEX_입력', 'HEX 입력')),
               ],
             ),
-            indicatorSize: TabBarIndicatorSize.tab,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.black54,
-            labelStyle:
-                const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-            unselectedLabelStyle:
-                const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-            dividerColor: Colors.transparent,
-            padding: const EdgeInsets.all(4),
-            tabs: [
-              Tab(text: context.loc.t('기성_19색', '기성 19색')),
-              Tab(text: context.loc.t('추가_색상', '추가 색상')),
-              Tab(text: context.loc.t('HEX_입력', 'HEX 입력')),
-            ],
           ),
-        ),
-        const SizedBox(height: 12),
+          const SizedBox(height: 12),
 
-        // ④ 탭 콘텐츠
-        SizedBox(
-          height: 320,
-          child: TabBarView(
-            controller: _colorTabCtrl,
-            children: [
-              _buildRegisteredColors(),
-              _buildExtendedColors(),
-              _buildHexInput(),
-            ],
+          // ④ 탭 콘텐츠
+          SizedBox(
+            height: 320,
+            child: TabBarView(
+              controller: _colorTabCtrl,
+              children: [
+                _buildRegisteredColors(),
+                _buildExtendedColors(),
+                _buildHexInput(),
+              ],
+            ),
           ),
-        ),
+        ],
       ]),
     );
+  }
+
+  /// 일반 의류 단체주문은 상품 등록 시 지정한 색상만 선택합니다.
+  Widget _buildProductRegisteredColors() {
+    final product = widget.product;
+    final names = product?.colors
+            .map((color) => color.trim())
+            .where((color) => color.isNotEmpty)
+            .toList() ??
+        const <String>[];
+    final options = names.map((name) {
+      final registered = AppColorPalette.registeredColors
+          .cast<Map<String, dynamic>?>()
+          .firstWhere(
+            (color) => color?['name'] == name,
+            orElse: () => null,
+          );
+      final hex = product?.colorHexes[name];
+      final color = registered?['hex'] is int
+          ? Color(registered!['hex'] as int)
+          : hex != null
+              ? Color(hex)
+              : Colors.grey.shade400;
+      return {'name': name, 'color': color};
+    }).toList();
+
+    if (options.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.amber.shade50,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.amber.shade200),
+        ),
+        child: const Text('상품에 등록된 색상 옵션이 없습니다. 관리자에서 색상을 먼저 등록해 주세요.',
+            style: TextStyle(fontSize: 11, color: Colors.brown)),
+      );
+    }
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('상품 등록 색상만 선택할 수 있습니다.',
+          style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+      const SizedBox(height: 8),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: options.map((option) {
+          final name = option['name'] as String;
+          final color = option['color'] as Color;
+          final selected = _mainColorName == name;
+          final light = color.computeLuminance() > 0.6;
+          return GestureDetector(
+            onTap: () => setState(() {
+              _mainColorName = name;
+              _mainColor = color;
+              _colorLightness =
+                  HSLColor.fromColor(color).lightness.clamp(0.05, 0.95);
+            }),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 130),
+              width: 72,
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 7),
+              decoration: BoxDecoration(
+                color: selected ? _purpleLight : Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                    color: selected ? _purple : Colors.grey.shade200,
+                    width: selected ? 2 : 1),
+              ),
+              child: Column(children: [
+                RibColorSwatch(
+                  color: color,
+                  size: 38,
+                  isSelected: selected,
+                  accentColor: _purple,
+                  isLight: light,
+                  borderRadius: 10,
+                  child: selected
+                      ? Icon(Icons.check_rounded,
+                          size: 18,
+                          color: light ? Colors.black87 : Colors.white)
+                      : null,
+                ),
+                const SizedBox(height: 4),
+                Text(name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: selected ? _purple : Colors.black54)),
+              ]),
+            ),
+          );
+        }).toList(),
+      ),
+    ]);
   }
 
   // ── 색상 선택 후 농도 조절 패널
