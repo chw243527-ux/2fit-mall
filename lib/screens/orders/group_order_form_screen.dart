@@ -266,7 +266,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       '로고 변경 (가슴) · 디자인 유지',
       '로고 변경 (가슴) + 소매 로고 변경',
       '로고 + 팀명 변경',
-      '로고 사이드 + 팀명 변경',
+      '로고변경 (전면) + 사이드로고변경 (소매) + 팀명추가',
     ];
     return _printType >= 0 && _printType < labels.length
         ? labels[_printType]
@@ -1879,8 +1879,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         },
         {
           'id': 3,
-          'title': '로고 사이드 + 팀명 변경',
-          'desc': '10장 이상 선택 가능 · 로고 사이드와 팀명 변경을 함께 요청합니다.',
+          'title': '로고변경 (전면) + 사이드로고변경 (소매) + 팀명추가',
+          'desc': '10장 이상 선택 가능 · 전면 로고, 소매 사이드로고, 팀명을 함께 요청합니다.',
           'badgeColor': const Color(0xFF6A1B9A),
           'condMin': 10,
           'condLabel': '10장↑',
