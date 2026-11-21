@@ -542,6 +542,119 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
     );
   }
 
+  Widget _buildOrderFlowSection() {
+    final steps = [
+      {
+        'icon': Icons.search_rounded,
+        'title': context.loc.t('상품_선택', '상품 선택'),
+        'desc': context.loc.t('원하는_상품과_카테고리_선택', '원하는 상품과 카테고리 선택')
+      },
+      {
+        'icon': Icons.tune_rounded,
+        'title': context.loc.t('옵션_선택', '옵션 선택'),
+        'desc': context.loc.t('사이즈_컬러_커스텀_옵션_선택', '사이즈, 컬러, 커스텀 옵션 선택')
+      },
+      {
+        'icon': Icons.assignment_rounded,
+        'title': context.loc.t('주문서_작성', '주문서 작성'),
+        'desc': context.loc.t('주문자_정보_및_배송지_입력', '주문자 정보 및 배송지 입력')
+      },
+      {
+        'icon': Icons.payment_rounded,
+        'title': context.loc.t('결제', '결제'),
+        'desc': context.loc.t('다양한_결제_수단_지원', '다양한 결제 수단 지원')
+      },
+      {
+        'icon': Icons.local_shipping_rounded,
+        'title': context.loc.t('제작_배송', '제작 & 배송'),
+        'desc': context.loc.t('커스텀_14_21일_소요', '커스텀 14~21일 소요')
+      },
+      {
+        'icon': Icons.check_circle_rounded,
+        'title': context.loc.t('수령', '수령'),
+        'desc': context.loc.t('배송_완료_후_검수', '배송 완료 후 검수')
+      },
+    ];
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      color: Colors.white,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Consumer<LanguageProvider>(
+              builder: (_, lp, __) => Text(lp.loc.orderProcessTitle,
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w800))),
+          const SizedBox(height: 16),
+          ...steps.asMap().entries.map((entry) {
+            final index = entry.key;
+            final step = entry.value;
+            return _buildStepItem(
+                index + 1,
+                step['icon'] as IconData,
+                step['title'] as String,
+                step['desc'] as String,
+                index < steps.length - 1);
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepItem(
+      int number, IconData icon, String title, String desc, bool hasLine) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  '$number',
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14),
+                ),
+              ),
+            ),
+            if (hasLine)
+              Container(
+                width: 2,
+                height: 30,
+                color: AppColors.border,
+              ),
+          ],
+        ),
+        const SizedBox(width: 14),
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w700)),
+              Text(desc,
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary)),
+              SizedBox(height: hasLine ? 28 : 8),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildPolicySection() {
     return Container(
       margin: const EdgeInsets.only(top: 12),
