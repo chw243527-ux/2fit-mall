@@ -6169,15 +6169,13 @@ class _HomeScreenState extends State<HomeScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 브랜드명
-          Text(
-            '2FIT MALL',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-              fontSize: r.sp(18),
-              letterSpacing: 1.5,
-            ),
+          // 브랜드 로고
+          Image.asset(
+            'assets/images/nextr_logo_white.png',
+            width: r.w(150),
+            height: r.h(32),
+            fit: BoxFit.contain,
+            alignment: Alignment.centerLeft,
           ),
           SizedBox(height: r.h(6)),
           Text(
@@ -6301,14 +6299,12 @@ class _HomeScreenState extends State<HomeScreen>
                         children: [
                           GestureDetector(
                             onTap: () => widget.onNavigate?.call(0),
-                            child: Text(
-                              '2FIT MALL',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w900,
-                                fontSize: r.sp(22),
-                                letterSpacing: 2,
-                              ),
+                            child: Image.asset(
+                              'assets/images/nextr_logo_white.png',
+                              width: r.w(190),
+                              height: r.h(40),
+                              fit: BoxFit.contain,
+                              alignment: Alignment.centerLeft,
                             ),
                           ),
                           SizedBox(height: r.h(10)),

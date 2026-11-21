@@ -545,7 +545,7 @@ class _SplashScreenState extends State<SplashScreen>
                             borderRadius:
                                 BorderRadius.circular(iconSize * 0.18),
                             child: Image.asset(
-                              'assets/images/app_icon.png',
+                              'assets/images/nextr_app_icon.png',
                               width: iconSize,
                               height: iconSize,
                               fit: BoxFit.contain,
@@ -596,7 +596,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                     const SizedBox(height: 14),
                     const Text(
-                      '2FIT MALL',
+                      'NEXTR',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
