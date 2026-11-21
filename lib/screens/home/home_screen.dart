@@ -6222,8 +6222,7 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               _footerLink(context.loc.t('상품 목록', '상품 목록'),
                   () => widget.onNavigate?.call(1)),
-              _footerLink(loc.footerGroupOrder,
-                  () => _openKakaoChannel()),
+              _footerLink(loc.footerGroupOrder, () => _openKakaoChannel()),
               _footerLink(context.loc.t('주문 현황', '주문 현황'),
                   () => widget.onNavigate?.call(3)),
               _footerLink(
@@ -6405,9 +6404,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   fontSize: r.sp(14))),
                           SizedBox(height: r.h(14)),
                           _footerLink(
-                              loc.footerGroupOrder,
-                              () =>
-                                  _openKakaoChannel()),
+                              loc.footerGroupOrder, () => _openKakaoChannel()),
                           _footerLink(context.loc.t('주문 현황 조회', '주문 현황 조회'),
                               () => widget.onNavigate?.call(3)),
                           _footerLink(context.loc.t('장바구니', '장바구니'),

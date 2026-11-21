@@ -6476,12 +6476,15 @@ class _AdditionalOrderSheetState extends State<_AdditionalOrderSheet> {
                 flex: 2,
                 child: ElevatedButton.icon(
                   onPressed: () async {
-                    final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
-                    final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
+                    final appUrl =
+                        Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
+                    final webUrl =
+                        Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
                     if (await canLaunchUrl(appUrl)) {
                       await launchUrl(appUrl);
                     } else if (await canLaunchUrl(webUrl)) {
-                      await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+                      await launchUrl(webUrl,
+                          mode: LaunchMode.externalApplication);
                     }
                   },
                   icon: const Icon(Icons.arrow_forward_rounded, size: 17),

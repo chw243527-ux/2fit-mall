@@ -9009,7 +9009,8 @@ $productUrl
                   width: double.infinity,
                   height: 50,
                   child: OutlinedButton.icon(
-                    icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                    icon:
+                        const Icon(Icons.chat_bubble_outline_rounded, size: 18),
                     label: Text(
                       '카카오채널 문의하기',
                       style: TextStyle(

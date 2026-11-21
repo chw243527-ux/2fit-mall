@@ -1499,14 +1499,17 @@ class _PcFooter extends StatelessWidget {
                       loc.footerOrderService,
                       [
                         _FooterLink(loc.footerKakaoChannel, () async {
-                            final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
-                            final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
-                            if (await canLaunchUrl(appUrl)) {
-                              await launchUrl(appUrl);
-                            } else if (await canLaunchUrl(webUrl)) {
-                              await launchUrl(webUrl, mode: LaunchMode.externalApplication);
-                            }
-                          }),
+                          final appUrl = Uri.parse(
+                              'kakaoplus://plusfriend/home/@2fit-mall');
+                          final webUrl =
+                              Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
+                          if (await canLaunchUrl(appUrl)) {
+                            await launchUrl(appUrl);
+                          } else if (await canLaunchUrl(webUrl)) {
+                            await launchUrl(webUrl,
+                                mode: LaunchMode.externalApplication);
+                          }
+                        }),
                         _FooterLink(
                             loc.footerOrderStatus, () => onTabChanged?.call(3)),
                         _FooterLink(loc.navCart, () => onTabChanged?.call(2)),

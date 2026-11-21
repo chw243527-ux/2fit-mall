@@ -538,7 +538,8 @@ class CartScreen extends StatelessWidget {
     return type == 'group' || type == 'additional';
   }
 
-  Future<void> _openGroupOrderOptions(BuildContext context, CartItem item) async {
+  Future<void> _openGroupOrderOptions(
+      BuildContext context, CartItem item) async {
     final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
     final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
     if (await canLaunchUrl(appUrl)) {
