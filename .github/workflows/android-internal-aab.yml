@@ -1,6 +1,9 @@
 name: Android Internal Test AAB
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       build_name:

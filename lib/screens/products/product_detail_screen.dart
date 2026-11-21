@@ -2173,12 +2173,12 @@ $productUrl
           padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(14)),
           child: Row(
             children: [
-              // 브랜드 로고 — logo_2fit_text.png 이미지
+              // 브랜드 로고 — NEXTR 이미지
               SizedBox(
                 width: 90,
                 height: 40,
                 child: Image.asset(
-                  'assets/images/logo_2fit_text.png',
+                  'assets/images/nextr_logo.png',
                   fit: BoxFit.contain,
                   alignment: Alignment.centerLeft,
                 ),

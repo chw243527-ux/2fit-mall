@@ -662,7 +662,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   SizedBox(
                     height: 36,
                     child: Image.asset(
-                      'assets/images/logo_2fit.png',
+                      'assets/images/nextr_logo.png',
                       fit: BoxFit.contain,
                     ),
                   ),

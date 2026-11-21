@@ -1018,7 +1018,7 @@ class _PcTopBarState extends State<_PcTopBar> {
                           child: SizedBox(
                             height: 44,
                             child: Image.asset(
-                              'assets/images/logo_2fit.png',
+                              'assets/images/nextr_logo.png',
                               fit: BoxFit.contain,
                             ),
                           ),

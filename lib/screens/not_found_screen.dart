@@ -149,27 +149,17 @@ class NotFoundScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 28,
+                    SizedBox(
+                      width: 56,
                       height: 28,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          '2F',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
+                      child: Image.asset(
+                        'assets/images/nextr_logo.png',
+                        fit: BoxFit.contain,
                       ),
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '2FIT MALL',
+                      'NEXTR',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,

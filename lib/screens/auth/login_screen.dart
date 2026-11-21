@@ -270,7 +270,7 @@ class _LoginScreenState extends State<LoginScreen>
                           child: Column(
                             children: [
                               Image.asset(
-                                'assets/images/2fit_logo.png',
+                                'assets/images/nextr_logo.png',
                                 width: r.value(mobile: 180.0, tablet: 200.0),
                                 height: r.value(mobile: 72.0, tablet: 80.0),
                                 fit: BoxFit.contain,
@@ -526,7 +526,7 @@ class _LoginScreenState extends State<LoginScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Image.asset(
-                        'assets/images/logo_2fit_white.png',
+                        'assets/images/nextr_logo_white.png',
                         width: 180,
                         height: 70,
                         fit: BoxFit.contain,

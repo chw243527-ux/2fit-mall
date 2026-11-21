@@ -1501,7 +1501,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   _buildAllMembersNotice(),
                   if (_showPrintTypeSection) _buildPrintTypeSection(),
                   if (!_isBottomOnly && !_isGeneralApparelOrder)
-                    _build2FitLogoBanner(),
+                    _buildNextrLogoBanner(),
                   if (widget.product != null) _buildProductCard(),
                   if (!_isBottomOnly && _showFabricOption)
                     _buildFabricSection(),
@@ -1895,7 +1895,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         'id': 0,
         'title': context.loc.t('디자인_유지_색상_변경', '디자인 유지 + 색상 변경'),
         'desc': context.loc.t('2FIT_로고_적용_전면_색상_변경_단체명_인쇄_없음',
-            '2FIT 로고 적용(전면) + 색상 변경 (단체명 인쇄 없음)'),
+            'NEXTR 로고 적용(전면) + 색상 변경 (단체명 인쇄 없음)'),
         'badgeColor': AppColors.info,
         'condMin': 5,
         'condLabel': context.loc.t('5명', '5명↑'),
@@ -2089,9 +2089,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   }
 
   // ══════════════════════════════════════════════
-  // 2FIT 로고 안내 배너 (단체명 미선택 시)
+  // NEXTR 로고 안내 배너 (단체명 미선택 시)
   // ══════════════════════════════════════════════
-  Widget _build2FitLogoBanner() {
+  Widget _buildNextrLogoBanner() {
     if (_hasTeamName) return const SizedBox.shrink(); // 단체명 있으면 숨김
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -2115,14 +2115,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               color: Colors.white.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Center(
-              child: Text('2F',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: -0.5,
-                  )),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+              child: Image.asset(
+                'assets/images/nextr_logo_white.png',
+                fit: BoxFit.contain,
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -2130,15 +2128,15 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(context.loc.t('2FIT_로고_자동_적용', '2FIT 로고 자동 적용'),
+                Text(context.loc.t('NEXTR_로고_자동_적용', 'NEXTR 로고 자동 적용'),
                     style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: Colors.white)),
                 const SizedBox(height: 3),
                 Text(
-                    context.loc.t('단체명_변경을_선택하지_않으_ff5e92',
-                        '단체명 변경을 선택하지 않으면 전면에 2FIT 로고가 기본 적용됩니다.'),
+                    context.loc.t('단체명_변경을_선택하지_않으_NEXTR',
+                        '단체명 변경을 선택하지 않으면 전면에 NEXTR 로고가 기본 적용됩니다.'),
                     style: TextStyle(
                         fontSize: 11,
                         color: Colors.white.withValues(alpha: 0.7),

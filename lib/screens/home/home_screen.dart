@@ -1162,7 +1162,7 @@ class _HomeScreenState extends State<HomeScreen>
                     child: SizedBox(
                       height: 28,
                       child: Image.asset(
-                        'assets/images/2fit_logo.png',
+                        'assets/images/nextr_logo.png',
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -1771,7 +1771,7 @@ class _HomeScreenState extends State<HomeScreen>
                           child: SizedBox(
                             height: 28,
                             child: Image.asset(
-                              'assets/images/logo_2fit_white.png',
+                              'assets/images/nextr_logo_white.png',
                               fit: BoxFit.contain,
                             ),
                           ),
@@ -3225,7 +3225,7 @@ class _HomeScreenState extends State<HomeScreen>
               onTap: () => widget.onNavigate?.call(0),
               child: Center(
                 child: Image.asset(
-                  'assets/images/logo_2fit.png',
+                  'assets/images/nextr_logo.png',
                   height: 26,
                   fit: BoxFit.contain,
                 ),
@@ -3778,7 +3778,7 @@ class _HomeScreenState extends State<HomeScreen>
                   onTap: () => widget.onNavigate?.call(0),
                   child: Center(
                     child: Image.asset(
-                      'assets/images/logo_2fit_white.png',
+                      'assets/images/nextr_logo_white.png',
                       height: 30,
                       fit: BoxFit.contain,
                       color: Colors.white,
@@ -7123,7 +7123,7 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                     onTap: onLogoTap,
                     child: Center(
                       child: Image.asset(
-                        'assets/images/logo_2fit_white.png',
+                        'assets/images/nextr_logo_white.png',
                         height: 30,
                         fit: BoxFit.contain,
                         color: Colors.white,
