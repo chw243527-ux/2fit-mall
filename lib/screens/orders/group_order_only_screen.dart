@@ -30,7 +30,6 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
   List<String> _tabs = [];
   bool _isGridView = true;
   List<ProductModel> _eligibleProducts = [];
-  GroupOrderPolicy _policy = const GroupOrderPolicy();
 
   // 카테고리 메타 (아이콘 + 색상)
   static const Map<String, Map<String, dynamic>> _catMeta = {
@@ -78,7 +77,6 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     );
     if (!mounted) return;
     setState(() {
-      _policy = policy;
       _eligibleProducts = products;
       _tabs = [
         '전체',
