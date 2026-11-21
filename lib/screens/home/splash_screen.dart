@@ -16,8 +16,6 @@ import '../products/category_by_name_screen.dart';
 import '../policy/terms_of_service_screen.dart';
 import '../policy/privacy_policy_screen.dart';
 import '../policy/account_deletion_screen.dart';
-import '../orders/group_order_landing_screen.dart';
-import '../orders/group_order_form_screen.dart';
 import '../orders/group_order_only_screen.dart';
 import '../orders/order_guide_screen.dart';
 import '../mypage/size_profile_screen.dart';
@@ -369,10 +367,9 @@ class _SplashScreenState extends State<SplashScreen>
           break;
         case '/group-order':
         case '/group-guide':
-          target = const GroupOrderLandingScreen();
-          break;
         case '/group-form':
-          target = const GroupOrderFormScreen(initialCount: 5);
+          // 기존 고객용 안내/주문서 링크는 단체주문 상품 목록으로 전환합니다.
+          target = const GroupOrderOnlyScreen();
           break;
         case '/group-only':
           target = const GroupOrderOnlyScreen();

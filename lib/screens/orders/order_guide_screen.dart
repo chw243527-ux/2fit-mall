@@ -1,10 +1,9 @@
 import 'package:provider/provider.dart';
 import '../../utils/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../utils/theme.dart';
 import '../../providers/providers.dart';
-import 'group_order_landing_screen.dart';
-import 'group_order_form_screen.dart';
 import '../../widgets/pc_layout.dart';
 import '../../utils/navigation_helper.dart';
 import '../chat/chat_screen.dart';
@@ -19,8 +18,16 @@ class OrderGuideScreen extends StatefulWidget {
 class _OrderGuideScreenState extends State<OrderGuideScreen> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
 
-  // PC 주문안내 확인 체크박스
-  bool _guideChecked = false;
+  Future<void> _openKakaoChannel() async {
+    final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
+    final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
+    if (await canLaunchUrl(appUrl)) {
+      await launchUrl(appUrl);
+    } else if (await canLaunchUrl(webUrl)) {
+      await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isPcWeb(context)) return _buildPcLayout(context);
@@ -41,7 +48,6 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               children: [
                 _buildOrderTypeCards(context),
                 _buildOrderFlowSection(),
-                _buildOrderFormSection(context),
                 _buildPolicySection(),
                 _buildShippingSection(),
                 _buildFAQSection(),
@@ -89,7 +95,6 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                           children: [
                             _buildOrderTypeCards(context),
                             _buildOrderFlowSection(),
-                            _buildOrderFormSection(context),
                             _buildPolicySection(),
                             _buildShippingSection(),
                             _buildFAQSection(),
@@ -138,7 +143,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               const SizedBox(height: 10),
               Consumer<LanguageProvider>(
                   builder: (_, lp, __) => Text(
-                      context.loc.t('단체주문방법', '단체주문방법'),
+                      context.loc.t('단체주문_상담', '단체주문 상담'),
                       style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -164,7 +169,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                 child: Text(
                   context.loc.t(
                     '단체주문_안내_요약',
-                    '5명 이상 주문 시 단체 맞춤 제작이 가능합니다. 상품과 수량을 정한 뒤 디자인, 컬러, 로고 및 마킹을 상담하고 최종 견적과 제작 일정을 안내해드립니다. 자세한 내용은 아래 단체주문 안내에서 확인해 주세요.',
+                    '5명 이상 주문 시 단체 맞춤 제작이 가능합니다. 상품과 수량을 정한 뒤 디자인, 컬러, 로고 및 마킹을 상담하고 최종 견적과 제작 일정을 안내해드립니다. 자세한 내용은 카카오채널에서 상담해 주세요.',
                   ),
                   style: const TextStyle(
                     color: Colors.white,
@@ -318,35 +323,44 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                 const TextStyle(fontSize: 12, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 16),
-          // 단체 커스텀
-          _buildOrderTypeCardWithButtons(
-            context,
-            icon: Icons.groups_rounded,
-            title: loc.orderGuideGroupTitle,
-            subtitle: loc.orderGuideGroupSub,
-            description: loc.orderGuideGroupDesc,
-            color: AppColors.accent,
-            badges: [
-              loc.orderGuideGroupBadge1,
-              loc.orderGuideGroupBadge2,
-              loc.orderGuideGroupBadge3
-            ],
-            onGuide: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => const GroupOrderLandingScreen())),
-            onForm: _guideChecked
-                ? () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) =>
-                            const GroupOrderFormScreen(initialCount: 5)))
-                : null,
-            guideChecked: _guideChecked,
-            onGuideCheckChanged: (v) => setState(() => _guideChecked = v),
+          // 단체주문은 고객용 주문서 대신 카카오채널에서 상담합니다.
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceGray,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.groups_rounded, color: AppColors.primary),
+                    const SizedBox(width: 8),
+                    Text('단체주문 상담',
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w800)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Text('상품·수량·디자인을 카카오채널에서 상담해 주세요.',
+                    style: TextStyle(
+                        fontSize: 13, color: AppColors.textSecondary)),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _openKakaoChannel,
+                    icon: const Icon(Icons.chat_bubble_outline_rounded),
+                    label: const Text('카카오채널 문의하기'),
+                  ),
+                ),
+              ],
+            ),
           ),
 
-          const SizedBox(height: 12),
           // 추가구매 안내 카드
           _buildAdditionalOrderCard(context),
         ],
@@ -753,136 +767,6 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildOrderFormSection(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      color: Colors.white,
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Consumer<LanguageProvider>(
-              builder: (_, lp, __) => Text(lp.loc.orderFormTitle,
-                  style: const TextStyle(
-                      fontSize: 17, fontWeight: FontWeight.w800))),
-          const SizedBox(height: 12),
-          _buildFormCard(
-            context.loc.t('단체_주문서', '단체 주문서'),
-            Icons.groups_outlined,
-            AppColors.accent,
-            _groupOrderFields,
-            context,
-            'group',
-          ),
-        ],
-      ),
-    );
-  }
-
-  final List<Map<String, String>> _groupOrderFields = [
-    {'field': '팀/단체명', 'example': '○○ 클럽'},
-    {'field': '담당자명', 'example': '홍길동'},
-    {'field': '담당자 연락처', 'example': '010-0000-0000'},
-    {'field': '총 인원', 'example': '10명'},
-    {'field': '상품명', 'example': '2FIT 롱 레깅스'},
-    {'field': '공통 컬러', 'example': 'Black'},
-    {'field': '개인 사이즈 목록', 'example': 'M×3, L×5, XL×2'},
-    {'field': '팀 로고 인쇄', 'example': '있음 (파일 별도 첨부)'},
-    {'field': '이름/번호 인쇄', 'example': '별도 명단 첨부'},
-    {'field': '배송 주소', 'example': '서울시 강남구 역삼동 000-00'},
-  ];
-
-  Widget _buildFormCard(
-      String title,
-      IconData icon,
-      Color color,
-      List<Map<String, String>> fields,
-      BuildContext context,
-      String orderType) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(13)),
-            ),
-            child: Row(
-              children: [
-                Icon(icon, color: Colors.white, size: 22),
-                const SizedBox(width: 10),
-                Text(title,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800)),
-                const Spacer(),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const GroupOrderLandingScreen()));
-                  },
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.white.withValues(alpha: 0.2),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  ),
-                  child: Consumer<LanguageProvider>(
-                      builder: (_, lp, __) => Text(lp.loc.orderGuideTitle,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700))),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Table(
-              columnWidths: const {
-                0: FixedColumnWidth(100),
-                1: FlexColumnWidth(),
-              },
-              children: fields
-                  .map((f) => TableRow(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 5),
-                            child: Text(
-                                context.loc.t(
-                                    'order_field_${f['field']!.replaceAll(' ', '_').replaceAll('/', '_')}',
-                                    f['field']!),
-                                style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textSecondary)),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 5),
-                            child: Text(f['example']!,
-                                style: const TextStyle(
-                                    fontSize: 13,
-                                    color: AppColors.textPrimary)),
-                          ),
-                        ],
-                      ))
-                  .toList(),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

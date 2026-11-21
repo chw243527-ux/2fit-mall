@@ -4,7 +4,6 @@ import '../../utils/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../providers/providers.dart';
 import '../screens/products/category_detail_screen.dart';
-import '../screens/orders/group_order_landing_screen.dart';
 import '../screens/chat/chat_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/admin/admin_screen.dart';
@@ -193,18 +192,6 @@ class _AppDrawerState extends State<AppDrawer> {
                     ),
                 _nikeRule(),
                 _sectionLabel('ORDERS'),
-                _buildMenuTile(
-                  context,
-                  icon: Icons.edit_note_rounded,
-                  label: loc.t('단체주문방법', '단체주문방법'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const GroupOrderLandingScreen()));
-                  },
-                ),
                 _buildMenuTile(
                   context,
                   icon: Icons.assignment_rounded,

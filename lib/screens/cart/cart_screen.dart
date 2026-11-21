@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import '../../utils/theme.dart';
@@ -10,7 +11,6 @@ import '../../services/order_service.dart';
 import '../../services/secure_checkout_service.dart';
 import '../../widgets/pc_layout.dart';
 import '../main_screen.dart';
-import '../orders/group_order_form_screen.dart';
 import '../../utils/responsive.dart';
 
 class CartScreen extends StatelessWidget {
@@ -443,7 +443,7 @@ class CartScreen extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: () => _openGroupOrderOptions(context, item),
                         icon: const Icon(Icons.tune_rounded, size: 16),
-                        label: const Text('옵션 확인'),
+                        label: const Text('카카오채널 문의'),
                         style: OutlinedButton.styleFrom(
                           visualDensity: VisualDensity.compact,
                           padding: const EdgeInsets.symmetric(
@@ -538,22 +538,14 @@ class CartScreen extends StatelessWidget {
     return type == 'group' || type == 'additional';
   }
 
-  void _openGroupOrderOptions(BuildContext context, CartItem item) {
-    final options = item.customOptions ?? const <String, dynamic>{};
-    final rawPrintType = options['printType'];
-    final printType = rawPrintType is num ? rawPrintType.toInt() : 0;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => GroupOrderFormScreen(
-          product: item.product,
-          isAdditionalOrder: options['orderType'] == 'additional',
-          initialPrintType: printType,
-          initialCount: item.quantity,
-          initialCartOptions: item.customOptions,
-        ),
-      ),
-    );
+  Future<void> _openGroupOrderOptions(BuildContext context, CartItem item) async {
+    final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
+    final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
+    if (await canLaunchUrl(appUrl)) {
+      await launchUrl(appUrl);
+    } else if (await canLaunchUrl(webUrl)) {
+      await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+    }
   }
 
   Widget _buildQtyControl(CartProvider cart, CartItem item) {

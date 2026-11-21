@@ -25,7 +25,6 @@ import '../../widgets/design_revision_countdown.dart';
 import '../products/product_detail_screen.dart';
 import '../admin/admin_screen.dart';
 import '../auth/login_screen.dart';
-import '../orders/group_order_form_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../widgets/pc_layout.dart';
 import '../../services/order_service.dart';
@@ -6476,21 +6475,17 @@ class _AdditionalOrderSheetState extends State<_AdditionalOrderSheet> {
               Expanded(
                 flex: 2,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => GroupOrderFormScreen(
-                            product: null,
-                            isAdditionalOrder: true,
-                            originalOrder: widget.order,
-                            initialCount: _quantity,
-                          ),
-                        ));
+                  onPressed: () async {
+                    final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
+                    final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
+                    if (await canLaunchUrl(appUrl)) {
+                      await launchUrl(appUrl);
+                    } else if (await canLaunchUrl(webUrl)) {
+                      await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+                    }
                   },
                   icon: const Icon(Icons.arrow_forward_rounded, size: 17),
-                  label: Text(_loc.writeAdditionalOrder,
+                  label: const Text('카카오채널 문의하기',
                       style: const TextStyle(fontWeight: FontWeight.w800)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF795548),

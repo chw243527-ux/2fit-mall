@@ -2,18 +2,17 @@ import '../../utils/theme.dart';
 // group_order_only_screen.dart
 // 단체주문 전용 상품 목록 — 카테고리 탭 + 그리드 뷰
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
 import '../../services/product_service.dart';
 import '../../services/group_order_policy_service.dart';
-import 'group_order_form_screen.dart';
 import '../../utils/app_localizations.dart';
 import '../../models/models.dart';
 import '../../widgets/pc_layout.dart';
 import '../../widgets/product_card.dart';
 import '../../utils/navigation_helper.dart';
-import 'group_order_landing_screen.dart';
 import '../products/product_detail_screen.dart';
 
 class GroupOrderOnlyScreen extends StatefulWidget {
@@ -217,14 +216,12 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                   ),
                   onPressed: () => setState(() => _isGridView = !_isGridView),
                 ),
-                // 단체주문 안내 버튼
-                TextButton(
-                  onPressed: _goToLanding,
-                  child: Text(context.loc.t('주문안내', '주문안내'),
-                      style: const TextStyle(
-                          color: AppColors.accent,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800)),
+                // 고객용 안내·주문서 대신 카카오채널 문의
+                IconButton(
+                  tooltip: '카카오채널 문의하기',
+                  onPressed: _openKakaoChannel,
+                  icon: const Icon(Icons.chat_bubble_outline_rounded,
+                      color: AppColors.accent, size: 21),
                 ),
               ],
               flexibleSpace: FlexibleSpaceBar(
@@ -259,7 +256,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
             }).toList(),
           ),
         ),
-        // 하단 단체주문서 작성 버튼
+        // 하단 고객 문의 버튼
         bottomNavigationBar: _buildBottomCta(),
       ),
     );
@@ -301,13 +298,13 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
               onPressed: () => setState(() => _isGridView = !_isGridView),
             ),
             const SizedBox(width: 8),
-            // 단체주문 안내 버튼
+            // 고객용 안내·주문서 대신 카카오채널 문의
             Padding(
               padding: const EdgeInsets.only(right: 16),
               child: OutlinedButton.icon(
-                onPressed: _goToLanding,
-                icon: const Icon(Icons.info_outline_rounded, size: 16),
-                label: Text(context.loc.t('단체주문_안내', '단체주문 안내'),
+                onPressed: _openKakaoChannel,
+                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
+                label: const Text('카카오채널 문의',
                     style: const TextStyle(
                         fontSize: 13, fontWeight: FontWeight.w700)),
                 style: OutlinedButton.styleFrom(
@@ -637,15 +634,15 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                       color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               Text(
-                  context.loc
-                      .t('단체주문_문의는_주문안내를__1ea171', '단체주문 문의는 주문안내를 확인해주세요.'),
+                  context.loc.t('단체주문_문의는_카카오채널로',
+                      '단체주문 문의는 카카오채널로 남겨주세요.'),
                   style: const TextStyle(
                       fontSize: 13, color: AppColors.textSecondary)),
               const SizedBox(height: 20),
               OutlinedButton.icon(
-                onPressed: _goToLanding,
+                onPressed: _openKakaoChannel,
                 icon: const Icon(Icons.chat_rounded, size: 16),
-                label: Text(context.loc.t('단체주문_안내_보기', '단체주문 안내 보기')),
+                label: const Text('카카오채널 문의하기'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.info,
                   side: const BorderSide(color: AppColors.info),
@@ -876,10 +873,10 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => widget.eligibleOnly
-                  ? GroupOrderFormScreen(
-                      product: list[i], initialCount: _policy.minimumQuantity)
-                  : GroupOrderLandingScreen(product: list[i]),
+              builder: (_) => ProductDetailScreen(
+                product: list[i],
+                groupOrderContext: true,
+              ),
             ),
           ),
         ),
@@ -949,9 +946,9 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
         width: double.infinity,
         height: 50,
         child: ElevatedButton.icon(
-          onPressed: _goToLanding,
-          icon: const Icon(Icons.edit_note_rounded, size: 20),
-          label: Text(context.loc.t('단체주문서_작성하기', '단체주문서 작성하기'),
+          onPressed: _openKakaoChannel,
+          icon: const Icon(Icons.chat_bubble_outline_rounded, size: 20),
+          label: const Text('카카오채널 문의하기',
               style:
                   const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
           style: ElevatedButton.styleFrom(
@@ -977,8 +974,14 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     return groupOnly.where((p) => p.subCategory == tab).toList();
   }
 
-  void _goToLanding() {
-    Navigator.pushNamed(context, '/group-order');
+  Future<void> _openKakaoChannel() async {
+    final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
+    final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
+    if (await canLaunchUrl(appUrl)) {
+      await launchUrl(appUrl);
+    } else if (await canLaunchUrl(webUrl)) {
+      await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+    }
   }
 
   Widget _gridBadge(String label, Color color) {

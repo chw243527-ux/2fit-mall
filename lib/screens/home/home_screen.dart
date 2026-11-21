@@ -3723,7 +3723,7 @@ class _HomeScreenState extends State<HomeScreen>
                   builder: (_) => const GroupOrderOnlyScreen(),
                 )),
             icon: const Icon(Icons.info_outline_rounded, size: 15),
-            label: Text(context.loc.t('단체주문 안내 보기', '단체주문 안내 보기')),
+            label: Text(context.loc.t('단체주문 상품 보기', '단체주문 상품 보기')),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.primary,
               side: const BorderSide(color: AppColors.primary),
@@ -6223,7 +6223,7 @@ class _HomeScreenState extends State<HomeScreen>
               _footerLink(context.loc.t('상품 목록', '상품 목록'),
                   () => widget.onNavigate?.call(1)),
               _footerLink(loc.footerGroupOrder,
-                  () => Navigator.pushNamed(context, '/group-guide')),
+                  () => _openKakaoChannel()),
               _footerLink(context.loc.t('주문 현황', '주문 현황'),
                   () => widget.onNavigate?.call(3)),
               _footerLink(
@@ -6407,7 +6407,7 @@ class _HomeScreenState extends State<HomeScreen>
                           _footerLink(
                               loc.footerGroupOrder,
                               () =>
-                                  Navigator.pushNamed(context, '/group-guide')),
+                                  _openKakaoChannel()),
                           _footerLink(context.loc.t('주문 현황 조회', '주문 현황 조회'),
                               () => widget.onNavigate?.call(3)),
                           _footerLink(context.loc.t('장바구니', '장바구니'),
