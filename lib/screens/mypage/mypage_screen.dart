@@ -6489,7 +6489,7 @@ class _AdditionalOrderSheetState extends State<_AdditionalOrderSheet> {
                   },
                   icon: const Icon(Icons.arrow_forward_rounded, size: 17),
                   label: const Text('카카오채널 문의하기',
-                      style: const TextStyle(fontWeight: FontWeight.w800)),
+                      style: TextStyle(fontWeight: FontWeight.w800)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF795548),
                     foregroundColor: Colors.white,

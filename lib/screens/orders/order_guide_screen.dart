@@ -335,12 +335,12 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   children: [
-                    const Icon(Icons.groups_rounded, color: AppColors.primary),
-                    const SizedBox(width: 8),
+                    Icon(Icons.groups_rounded, color: AppColors.primary),
+                    SizedBox(width: 8),
                     Text('단체주문 상담',
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w800)),
                   ],
                 ),
@@ -552,8 +552,6 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
     required List<String> badges,
     required VoidCallback onGuide,
     required VoidCallback? onForm,
-    bool guideChecked = false,
-    void Function(bool)? onGuideCheckChanged,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),

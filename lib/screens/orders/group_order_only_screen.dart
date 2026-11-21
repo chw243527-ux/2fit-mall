@@ -305,8 +305,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                 onPressed: _openKakaoChannel,
                 icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
                 label: const Text('카카오채널 문의',
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700)),
+                    style:
+                        TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   side: const BorderSide(color: AppColors.border),
@@ -947,8 +947,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
           onPressed: _openKakaoChannel,
           icon: const Icon(Icons.chat_bubble_outline_rounded, size: 20),
           label: const Text('카카오채널 문의하기',
-              style:
-                  const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
