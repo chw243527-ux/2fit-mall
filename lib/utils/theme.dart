@@ -64,8 +64,9 @@ class AppColors {
 }
 
 class AppTheme {
-  // 쇼핑몰 전체 폰트패밀리 상수 (브랜드·한글·영문 공통)
-  static const String fontFamily = 'NotoSansKR';
+  // 쇼핑몰 전체 본문 폰트와 영문 브랜드 폰트
+  static const String fontFamily = 'SUIT';
+  static const String brandFontFamily = 'SpaceGrotesk';
 
   // ── 반응형 TextTheme ────────────────────────────────────────
   // 기기 너비에 따라 폰트 크기가 자동 조정됩니다.

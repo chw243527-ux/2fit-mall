@@ -534,6 +534,7 @@ class _LoginScreenState extends State<LoginScreen>
                       const SizedBox(height: 24),
                       const Text('NEXTR',
                           style: TextStyle(
+                              fontFamily: AppTheme.brandFontFamily,
                               fontSize: 28,
                               fontWeight: FontWeight.w900,
                               color: Colors.white,

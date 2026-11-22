@@ -2204,6 +2204,7 @@ $productUrl
                     Text(
                       'NEXTR PERFORMANCE',
                       style: TextStyle(
+                        fontFamily: AppTheme.brandFontFamily,
                         fontSize: r.sp(14),
                         fontWeight: FontWeight.w800,
                         color: AppColors.primary,
