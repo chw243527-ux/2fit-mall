@@ -65,7 +65,7 @@ class AppColors {
 
 class AppTheme {
   // 쇼핑몰 전체 본문 폰트와 영문 브랜드 폰트
-  static const String fontFamily = 'SUIT';
+  static const String fontFamily = 'Pretendard';
   static const String brandFontFamily = 'SpaceGrotesk';
 
   // ── 반응형 TextTheme ────────────────────────────────────────
