@@ -11,6 +11,7 @@ import '../services/order_service.dart';
 import '../services/email_service.dart';
 import '../services/wishlist_coupon_service.dart';
 import '../services/product_service.dart';
+import '../services/category_service.dart';
 import '../services/review_service.dart';
 import '../services/translation_service.dart';
 import '../services/size_profile_service.dart';
@@ -1494,7 +1495,17 @@ class ProductProvider extends ChangeNotifier {
   /// 판매 수 집계 로드 완료 여부
   bool _salesCountsLoaded = false;
 
-  List<ProductModel> get products => _products;
+  /// 카테고리 숨김 상태가 바뀐 뒤에도 이미 로드된 캐시가 고객 화면에
+  /// 남지 않도록 getter 단계에서 한 번 더 공개 여부를 확인합니다.
+  List<ProductModel> get products => _products
+      .where((p) =>
+          p.isActive &&
+          CategoryService.isCategoryPathVisible(
+            p.category,
+            p.middleCategory,
+            p.subCategory,
+          ))
+      .toList();
 
   /// 카테고리 화면에서 교차 이동할 때 사용할 전체 활성 상품 원본입니다.
   /// [products]는 현재 선택 카테고리로 이미 필터된 목록일 수 있습니다.
@@ -1505,7 +1516,15 @@ class ProductProvider extends ChangeNotifier {
   List<ProductModel> get adminProducts => _adminProducts;
 
   /// 단체주문 전용 상품 목록 (isGroupOnly=true, isActive=true)
-  List<ProductModel> get groupOnlyProducts => _groupOnlyProducts;
+  List<ProductModel> get groupOnlyProducts => _groupOnlyProducts
+      .where((p) =>
+          p.isActive &&
+          CategoryService.isCategoryPathVisible(
+            p.category,
+            p.middleCategory,
+            p.subCategory,
+          ))
+      .toList();
   bool get isLoading => _isLoading;
   bool get isAdminLoading => _isAdminLoading;
   bool get isGroupOnlyLoading => _isGroupOnlyLoading;
