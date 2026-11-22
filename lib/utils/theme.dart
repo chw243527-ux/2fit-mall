@@ -64,8 +64,8 @@ class AppColors {
 }
 
 class AppTheme {
-  // 쇼핑몰 전체 폰트패밀리 상수 (Pretendard Variable)
-  static const String fontFamily = 'Pretendard Variable';
+  // 쇼핑몰 전체 폰트패밀리 상수 (브랜드·한글·영문 공통)
+  static const String fontFamily = 'NotoSansKR';
 
   // ── 반응형 TextTheme ────────────────────────────────────────
   // 기기 너비에 따라 폰트 크기가 자동 조정됩니다.
@@ -135,7 +135,7 @@ class AppTheme {
         centerTitle: true,
         shadowColor: Color(0x14000000),
         titleTextStyle: TextStyle(
-          fontFamily: 'Pretendard Variable',
+          fontFamily: fontFamily,
           color: AppColors.textPrimary,
           fontSize: 16,
           fontWeight: FontWeight.w400,
@@ -169,7 +169,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(12),
           ),
           textStyle: const TextStyle(
-            fontFamily: 'Pretendard Variable',
+            fontFamily: fontFamily,
             fontSize: 15,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.2,
@@ -187,7 +187,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(12),
           ),
           textStyle: const TextStyle(
-            fontFamily: 'Pretendard Variable',
+            fontFamily: fontFamily,
             fontSize: 15,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.2,
@@ -200,7 +200,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
           textStyle: const TextStyle(
-            fontFamily: 'Pretendard Variable',
+            fontFamily: fontFamily,
             fontSize: 13,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.1,
@@ -256,13 +256,13 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 0,
         selectedLabelStyle: TextStyle(
-          fontFamily: 'Pretendard Variable',
+          fontFamily: fontFamily,
           fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.2,
         ),
         unselectedLabelStyle: TextStyle(
-          fontFamily: 'Pretendard Variable',
+          fontFamily: fontFamily,
           fontSize: 11,
           fontWeight: FontWeight.w400,
           letterSpacing: -0.1,
