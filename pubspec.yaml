@@ -84,9 +84,6 @@ flutter:
     - family: NotoSansKR
       fonts:
         - asset: assets/fonts/NotoSansKR.ttf
-    - family: Pretendard
-      fonts:
-        - asset: assets/fonts/Pretendard-Variable.ttf
     - family: SpaceGrotesk
       fonts:
         - asset: assets/fonts/SpaceGrotesk-Variable.ttf
