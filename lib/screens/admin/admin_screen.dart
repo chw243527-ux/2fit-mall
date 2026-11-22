@@ -8126,6 +8126,16 @@ class _AdminScreenState extends State<AdminScreen>
     // 검색 + 카테고리 필터 적용
     final bottomSubCats = ['타이즈', '남성 5부', '여성 2.5부', '트레이닝바지', '숏츠'];
     bool matchesCategory(p, String filter) {
+      if (filter == '숨김 카테고리') {
+        // 분류가 비어 있는 상품은 미분류 상품이므로 숨김 카테고리로
+        // 잘못 집계하지 않습니다.
+        return p.category.trim().isNotEmpty &&
+            !CategoryService.isCategoryPathVisible(
+              p.category,
+              p.middleCategory,
+              p.subCategory,
+            );
+      }
       if (filter == '전체') return true;
       if (p.category == filter) return true;
       // 하의 탭: category가 '단체주문'으로 저장됐어도 하의 서브카테고리면 포함
@@ -8239,7 +8249,17 @@ class _AdminScreenState extends State<AdminScreen>
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: ['전체', '상의', '하의', '세트', '아우터', '스킨슈트', '악세사리', '이벤트']
+              children: [
+                '전체',
+                '숨김 카테고리',
+                '상의',
+                '하의',
+                '세트',
+                '아우터',
+                '스킨슈트',
+                '악세사리',
+                '이벤트',
+              ]
                   .map(
                     (cat) => GestureDetector(
                       onTap: () => setState(() {
@@ -8587,10 +8607,21 @@ class _AdminScreenState extends State<AdminScreen>
 
   Widget _productCard(ProductModel p) {
     final isSelected = _selectedProductIds.contains(p.id);
-    final isVisible = p.isActive;
+    final isCategoryHidden = p.category.trim().isNotEmpty &&
+        !CategoryService.isCategoryPathVisible(
+          p.category,
+          p.middleCategory,
+          p.subCategory,
+        );
+    final isVisible = p.isActive && !isCategoryHidden;
     final statusColor = isVisible ? AppColors.success : const Color(0xFFE07A00);
     final statusBackground =
         isVisible ? const Color(0xFFE8F5E9) : const Color(0xFFFFF3E0);
+    final statusLabel = isCategoryHidden
+        ? '카테고리 숨김'
+        : p.isActive
+            ? '표시'
+            : '상품 숨김';
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -8728,7 +8759,7 @@ class _AdminScreenState extends State<AdminScreen>
                               ),
                               const SizedBox(width: 3),
                               Text(
-                                isVisible ? '표시' : '숨김',
+                                statusLabel,
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w800,
