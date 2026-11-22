@@ -8466,37 +8466,38 @@ class _AdminScreenState extends State<AdminScreen>
                   ),
                 ),
                 const SizedBox(width: 6),
-                GestureDetector(
-                  onTap: () => _setSelectedProductsActive(true),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5E9),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(
-                          Icons.visibility_outlined,
-                          color: AppColors.success,
-                          size: 14,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          '선택공개',
-                          style: TextStyle(
+                if (_productCategoryFilter != '숨김 카테고리')
+                  GestureDetector(
+                    onTap: () => _setSelectedProductsActive(true),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F5E9),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.visibility_outlined,
                             color: AppColors.success,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
+                            size: 14,
                           ),
-                        ),
-                      ],
+                          SizedBox(width: 4),
+                          Text(
+                            '선택공개',
+                            style: TextStyle(
+                              color: AppColors.success,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
                 const SizedBox(width: 6),
               ],
               // 카테고리 일괄 변경 버튼
