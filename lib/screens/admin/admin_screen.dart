@@ -8547,12 +8547,12 @@ class _AdminScreenState extends State<AdminScreen>
                         ),
                         title: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.delete_sweep_rounded,
                               color: AppColors.error,
                               size: 22,
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Text(
                               _productCategoryFilter == '숨김 카테고리'
                                   ? '상품 완전 삭제'
