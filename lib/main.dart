@@ -44,6 +44,7 @@ import 'screens/notifications/notification_center_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/payment/payment_result_screen.dart';
 import 'screens/payment/payment_checkout_screen.dart';
+import 'screens/payment/nextr_group_payment_screen.dart';
 
 Future<bool>? _hiveReadyFuture;
 
@@ -294,6 +295,26 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
         ),
         onGenerateRoute: (settings) {
           final routeName = settings.name ?? '';
+          // NEXTR 공개 결제 링크: 로그인 없이 서버에서 링크 상태와 금액을 조회합니다.
+          if (routeName.startsWith('/payment/group/')) {
+            final uri = Uri.tryParse(routeName);
+            final segments = uri?.pathSegments ?? const <String>[];
+            final success = segments.length >= 3 && segments[2] == 'success';
+            final fail = segments.length >= 3 && segments[2] == 'fail';
+            final token = success || fail
+                ? (uri?.queryParameters['token'] ?? '')
+                : (segments.length >= 3 ? segments[2] : '');
+            if (token.isNotEmpty) {
+              return MaterialPageRoute(
+                builder: (_) => NextrGroupPaymentScreen(
+                  token: token,
+                  isSuccess: success,
+                  query: uri?.queryParameters ?? const {},
+                ),
+                settings: settings,
+              );
+            }
+          }
           // Android가 custom scheme을 Flutter 초기 route로 전달하는 경우
           // twofitmall://naver가 앱의 404 화면으로 빠지지 않게 합니다.
           // 실제 code/state 처리는 AppLinks listener가 AuthService로 전달합니다.

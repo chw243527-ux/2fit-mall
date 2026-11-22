@@ -46,6 +46,7 @@ import 'admin_review_tab.dart';
 import 'admin_coupon_tab.dart';
 import 'admin_refund_history_tab.dart';
 import 'admin_settlement_tab.dart';
+import 'admin_nextr_payment_link_tab.dart';
 import '../orders/group_order_test_screen.dart';
 import '../../services/order_excel_service.dart';
 import '../../utils/web_utils.dart'
@@ -316,10 +317,10 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 21, vsync: this);
+    _tabCtrl = TabController(length: 22, vsync: this);
     _verifyAdminAccess();
     // initialTab이 지정된 경우 해당 탭으로 이동
-    if (widget.initialTab > 0 && widget.initialTab < 21) {
+    if (widget.initialTab > 0 && widget.initialTab < 22) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _tabCtrl.animateTo(widget.initialTab);
       });
@@ -1043,7 +1044,10 @@ class _AdminScreenState extends State<AdminScreen>
       {'icon': Icons.layers_rounded, 'label': '섹션관리', 'sub': true},
       {'icon': Icons.local_activity_rounded, 'label': '쿠폰관리', 'sub': true},
       {'icon': Icons.palette_rounded, 'label': '색상관리', 'sub': true},
+      {'icon': Icons.groups_rounded, 'label': '단체주문관리'},
       {'icon': Icons.account_balance_rounded, 'label': '정산·매입관리'},
+      {'icon': Icons.receipt_long_rounded, 'label': '환불 내역'},
+      {'icon': Icons.link_rounded, 'label': 'NEXTR 결제 링크'},
     ];
 
     return Scaffold(
@@ -1507,6 +1511,7 @@ class _AdminScreenState extends State<AdminScreen>
     '단체주문관리',
     '정산·매입관리',
     '환불 내역',
+    'NEXTR 결제 링크',
   ];
   static const _tabIcons = [
     Icons.dashboard_rounded,
@@ -1530,6 +1535,7 @@ class _AdminScreenState extends State<AdminScreen>
     Icons.groups_rounded,
     Icons.account_balance_rounded,
     Icons.receipt_long_rounded,
+    Icons.link_rounded,
   ];
   // 소분류(들여쓰기) 인덱스
   static const _subTabIndices = {14, 15, 16, 17};
@@ -2004,6 +2010,8 @@ class _AdminScreenState extends State<AdminScreen>
         return const AdminSettlementTab();
       case 20:
         return const AdminRefundHistoryTab();
+      case 21:
+        return const AdminNextrPaymentLinkTab();
       default:
         return _buildDashboard();
     }

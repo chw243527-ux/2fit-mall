@@ -3302,3 +3302,149 @@ exports.requestAccountDeletion = onRequest(
     }
   },
 );
+// NEXTR group-order payment links. Loaded by functions/index.js.
+function nextrTokenHash(token) {
+  return crypto.createHash('sha256').update(String(token)).digest('hex');
+}
+function nextrTokenFrom(req) {
+  return String(req.body?.token || req.body?.linkToken || '').trim();
+}
+function nextrMoney(value) {
+  const n = Number(value);
+  return Number.isSafeInteger(n) && n > 0 ? n : 0;
+}
+function nextrExpiry(value) {
+  const hours = Math.floor(Number(value || 72));
+  return Math.min(168, Math.max(1, Number.isFinite(hours) ? hours : 72));
+}
+function nextrPublicLink(token) {
+  return `https://2fit-mall.co.kr/payment/group/${encodeURIComponent(token)}`;
+}
+
+exports.createNextrGroupPaymentLink = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+  if (!(await requireAdmin(req, res))) return;
+  if (!(await enforceRateLimit(req, res, `nextr-create:${req.adminUid}`, { limit: 30, windowMs: 10 * 60 * 1000 }))) return;
+  try {
+    const productId = String(req.body?.productId || '').trim().slice(0, 120);
+    const quantity = Math.floor(Number(req.body?.quantity || 0));
+    const name = String(req.body?.customerName || '').trim().slice(0, 100);
+    const phone = String(req.body?.customerPhone || '').trim().slice(0, 40);
+    const address = String(req.body?.deliveryAddress || '').trim().slice(0, 500);
+    const memo = String(req.body?.memo || '').trim().slice(0, 500);
+    if (!productId || quantity < 1 || quantity > 200 || !name || !phone || !address) {
+      return res.status(400).json({ error: '상품, 수량, 고객명, 연락처, 배송지를 입력해 주세요.' });
+    }
+    const productSnap = await db.collection('products').doc(productId).get();
+    const product = productSnap.data() || {};
+    const isGroup = product.isGroup === true || product.isGroupOnly === true || product.category === '단체주문';
+    if (!productSnap.exists || product.isActive === false || !isGroup) {
+      return res.status(400).json({ error: '단체주문 상품만 결제 링크로 만들 수 있습니다.' });
+    }
+    const unitPrice = nextrMoney(product.price);
+    if (!unitPrice) return res.status(400).json({ error: '상품 판매가가 올바르지 않습니다.' });
+    // 현금 전용 42,000원/39,000원 할인은 카드 결제 링크에 절대 적용하지 않습니다.
+    const subtotal = unitPrice * quantity;
+    const shippingFee = subtotal >= SHIPPING_FREE_THRESHOLD ? 0 : DEFAULT_SHIPPING_FEE;
+    const amount = subtotal + shippingFee;
+    const token = crypto.randomBytes(32).toString('base64url');
+    const linkId = `nextr-${crypto.randomBytes(10).toString('hex')}`;
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + nextrExpiry(req.body?.expiryHours) * 60 * 60 * 1000);
+    const link = {
+      linkId, tokenHash: nextrTokenHash(token), status: 'active', brand: 'NEXTR',
+      productId, productName: String(product.name || '').slice(0, 200),
+      productImage: Array.isArray(product.images) ? String(product.images[0] || '') : '',
+      quantity, unitPrice, subtotal, shippingFee, amount,
+      customerName: name, customerPhone: phone, deliveryAddress: address, memo,
+      createdBy: req.adminUid, createdByEmail: req.adminEmail,
+      createdAt: FieldValue.serverTimestamp(), expiresAt,
+      paidAt: null, orderId: null, paymentKey: null,
+    };
+    await db.collection('nextr_group_payment_links').doc(linkId).set(link);
+    res.json({ success: true, linkId, url: nextrPublicLink(token), amount, expiresAt: expiresAt.toISOString(), orderName: `${link.productName} ${quantity}장` });
+  } catch (error) {
+    console.error('createNextrGroupPaymentLink failed:', { code: _errorCode(error, 'nextr-link-create-failed') });
+    res.status(400).json({ error: '결제 링크를 생성하지 못했습니다.' });
+  }
+});
+
+exports.getNextrGroupPaymentLink = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+  const token = nextrTokenFrom(req);
+  if (!token || token.length < 40) return res.status(400).json({ error: 'Invalid payment link' });
+  if (!(await enforceRateLimit(req, res, `nextr-public:${req.ip || 'unknown'}`, { limit: 60, windowMs: 10 * 60 * 1000 }))) return;
+  const snap = await db.collection('nextr_group_payment_links').where('tokenHash', '==', nextrTokenHash(token)).limit(1).get();
+  if (snap.empty) return res.status(404).json({ error: '결제 링크를 찾을 수 없습니다.' });
+  const data = snap.docs[0].data();
+  const expiresMs = data.expiresAt?.toDate?.()?.getTime() || 0;
+  const intentAgeOk = data.status === 'reserved' && (data.intentCreatedAt?.toDate?.()?.getTime() || 0) + PAYMENT_INTENT_TTL_MS > Date.now();
+  const status = (data.status === 'active' && expiresMs > Date.now()) || intentAgeOk ? 'active' : (data.status === 'active' ? 'expired' : data.status);
+  res.json({ success: true, linkId: data.linkId, status, brand: 'NEXTR', productName: data.productName, productImage: data.productImage, quantity: data.quantity, unitPrice: data.unitPrice, subtotal: data.subtotal, shippingFee: data.shippingFee, amount: data.amount, expiresAt: data.expiresAt?.toDate?.()?.toISOString() || null, customerName: data.customerName, customerPhone: data.customerPhone, deliveryAddress: data.deliveryAddress });
+});
+
+exports.prepareNextrGroupPayment = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+  const token = nextrTokenFrom(req);
+  const snap = await db.collection('nextr_group_payment_links').where('tokenHash', '==', nextrTokenHash(token)).limit(1).get();
+  if (snap.empty) return res.status(404).json({ error: '결제 링크를 찾을 수 없습니다.' });
+  const ref = snap.docs[0].ref; const link = snap.docs[0].data();
+  const expiresMs = link.expiresAt?.toDate?.()?.getTime() || 0;
+  if (link.status === 'reserved' && link.intentOrderId) {
+    const existingIntent = await db.collection('nextr_group_payment_intents').doc(link.intentOrderId).get();
+    const existing = existingIntent.data() || {};
+    if (existing.status === 'pending' && (existing.expiresAt?.toDate?.()?.getTime() || 0) > Date.now()) {
+      return res.json({ success: true, orderId: existing.orderId, amount: existing.amount, orderName: `${link.productName} ${link.quantity}장`, customerName: link.customerName });
+    }
+  }
+  if (link.status !== 'active' || expiresMs <= Date.now()) return res.status(409).json({ error: '만료되었거나 사용할 수 없는 결제 링크입니다.' });
+  const orderId = `NEXTR-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+  await db.runTransaction(async (tx) => {
+    const current = await tx.get(ref); const latest = current.data() || {};
+    if (latest.status !== 'active' || (latest.expiresAt?.toDate?.()?.getTime() || 0) <= Date.now()) throw new Error('link-unavailable');
+    tx.update(ref, { status: 'reserved', intentOrderId: orderId, intentCreatedAt: FieldValue.serverTimestamp() });
+    tx.set(db.collection('nextr_group_payment_intents').doc(orderId), { orderId, linkId: link.linkId, tokenHash: nextrTokenHash(token), amount: link.amount, status: 'pending', expiresAt: new Date(Date.now() + PAYMENT_INTENT_TTL_MS), createdAt: FieldValue.serverTimestamp() });
+  });
+  res.json({ success: true, orderId, amount: link.amount, orderName: `${link.productName} ${link.quantity}장`, customerName: link.customerName });
+});
+
+exports.confirmNextrGroupPayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+  const token = nextrTokenFrom(req); const paymentKey = String(req.body?.paymentKey || '').trim(); const orderId = String(req.body?.orderId || '').trim(); const amount = Number(req.body?.amount);
+  if (!token || !paymentKey || !orderId || !Number.isSafeInteger(amount)) return res.status(400).json({ error: 'Invalid payment confirmation request' });
+  const intentRef = db.collection('nextr_group_payment_intents').doc(orderId); const intentSnap = await intentRef.get(); const intent = intentSnap.data() || {};
+  if (!intentSnap.exists || intent.tokenHash !== nextrTokenHash(token) || intent.amount !== amount) return res.status(400).json({ error: '결제 금액 또는 링크가 일치하지 않습니다.' });
+  if (intent.status === 'confirmed') return res.json({ success: true, orderId });
+  if (intent.status !== 'pending' || (intent.expiresAt?.toDate?.()?.getTime() || 0) <= Date.now()) return res.status(409).json({ error: '이미 처리되었거나 만료된 결제입니다.' });
+  const linkSnap = await db.collection('nextr_group_payment_links').doc(intent.linkId).get(); const link = linkSnap.data() || {};
+  if (!linkSnap.exists || link.status !== 'reserved' || link.intentOrderId !== orderId || link.amount !== amount) return res.status(409).json({ error: '결제 링크 상태가 올바르지 않습니다.' });
+  const secret = TOSS_SECRET_KEY.value(); if (!secret) return res.status(503).json({ error: 'Payment service is not configured' });
+  const tossResponse = await fetch('https://api.tosspayments.com/v1/payments/confirm', { method: 'POST', headers: { Authorization: `Basic ${Buffer.from(`${secret}:`).toString('base64')}`, 'Content-Type': 'application/json', 'Idempotency-Key': `nextr-confirm-${orderId}` }, body: JSON.stringify({ paymentKey, orderId, amount }) });
+  const toss = await tossResponse.json();
+  if (!tossResponse.ok || toss.orderId !== orderId || Number(toss.totalAmount) !== amount) { await intentRef.update({ status: 'pending', lastApprovalError: String(toss?.code || 'approval-rejected').slice(0, 120) }); return res.status(400).json({ error: 'Payment approval failed' }); }
+  await db.runTransaction(async (tx) => {
+    const latest = await tx.get(intentRef); if (latest.data()?.status === 'confirmed') return;
+    const orderRef = db.collection('orders').doc(orderId);
+    tx.set(orderRef, { id: orderId, brand: 'NEXTR', orderType: 'group', status: 'confirmed', paymentStatus: 'paid', paymentMethod: '카드 결제', paymentKey, userId: null, userName: link.customerName, userPhone: link.customerPhone, ordererPhone: link.customerPhone, userEmail: '', userAddress: link.deliveryAddress, subtotal: link.subtotal, shippingFee: link.shippingFee, totalAmount: link.amount, items: [{ productId: link.productId, productName: link.productName, quantity: link.quantity, price: link.unitPrice, size: '단체', color: '', imageUrl: link.productImage, customOptions: { orderType: 'group', paymentLinkId: link.linkId, cashDiscountExcluded: true } }], memo: link.memo || null, paymentLinkId: link.linkId, paidAt: FieldValue.serverTimestamp(), createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+    tx.update(intentRef, { status: 'confirmed', paymentKey, confirmedAt: FieldValue.serverTimestamp() });
+    tx.update(linkSnap.ref, { status: 'paid', orderId, paymentKey, paidAt: FieldValue.serverTimestamp() });
+  });
+  res.json({ success: true, orderId, paymentKey, method: toss.method || '카드 결제' });
+});
+
+exports.listNextrGroupPaymentLinks = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+  if (!(await requireAdmin(req, res))) return;
+  const snap = await db.collection('nextr_group_payment_links').orderBy('createdAt', 'desc').limit(100).get();
+  res.json({ success: true, links: snap.docs.map((doc) => { const d = doc.data(); return { linkId: d.linkId, status: d.status, productName: d.productName, quantity: d.quantity, amount: d.amount, customerName: d.customerName, customerPhone: d.customerPhone, expiresAt: d.expiresAt?.toDate?.()?.toISOString() || null, orderId: d.orderId || null }; }) });
+});
+
+exports.cancelNextrGroupPaymentLink = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+  if (!(await requireAdmin(req, res))) return;
+  const linkId = String(req.body?.linkId || '').trim(); if (!linkId) return res.status(400).json({ error: 'linkId required' });
+  const ref = db.collection('nextr_group_payment_links').doc(linkId); const snap = await ref.get(); if (!snap.exists) return res.status(404).json({ error: 'link not found' });
+  const data = snap.data(); if (['paid', 'cancelled'].includes(data.status)) return res.status(409).json({ error: '이미 처리된 링크입니다.' });
+  await ref.update({ status: 'cancelled', cancelledBy: req.adminUid, cancelledAt: FieldValue.serverTimestamp() });
+  res.json({ success: true });
+});
