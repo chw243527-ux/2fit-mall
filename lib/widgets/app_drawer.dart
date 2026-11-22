@@ -674,7 +674,8 @@ class _AppDrawerState extends State<AppDrawer> {
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+                    border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.22)),
                   ),
                   child: Row(
                     children: [
