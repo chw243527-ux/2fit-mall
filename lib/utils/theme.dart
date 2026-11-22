@@ -12,30 +12,28 @@ import 'package:flutter/material.dart';
 /// - Soft shadows and gentle radii
 /// - Refined typography with balanced spacing
 class AppColors {
-  // ── Core ──
-  static const Color primary = Color(0xFF1A1A2E); // deep navy-charcoal
-  static const Color primaryLight = Color(0xFF2D2D44);
-  static const Color accent = Color(0xFFE53935); // refined red
-  static const Color accentOrange = Color(0xFFFF6B35);
-  static const Color accentGold = Color(0xFFFFD600);
+  // ── Core: restrained NEXTR performance-luxury palette ──
+  static const Color primary = Color(0xFF111214); // ink black
+  static const Color primaryLight = Color(0xFF2B2D30);
+  static const Color accent = Color(0xFFC5D63A); // restrained performance lime
+  static const Color accentOrange = Color(0xFFC38D55);
+  static const Color accentGold = Color(0xFFD2B45A);
 
   // ── Background ──
-  static const Color background =
-      Color(0xFFFFFFFF); // pure white across the storefront
+  static const Color background = Color(0xFFF5F5F2); // warm editorial off-white
   static const Color surface = Color(0xFFFFFFFF); // pure white cards
   static const Color cardBg = Color(0xFFFFFFFF);
-  static const Color surfaceGray =
-      Color(0xFFFAFAFA); // near-white utility surface
+  static const Color surfaceGray = Color(0xFFEFEFEB); // utility surface
 
   // ── Text ──
-  static const Color textPrimary = Color(0xFF1A1A2E);
-  static const Color textSecondary = Color(0xFF6B6B80);
-  static const Color textHint = Color(0xFFB0B0C0);
+  static const Color textPrimary = Color(0xFF111214);
+  static const Color textSecondary = Color(0xFF676A69);
+  static const Color textHint = Color(0xFFA3A6A1);
   static const Color textWhite = Color(0xFFFFFFFF);
 
   // ── Border / Divider ──
-  static const Color border = Color(0xFFEAEAF0);
-  static const Color divider = Color(0xFFF0F0F5);
+  static const Color border = Color(0xFFE0E1DC);
+  static const Color divider = Color(0xFFE9EAE5);
 
   // ── Status ──
   static const Color success = Color(0xFF00A651);
@@ -44,24 +42,24 @@ class AppColors {
   static const Color info = Color(0xFF2979FF);
 
   // ── Category ──
-  static const Color catTop = Color(0xFF1A1A2E);
-  static const Color catBottom = Color(0xFF1A1A2E);
-  static const Color catSet = Color(0xFF1A1A2E);
-  static const Color catOuterwear = Color(0xFF1A1A2E);
-  static const Color catAccessory = Color(0xFF1A1A2E);
+  static const Color catTop = Color(0xFF111214);
+  static const Color catBottom = Color(0xFF111214);
+  static const Color catSet = Color(0xFF111214);
+  static const Color catOuterwear = Color(0xFF111214);
+  static const Color catAccessory = Color(0xFF111214);
 
   // ── Gradient ──
   static const List<Color> primaryGradient = [
-    Color(0xFF1A1A2E),
-    Color(0xFF2D2D44)
+    Color(0xFF111214),
+    Color(0xFF2B2D30)
   ];
   static const List<Color> accentGradient = [
-    Color(0xFFE53935),
-    Color(0xFFC62828)
+    Color(0xFFD4E654),
+    Color(0xFFA9BE22)
   ];
   static const List<Color> heroGradient = [
-    Color(0xFF0F0F1E),
-    Color(0xFF1A1A2E)
+    Color(0xFF0D0E0F),
+    Color(0xFF242629)
   ];
 }
 
@@ -126,7 +124,7 @@ class AppTheme {
         surface: AppColors.surface,
         error: AppColors.error,
       ),
-      scaffoldBackgroundColor: Colors.white,
+      scaffoldBackgroundColor: AppColors.background,
 
       // ── AppBar: crisp white, ultra-thin bottom line ──
       appBarTheme: const AppBarTheme(

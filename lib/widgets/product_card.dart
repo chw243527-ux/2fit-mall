@@ -57,7 +57,7 @@ class ProductCard extends StatelessWidget {
                 ),
         child: Material(
           // Material.clipBehavior 는 Flutter에서 clip을 100% 보장
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(0),
           clipBehavior: Clip.none,
           child: Stack(
@@ -110,8 +110,8 @@ class ProductCard extends StatelessWidget {
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFFAFAFA),
-                border: Border.all(color: const Color(0xFFE8E8E8), width: 0.8),
+                color: const Color(0xFFF0F0EC),
+                border: Border.all(color: AppColors.border, width: 0.8),
                 borderRadius: BorderRadius.circular(2),
               ),
               clipBehavior: Clip.antiAlias,
@@ -261,7 +261,7 @@ class ProductCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                   decoration: BoxDecoration(
-                    color: AppColors.textSecondary,
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: Text(
@@ -310,8 +310,8 @@ class ProductCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary,
                 letterSpacing: -0.25,
                 height: 1.35,
