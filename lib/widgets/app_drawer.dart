@@ -85,15 +85,15 @@ Color _colorFor(String cat) {
 /// - 중위·하위: CategoryService.middleCatsFor/subCatsFor
 /// - 첫 번째 탭은 항상 "전체 {mainCat}" (전체탭)
 List<CategoryData> getCategories(AppLocalizations loc) {
-  return CategoryService.mainCategories.map((mainCat) {
+  return CategoryService.visibleMainCategories.map((mainCat) {
     // 카테고리명 번역 적용
     final translatedMain = loc.t(mainCat, mainCat);
     final allTabName = loc.t('전체 $mainCat', '전체 $mainCat');
     final subList = <SubCategory>[
       SubCategory(name: allTabName, filter: mainCat), // 전체탭
     ];
-    for (final middle in CategoryService.middleCatsFor(mainCat)) {
-      for (final sub in CategoryService.subCatsFor(mainCat, middle)) {
+    for (final middle in CategoryService.visibleMiddleCatsFor(mainCat)) {
+      for (final sub in CategoryService.visibleSubCatsFor(mainCat, middle)) {
         final translatedSub = loc.t(sub, sub);
         final displayName = middle == '일반'
             ? translatedSub

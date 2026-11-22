@@ -445,7 +445,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   // ── 서브카테고리 바 ──
   Widget _buildSubCategoryBar() {
     // CategoryService 기반 서브카테고리 목록 (드로어와 동일한 소스)
-    final subs = CategoryService.subCatsFor(_selectedCategory);
+    final subs = CategoryService.visibleSubCatsFor(_selectedCategory);
 
     // 서브카테고리가 없거나, 베스트/신상품 탭이면 숨김
     if (subs.isEmpty || _onlyBest || _onlyNew) return const SizedBox.shrink();

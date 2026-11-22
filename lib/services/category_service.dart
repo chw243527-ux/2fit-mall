@@ -48,6 +48,9 @@ class CategoryService {
   static List<String>? _cachedMainCats;
   static Map<String, List<String>>? _cachedMiddleCatMap;
   static Map<String, List<String>>? _cachedSubCatMap;
+  static List<String> _hiddenMainCats = <String>[];
+  static Map<String, List<String>> _hiddenMiddleCats = <String, List<String>>{};
+  static Map<String, List<String>> _hiddenSubCats = <String, List<String>>{};
   static String _key(String main, String middle) => '$main::$middle';
   static Map<String, List<String>> _copy(Map<String, List<String>> source) => {
         for (final e in source.entries) e.key: List<String>.from(e.value),
@@ -75,6 +78,9 @@ class CategoryService {
         _cachedMainCats = mains;
         _cachedMiddleCatMap = middles;
         _cachedSubCatMap = subs;
+        _hiddenMainCats = <String>[];
+        _hiddenMiddleCats = <String, List<String>>{};
+        _hiddenSubCats = <String, List<String>>{};
         return;
       }
       final data = snap.data() as Map<String, dynamic>;
@@ -112,16 +118,24 @@ class CategoryService {
       }
       _cachedMiddleCatMap = middles;
       _cachedSubCatMap = subs;
+      _hiddenMainCats = _readList(data['hiddenMainCategories']);
+      _hiddenMiddleCats = _readMap(data['hiddenMiddleCategories']);
+      _hiddenSubCats = _readMap(data['hiddenSubCategories']);
     } catch (_) {
       debugPrint('client_operation_failed');
       _cachedMainCats ??= List<String>.from(defaultMainCategories);
       _cachedMiddleCatMap ??= _defaultMiddles();
       _cachedSubCatMap ??= _defaultSubs();
+      _hiddenMainCats = <String>[];
+      _hiddenMiddleCats = <String, List<String>>{};
+      _hiddenSubCats = <String, List<String>>{};
     }
   }
 
   static List<String> get mainCategories =>
       _cachedMainCats ?? List<String>.from(defaultMainCategories);
+  static List<String> get visibleMainCategories =>
+      mainCategories.where((name) => !isMainCategoryHidden(name)).toList();
   static Map<String, List<String>> get middleCatMap =>
       _cachedMiddleCatMap ?? _defaultMiddles();
   static List<String> middleCatsFor(String main) =>
@@ -133,6 +147,51 @@ class CategoryService {
       List<String>.from(_cachedSubCatMap?[_key(main, middle)] ??
           _cachedSubCatMap?[main] ??
           const []);
+  static List<String> visibleMiddleCatsFor(String main) => middleCatsFor(main)
+      .where((name) => !isMiddleCategoryHidden(main, name))
+      .toList();
+  static List<String> visibleSubCatsFor(String main, [String middle = '일반']) =>
+      subCatsFor(main, middle)
+          .where((name) => !isSubCategoryHidden(main, middle, name))
+          .toList();
+
+  static bool isMainCategoryHidden(String name) =>
+      _hiddenMainCats.contains(name);
+  static bool isMiddleCategoryHidden(String main, String middle) =>
+      (_hiddenMiddleCats[main] ?? const <String>[]).contains(middle);
+  static bool isSubCategoryHidden(String main, String middle, String sub) =>
+      (_hiddenSubCats[_key(main, middle)] ?? const <String>[]).contains(sub);
+
+  static Future<void> toggleMainCategoryVisibility(String name) async {
+    final hidden = List<String>.from(_hiddenMainCats);
+    hidden.contains(name) ? hidden.remove(name) : hidden.add(name);
+    await _saveAndCache(
+        mainCategories, middleCatMap, _cachedSubCatMap ?? _defaultSubs(),
+        hiddenMain: hidden);
+  }
+
+  static Future<void> toggleMiddleCategoryVisibility(
+      String main, String middle) async {
+    final hidden = _copy(_hiddenMiddleCats);
+    final list = List<String>.from(hidden[main] ?? const <String>[]);
+    list.contains(middle) ? list.remove(middle) : list.add(middle);
+    hidden[main] = list;
+    await _saveAndCache(
+        mainCategories, middleCatMap, _cachedSubCatMap ?? _defaultSubs(),
+        hiddenMiddle: hidden);
+  }
+
+  static Future<void> toggleSubCategoryVisibility(
+      String main, String middle, String sub) async {
+    final hidden = _copy(_hiddenSubCats);
+    final key = _key(main, middle);
+    final list = List<String>.from(hidden[key] ?? const <String>[]);
+    list.contains(sub) ? list.remove(sub) : list.add(sub);
+    hidden[key] = list;
+    await _saveAndCache(
+        mainCategories, middleCatMap, _cachedSubCatMap ?? _defaultSubs(),
+        hiddenSub: hidden);
+  }
 
   static Future<void> addMainCategory(String name) async {
     if (mainCategories.contains(name)) return;
@@ -164,7 +223,25 @@ class CategoryService {
               : e.key;
       subs[key] = List<String>.from(e.value);
     }
-    await _saveAndCache(mains, middles, subs);
+    final hiddenMain =
+        _hiddenMainCats.map((name) => name == oldName ? value : name).toList();
+    final hiddenMiddle = <String, List<String>>{};
+    for (final e in _hiddenMiddleCats.entries) {
+      hiddenMiddle[e.key == oldName ? value : e.key] =
+          List<String>.from(e.value);
+    }
+    final hiddenSub = <String, List<String>>{};
+    for (final e in _hiddenSubCats.entries) {
+      final prefix = '$oldName::';
+      final key = e.key.startsWith(prefix)
+          ? '$value::${e.key.substring(prefix.length)}'
+          : e.key;
+      hiddenSub[key] = List<String>.from(e.value);
+    }
+    await _saveAndCache(mains, middles, subs,
+        hiddenMain: hiddenMain,
+        hiddenMiddle: hiddenMiddle,
+        hiddenSub: hiddenSub);
   }
 
   static Future<void> copyMainCategory(
@@ -191,7 +268,14 @@ class CategoryService {
     final subs = _copy(_cachedSubCatMap ?? {})
       ..removeWhere((key, _) => key.startsWith('$name::'))
       ..remove(name);
-    await _saveAndCache(mains, middles, subs);
+    final hiddenMain = List<String>.from(_hiddenMainCats)..remove(name);
+    final hiddenMiddle = _copy(_hiddenMiddleCats)..remove(name);
+    final hiddenSub = _copy(_hiddenSubCats)
+      ..removeWhere((key, _) => key.startsWith('$name::') || key == name);
+    await _saveAndCache(mains, middles, subs,
+        hiddenMain: hiddenMain,
+        hiddenMiddle: hiddenMiddle,
+        hiddenSub: hiddenSub);
   }
 
   static Future<void> addMiddleCategory(String main, String name) async {
@@ -218,7 +302,19 @@ class CategoryService {
     final subs = _copy(_cachedSubCatMap ?? {})
       ..[_key(main, value)] = (_cachedSubCatMap?[_key(main, oldName)] ?? [])
       ..remove(_key(main, oldName));
-    await _saveAndCache(List<String>.from(mainCategories), middles, subs);
+    final hiddenMiddle = _copy(_hiddenMiddleCats);
+    final hiddenList =
+        List<String>.from(hiddenMiddle[main] ?? const <String>[]);
+    if (hiddenList.remove(oldName)) hiddenList.add(value);
+    hiddenMiddle[main] = hiddenList;
+    final hiddenSub = _copy(_hiddenSubCats);
+    final oldKey = _key(main, oldName);
+    final newKey = _key(main, value);
+    if (hiddenSub.containsKey(oldKey)) {
+      hiddenSub[newKey] = hiddenSub.remove(oldKey)!;
+    }
+    await _saveAndCache(List<String>.from(mainCategories), middles, subs,
+        hiddenMiddle: hiddenMiddle, hiddenSub: hiddenSub);
   }
 
   static Future<void> removeMiddleCategory(String main, String name) async {
@@ -227,7 +323,12 @@ class CategoryService {
     list.remove(name);
     final middles = _copy(middleCatMap)..[main] = list;
     final subs = _copy(_cachedSubCatMap ?? {})..remove(_key(main, name));
-    await _saveAndCache(List<String>.from(mainCategories), middles, subs);
+    final hiddenMiddle = _copy(_hiddenMiddleCats);
+    hiddenMiddle[main] =
+        List<String>.from(hiddenMiddle[main] ?? const <String>[])..remove(name);
+    final hiddenSub = _copy(_hiddenSubCats)..remove(_key(main, name));
+    await _saveAndCache(List<String>.from(mainCategories), middles, subs,
+        hiddenMiddle: hiddenMiddle, hiddenSub: hiddenSub);
   }
 
   static Future<void> copyMiddleCategory(
@@ -312,23 +413,41 @@ class CategoryService {
     final mains = List<String>.from(defaultMainCategories);
     final middles = _defaultMiddles();
     final subs = _defaultSubs();
-    await _saveAndCache(mains, middles, subs);
+    await _saveAndCache(mains, middles, subs,
+        hiddenMain: <String>[],
+        hiddenMiddle: <String, List<String>>{},
+        hiddenSub: <String, List<String>>{});
   }
 
   static Future<void> _saveAndCache(List<String> mains,
-      Map<String, List<String>> middles, Map<String, List<String>> subs) async {
-    await _save(mains, middles, subs);
+      Map<String, List<String>> middles, Map<String, List<String>> subs,
+      {List<String>? hiddenMain,
+      Map<String, List<String>>? hiddenMiddle,
+      Map<String, List<String>>? hiddenSub}) async {
+    await _save(mains, middles, subs,
+        hiddenMain: hiddenMain,
+        hiddenMiddle: hiddenMiddle,
+        hiddenSub: hiddenSub);
     _cachedMainCats = mains;
     _cachedMiddleCatMap = middles;
     _cachedSubCatMap = subs;
+    if (hiddenMain != null) _hiddenMainCats = hiddenMain;
+    if (hiddenMiddle != null) _hiddenMiddleCats = hiddenMiddle;
+    if (hiddenSub != null) _hiddenSubCats = hiddenSub;
   }
 
   static Future<void> _save(List<String> mains,
-      Map<String, List<String>> middles, Map<String, List<String>> subs) async {
+      Map<String, List<String>> middles, Map<String, List<String>> subs,
+      {List<String>? hiddenMain,
+      Map<String, List<String>>? hiddenMiddle,
+      Map<String, List<String>>? hiddenSub}) async {
     await _doc.set({
       'mainCategories': mains,
       'middleCatMap': middles,
       'subCatMap': subs,
+      'hiddenMainCategories': hiddenMain ?? _hiddenMainCats,
+      'hiddenMiddleCategories': hiddenMiddle ?? _hiddenMiddleCats,
+      'hiddenSubCategories': hiddenSub ?? _hiddenSubCats,
       'updatedAt': FieldValue.serverTimestamp()
     });
   }
@@ -337,5 +456,18 @@ class CategoryService {
     _cachedMainCats = null;
     _cachedMiddleCatMap = null;
     _cachedSubCatMap = null;
+  }
+
+  static List<String> _readList(dynamic raw) =>
+      raw is List ? raw.map((e) => e.toString()).toList() : <String>[];
+
+  static Map<String, List<String>> _readMap(dynamic raw) {
+    final result = <String, List<String>>{};
+    if (raw is Map) {
+      raw.forEach((key, value) {
+        if (value is List) result[key.toString()] = _readList(value);
+      });
+    }
+    return result;
   }
 }

@@ -24461,11 +24461,39 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                         style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w600,
+                                          decoration: CategoryService
+                                                  .isMainCategoryHidden(cat)
+                                              ? TextDecoration.lineThrough
+                                              : null,
                                           color: isSelected
                                               ? Colors.white
                                               : AppColors.textPrimary,
                                         ),
                                       ),
+                                    ),
+                                    IconButton(
+                                      tooltip:
+                                          CategoryService.isMainCategoryHidden(
+                                                  cat)
+                                              ? '고객에게 표시'
+                                              : '고객에게 숨기기',
+                                      onPressed: () async {
+                                        await CategoryService
+                                            .toggleMainCategoryVisibility(cat);
+                                        if (mounted) setState(() {});
+                                      },
+                                      icon: Icon(
+                                        CategoryService.isMainCategoryHidden(
+                                                cat)
+                                            ? Icons.visibility_off_outlined
+                                            : Icons.visibility_outlined,
+                                        size: 14,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppColors.primary,
+                                      ),
+                                      padding: const EdgeInsets.all(3),
+                                      constraints: const BoxConstraints(),
                                     ),
                                     IconButton(
                                       tooltip: '대분류 편집',
@@ -24555,6 +24583,28 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                   setState(() => _selectedMiddle = v),
                             ),
                           ),
+                          if (_selectedMiddle != null)
+                            IconButton(
+                              tooltip: CategoryService.isMiddleCategoryHidden(
+                                      _selectedMain!, _selectedMiddle!)
+                                  ? '고객에게 표시'
+                                  : '고객에게 숨기기',
+                              onPressed: () async {
+                                await CategoryService
+                                    .toggleMiddleCategoryVisibility(
+                                  _selectedMain!,
+                                  _selectedMiddle!,
+                                );
+                                if (mounted) setState(() {});
+                              },
+                              icon: Icon(
+                                CategoryService.isMiddleCategoryHidden(
+                                        _selectedMain!, _selectedMiddle!)
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: const Color(0xFF7E57C2),
+                              ),
+                            ),
                           IconButton(
                               tooltip: '중분류 추가',
                               onPressed: _showAddMiddleCatDialog,
@@ -24741,13 +24791,66 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                               Expanded(
                                                 child: Text(
                                                   sub,
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.w600,
-                                                    color:
-                                                        AppColors.textPrimary,
+                                                    color: CategoryService
+                                                            .isSubCategoryHidden(
+                                                                _selectedMain!,
+                                                                _selectedMiddle ??
+                                                                    '일반',
+                                                                sub)
+                                                        ? AppColors.textHint
+                                                        : AppColors.textPrimary,
+                                                    decoration: CategoryService
+                                                            .isSubCategoryHidden(
+                                                                _selectedMain!,
+                                                                _selectedMiddle ??
+                                                                    '일반',
+                                                                sub)
+                                                        ? TextDecoration
+                                                            .lineThrough
+                                                        : null,
                                                   ),
                                                 ),
+                                              ),
+                                              IconButton(
+                                                tooltip: CategoryService
+                                                        .isSubCategoryHidden(
+                                                            _selectedMain!,
+                                                            _selectedMiddle ??
+                                                                '일반',
+                                                            sub)
+                                                    ? '고객에게 표시'
+                                                    : '고객에게 숨기기',
+                                                onPressed: () async {
+                                                  await CategoryService
+                                                      .toggleSubCategoryVisibility(
+                                                    _selectedMain!,
+                                                    _selectedMiddle ?? '일반',
+                                                    sub,
+                                                  );
+                                                  if (mounted) setState(() {});
+                                                },
+                                                icon: Icon(
+                                                  CategoryService
+                                                          .isSubCategoryHidden(
+                                                              _selectedMain!,
+                                                              _selectedMiddle ??
+                                                                  '일반',
+                                                              sub)
+                                                      ? Icons
+                                                          .visibility_off_outlined
+                                                      : Icons
+                                                          .visibility_outlined,
+                                                  size: 15,
+                                                  color:
+                                                      const Color(0xFF3F51B5),
+                                                ),
+                                                padding:
+                                                    const EdgeInsets.all(4),
+                                                constraints:
+                                                    const BoxConstraints(),
                                               ),
                                               IconButton(
                                                 tooltip: '수정',
