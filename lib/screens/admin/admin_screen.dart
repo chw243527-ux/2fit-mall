@@ -8119,6 +8119,38 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
+  Future<void> _restoreSelectedHiddenCategoryProducts() async {
+    final ids = Set<String>.from(_selectedProductIds);
+    if (ids.isEmpty) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('숨김 상품 일괄 복원'),
+        content: Text(
+          '선택한 ${ids.length}개 상품의 상품 숨김 상태를 공개로 복원하시겠습니까?\n\n'
+          '상품이 속한 카테고리 자체가 숨김 상태이면, 카테고리를 표시로 전환하기 전까지 고객에게는 계속 보이지 않습니다.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('복원'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await context.read<ProductProvider>().setProductsActive(ids, true);
+    if (!mounted) return;
+    setState(() => _selectedProductIds.clear());
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${ids.length}개 상품을 복원했습니다.')),
+    );
+  }
+
   Widget _buildProductManagement() {
     final allProducts = context.watch<ProductProvider>().adminProducts;
     final isAdminLoading = context.watch<ProductProvider>().isAdminLoading;
@@ -8368,6 +8400,40 @@ class _AdminScreenState extends State<AdminScreen>
               const Spacer(),
               // 선택 공개·숨김 버튼
               if (anySelected) ...[
+                if (_productCategoryFilter == '숨김 카테고리') ...[
+                  GestureDetector(
+                    onTap: _restoreSelectedHiddenCategoryProducts,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F5E9),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.restore_rounded,
+                            color: AppColors.success,
+                            size: 14,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            '일괄 복원',
+                            style: TextStyle(
+                              color: AppColors.success,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ],
                 GestureDetector(
                   onTap: () => _setSelectedProductsActive(false),
                   child: Container(
@@ -8478,7 +8544,7 @@ class _AdminScreenState extends State<AdminScreen>
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        title: const Row(
+                        title: Row(
                           children: [
                             Icon(
                               Icons.delete_sweep_rounded,
@@ -8487,8 +8553,12 @@ class _AdminScreenState extends State<AdminScreen>
                             ),
                             SizedBox(width: 8),
                             Text(
-                              '상품 삭제',
-                              style: TextStyle(fontWeight: FontWeight.w800),
+                              _productCategoryFilter == '숨김 카테고리'
+                                  ? '상품 완전 삭제'
+                                  : '상품 삭제',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ],
                         ),
@@ -8506,7 +8576,7 @@ class _AdminScreenState extends State<AdminScreen>
                               backgroundColor: AppColors.error,
                               foregroundColor: Colors.white,
                             ),
-                            child: const Text('삭제'),
+                            child: const Text('완전 삭제'),
                           ),
                         ],
                       ),
@@ -8537,17 +8607,19 @@ class _AdminScreenState extends State<AdminScreen>
                       color: const Color(0xFFFFEBEE),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.delete_sweep_rounded,
                           color: AppColors.error,
                           size: 14,
                         ),
-                        SizedBox(width: 4),
+                        const SizedBox(width: 4),
                         Text(
-                          '선택삭제',
-                          style: TextStyle(
+                          _productCategoryFilter == '숨김 카테고리'
+                              ? '완전 삭제'
+                              : '선택삭제',
+                          style: const TextStyle(
                             color: AppColors.error,
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
