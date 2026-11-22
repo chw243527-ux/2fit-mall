@@ -242,13 +242,13 @@ class _LoginScreenState extends State<LoginScreen>
     return wrapWithPopScope(
         context,
         Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.background,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.textPrimary,
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                  size: 20, color: AppColors.primary),
+                  size: 20, color: Colors.white),
               onPressed: () => goBackOrHome(context),
             ),
           ),
@@ -264,7 +264,7 @@ class _LoginScreenState extends State<LoginScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        SizedBox(height: r.h(44)),
+                        SizedBox(height: r.h(32)),
                         // ── 로고 ──
                         Center(
                           child: Column(
@@ -532,14 +532,14 @@ class _LoginScreenState extends State<LoginScreen>
                         fit: BoxFit.contain,
                       ),
                       const SizedBox(height: 24),
-                      const Text('2FIT MALL',
+                      const Text('NEXTR',
                           style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
                               letterSpacing: 4)),
                       const SizedBox(height: 8),
-                      const Text('SPORTS & FITNESS WEAR',
+                      const Text('PERFORMANCE SPORTS SYSTEM',
                           style: TextStyle(
                               fontSize: 12,
                               color: AppColors.textHint,

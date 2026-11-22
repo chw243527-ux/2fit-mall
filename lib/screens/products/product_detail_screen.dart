@@ -1063,7 +1063,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     final r = Responsive.of(context);
     return SliverAppBar(
       pinned: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       elevation: 0,
       scrolledUnderElevation: 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
@@ -2202,7 +2202,7 @@ $productUrl
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '2FIT',
+                      'NEXTR PERFORMANCE',
                       style: TextStyle(
                         fontSize: r.sp(14),
                         fontWeight: FontWeight.w800,
@@ -2295,7 +2295,7 @@ $productUrl
       ('Q&A', 2, _keyQna),
     ];
     return Container(
-      color: Colors.white,
+      color: AppColors.background,
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: AppColors.border, width: 1)),
       ),

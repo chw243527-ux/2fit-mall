@@ -1387,7 +1387,6 @@ class _HomeScreenState extends State<HomeScreen>
             final r = Responsive.of(context);
 
             final b = banners[idx];
-            final accent = Color(b.accentColor);
             // videoUrl이 설정된 배너는 순서와 관계없이 동영상 우선
             final videoUrl = b.videoUrl?.isNotEmpty == true ? b.videoUrl : null;
             final title = isKo ? b.titleKo : b.titleEn;
@@ -1453,7 +1452,7 @@ class _HomeScreenState extends State<HomeScreen>
                       padding: EdgeInsets.symmetric(
                           horizontal: r.w(12), vertical: r.h(5)),
                       decoration: BoxDecoration(
-                          color: accent,
+                          color: AppColors.textPrimary,
                           borderRadius: BorderRadius.circular(3)),
                       child: Text(b.tag,
                           style: TextStyle(
@@ -1489,7 +1488,7 @@ class _HomeScreenState extends State<HomeScreen>
                           ],
                         ),
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(ctaIcon, size: 17, color: accent),
+                          Icon(ctaIcon, size: 17, color: AppColors.accent),
                           SizedBox(width: r.w(10)),
                           Text(cta,
                               style: TextStyle(

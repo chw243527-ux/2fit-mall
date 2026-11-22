@@ -640,7 +640,7 @@ class _AppDrawerState extends State<AppDrawer> {
             right: 12,
             bottom: 20,
           ),
-          color: Colors.white,
+          color: AppColors.textPrimary,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -649,14 +649,14 @@ class _AppDrawerState extends State<AppDrawer> {
                   SizedBox(
                     height: 36,
                     child: Image.asset(
-                      'assets/images/nextr_logo.png',
+                      'assets/images/nextr_logo_white.png',
                       fit: BoxFit.contain,
                     ),
                   ),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close_rounded,
-                        color: AppColors.textSecondary, size: 22),
+                        color: Colors.white70, size: 22),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -672,20 +672,20 @@ class _AppDrawerState extends State<AppDrawer> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceGray,
+                    color: Colors.white.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
                   ),
                   child: Row(
                     children: [
                       const Icon(Icons.person_outline_rounded,
-                          color: AppColors.primary, size: 18),
+                          color: Colors.white, size: 18),
                       const SizedBox(width: 10),
                       Consumer<LanguageProvider>(
                         builder: (_, lp, __) => Text(
                           lp.loc.navMyPage,
                           style: const TextStyle(
-                            color: AppColors.primary,
+                            color: Colors.white,
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.3,
@@ -694,7 +694,7 @@ class _AppDrawerState extends State<AppDrawer> {
                       ),
                       const Spacer(),
                       const Icon(Icons.arrow_forward_ios_rounded,
-                          color: AppColors.textSecondary, size: 14),
+                          color: Colors.white54, size: 14),
                     ],
                   ),
                 ),
@@ -731,7 +731,7 @@ class _AppDrawerState extends State<AppDrawer> {
                           Text(
                             user.name,
                             style: const TextStyle(
-                              color: AppColors.primary,
+                              color: Colors.white,
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
                               letterSpacing: 0.3,
@@ -741,7 +741,7 @@ class _AppDrawerState extends State<AppDrawer> {
                           Text(
                             user.email,
                             style: const TextStyle(
-                                color: AppColors.textSecondary, fontSize: 11),
+                                color: Colors.white60, fontSize: 11),
                           ),
                         ],
                       ),
@@ -760,7 +760,7 @@ class _AppDrawerState extends State<AppDrawer> {
                       Text(
                         loc.loginSignup,
                         style: const TextStyle(
-                          color: AppColors.primary,
+                          color: Colors.white,
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.5,
