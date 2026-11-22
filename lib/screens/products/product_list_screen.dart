@@ -8,6 +8,7 @@ import '../../services/category_service.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
 import 'product_detail_screen.dart';
+import '../not_found_screen.dart';
 import '../orders/group_order_only_screen.dart';
 
 import '../../utils/theme.dart';
@@ -223,6 +224,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_selectedCategory.isNotEmpty &&
+        _selectedCategory != '전체' &&
+        CategoryService.isMainCategoryHidden(_selectedCategory)) {
+      return const NotFoundScreen();
+    }
     final provider = context.watch<ProductProvider>();
     final filteredProducts = _getFilteredSorted(provider.products);
 

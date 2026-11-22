@@ -5,9 +5,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
+import 'category_service.dart';
 import 'fcm_service.dart';
 
 class ProductService {
+  static bool _isPubliclyVisible(ProductModel product) =>
+      product.isActive &&
+      CategoryService.isCategoryPathVisible(
+        product.category,
+        product.middleCategory,
+        product.subCategory,
+      );
+
   // ─────────────────────────────────────────────────────────────
   // 로컬 더미 상품 데이터
   // ─────────────────────────────────────────────────────────────
@@ -820,7 +829,7 @@ class ProductService {
 
   static Future<List<ProductModel>> getAllProducts() async {
     if (!_loaded) await _loadFromFirestore();
-    return _products.where((p) => p.isActive).toList();
+    return _products.where(_isPubliclyVisible).toList();
   }
 
   /// 관리자 전용: isActive 필터 없이 모든 상품 반환
@@ -938,19 +947,21 @@ class ProductService {
   static Future<List<ProductModel>> getProductsByCategory(
       String category) async {
     if (!_loaded) await _loadFromFirestore();
-    if (category == '전체') return _products.where((p) => p.isActive).toList();
+    if (category == '전체') return _products.where(_isPubliclyVisible).toList();
     if (category == '신상품') {
-      return _products.where((p) => p.isNewActive && p.isActive).toList();
+      return _products
+          .where((p) => _isPubliclyVisible(p) && p.isNewActive)
+          .toList();
     }
     if (category == '세일') {
-      return _products.where((p) => p.isSale && p.isActive).toList();
+      return _products.where((p) => _isPubliclyVisible(p) && p.isSale).toList();
     }
     // 단체주문 탭: 단체전용 또는 일반 단체 노출 상품 반환
     if (category == '단체주문') {
       return getGroupOnlyProducts();
     }
     return _products
-        .where((p) => p.category == category && p.isActive)
+        .where((p) => _isPubliclyVisible(p) && p.category == category)
         .toList();
   }
 
@@ -975,7 +986,9 @@ class ProductService {
             }
             return ProductModel.fromJson(data);
           })
-          .where((product) => product.isGroupOnly || product.isGroup)
+          .where((product) =>
+              _isPubliclyVisible(product) &&
+              (product.isGroupOnly || product.isGroup))
           .toList();
 
       if (kDebugMode) {
@@ -987,7 +1000,7 @@ class ProductService {
       // 폴백: 캐시에서 필터링
       _ensureCache();
       return _cache
-          .where((p) => (p.isGroupOnly || p.isGroup) && p.isActive)
+          .where((p) => _isPubliclyVisible(p) && (p.isGroupOnly || p.isGroup))
           .toList();
     }
   }
@@ -1012,12 +1025,12 @@ class ProductService {
             }
             return ProductModel.fromJson(data);
           })
-          .where(predicate)
+          .where((product) => _isPubliclyVisible(product) && predicate(product))
           .toList();
     } catch (_) {
       _ensureCache();
       return _cache
-          .where((product) => product.isActive && predicate(product))
+          .where((product) => _isPubliclyVisible(product) && predicate(product))
           .toList();
     }
   }
@@ -1026,7 +1039,8 @@ class ProductService {
     if (!_loaded) await _loadFromFirestore();
     // 1) 캐시에서 먼저 탐색
     try {
-      return _products.firstWhere((p) => p.id == id);
+      final product = _products.firstWhere((p) => p.id == id);
+      return _isPubliclyVisible(product) ? product : null;
     } catch (_) {}
     // 2) Firestore 직접 조회
     try {
@@ -1038,7 +1052,8 @@ class ProductService {
           data['createdAt'] =
               (data['createdAt'] as Timestamp).toDate().toIso8601String();
         }
-        return ProductModel.fromJson(data);
+        final product = ProductModel.fromJson(data);
+        return _isPubliclyVisible(product) ? product : null;
       }
     } catch (_) {}
     return null;
@@ -1068,7 +1083,7 @@ class ProductService {
           _cache = List.from(_products);
           _persistToLocal(); // 로컬 캐시에도 즉시 반영
         }
-        return fresh;
+        return _isPubliclyVisible(fresh) ? fresh : null;
       }
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
@@ -1081,7 +1096,7 @@ class ProductService {
     final q = query.toLowerCase();
     return _products
         .where((p) =>
-            p.isActive &&
+            _isPubliclyVisible(p) &&
             (p.name.toLowerCase().contains(q) ||
                 p.category.toLowerCase().contains(q) ||
                 p.description.toLowerCase().contains(q)))
@@ -1089,16 +1104,18 @@ class ProductService {
   }
 
   static Future<List<ProductModel>> getNewArrivals() async {
-    return _products.where((p) => p.isNewActive && p.isActive).toList()
+    return _products
+        .where((p) => _isPubliclyVisible(p) && p.isNewActive)
+        .toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
   static Future<List<ProductModel>> getSaleProducts() async {
-    return _products.where((p) => p.isSale && p.isActive).toList();
+    return _products.where((p) => _isPubliclyVisible(p) && p.isSale).toList();
   }
 
   static Future<List<ProductModel>> getPopularProducts() async {
-    final sorted = List<ProductModel>.from(_products.where((p) => p.isActive))
+    final sorted = List<ProductModel>.from(_products.where(_isPubliclyVisible))
       ..sort((a, b) => b.reviewCount.compareTo(a.reviewCount));
     return sorted.take(8).toList();
   }
@@ -1112,7 +1129,8 @@ class ProductService {
         .collection('products')
         .where('isActive', isEqualTo: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) {
+        .map((snapshot) => snapshot.docs
+            .map((doc) {
               final data = Map<String, dynamic>.from(doc.data());
               data['id'] ??= doc.id;
               if (data['createdAt'] is Timestamp) {
@@ -1120,7 +1138,9 @@ class ProductService {
                     (data['createdAt'] as Timestamp).toDate().toIso8601String();
               }
               return ProductModel.fromJson(data);
-            }).toList());
+            })
+            .where(_isPubliclyVisible)
+            .toList());
   }
 
   /// 카테고리 필터가 적용된 실시간 상품 스트림.
@@ -1510,34 +1530,43 @@ class ProductService {
 
   static List<ProductModel> getAllProductsSync() {
     _ensureCache();
-    return _cache;
+    return _cache.where(_isPubliclyVisible).toList();
   }
 
   /// Firestore 로드 결과를 담은 캐시만 반환한다.
   /// 원격 상품이 없을 때 내장 더미 상품을 섞지 않아 웹·앱 목록을 일치시킨다.
   static List<ProductModel> getAllProductsGuaranteed() {
     _ensureCache();
-    return List.from(_cache);
+    return _cache.where(_isPubliclyVisible).toList();
   }
 
   static List<ProductModel> getProductsByCategorySync(String category) {
     _ensureCache();
-    if (category == '전체') return _cache;
-    if (category == '신상품') return _cache.where((p) => p.isNewActive).toList();
-    if (category == '세일') return _cache.where((p) => p.isSale).toList();
+    if (category == '전체') return _cache.where(_isPubliclyVisible).toList();
+    if (category == '신상품') {
+      return _cache
+          .where((p) => _isPubliclyVisible(p) && p.isNewActive)
+          .toList();
+    }
+    if (category == '세일') {
+      return _cache.where((p) => _isPubliclyVisible(p) && p.isSale).toList();
+    }
     // 단체주문 탭: 단체전용 또는 일반 단체 상품 반환
     if (category == '단체주문') {
       return _cache
-          .where((p) => (p.isGroupOnly || p.isGroup) && p.isActive)
+          .where((p) => _isPubliclyVisible(p) && (p.isGroupOnly || p.isGroup))
           .toList();
     }
-    return _cache.where((p) => p.category == category).toList();
+    return _cache
+        .where((p) => _isPubliclyVisible(p) && p.category == category)
+        .toList();
   }
 
   static ProductModel? getProductByIdSync(String id) {
     _ensureCache();
     try {
-      return _cache.firstWhere((p) => p.id == id);
+      final product = _cache.firstWhere((p) => p.id == id);
+      return _isPubliclyVisible(product) ? product : null;
     } catch (_) {
       return null;
     }

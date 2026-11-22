@@ -162,6 +162,23 @@ class CategoryService {
   static bool isSubCategoryHidden(String main, String middle, String sub) =>
       (_hiddenSubCats[_key(main, middle)] ?? const <String>[]).contains(sub);
 
+  /// 상품의 분류 경로가 고객에게 공개되어 있는지 판정합니다.
+  /// 중분류가 비어 있는 기존 상품은 '일반'으로 간주하고,
+  /// 소분류가 비어 있으면 소분류 숨김 규칙을 적용하지 않습니다.
+  static bool isCategoryPathVisible(String main, String middle, String sub) {
+    final normalizedMain = main.trim();
+    final normalizedMiddle = middle.trim().isEmpty ? '일반' : middle.trim();
+    final normalizedSub = sub.trim();
+    if (normalizedMain.isEmpty || isMainCategoryHidden(normalizedMain)) {
+      return false;
+    }
+    if (isMiddleCategoryHidden(normalizedMain, normalizedMiddle)) {
+      return false;
+    }
+    return normalizedSub.isEmpty ||
+        !isSubCategoryHidden(normalizedMain, normalizedMiddle, normalizedSub);
+  }
+
   static Future<void> toggleMainCategoryVisibility(String name) async {
     final hidden = List<String>.from(_hiddenMainCats);
     hidden.contains(name) ? hidden.remove(name) : hidden.add(name);

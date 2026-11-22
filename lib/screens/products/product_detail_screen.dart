@@ -17,6 +17,7 @@ import '../../widgets/image_lightbox.dart';
 import '../../widgets/store_notice_card.dart';
 import '../../utils/app_localizations.dart';
 import '../../services/analytics_service.dart';
+import '../../services/category_service.dart';
 import '../../services/product_service.dart';
 import '../../services/storage_service.dart';
 import '../../utils/navigation_helper.dart';
@@ -24,6 +25,7 @@ import '../../utils/web_refresh_state.dart'
     if (dart.library.html) '../../utils/web_refresh_state_html.dart';
 import '../main_screen.dart';
 import '../../utils/responsive.dart';
+import '../not_found_screen.dart';
 
 /// 주니어 사이즈 판별 (J- 접두어 또는 2~3자리 숫자)
 /// 예: J-S, J-M, J-L, J-XL, J-2XL, 060, 065, 070 등
@@ -431,6 +433,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       orElse: () => widget.product,
     );
     final product = liveProduct;
+
+    // 고객에게 숨긴 대·중·소분류 상품은 오래된 화면 캐시나
+    // 다른 화면에서 전달된 ProductModel을 통한 우회 진입도 차단합니다.
+    if (!isAdmin &&
+        !CategoryService.isCategoryPathVisible(
+          product.category,
+          product.middleCategory,
+          product.subCategory,
+        )) {
+      return const NotFoundScreen();
+    }
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
 
