@@ -24429,6 +24429,11 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
     }
   }
 
+  Future<void> _refreshCustomerProducts() async {
+    if (!mounted) return;
+    await context.read<ProductProvider>().refreshCategoryVisibility();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -24586,6 +24591,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                       onPressed: () async {
                                         await CategoryService
                                             .toggleMainCategoryVisibility(cat);
+                                        await _refreshCustomerProducts();
                                         if (mounted) setState(() {});
                                       },
                                       icon: Icon(
@@ -24706,6 +24712,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                   _selectedMain!,
                                   _selectedMiddle!,
                                 );
+                                await _refreshCustomerProducts();
                                 if (mounted) setState(() {});
                               },
                               icon: Icon(
@@ -24974,6 +24981,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                                     _selectedMiddle ?? '일반',
                                                     sub,
                                                   );
+                                                  await _refreshCustomerProducts();
                                                   if (mounted) setState(() {});
                                                 },
                                                 icon: Icon(

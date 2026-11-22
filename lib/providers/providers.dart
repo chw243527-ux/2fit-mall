@@ -1510,7 +1510,15 @@ class ProductProvider extends ChangeNotifier {
   /// 카테고리 화면에서 교차 이동할 때 사용할 전체 활성 상품 원본입니다.
   /// [products]는 현재 선택 카테고리로 이미 필터된 목록일 수 있습니다.
   List<ProductModel> get allActiveProducts =>
-      ProductService.getAllProductsSync().where((p) => p.isActive).toList();
+      ProductService.getAllProductsSync()
+          .where((p) =>
+              p.isActive &&
+              CategoryService.isCategoryPathVisible(
+                p.category,
+                p.middleCategory,
+                p.subCategory,
+              ))
+          .toList();
 
   /// 관리자 전용: isActive 무관 전체 상품 목록
   List<ProductModel> get adminProducts => _adminProducts;
@@ -1540,7 +1548,14 @@ class ProductProvider extends ChangeNotifier {
   List<ProductModel> get bestProducts {
     if (!_salesCountsLoaded) return [];
     final withSales = _products
-        .where((p) => p.isActive && (_salesCountMap[p.id] ?? p.salesCount) > 0)
+        .where((p) =>
+            p.isActive &&
+            CategoryService.isCategoryPathVisible(
+              p.category,
+              p.middleCategory,
+              p.subCategory,
+            ) &&
+            (_salesCountMap[p.id] ?? p.salesCount) > 0)
         .toList()
       ..sort((a, b) {
         final sa = _salesCountMap[a.id] ?? a.salesCount;
@@ -1630,6 +1645,14 @@ class ProductProvider extends ChangeNotifier {
       notifyListeners();
     }
     _loadCategory(category);
+  }
+
+  /// 관리자에서 카테고리 표시 상태가 변경된 직후 고객용 목록을 갱신합니다.
+  /// 카테고리 숨김은 상품 문서를 수정하지 않으므로 상품 스트림만으로는
+  /// 이미 렌더링된 홈/카테고리 카드가 즉시 사라지지 않을 수 있습니다.
+  Future<void> refreshCategoryVisibility() async {
+    await _loadCategory(_currentCategory);
+    await loadGroupOnlyProducts();
   }
 
   Future<void> _loadCategory(String category) async {
