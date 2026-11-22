@@ -3380,7 +3380,7 @@ exports.getNextrGroupPaymentLink = onRequest({ cors: PAYMENT_CORS }, async (req,
   const expiresMs = data.expiresAt?.toDate?.()?.getTime() || 0;
   const intentAgeOk = data.status === 'reserved' && (data.intentCreatedAt?.toDate?.()?.getTime() || 0) + PAYMENT_INTENT_TTL_MS > Date.now();
   const status = (data.status === 'active' && expiresMs > Date.now()) || intentAgeOk ? 'active' : (data.status === 'active' ? 'expired' : data.status);
-  res.json({ success: true, linkId: data.linkId, status, brand: 'NEXTR', productName: data.productName, productImage: data.productImage, quantity: data.quantity, unitPrice: data.unitPrice, subtotal: data.subtotal, shippingFee: data.shippingFee, amount: data.amount, expiresAt: data.expiresAt?.toDate?.()?.toISOString() || null, customerName: data.customerName, customerPhone: data.customerPhone, deliveryAddress: data.deliveryAddress });
+  res.json({ success: true, linkId: data.linkId, status, brand: 'NEXTR', productName: data.productName, productImage: data.productImage, quantity: data.quantity, unitPrice: data.unitPrice, subtotal: data.subtotal, shippingFee: data.shippingFee, amount: data.amount, expiresAt: data.expiresAt?.toDate?.()?.toISOString() || null, customerName: data.customerName });
 });
 
 exports.prepareNextrGroupPayment = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
