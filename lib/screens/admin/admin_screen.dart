@@ -24349,7 +24349,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
             children: [
               // ── 왼쪽: 메인 카테고리 목록
               SizedBox(
-                width: isMobile ? double.infinity : 220,
+                width: isMobile ? double.infinity : 300,
                 height: isMobile ? 220 : null,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -24458,6 +24458,8 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                     Expanded(
                                       child: Text(
                                         cat,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w600,
@@ -24577,7 +24579,12 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                               ),
                               items: middleCats
                                   .map((m) => DropdownMenuItem(
-                                      value: m, child: Text(m)))
+                                      value: m,
+                                      child: Text(
+                                        m,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      )))
                                   .toList(),
                               onChanged: (v) =>
                                   setState(() => _selectedMiddle = v),
@@ -24604,33 +24611,63 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                     : Icons.visibility_outlined,
                                 color: const Color(0xFF7E57C2),
                               ),
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 30,
+                                minHeight: 30,
+                              ),
                             ),
                           IconButton(
                               tooltip: '중분류 추가',
                               onPressed: _showAddMiddleCatDialog,
                               icon: const Icon(Icons.add_circle_outline,
-                                  color: Color(0xFF7E57C2))),
+                                  color: Color(0xFF7E57C2)),
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 30,
+                                minHeight: 30,
+                              )),
                           IconButton(
                               tooltip: '중분류 편집',
                               onPressed: _selectedMiddle == null
                                   ? null
                                   : () => _editMiddleCat(_selectedMiddle!),
                               icon: const Icon(Icons.edit_rounded,
-                                  color: Color(0xFF7E57C2))),
+                                  color: Color(0xFF7E57C2)),
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 30,
+                                minHeight: 30,
+                              )),
                           IconButton(
                               tooltip: '중분류 복사',
                               onPressed: _selectedMiddle == null
                                   ? null
                                   : () => _copyMiddleCat(_selectedMiddle!),
                               icon: const Icon(Icons.copy_rounded,
-                                  color: Color(0xFF7E57C2))),
+                                  color: Color(0xFF7E57C2)),
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 30,
+                                minHeight: 30,
+                              )),
                           IconButton(
                               tooltip: '중분류 삭제',
                               onPressed: _selectedMiddle == null
                                   ? null
                                   : () => _deleteMiddleCat(_selectedMiddle!),
                               icon: const Icon(Icons.delete_outline,
-                                  color: AppColors.error)),
+                                  color: AppColors.error),
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 30,
+                                minHeight: 30,
+                              )),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -24791,6 +24828,9 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                               Expanded(
                                                 child: Text(
                                                   sub,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.w600,
