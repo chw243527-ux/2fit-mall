@@ -6053,9 +6053,9 @@ class _HomeScreenState extends State<HomeScreen>
           // ── 가로 스크롤 (최대 10개 + 전체보기 카드) ─
           if (isHorizontal)
             SizedBox(
-              // 상품명 2줄, 색상 요약, 가격까지 표시한 뒤에도 하단이
-              // 잘리지 않도록 정보 영역에 충분한 여유를 둡니다.
-              height: imgH + 155, // 이미지(4:5) + 정보영역 + 상하 shadow 여백
+              // 상품명 3줄, 색상 요약, 가격·할인가까지 표시한 뒤에도
+              // 카드 하단이 잘리지 않도록 정보 영역에 충분한 여유를 둡니다.
+              height: imgH + 205, // 이미지(4:5) + 정보영역 + 상하 여백
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.fromLTRB(
