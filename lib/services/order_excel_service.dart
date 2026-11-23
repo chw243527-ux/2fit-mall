@@ -4461,8 +4461,8 @@ class OrderExcelService {
       theme: pw.ThemeData.withFont(base: font, bold: font),
       footer: (context) => pw.Align(
         alignment: pw.Alignment.centerRight,
-        child: pw.Text('NEXTR · 주문 목록 · ${context.pageNumber}',
-            style: cellStyle),
+        child:
+            pw.Text('NEXTR · 주문 목록 · ${context.pageNumber}', style: cellStyle),
       ),
       build: (context) => [
         pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
