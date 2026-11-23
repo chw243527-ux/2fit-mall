@@ -300,7 +300,7 @@ class ProductCard extends StatelessWidget {
 
           // ── 상품명: 모든 카드에서 동일한 높이와 작은 글자 크기를 사용 ──
           SizedBox(
-            height: 10 * 1.35 * 2,
+            height: 10 * 1.35 * 2 + 4,
             child: Text(
               // Firestore 번역 데이터 우선, 없으면 loc.t()로 런타임 번역 등록
               product.localizedName(lang) != product.name
@@ -346,7 +346,7 @@ class ProductCard extends StatelessWidget {
                   _fmt(product.price),
                   style: const TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w400,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary,
                     letterSpacing: -0.2,
                   ),
@@ -356,7 +356,7 @@ class ProductCard extends StatelessWidget {
                   loc.productWonUnit,
                   style: const TextStyle(
                     fontSize: 10,
-                    fontWeight: FontWeight.w400,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary,
                   ),
                 ),
@@ -385,7 +385,7 @@ class ProductCard extends StatelessWidget {
               '${_fmt(product.price)}${loc.productWonUnit}',
               style: const TextStyle(
                 fontSize: 13,
-                fontWeight: FontWeight.w400,
+                fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
                 letterSpacing: -0.2,
               ),
@@ -404,7 +404,7 @@ class ProductCard extends StatelessWidget {
                   '${product.rating} (${product.reviewCount})',
                   style: const TextStyle(
                     fontSize: 9,
-                    fontWeight: FontWeight.w400,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -445,7 +445,7 @@ class ProductCard extends StatelessWidget {
               '+$extraCount',
               style: const TextStyle(
                 fontSize: 9,
-                fontWeight: FontWeight.w400,
+                fontWeight: FontWeight.w500,
                 color: AppColors.textSecondary,
               ),
             ),
@@ -457,7 +457,7 @@ class ProductCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 9,
-                fontWeight: FontWeight.w400,
+                fontWeight: FontWeight.w500,
                 color: AppColors.textSecondary,
               ),
             ),

@@ -80,25 +80,25 @@ class AppTheme {
 
     return TextTheme(
       // 대형 제목 (헤로 배너, 섹션 제목)
-      displayLarge: _ts(32 * s, FontWeight.w500, -0.6),
-      displayMedium: _ts(28 * s, FontWeight.w500, -0.5),
-      displaySmall: _ts(24 * s, FontWeight.w500, -0.4),
+      displayLarge: _ts(32 * s, FontWeight.w600, -0.6),
+      displayMedium: _ts(28 * s, FontWeight.w600, -0.5),
+      displaySmall: _ts(24 * s, FontWeight.w600, -0.4),
       // 화면 제목
-      headlineLarge: _ts(22 * s, FontWeight.w500, -0.3),
-      headlineMedium: _ts(20 * s, FontWeight.w500, -0.2),
-      headlineSmall: _ts(18 * s, FontWeight.w500, -0.2),
+      headlineLarge: _ts(22 * s, FontWeight.w600, -0.3),
+      headlineMedium: _ts(20 * s, FontWeight.w600, -0.2),
+      headlineSmall: _ts(18 * s, FontWeight.w600, -0.2),
       // AppBar / 카드 제목
-      titleLarge: _ts(17 * s, FontWeight.w500, -0.2),
-      titleMedium: _ts(15 * s, FontWeight.w500, -0.1),
-      titleSmall: _ts(13 * s, FontWeight.w500, -0.1),
+      titleLarge: _ts(17 * s, FontWeight.w600, -0.2),
+      titleMedium: _ts(15 * s, FontWeight.w600, -0.1),
+      titleSmall: _ts(13 * s, FontWeight.w600, -0.1),
       // 본문
-      bodyLarge: _ts(15 * s, FontWeight.w500, 0.0),
-      bodyMedium: _ts(14 * s, FontWeight.w500, 0.0),
-      bodySmall: _ts(12 * s, FontWeight.w500, 0.0),
+      bodyLarge: _ts(15 * s, FontWeight.w600, 0.0),
+      bodyMedium: _ts(14 * s, FontWeight.w600, 0.0),
+      bodySmall: _ts(12 * s, FontWeight.w600, 0.0),
       // 라벨 (버튼, 탭, 뱃지)
-      labelLarge: _ts(14 * s, FontWeight.w500, -0.1),
-      labelMedium: _ts(12 * s, FontWeight.w500, -0.1),
-      labelSmall: _ts(10 * s, FontWeight.w500, 0.0),
+      labelLarge: _ts(14 * s, FontWeight.w600, -0.1),
+      labelMedium: _ts(12 * s, FontWeight.w600, -0.1),
+      labelSmall: _ts(10 * s, FontWeight.w600, 0.0),
     );
   }
 
@@ -139,7 +139,7 @@ class AppTheme {
           fontFamily: fontFamily,
           color: AppColors.textPrimary,
           fontSize: 16,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
           letterSpacing: -0.1,
         ),
         iconTheme: IconThemeData(color: AppColors.textPrimary),
@@ -238,7 +238,7 @@ class AppTheme {
         hintStyle: const TextStyle(
           color: AppColors.textHint,
           fontSize: 14,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
         ),
       ),
 
@@ -265,7 +265,7 @@ class AppTheme {
         unselectedLabelStyle: TextStyle(
           fontFamily: fontFamily,
           fontSize: 11,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
           letterSpacing: -0.1,
         ),
       ),
@@ -285,7 +285,7 @@ class AppTheme {
           fontFamily: fontFamily,
           color: AppColors.textPrimary,
           fontSize: 18,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
           letterSpacing: -0.2,
         ),
         contentTextStyle: const TextStyle(
@@ -293,7 +293,7 @@ class AppTheme {
           color: AppColors.textSecondary,
           fontSize: 14,
           height: 1.45,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
         ),
       ),
 
@@ -342,7 +342,7 @@ class AppTheme {
           fontFamily: fontFamily,
           color: AppColors.textWhite,
           fontSize: 13,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
         ),
         behavior: SnackBarBehavior.floating,
         elevation: 4,
