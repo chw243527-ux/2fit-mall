@@ -3141,7 +3141,8 @@ class _HomeScreenState extends State<HomeScreen>
       color: Colors.white,
       padding: EdgeInsets.only(bottom: r.h(8)),
       child: SizedBox(
-        height: cardW * 1.25 + 96,
+        // 3줄 상품명·색상·가격까지 표시할 수 있도록 하단 정보 영역을 확보합니다.
+        height: cardW * 1.25 + 116,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: EdgeInsets.symmetric(horizontal: r.w(12)),
