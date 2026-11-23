@@ -1301,11 +1301,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     final price = product.price > 0
         ? '₩${product.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원'
         : '';
-    final text = '''[2FIT MALL] ${product.name}
+    final text = '''[NEXTR] ${product.name}
 $price
 $productUrl
 
-2FIT MALL에서 최고의 스포츠웨어를 만나보세요!''';
+NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
 
     showModalBottomSheet(
       context: context,
@@ -1724,7 +1724,7 @@ $productUrl
                   child: Row(
                     children: [
                       Text(
-                        '2FIT KOREA',
+                        'NEXTR',
                         style: TextStyle(
                           fontSize: r.sp(13),
                           fontWeight: FontWeight.w700,
@@ -2212,7 +2212,7 @@ $productUrl
                       ),
                     ),
                     Text(
-                      '2FIT KOREA',
+                      'NEXTR',
                       style: TextStyle(
                         fontSize: r.sp(11),
                         color: AppColors.textSecondary,
@@ -6443,7 +6443,7 @@ $productUrl
       return (
         label: product.editorialLabel.trim().isNotEmpty
             ? product.editorialLabel
-            : '2FIT SPORTSWEAR',
+            : 'NEXTR SPORTSWEAR',
         headline: product.editorialTitle,
         accent: product.editorialAccent.trim().isNotEmpty
             ? product.editorialAccent
@@ -6840,7 +6840,7 @@ $productUrl
               const Divider(height: 1, color: AppColors.textPrimary),
               SizedBox(height: r.h(18)),
               Text(
-                '좋은 스포츠웨어는 움직임을 돕되, 움직임을 대신하지 않습니다. 2FIT은 오래 입고 오래 움직일 수 있는 균형을 고민합니다.',
+                '좋은 스포츠웨어는 움직임을 돕되, 움직임을 대신하지 않습니다. NEXTR은 오래 입고 오래 움직일 수 있는 균형을 고민합니다.',
                 style: TextStyle(
                   fontSize: r.sp(15),
                   color: AppColors.textSecondary,
@@ -6977,7 +6977,7 @@ $productUrl
               const Divider(height: 1, color: AppColors.border),
               SizedBox(height: r.h(14)),
               Text(
-                '2FIT SPORTSWEAR\n$productType',
+                'NEXTR SPORTSWEAR\n$productType',
                 style: TextStyle(
                   fontSize: r.sp(13),
                   color: AppColors.textSecondary,
@@ -7050,7 +7050,7 @@ $productUrl
               ),
               SizedBox(height: r.h(18)),
               Text(
-                '2FIT MALL은 움직임을 멈추지 않는 사람들을 위한 스포츠웨어를 제안합니다. 목적과 취향에 맞는 한 장이 더 나은 움직임으로 이어진다고 믿습니다.',
+                'NEXTR은 움직임을 멈추지 않는 사람들을 위한 스포츠웨어를 제안합니다. 목적과 취향에 맞는 한 장이 더 나은 움직임으로 이어진다고 믿습니다.',
                 style: TextStyle(
                   fontSize: r.sp(14),
                   color: AppColors.textSecondary,
@@ -7378,7 +7378,7 @@ $productUrl
               ),
               SizedBox(height: r.h(18)),
               Text(
-                '2FIT MALL은 더 많은 수량보다, 더 분명한 기준을 선택합니다. 한 디자인은 단 200장. 자신만의 기준과 취향으로 달리는 러너를 위해 만듭니다.',
+                'NEXTR은 더 많은 수량보다, 더 분명한 기준을 선택합니다. 한 디자인은 단 200장. 자신만의 기준과 취향으로 달리는 러너를 위해 만듭니다.',
                 style: TextStyle(
                   fontSize: r.sp(14),
                   color: AppColors.textSecondary,
@@ -8223,7 +8223,7 @@ $productUrl
               ),
               const Spacer(),
               Text(
-                '2FIT KOREA\n${context.loc.t('투핏_사이즈_조건표_기준', '투핏 사이즈 조건표 기준')}',
+                'NEXTR\n${context.loc.t('투핏_사이즈_조건표_기준', '투핏 사이즈 조건표 기준')}',
                 textAlign: TextAlign.right,
                 style: TextStyle(
                   fontSize: r.sp(10),

@@ -61,7 +61,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                   children: [
                     Text(
                         context.loc
-                            .t('2FIT_MALL_개인정보처_4e637f', '2FIT MALL 개인정보처리방침'),
+                            .t('2FIT_MALL_개인정보처_4e637f', 'NEXTR 개인정보처리방침'),
                         style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -80,7 +80,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
               _buildSection(
                 context.loc.t('제1조_수집하는_개인정보_항목', '제1조 (수집하는 개인정보 항목)'),
                 context.loc.t('개인정보_수집_항목_내용',
-                    '2FIT MALL은 회원가입 및 서비스 이용을 위해 아래와 같은 개인정보를 수집합니다.\n\n• 필수항목: 이름, 이메일 주소, 비밀번호, 휴대폰 번호\n• 선택항목: 마케팅 수신 동의\n• 자동수집: 서비스 이용기록, 접속 로그, 쿠키, IP 주소'),
+                    'NEXTR은 회원가입 및 서비스 이용을 위해 아래와 같은 개인정보를 수집합니다.\n\n• 필수항목: 이름, 이메일 주소, 비밀번호, 휴대폰 번호\n• 선택항목: 마케팅 수신 동의\n• 자동수집: 서비스 이용기록, 접속 로그, 쿠키, IP 주소'),
               ),
               _buildSection(
                 context.loc.t('제2조_개인정보의_수집_및_이용목적', '제2조 (개인정보의 수집 및 이용목적)'),
@@ -95,7 +95,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
               _buildSection(
                 context.loc.t('제4조_개인정보_제3자_제공', '제4조 (개인정보 제3자 제공)'),
                 context.loc.t('개인정보_제3자_제공_내용',
-                    '2FIT MALL은 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다. 단, 아래의 경우 최소한의 정보를 제공합니다.\n\n• 배송 처리: 택배사에 수령인·주소·연락처 제공\n• 결제 처리: 토스페이먼츠에 결제 정보 제공\n• 알림톡 발송: SOLAPI를 통해 주문·배송 정보 발송'),
+                    'NEXTR은 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다. 단, 아래의 경우 최소한의 정보를 제공합니다.\n\n• 배송 처리: 택배사에 수령인·주소·연락처 제공\n• 결제 처리: 토스페이먼츠에 결제 정보 제공\n• 알림톡 발송: SOLAPI를 통해 주문·배송 정보 발송'),
               ),
               _buildSection(
                 context.loc.t('제5조_개인정보처리_위탁', '제5조 (개인정보처리 위탁)'),
@@ -110,7 +110,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
               _buildSection(
                 context.loc.t('제7조_안전성_확보_조치', '제7조 (개인정보의 안전성 확보 조치)'),
                 context.loc.t('개인정보_안전성_조치_내용',
-                    '2FIT MALL은 개인정보 보호를 위해 다음 조치를 적용합니다.\n\n• 서비스 통신 구간에 HTTPS 암호화를 사용합니다.\n• 인증, 데이터 접근 및 관리 기능은 권한에 따라 제한합니다.\n• 결제 비밀값과 메시지 발송 비밀값은 앱에 저장하지 않고 서버의 안전한 설정 영역에서 관리합니다.\n• 접근 기록을 점검하고, 권한 없는 접근·변조·유출을 방지하기 위한 기술적·관리적 조치를 운영합니다.'),
+                    'NEXTR은 개인정보 보호를 위해 다음 조치를 적용합니다.\n\n• 서비스 통신 구간에 HTTPS 암호화를 사용합니다.\n• 인증, 데이터 접근 및 관리 기능은 권한에 따라 제한합니다.\n• 결제 비밀값과 메시지 발송 비밀값은 앱에 저장하지 않고 서버의 안전한 설정 영역에서 관리합니다.\n• 접근 기록을 점검하고, 권한 없는 접근·변조·유출을 방지하기 위한 기술적·관리적 조치를 운영합니다.'),
               ),
               _buildSection(
                 context.loc.t('제8조_이용자의_권리', '제8조 (이용자의 권리)'),

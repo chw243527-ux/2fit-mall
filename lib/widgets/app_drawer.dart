@@ -872,7 +872,7 @@ class _AppDrawerState extends State<AppDrawer> {
               ),
             ),
             const Text(
-              '2FIT KOREA',
+              'NEXTR',
               style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 22,

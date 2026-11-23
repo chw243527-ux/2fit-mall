@@ -2492,7 +2492,7 @@ class _HomeScreenState extends State<HomeScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('2FIT KOREA',
+                  Text('NEXTR',
                       style: TextStyle(
                           fontSize: r.sp(9),
                           color: AppColors.textSecondary,

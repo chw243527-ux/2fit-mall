@@ -14,8 +14,8 @@ class AccountDeletionScreen extends StatelessWidget {
     scheme: 'mailto',
     path: AppConstants.customerServiceEmail,
     queryParameters: {
-      'subject': '[2FIT MALL] 계정 삭제 요청',
-      'body': '안녕하세요. 2FIT MALL 계정 삭제를 요청합니다.\n\n'
+      'subject': '[NEXTR] 계정 삭제 요청',
+      'body': '안녕하세요. NEXTR 계정 삭제를 요청합니다.\n\n'
           '가입 이메일 또는 휴대폰 번호: \n'
           '성함: \n\n'
           '※ 비밀번호, 주민등록번호, 카드번호는 이메일에 적지 마세요.\n'
@@ -201,7 +201,7 @@ class _HeaderCard extends StatelessWidget {
           Icon(Icons.manage_accounts_outlined, color: Colors.white, size: 30),
           SizedBox(height: 14),
           Text(
-            '2FIT MALL 계정 삭제 요청',
+            'NEXTR 계정 삭제 요청',
             style: TextStyle(
               color: Colors.white,
               fontSize: 21,

@@ -268,7 +268,7 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
         ChangeNotifierProvider(create: (_) => PointProvider()),
       ],
       child: MaterialApp(
-        title: '2FIT MALL',
+        title: 'NEXTR',
         debugShowCheckedModeBanner: false,
         navigatorKey: navigatorKey,
         navigatorObservers: [_WebRouteStateObserver()],

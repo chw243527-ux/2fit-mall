@@ -387,7 +387,7 @@ class OrderExcelService {
     excel.setDefaultSheet('주문요약');
 
     _setCell(summarySheet, 0, 0,
-        '2FIT MALL 선택 주문 내역 (${orders.length}건) — 출력: ${_fmtFull(exportedAt)}',
+        'NEXTR 선택 주문 내역 (${orders.length}건) — 출력: ${_fmtFull(exportedAt)}',
         style: titleStyle, border: false);
     summarySheet.merge(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
         CellIndex.indexByColumnRow(columnIndex: 16, rowIndex: 0));
@@ -796,7 +796,7 @@ class OrderExcelService {
     excel.setDefaultSheet('주문요약');
 
     _setCell(summarySheet, 0, 0,
-        '2FIT MALL 단체/커스텀 주문 내역 (${_fmt(start)} ~ ${_fmt(end)})',
+        'NEXTR 단체/커스텀 주문 내역 (${_fmt(start)} ~ ${_fmt(end)})',
         style: headerStyle);
     summarySheet.merge(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
         CellIndex.indexByColumnRow(columnIndex: 13, rowIndex: 0));
@@ -3058,7 +3058,7 @@ class OrderExcelService {
     sum.merge(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
         CellIndex.indexByColumnRow(columnIndex: 14, rowIndex: 0));
 
-    _setCell(sum, 1, 0, '2FIT MALL 주문 내역 엑셀 예시', style: titleStyle);
+    _setCell(sum, 1, 0, 'NEXTR 주문 내역 엑셀 예시', style: titleStyle);
     sum.merge(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 1),
         CellIndex.indexByColumnRow(columnIndex: 14, rowIndex: 1));
 
@@ -4461,12 +4461,12 @@ class OrderExcelService {
       theme: pw.ThemeData.withFont(base: font, bold: font),
       footer: (context) => pw.Align(
         alignment: pw.Alignment.centerRight,
-        child: pw.Text('2FIT MALL · 주문 목록 · ${context.pageNumber}',
+        child: pw.Text('NEXTR · 주문 목록 · ${context.pageNumber}',
             style: cellStyle),
       ),
       build: (context) => [
         pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
-          pw.Text('2FIT MALL 주문 목록', style: titleStyle),
+          pw.Text('NEXTR 주문 목록', style: titleStyle),
           pw.Text('생성일시 ${dateText(generatedAt)}', style: cellStyle),
         ]),
         pw.SizedBox(height: 5),
@@ -4576,10 +4576,10 @@ class OrderExcelService {
       footer: (context) => pw.Align(
           alignment: pw.Alignment.centerRight,
           child: pw.Text(
-              '2FIT MALL · ${productionOnly ? '발주용' : '고객용'} 단체주문 예시 PDF · ${context.pageNumber}',
+              'NEXTR · ${productionOnly ? '발주용' : '고객용'} 단체주문 예시 PDF · ${context.pageNumber}',
               style: cell)),
       build: (context) => [
-        pw.Text('2FIT MALL ${productionOnly ? '발주용' : '고객용'} 단체주문 예시',
+        pw.Text('NEXTR ${productionOnly ? '발주용' : '고객용'} 단체주문 예시',
             style: title),
         pw.SizedBox(height: 6),
         pw.Text(
@@ -5037,11 +5037,11 @@ class OrderExcelService {
       theme: pw.ThemeData.withFont(base: font, bold: font),
       footer: (context) => pw.Align(
           alignment: pw.Alignment.centerRight,
-          child: pw.Text('2FIT MALL · 단체주문 상세 주문서 · ${context.pageNumber}',
+          child: pw.Text('NEXTR · 단체주문 상세 주문서 · ${context.pageNumber}',
               style: cellStyle)),
       build: (context) => [
         pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
-          pw.Text('2FIT MALL 단체주문서',
+          pw.Text('NEXTR 단체주문서',
               style: pw.TextStyle(
                   font: font,
                   fontSize: 20,

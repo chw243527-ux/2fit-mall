@@ -45,7 +45,7 @@ messaging.onBackgroundMessage(function(payload) {
     return;
   }
 
-  const notificationTitle = data.title || '2FIT MALL';
+  const notificationTitle = data.title || 'NEXTR';
   const notificationOptions = {
     body: payload.notification?.body || data.body || '새로운 알림이 있습니다.',
     icon: '/icons/Icon-192.png',

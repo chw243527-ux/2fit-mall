@@ -135,15 +135,15 @@ class AppLocalizations {
   String get appName {
     switch (language) {
       case AppLanguage.korean:
-        return '2FIT MALL';
+        return 'NEXTR';
       case AppLanguage.english:
-        return '2FIT MALL';
+        return 'NEXTR';
       case AppLanguage.japanese:
-        return '2FIT MALL';
+        return 'NEXTR';
       case AppLanguage.chinese:
-        return '2FIT MALL';
+        return 'NEXTR';
       case AppLanguage.mongolian:
-        return '2FIT MALL';
+        return 'NEXTR';
     }
   }
 
@@ -1835,15 +1835,15 @@ class AppLocalizations {
   String get chatWelcome {
     switch (language) {
       case AppLanguage.korean:
-        return '안녕하세요! 2FIT MALL 고객센터입니다 😊\n무엇을 도와드릴까요?';
+        return '안녕하세요! NEXTR 고객센터입니다 😊\n무엇을 도와드릴까요?';
       case AppLanguage.english:
-        return 'Hello! Welcome to 2FIT MALL Support 😊\nHow can we help you?';
+        return 'Hello! Welcome to NEXTR Support 😊\nHow can we help you?';
       case AppLanguage.japanese:
-        return 'こんにちは！2FIT MALLサポートへようこそ 😊\nご用件をお聞かせください。';
+        return 'こんにちは！NEXTRサポートへようこそ 😊\nご用件をお聞かせください。';
       case AppLanguage.chinese:
-        return '您好！欢迎来到2FIT MALL客服 😊\n请问有什么可以帮助您？';
+        return '您好！欢迎来到NEXTR客服 😊\n请问有什么可以帮助您？';
       case AppLanguage.mongolian:
-        return 'Сайн байна уу! 2FIT MALL тусламжид тавтай морилно уу 😊\nЯмар асуудал байна?';
+        return 'Сайн байна уу! NEXTR тусламжид тавтай морилно уу 😊\nЯмар асуудал байна?';
     }
   }
 
@@ -4296,13 +4296,13 @@ class AppLocalizations {
       case AppLanguage.korean:
         return '입금 계좌: 국민은행 123-456-789012 (주)2FIT코리아';
       case AppLanguage.english:
-        return 'Account: Kookmin Bank 123-456-789012 2FIT Korea';
+        return 'Account: Kookmin Bank 123-456-789012 NEXTR';
       case AppLanguage.japanese:
         return '口座: 国民銀行 123-456-789012 2FITコリア';
       case AppLanguage.chinese:
         return '账户: 国民银行 123-456-789012 2FIT韩国';
       case AppLanguage.mongolian:
-        return 'Данс: Kookmin Bank 123-456-789012 2FIT Korea';
+        return 'Данс: Kookmin Bank 123-456-789012 NEXTR';
     }
   }
 
@@ -6825,15 +6825,15 @@ class AppLocalizations {
   String get signupSubtitle {
     switch (language) {
       case AppLanguage.korean:
-        return '2FIT MALL에 오신 것을 환영합니다';
+        return 'NEXTR에 오신 것을 환영합니다';
       case AppLanguage.english:
-        return 'Welcome to 2FIT MALL';
+        return 'Welcome to NEXTR';
       case AppLanguage.japanese:
-        return '2FIT MALLへようこそ';
+        return 'NEXTRへようこそ';
       case AppLanguage.chinese:
-        return '欢迎来到2FIT MALL';
+        return '欢迎来到NEXTR';
       case AppLanguage.mongolian:
-        return '2FIT MALL-д тавтай морилно уу';
+        return 'NEXTR-д тавтай морилно уу';
     }
   }
 
@@ -11373,15 +11373,15 @@ class AppLocalizations {
   String get signupBenefitTitle {
     switch (language) {
       case AppLanguage.english:
-        return '2FIT MALL Member Benefits';
+        return 'NEXTR Member Benefits';
       case AppLanguage.japanese:
-        return '2FIT MALL 会員特典';
+        return 'NEXTR 会員特典';
       case AppLanguage.chinese:
-        return '2FIT MALL 会员福利';
+        return 'NEXTR 会员福利';
       case AppLanguage.mongolian:
-        return '2FIT MALL гишүүний давуу эрх';
+        return 'NEXTR гишүүний давуу эрх';
       case AppLanguage.korean:
-        return '2FIT MALL 회원 혜택';
+        return 'NEXTR 회원 혜택';
     }
   }
 
@@ -13679,15 +13679,15 @@ class AppLocalizations {
   String get drawerCopyright {
     switch (language) {
       case AppLanguage.english:
-        return '© 2026 2FIT MALL';
+        return '© 2026 NEXTR';
       case AppLanguage.japanese:
-        return '© 2026 2FIT MALL';
+        return '© 2026 NEXTR';
       case AppLanguage.chinese:
-        return '© 2026 2FIT MALL';
+        return '© 2026 NEXTR';
       case AppLanguage.mongolian:
-        return '© 2026 2FIT MALL';
+        return '© 2026 NEXTR';
       default:
-        return '© 2026 2FIT MALL';
+        return '© 2026 NEXTR';
     }
   }
 
@@ -15735,15 +15735,15 @@ class AppLocalizations {
   String get loginWelcome {
     switch (language) {
       case AppLanguage.english:
-        return 'Welcome to 2FIT MALL';
+        return 'Welcome to NEXTR';
       case AppLanguage.japanese:
-        return '2FIT MALLへようこそ';
+        return 'NEXTRへようこそ';
       case AppLanguage.chinese:
-        return '欢迎来到 2FIT MALL';
+        return '欢迎来到 NEXTR';
       case AppLanguage.mongolian:
-        return '2FIT MALL-д тавтай морил';
+        return 'NEXTR-д тавтай морил';
       default:
-        return '2FIT MALL에 오신 것을 환영합니다';
+        return 'NEXTR에 오신 것을 환영합니다';
     }
   }
 
@@ -18270,13 +18270,13 @@ class AppLocalizations {
   String get serviceKakaoCompany {
     switch (language) {
       case AppLanguage.english:
-        return '🏢 2FIT MALL';
+        return '🏢 NEXTR';
       case AppLanguage.japanese:
-        return '🏢 2FIT MALL';
+        return '🏢 NEXTR';
       case AppLanguage.chinese:
-        return '🏢 2FIT MALL';
+        return '🏢 NEXTR';
       case AppLanguage.mongolian:
-        return '🏢 2FIT MALL';
+        return '🏢 NEXTR';
       default:
         return '🏢 투핏몰(2FIT-mall)';
     }

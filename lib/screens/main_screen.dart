@@ -1332,7 +1332,7 @@ class _PcFooter extends StatelessWidget {
                           GestureDetector(
                             onTap: () => onTabChanged?.call(0),
                             child: Text(
-                              '2FIT MALL',
+                              'NEXTR',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w900,

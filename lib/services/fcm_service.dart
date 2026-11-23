@@ -78,7 +78,7 @@ class FcmService {
             FirebaseMessaging.onMessage.listen((RemoteMessage message) {
           final title = message.notification?.title ??
               message.data['title']?.toString() ??
-              '2FIT MALL';
+              'NEXTR';
           final body = message.notification?.body ??
               message.data['body']?.toString() ??
               '새로운 알림이 있습니다.';
@@ -338,7 +338,7 @@ class FcmService {
     String? targetUserId,
   }) async {
     try {
-      final notifBody = body ?? message ?? '2FIT Mall에서 새로운 소식을 전달드립니다.';
+      final notifBody = body ?? message ?? 'NEXTR에서 새로운 소식을 전달드립니다.';
 
       if (targetUserId != null) {
         // 특정 사용자 대상

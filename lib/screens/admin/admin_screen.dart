@@ -1086,7 +1086,7 @@ class _AdminScreenState extends State<AdminScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '2FIT MALL',
+                                'NEXTR',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 13,
@@ -1720,7 +1720,7 @@ class _AdminScreenState extends State<AdminScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '2FIT MALL',
+                              'NEXTR',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 13,
@@ -3363,7 +3363,7 @@ class _AdminScreenState extends State<AdminScreen>
         await SharePlus.instance.share(
           ShareParams(
             files: [XFile(filePath, mimeType: mimeType, name: fileName)],
-            subject: '2FIT MALL ${productionOnly ? '발주용' : '고객용'} 단체주문 예시 PDF',
+            subject: 'NEXTR ${productionOnly ? '발주용' : '고객용'} 단체주문 예시 PDF',
             text: fileName,
           ),
         );
@@ -10197,7 +10197,7 @@ class _AdminScreenState extends State<AdminScreen>
                         final success = await FcmService.sendPromoNotification(
                           title: titleCtrl.text.trim(),
                           body: bodyCtrl.text.trim().isEmpty
-                              ? '2FIT Mall에서 새로운 소식을 전달드립니다.'
+                              ? 'NEXTR에서 새로운 소식을 전달드립니다.'
                               : bodyCtrl.text.trim(),
                           targetGrade: selectedGrade,
                         );
@@ -19703,7 +19703,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   String _defaultDescForCat(String cat) {
     switch (cat) {
       case '상의':
-        return '2FIT의 고품질 스포츠 상의입니다.\n78% Nylon, 22% Spandex / 4-way Stretch 소재로 뛰어난 신축성과 내구성을 제공합니다.\n심리스(무봉제) 설계로 피부 마찰을 최소화하며 편안한 착용감을 드립니다.\n빠른 건조와 땀 흡수 기능으로 운동 중 쾌적함을 유지합니다.';
+        return 'NEXTR의 고품질 스포츠 상의입니다.\n78% Nylon, 22% Spandex / 4-way Stretch 소재로 뛰어난 신축성과 내구성을 제공합니다.\n심리스(무봉제) 설계로 피부 마찰을 최소화하며 편안한 착용감을 드립니다.\n빠른 건조와 땀 흡수 기능으로 운동 중 쾌적함을 유지합니다.';
       case '하의':
         return '2FIT 스포츠 하의입니다.\n78% Nylon, 22% Spandex / 4-way Stretch 소재로 최고의 신축성 제공.\n허리밴드는 와이드 설계로 흘러내림 없이 고정됩니다.\n운동 중 움직임을 방해하지 않는 인체공학적 패턴 적용.';
       case '세트':
@@ -19717,7 +19717,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       case '이벤트':
         return '2FIT 이벤트 특가 상품입니다.\n한정 수량으로 준비된 특별 혜택 상품.\n빠른 주문 마감 예정이오니 서두르세요!';
       default:
-        return '2FIT의 프리미엄 스포츠 웨어입니다.\n78% Nylon, 22% Spandex / 4-way Stretch 소재 사용.\n고강도 운동부터 일상 착용까지 모든 상황에 적합합니다.';
+        return 'NEXTR의 프리미엄 스포츠 웨어입니다.\n78% Nylon, 22% Spandex / 4-way Stretch 소재 사용.\n고강도 운동부터 일상 착용까지 모든 상황에 적합합니다.';
     }
   }
 
@@ -20976,7 +20976,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     TextField(
                       controller: _manufacturerCtrl,
                       decoration: const InputDecoration(
-                        hintText: '예) 2FIT KOREA',
+                        hintText: '예) NEXTR',
                         filled: true,
                         fillColor: AppColors.surfaceGray,
                       ),

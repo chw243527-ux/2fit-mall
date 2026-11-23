@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   sitemap.xml - 검색엔진 색인 지도
-  2FIT MALL (https://2fit-mall.co.kr)
+  NEXTR (https://2fit-mall.co.kr)
 
   ▸ 구글 제출: https://search.google.com/search-console
   ▸ 네이버 제출: https://searchadvisor.naver.com
@@ -29,7 +29,7 @@
     <xhtml:link rel="alternate" hreflang="ko" href="https://2fit-mall.co.kr/"/>
     <image:image>
       <image:loc>https://2fit-mall.co.kr/icons/og-image.png</image:loc>
-      <image:title>2FIT MALL 메인</image:title>
+      <image:title>NEXTR 메인</image:title>
     </image:image>
   </url>
 

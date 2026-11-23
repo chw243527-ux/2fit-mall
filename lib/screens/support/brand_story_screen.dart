@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../utils/theme.dart';
 
-/// 2FIT MALL의 기성품·단체주문 정책과 러닝웨어 철학을 소개하는 고객용 페이지입니다.
+/// NEXTR의 기성품·단체주문 정책과 러닝웨어 철학을 소개하는 고객용 페이지입니다.
 class BrandStoryScreen extends StatelessWidget {
   const BrandStoryScreen({super.key});
 
@@ -106,7 +106,7 @@ class BrandStoryScreen extends StatelessWidget {
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.primary,
         title: const Text(
-          '2FIT MALL',
+          'NEXTR',
           style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.2),
         ),
       ),
@@ -170,7 +170,7 @@ class BrandStoryScreen extends StatelessWidget {
                   index: '01 / PERFORMANCE',
                   title: '움직임에 집중하는 설계',
                   body:
-                      '2FIT MALL은 달리고, 훈련하고, 팀으로 도전하는 순간을 위한 스포츠웨어를 만듭니다. 불필요한 요소는 덜고, 활동 목적에 맞는 핏과 소재 정보는 더 명확하게 전합니다.',
+                      'NEXTR은 달리고, 훈련하고, 팀으로 도전하는 순간을 위한 스포츠웨어를 만듭니다. 불필요한 요소는 덜고, 활동 목적에 맞는 핏과 소재 정보는 더 명확하게 전합니다.',
                 ),
                 _storyBlock(
                   index: '02 / MATERIAL',
@@ -182,7 +182,7 @@ class BrandStoryScreen extends StatelessWidget {
                   index: '03 / CHOICE',
                   title: '더 많이보다, 더 분명하게',
                   body:
-                      '기성품과 단체 맞춤 제작을 구분해 운영합니다. 고객이 필요한 방식으로 선택하고, 구매 전 알아야 할 정보를 깔끔하게 확인할 수 있도록 만드는 것이 2FIT의 기준입니다.',
+                      '기성품과 단체 맞춤 제작을 구분해 운영합니다. 고객이 필요한 방식으로 선택하고, 구매 전 알아야 할 정보를 깔끔하게 확인할 수 있도록 만드는 것이 NEXTR의 기준입니다.',
                 ),
               ],
             ),
@@ -226,7 +226,7 @@ class BrandStoryScreen extends StatelessWidget {
           const SizedBox(height: 26),
           const Center(
             child: Text(
-              '2FIT MALL · SPORTS & FITNESS WEAR',
+              'NEXTR · SPORTS & FITNESS WEAR',
               style: TextStyle(
                 color: AppColors.textHint,
                 fontSize: 10,

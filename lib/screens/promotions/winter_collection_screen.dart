@@ -149,7 +149,7 @@ class WinterCollectionScreen extends StatelessWidget {
               ),
               SizedBox(height: 8),
               Text(
-                '가볍고 따뜻한 패딩부터 데일리 레이어까지, 2FIT의 겨울 신상품을 한곳에서 만나보세요.',
+                '가볍고 따뜻한 패딩부터 데일리 레이어까지, NEXTR의 겨울 신상품을 한곳에서 만나보세요.',
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 14,

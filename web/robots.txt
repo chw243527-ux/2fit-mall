@@ -1,5 +1,5 @@
 # robots.txt - 검색엔진 크롤러 제어 파일
-# 2FIT MALL (https://2fit-mall.co.kr)
+# NEXTR (https://2fit-mall.co.kr)
 # 참고: https://developers.google.com/search/docs/crawling-indexing/robots/intro
 
 # ─── 모든 검색 로봇에게 적용 ───────────────────────────

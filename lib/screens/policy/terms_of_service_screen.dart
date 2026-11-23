@@ -59,7 +59,7 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(context.loc.t('2FIT_MALL_이용약관', '2FIT MALL 이용약관'),
+                    Text(context.loc.t('2FIT_MALL_이용약관', 'NEXTR 이용약관'),
                         style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -118,7 +118,7 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
               _buildSection(
                 context.loc.t('제1조_목적', '제1조 (목적)'),
                 context.loc.t('이용약관_제1조_목적_내용',
-                    '본 약관은 ${AppConstants.companyName}(이하 "회사")가 운영하는 2FIT MALL 쇼핑몰 서비스의 이용조건 및 절차, 회사와 이용자 간의 권리·의무 관계를 규정함을 목적으로 합니다.'),
+                    '본 약관은 ${AppConstants.companyName}(이하 "회사")가 운영하는 NEXTR 쇼핑몰 서비스의 이용조건 및 절차, 회사와 이용자 간의 권리·의무 관계를 규정함을 목적으로 합니다.'),
               ),
               _buildSection(
                 context.loc.t('제2조_회원가입', '제2조 (회원가입)'),

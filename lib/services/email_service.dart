@@ -219,13 +219,13 @@ class EmailService {
       templateId: templateId,
       templateParams: {
         'to_email': adminEmail,
-        'to_name': '2FIT MALL 관리자',
+        'to_name': 'NEXTR 관리자',
         'from_name': userName,
         'message': message,
         'chat_time': timeStr,
         'user_id': userId,
         'admin_url': 'https://2fit-mall.co.kr/#/admin?tab=chat',
-        'shop_name': '2FIT MALL',
+        'shop_name': 'NEXTR',
       },
     );
   }
@@ -242,7 +242,7 @@ class EmailService {
       templateId: _templateStatusId,
       templateParams: {
         'to_email': adminEmail,
-        'to_name': '2FIT MALL 관리자',
+        'to_name': 'NEXTR 관리자',
         'order_id': subject,
         'order_id_short':
             subject.length > 20 ? subject.substring(0, 20) : subject,
@@ -252,7 +252,7 @@ class EmailService {
         'tracking_number': '',
         'courier_name': '',
         'order_url': 'https://2fit-mall.co.kr/#/admin?tab=orders',
-        'shop_name': '2FIT MALL',
+        'shop_name': 'NEXTR',
       },
     );
   }
@@ -269,7 +269,7 @@ class EmailService {
       templateId: _templateStatusId, // 기존 template_status 재활용
       templateParams: {
         'to_email': adminEmail,
-        'to_name': '2FIT MALL 관리자',
+        'to_name': 'NEXTR 관리자',
         'order_id': order.id,
         'order_id_short':
             order.id.length > 8 ? order.id.substring(0, 8) : order.id,
@@ -282,7 +282,7 @@ class EmailService {
         'tracking_number': '',
         'courier_name': '',
         'order_url': 'https://2fit-mall.co.kr/#/admin?tab=orders',
-        'shop_name': '2FIT MALL',
+        'shop_name': 'NEXTR',
       },
     );
   }

@@ -1,10 +1,10 @@
 class AppConstants {
   // App Info
-  static const String appName = '2FIT MALL';
+  static const String appName = 'NEXTR';
   static const String appVersion = '1.0.2';
   static const String companyName = '투핏몰(2FIT-mall)';
   static const String companyNameEn = '2FIT-mall';
-  static const String copyright = '© 2026 투핏몰(2FIT-mall). All rights reserved.';
+  static const String copyright = '© 2026 NEXTR. All rights reserved.';
 
   // ── 사업자 정보 ─────────────────────────────────────────────
   static const String ceoName = '최혜원';

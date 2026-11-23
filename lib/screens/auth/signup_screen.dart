@@ -546,7 +546,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       title: context.loc
                           .t('제1조_수집하는_개인정보_항목', '제1조 (수집하는 개인정보 항목)'),
                       content: context.loc.t('개인정보_수집항목_전체',
-                          '2FIT MALL은 회원가입 및 서비스 이용을 위해 아래와 같은 개인정보를 수집합니다.\n\n• 필수항목: 이름, 이메일 주소, 비밀번호, 휴대폰 번호\n• 선택항목: 마케팅 수신 동의\n• 자동수집: 서비스 이용기록, 접속 로그, 쿠키, IP 주소')),
+                          'NEXTR은 회원가입 및 서비스 이용을 위해 아래와 같은 개인정보를 수집합니다.\n\n• 필수항목: 이름, 이메일 주소, 비밀번호, 휴대폰 번호\n• 선택항목: 마케팅 수신 동의\n• 자동수집: 서비스 이용기록, 접속 로그, 쿠키, IP 주소')),
                   _PolicySection(
                       title: context.loc
                           .t('제2조_개인정보의_수집_및_이용목적', '제2조 (개인정보의 수집 및 이용목적)'),
@@ -561,7 +561,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       title:
                           context.loc.t('제4조_개인정보_제3자_제공', '제4조 (개인정보 제3자 제공)'),
                       content: context.loc.t('k_2fit_mall은_원칙적으로_이용자의_개인정보를_외부',
-                          '2FIT MALL은 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다. 단, 배송 처리를 위해 택배사에 최소한의 정보(수령인, 주소, 연락처)를 제공합니다.')),
+                          'NEXTR은 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다. 단, 배송 처리를 위해 택배사에 최소한의 정보(수령인, 주소, 연락처)를 제공합니다.')),
                   _PolicySection(
                       title: context.loc.t('제5조_개인정보처리_위탁', '제5조 (개인정보처리 위탁)'),
                       content: context.loc.t('개인정보_처리위탁_전체',
@@ -626,7 +626,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   _PolicySection(
                       title: context.loc.t('제1조_목적', '제1조 (목적)'),
                       content: context.loc.t('본_약관은_2fit_mall이하_회사이_제공하는_쇼핑몰',
-                          '본 약관은 2FIT MALL(이하 "회사")이 제공하는 쇼핑몰 서비스의 이용조건 및 절차, 회사와 이용자 간의 권리·의무 관계를 규정함을 목적으로 합니다.')),
+                          '본 약관은 NEXTR(이하 "회사")이 제공하는 쇼핑몰 서비스의 이용조건 및 절차, 회사와 이용자 간의 권리·의무 관계를 규정함을 목적으로 합니다.')),
                   _PolicySection(
                       title: context.loc.t('제2조_회원가입', '제2조 (회원가입)'),
                       content: context.loc.t('회원가입조건_전체',

@@ -304,7 +304,7 @@ class AdminWebNotifier {
     String? language,
   }) async {
     final lang = language ?? 'KO';
-    const title = '💬 새 채팅 문의 — 2FIT MALL';
+    const title = '💬 새 채팅 문의 — NEXTR';
     final body = '[$lang] $userName: $message';
     await _showBrowserNotification(
         title: title,
@@ -322,7 +322,7 @@ class AdminWebNotifier {
         .toInt()
         .toString()
         .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
-    const title = '🛍️ 새 주문 접수 — 2FIT MALL';
+    const title = '🛍️ 새 주문 접수 — NEXTR';
     final body = '주문번호: $orderId\n고객: $userName\n금액: $price원';
     await _showBrowserNotification(
         title: title, body: body, tag: 'order_$orderId');

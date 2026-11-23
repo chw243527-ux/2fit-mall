@@ -267,7 +267,7 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
       build: (_) => [
         pw.Header(
             level: 0,
-            child: pw.Text('2FIT MALL 본사 정산내역',
+            child: pw.Text('NEXTR 본사 정산내역',
                 style: pw.TextStyle(
                     fontSize: 20, fontWeight: pw.FontWeight.bold))),
         pw.Text('정산기간: ${_date(_from)} ~ ${_date(_to)}'),

@@ -435,7 +435,7 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
         await SharePlus.instance.share(
           ShareParams(
             files: [XFile(filePath, mimeType: mimeType, name: fileName)],
-            subject: '2FIT MALL 주문내역 엑셀',
+            subject: 'NEXTR 주문내역 엑셀',
             text: '공유 시트에서 "내 파일에 저장" 또는 "다운로드"를 선택하세요.\n파일명: $fileName',
           ),
         );

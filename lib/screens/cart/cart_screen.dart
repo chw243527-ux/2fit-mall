@@ -1266,7 +1266,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
         '/payment/checkout',
         arguments: PaymentCheckoutArgs(
           orderId: secureOrder.orderId!,
-          orderName: secureOrder.orderName ?? '2FIT MALL 주문',
+          orderName: secureOrder.orderName ?? 'NEXTR 주문',
           amount: secureOrder.amount!,
           customerName: user.name,
           customerEmail: user.email,

@@ -116,7 +116,7 @@ class InAppUpdateService {
 
     _updateInProgress = true;
     try {
-      // 수동 확인 버튼은 버전 감지 결과에 의존하지 않고 항상 2FIT의
+      // 수동 확인 버튼은 버전 감지 결과에 의존하지 않고 항상 NEXTR의
       // Google Play 상세 페이지로 이동합니다. Play Store가 실제로 제공하는
       // 버전과 업데이트 버튼을 사용자가 직접 확인할 수 있습니다.
       final opened = await openPlayStore();
