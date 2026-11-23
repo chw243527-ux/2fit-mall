@@ -60,12 +60,16 @@ class StoreNoticeCard extends StatelessWidget {
                 Icon(Icons.info_outline_rounded,
                     size: r.sp(compact ? 17 : 19), color: AppColors.primary),
                 SizedBox(width: r.w(7)),
-                Text(
-                  '구매 전 꼭 확인해 주세요',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: r.sp(compact ? 13.5 : 15),
-                    fontWeight: FontWeight.w800,
+                Expanded(
+                  child: Text(
+                    '구매 전 꼭 확인해 주세요',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: r.sp(compact ? 13.5 : 15),
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ],

@@ -931,11 +931,14 @@ class _AppDrawerState extends State<AppDrawer> {
               children: [
                 Icon(Icons.email_rounded, size: 14, color: AppColors.textHint),
                 SizedBox(width: 8),
-                Text(AppConstants.customerServiceEmail,
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary)),
+                Expanded(
+                  child: Text(AppConstants.customerServiceEmail,
+                      softWrap: true,
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary)),
+                ),
               ],
             ),
             const SizedBox(height: 6),
@@ -944,11 +947,15 @@ class _AppDrawerState extends State<AppDrawer> {
                 const Icon(Icons.access_time_rounded,
                     size: 14, color: AppColors.textHint),
                 const SizedBox(width: 8),
-                Text(
+                Expanded(
+                  child: Text(
                     context.loc.t('평일 10001800    토·일·공휴일 휴무',
                         '평일 10:00-18:00  |  토·일·공휴일 휴무'),
+                    softWrap: true,
                     style: const TextStyle(
-                        fontSize: 11, color: AppColors.textSecondary)),
+                        fontSize: 11, color: AppColors.textSecondary),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 4),

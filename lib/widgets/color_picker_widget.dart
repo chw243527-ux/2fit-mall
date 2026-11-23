@@ -363,9 +363,13 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget>
             padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
             child: Row(
               children: [
-                Text(loc.colorPickerTitle,
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w900)),
+                Flexible(
+                  child: Text(loc.colorPickerTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.w900)),
+                ),
                 const SizedBox(width: 10),
                 if (widget.selectedColorName != null) ...[
                   RibColorSwatch(
@@ -376,9 +380,13 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget>
                         0.5,
                   ),
                   const SizedBox(width: 6),
-                  Text(widget.selectedColorName!,
-                      style: const TextStyle(
-                          fontSize: 12, color: Color(0xFF666666))),
+                  Flexible(
+                    child: Text(widget.selectedColorName!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 12, color: Color(0xFF666666))),
+                  ),
                 ],
                 const Spacer(),
                 IconButton(

@@ -1843,44 +1843,49 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
               children: [
                 if (product.originalPrice != null &&
                     product.originalPrice! > product.price) ...[
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      // 파란색 할인율
-                      Text(
-                        '$discount%',
-                        style: TextStyle(
-                          fontSize: r.sp(22),
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFF1976D2),
-                          letterSpacing: -0.3,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        // 파란색 할인율
+                        Text(
+                          '$discount%',
+                          style: TextStyle(
+                            fontSize: r.sp(22),
+                            fontWeight: FontWeight.w900,
+                            color: const Color(0xFF1976D2),
+                            letterSpacing: -0.3,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: r.w(8)),
-                      // 현재가
-                      Text(
-                        '${_fmt(product.price)}${loc.wonUnit}',
-                        style: TextStyle(
-                          fontSize: r.sp(22),
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.primary,
-                          letterSpacing: -0.5,
+                        SizedBox(width: r.w(8)),
+                        // 현재가
+                        Text(
+                          '${_fmt(product.price)}${loc.wonUnit}',
+                          style: TextStyle(
+                            fontSize: r.sp(22),
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.primary,
+                            letterSpacing: -0.5,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: r.w(8)),
-                      // 취소선 원가
-                      Text(
-                        _fmt(product.originalPrice!),
-                        style: TextStyle(
-                          fontSize: r.sp(14),
-                          color: AppColors.textHint,
-                          decoration: TextDecoration.lineThrough,
-                          decorationColor: AppColors.textHint,
-                          fontWeight: FontWeight.w400,
+                        SizedBox(width: r.w(8)),
+                        // 취소선 원가
+                        Text(
+                          _fmt(product.originalPrice!),
+                          style: TextStyle(
+                            fontSize: r.sp(14),
+                            color: AppColors.textHint,
+                            decoration: TextDecoration.lineThrough,
+                            decorationColor: AppColors.textHint,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ] else ...[
                   Text(
