@@ -1778,8 +1778,8 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: r.sp(20),
-                    fontWeight: FontWeight.w800,
+                    fontSize: r.sp(22),
+                    fontWeight: FontWeight.w900,
                     color: AppColors.primary,
                     height: 1.35,
                     letterSpacing: -0.3,
@@ -1855,7 +1855,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                         Text(
                           '$discount%',
                           style: TextStyle(
-                            fontSize: r.sp(22),
+                            fontSize: r.sp(24),
                             fontWeight: FontWeight.w900,
                             color: const Color(0xFF1976D2),
                             letterSpacing: -0.3,
@@ -1866,7 +1866,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                         Text(
                           '${_fmt(product.price)}${loc.wonUnit}',
                           style: TextStyle(
-                            fontSize: r.sp(22),
+                            fontSize: r.sp(24),
                             fontWeight: FontWeight.w900,
                             color: AppColors.primary,
                             letterSpacing: -0.5,
@@ -1891,7 +1891,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                   Text(
                     '${_fmt(product.price)}${loc.wonUnit}',
                     style: TextStyle(
-                      fontSize: r.sp(22),
+                      fontSize: r.sp(24),
                       fontWeight: FontWeight.w900,
                       color: AppColors.primary,
                       letterSpacing: -0.5,

@@ -300,7 +300,7 @@ class ProductCard extends StatelessWidget {
 
           // ── 상품명: 긴 상품명도 3줄까지 표시하고 가격 영역과 겹치지 않게 함 ──
           SizedBox(
-            height: 10 * 1.35 * 3 + 4,
+            height: 11.5 * 1.35 * 3 + 4,
             child: Text(
               // Firestore 번역 데이터 우선, 없으면 loc.t()로 런타임 번역 등록
               product.localizedName(lang) != product.name
@@ -310,8 +310,8 @@ class ProductCard extends StatelessWidget {
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w900,
                 color: AppColors.textPrimary,
                 letterSpacing: -0.25,
                 height: 1.35,
@@ -331,7 +331,7 @@ class ProductCard extends StatelessWidget {
             Text(
               '${_fmt(product.originalPrice!)}${loc.productWonUnit}',
               style: const TextStyle(
-                fontSize: 9,
+                fontSize: 10,
                 color: AppColors.textHint,
                 decoration: TextDecoration.lineThrough,
                 decorationColor: AppColors.textHint,
@@ -345,8 +345,8 @@ class ProductCard extends StatelessWidget {
                 Text(
                   _fmt(product.price),
                   style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w800,
                     color: AppColors.textPrimary,
                     letterSpacing: -0.2,
                   ),
@@ -355,8 +355,8 @@ class ProductCard extends StatelessWidget {
                 Text(
                   loc.productWonUnit,
                   style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
                   ),
                 ),
@@ -384,8 +384,8 @@ class ProductCard extends StatelessWidget {
             Text(
               '${_fmt(product.price)}${loc.productWonUnit}',
               style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
+                fontSize: 14.5,
+                fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary,
                 letterSpacing: -0.2,
               ),
