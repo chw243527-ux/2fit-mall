@@ -2958,7 +2958,8 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           // 가로 스크롤 상품 목록
           SizedBox(
-            height: imgH + 58, // 이미지 + 텍스트 영역
+            // 상품명과 가격의 마지막 줄까지 잘리지 않도록 하단 여백을 확보합니다.
+            height: imgH + 82, // 이미지 + 텍스트 영역 + 안전 여백
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.symmetric(horizontal: r.w(12)),
@@ -3141,8 +3142,8 @@ class _HomeScreenState extends State<HomeScreen>
       color: Colors.white,
       padding: EdgeInsets.only(bottom: r.h(8)),
       child: SizedBox(
-        // 3줄 상품명·색상·가격까지 표시할 수 있도록 하단 정보 영역을 확보합니다.
-        height: cardW * 1.25 + 116,
+        // 3줄 상품명·색상·가격까지 표시하고도 가격 하단이 잘리지 않도록 여유를 둡니다.
+        height: cardW * 1.25 + 142,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: EdgeInsets.symmetric(horizontal: r.w(12)),
