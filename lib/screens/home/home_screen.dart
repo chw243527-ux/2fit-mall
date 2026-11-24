@@ -3142,8 +3142,8 @@ class _HomeScreenState extends State<HomeScreen>
       color: Colors.white,
       padding: EdgeInsets.only(bottom: r.h(8)),
       child: SizedBox(
-        // 3줄 상품명·색상·가격까지 표시하고도 가격 하단이 잘리지 않도록 여유를 둡니다.
-        height: cardW * 1.25 + 142,
+        // 2줄 상품명·색상·가격까지 표시하고도 가격 하단이 잘리지 않도록 여유를 둡니다.
+        height: cardW * 1.25 + 126,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: EdgeInsets.symmetric(horizontal: r.w(12)),

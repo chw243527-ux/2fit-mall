@@ -298,19 +298,19 @@ class ProductCard extends StatelessWidget {
             ]),
           ],
 
-          // ── 상품명: 긴 상품명도 3줄까지 표시하고 가격 영역과 겹치지 않게 함 ──
+          // ── 상품명: 모바일에서도 2줄 안에 정돈하고 가격 영역과 겹치지 않게 함 ──
           SizedBox(
-            height: 11.5 * 1.35 * 3 + 4,
+            height: 11 * 1.35 * 2 + 4,
             child: Text(
               // Firestore 번역 데이터 우선, 없으면 loc.t()로 런타임 번역 등록
               product.localizedName(lang) != product.name
                   ? product.localizedName(lang)
                   : loc.t('product_name_${product.id}', product.name),
               softWrap: true,
-              maxLines: 3,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 11.5,
+                fontSize: 11,
                 fontWeight: FontWeight.w900,
                 color: AppColors.textPrimary,
                 letterSpacing: -0.25,
