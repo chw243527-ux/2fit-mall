@@ -10201,12 +10201,12 @@ void _showWriteReviewFromOrder(BuildContext context, OrderModel order) async {
   if (order.items.isEmpty) return;
 
   // 상품 1개면 바로 열기, 여러 개면 선택 다이얼로그
-  OrderItem? selectedItem;
+  late final OrderItem selectedItem;
   if (order.items.length == 1) {
     selectedItem = order.items.first;
   } else {
     if (!context.mounted) return;
-    selectedItem = await showDialog<OrderItem>(
+    final pickedItem = await showDialog<OrderItem>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -10249,6 +10249,8 @@ void _showWriteReviewFromOrder(BuildContext context, OrderModel order) async {
         ],
       ),
     );
+    if (pickedItem == null) return;
+    selectedItem = pickedItem;
   }
 
   // Firestore에서 실제 상품 정보 조회

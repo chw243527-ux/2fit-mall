@@ -15857,22 +15857,27 @@ class _AdminScreenState extends State<AdminScreen>
                           break;
                         }
                       }
-                      connectedProduct ??=
-                          adminProducts.isNotEmpty ? adminProducts.first : null;
-                      if (desc.isNotEmpty) {
+                      if (connectedProduct == null &&
+                          adminProducts.isNotEmpty) {
+                        connectedProduct = adminProducts.first;
+                      }
+                      final productForSection = connectedProduct;
+                      if (productForSection != null && desc.isNotEmpty) {
                         await context
                             .read<ProductProvider>()
                             .updateSectionDescription(
-                              connectedProduct.id,
+                              productForSection.id,
                               newKey,
                               desc,
                             );
                       }
-                      if (imageUrl != null && imageUrl.isNotEmpty) {
+                      if (productForSection != null &&
+                          imageUrl != null &&
+                          imageUrl.isNotEmpty) {
                         await context
                             .read<ProductProvider>()
                             .updateSectionImages(
-                          connectedProduct.id,
+                          productForSection.id,
                           newKey,
                           [imageUrl],
                         );
