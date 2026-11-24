@@ -45,11 +45,22 @@ class CustomGuideScreen extends StatelessWidget {
               if (!showDesignGallery) ...[
                 _sectionTitle('HOW TO CUSTOM', '팀을 위한 디자인을 만드는 방법'),
                 const SizedBox(height: 12),
-                _step(1, 'Choose your base', '원하는 싱글렛·타이즈·세트 상품을 선택합니다.'),
-                _step(2, 'Share your idea',
-                    '팀명, 컬러, 로고와 원하는 디자인 방향을 카카오채널로 보내 주세요.'),
-                _step(3, 'Review the proof', '상담 후 제작 시안과 견적, 제작 일정을 확인합니다.'),
-                _step(4, 'Make it your team', '최종 확정된 디자인으로 제작을 시작합니다.'),
+                _step(1, '단체주문 버튼 클릭', '카카오채널로 문의를 시작합니다.'),
+                _step(2, '상품 정보 전달', '단체주문 상품번호와 단체주문을 원하는 카테고리를 판매자에게 전달합니다.'),
+                _step(3, '주문 서식 받기', '판매자에게 단체주문 서식을 받아 작성합니다.'),
+                _step(4, '디자인 정보 전달', '팀명, 컬러번호, 로고, 원하는 디자인 방향을 판매자에게 전달합니다.'),
+                _step(5, '시안·견적·일정 확인', '상담 후 제작 시안과 견적, 제작 일정을 확인합니다.'),
+                _step(6, '제작 시작', '최종 확정된 디자인으로 제작을 시작합니다.'),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(4, 0, 4, 0),
+                  child: Text(
+                    '※ 디자인 수정은 2회만 가능합니다.',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textSecondary),
+                  ),
+                ),
                 const SizedBox(height: 24),
                 _cta(context),
               ] else ...[
@@ -78,7 +89,7 @@ class CustomGuideScreen extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
       child: Image.asset(
-        'assets/images/banner_custom_fit.jpg',
+        'assets/images/banner_custom_fit_no_text.png',
         width: double.infinity,
         height: 210,
         fit: BoxFit.cover,
