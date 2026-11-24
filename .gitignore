@@ -33,3 +33,9 @@ android/key.properties
 android/*.keystore
 release-secret-files/
 release-signing-secret-bundle.txt
+
+# Local-only visual QA and generated commerce assets
+generated/
+mobile-*.png
+live-product-thumbnails.jpg
+docs/product-detail-red-long-padding-text-sections.md
