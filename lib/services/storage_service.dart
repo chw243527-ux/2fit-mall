@@ -27,6 +27,26 @@ class StorageService {
     }
   }
 
+  /// 구매 팀 사진 갤러리 이미지 업로드
+  static Future<String> uploadTeamGalleryImage({
+    required Uint8List imageBytes,
+    required String fileName,
+  }) async {
+    try {
+      final safeName = fileName.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
+      final ref = _storage.ref().child(
+          'team_gallery/${DateTime.now().millisecondsSinceEpoch}_$safeName');
+      final task = await ref.putData(
+        imageBytes,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+      return await task.ref.getDownloadURL();
+    } catch (e) {
+      if (kDebugMode) debugPrint('client_operation_failed');
+      return '';
+    }
+  }
+
   /// 리뷰 이미지 업로드
   static Future<String?> uploadReviewImage({
     required String reviewId,

@@ -603,6 +603,12 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // 구매 팀 사진 갤러리: 공개 읽기, 관리자만 등록·수정·삭제
+    match /team_gallery/{galleryId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
     // ════════════════════════════════════════════════════════
     // 그 외 모든 컬렉션: 기본 차단
     // ════════════════════════════════════════════════════════

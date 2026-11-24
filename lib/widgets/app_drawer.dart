@@ -204,7 +204,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 _buildMenuTile(
                   context,
                   icon: Icons.auto_awesome_rounded,
-                  label: 'USE OUR DESIGN',
+                  label: 'OUR TEAMS',
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/our-designs');

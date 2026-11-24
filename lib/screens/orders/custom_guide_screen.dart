@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../utils/navigation_helper.dart';
@@ -9,19 +10,6 @@ class CustomGuideScreen extends StatelessWidget {
 
   const CustomGuideScreen({super.key, this.showDesignGallery = false});
 
-  static const _gallery = <Map<String, String>>[
-    {
-      'asset': 'assets/images/banner_custom_fit.jpg',
-      'title': 'Designed for your team',
-      'caption': '팀의 컬러와 로고를 담은 커스텀 러닝웨어',
-    },
-    {
-      'asset': 'assets/winter_banner/winter_design_source_65108.png',
-      'title': 'Our design reference',
-      'caption': '기존 디자인을 바탕으로 팀 스타일을 완성해 보세요',
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
     return wrapWithPopScope(
@@ -29,7 +17,7 @@ class CustomGuideScreen extends StatelessWidget {
       Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-          title: Text(showDesignGallery ? 'USE OUR DESIGN' : 'HOW TO CUSTOM'),
+          title: Text(showDesignGallery ? 'OUR TEAMS' : 'HOW TO CUSTOM'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
             onPressed: () => goBackOrHome(context),
@@ -64,17 +52,17 @@ class CustomGuideScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 _cta(context),
               ] else ...[
-                _sectionTitle('USE OUR DESIGN', '검증된 디자인에서 팀의 스타일을 시작하세요'),
+                _sectionTitle('OUR TEAMS', '우리 쇼핑몰에서 구매한 팀들의 실제 착용 사진'),
                 const SizedBox(height: 12),
                 const Text(
-                  '아래 디자인을 참고해 팀의 컬러와 로고를 조합할 수 있습니다. 사진 속 디자인을 그대로 사용하거나 원하는 부분을 상담으로 수정할 수 있습니다.',
+                  'NEXTR와 함께한 팀들의 사진을 소개합니다. 우리 팀의 단체주문 상담과 사진 등록은 카카오채널로 문의해 주세요.',
                   style: TextStyle(
                       fontSize: 13,
                       height: 1.6,
                       color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 16),
-                ..._gallery.map(_galleryCard),
+                _teamGallery(),
                 const SizedBox(height: 12),
                 _cta(context),
               ],
@@ -147,7 +135,47 @@ class CustomGuideScreen extends StatelessWidget {
     );
   }
 
-  Widget _galleryCard(Map<String, String> item) {
+  Widget _teamGallery() {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('team_gallery').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Text('팀 사진을 불러오지 못했습니다.');
+        }
+        if (!snapshot.hasData) {
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final docs = [...snapshot.data!.docs]
+          ..sort((a, b) => (b.data()['sortOrder'] as num? ?? 0)
+              .compareTo(a.data()['sortOrder'] as num? ?? 0));
+        if (docs.isEmpty) {
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Text(
+              '등록된 구매 팀 사진을 준비 중입니다.\n우리 팀 사진 등록은 카카오채널로 문의해 주세요.',
+              style: TextStyle(
+                  fontSize: 13, height: 1.6, color: AppColors.textSecondary),
+            ),
+          );
+        }
+        return Column(
+          children: docs.map(_teamGalleryCard).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _teamGalleryCard(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final item = doc.data() ?? const <String, dynamic>{};
+    final imageUrl = item['imageUrl']?.toString() ?? '';
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
@@ -161,17 +189,17 @@ class CustomGuideScreen extends StatelessWidget {
           ]),
       clipBehavior: Clip.antiAlias,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Image.asset(item['asset']!,
+        Image.network(imageUrl,
             width: double.infinity, height: 190, fit: BoxFit.cover),
         Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(item['title']!,
+              Text(item['title']?.toString() ?? 'NEXTR 구매 팀',
                   style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w800)),
               const SizedBox(height: 4),
-              Text(item['caption']!,
+              Text(item['caption']?.toString() ?? 'NEXTR와 함께한 팀의 실제 착용 사진입니다.',
                   style: const TextStyle(
                       fontSize: 12, color: AppColors.textSecondary)),
             ])),

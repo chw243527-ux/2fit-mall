@@ -46,6 +46,12 @@ service firebase.storage {
       allow create, update: if isAdmin() && isReasonableUpload();
       allow delete: if isAdmin();
     }
+    // 구매 팀 사진 갤러리: 공개 읽기, 관리자만 업로드·삭제
+    match /team_gallery/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isReasonableUpload();
+      allow delete: if isAdmin();
+    }
 
     // 일반 주문 첨부파일: 주문 문서의 userId와 로그인 사용자를 비교
     match /orders/{orderId}/{allPaths=**} {

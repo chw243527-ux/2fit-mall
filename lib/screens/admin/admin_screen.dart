@@ -35,6 +35,7 @@ import 'admin_inventory_tab.dart';
 import '../../utils/constants.dart';
 import '../../widgets/image_lightbox.dart';
 import '../../widgets/group_order_pdf_preview.dart';
+import '../../widgets/team_gallery_admin.dart';
 import '../auth/login_screen.dart';
 import '../home/home_screen.dart';
 import '../chat/chat_screen.dart';
@@ -9086,6 +9087,7 @@ class _AdminScreenState extends State<AdminScreen>
 
         return Column(
           children: [
+            const TeamGalleryAdmin(),
             // ── 헤더 ──
             Container(
               color: Colors.white,
