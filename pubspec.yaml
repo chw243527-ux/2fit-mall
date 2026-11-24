@@ -1,7 +1,7 @@
 name: twofit_mall
 description: 2FIT MALL - Sports & Fitness Shopping App
 publish_to: 'none'
-version: 1.0.35+22
+version: 1.0.36+23
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -92,5 +92,5 @@ flutter:
   assets:
     - assets/images/
     - assets/images/winter/
-    - assets/winter_banner/
+    - assets/winter_banner/winter_design_source_65108.png
     - assets/fonts/NotoSansKR.ttf
