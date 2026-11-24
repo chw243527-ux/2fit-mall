@@ -192,15 +192,6 @@ class _AppDrawerState extends State<AppDrawer> {
                     ),
                 _nikeRule(),
                 _sectionLabel('ORDERS'),
-                _buildMenuTile(
-                  context,
-                  icon: Icons.assignment_rounded,
-                  label: loc.t('싱글렛_단체주문_전용', '싱글렛 단체주문 전용'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, '/bulk-order');
-                  },
-                ),
                 _nikeRule(),
                 _sectionLabel('SUPPORT'),
                 _buildMenuTile(
