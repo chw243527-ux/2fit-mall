@@ -92,4 +92,5 @@ flutter:
   assets:
     - assets/images/
     - assets/images/winter/
+    - assets/winter_banner/
     - assets/fonts/NotoSansKR.ttf

@@ -27,6 +27,7 @@ import 'screens/orders/checkout_screen.dart';
 import 'screens/orders/group_order_only_screen.dart';
 
 import 'screens/orders/order_guide_screen.dart';
+import 'screens/orders/custom_guide_screen.dart';
 import 'screens/orders/group_custom_order_screen.dart';
 import 'models/models.dart';
 import 'screens/auth/login_screen.dart';
@@ -395,6 +396,17 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
             case '/order-guide':
               return MaterialPageRoute(
                 builder: (_) => const OrderGuideScreen(),
+                settings: settings,
+              );
+            case '/custom-guide':
+              return MaterialPageRoute(
+                builder: (_) => const CustomGuideScreen(),
+                settings: settings,
+              );
+            case '/our-designs':
+              return MaterialPageRoute(
+                builder: (_) =>
+                    const CustomGuideScreen(showDesignGallery: true),
                 settings: settings,
               );
             case '/group-custom-order':

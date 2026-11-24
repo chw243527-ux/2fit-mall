@@ -191,7 +191,25 @@ class _AppDrawerState extends State<AppDrawer> {
                       (e) => _buildCategoryTile(context, e.key, e.value),
                     ),
                 _nikeRule(),
-                _sectionLabel('ORDERS'),
+                _sectionLabel('HOW TO CUSTOM'),
+                _buildMenuTile(
+                  context,
+                  icon: Icons.design_services_rounded,
+                  label: 'HOW TO CUSTOM',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/custom-guide');
+                  },
+                ),
+                _buildMenuTile(
+                  context,
+                  icon: Icons.auto_awesome_rounded,
+                  label: 'USE OUR DESIGN',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/our-designs');
+                  },
+                ),
                 _nikeRule(),
                 _sectionLabel('SUPPORT'),
                 _buildMenuTile(
