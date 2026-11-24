@@ -18,6 +18,7 @@ import '../policy/privacy_policy_screen.dart';
 import '../policy/account_deletion_screen.dart';
 import '../orders/group_order_only_screen.dart';
 import '../orders/order_guide_screen.dart';
+import '../orders/custom_guide_screen.dart';
 import '../mypage/size_profile_screen.dart';
 import '../notifications/notification_center_screen.dart';
 import '../not_found_screen.dart';
@@ -105,6 +106,8 @@ class _SplashScreenState extends State<SplashScreen>
           '/account-deletion',
           '/terms-of-service',
           '/refund-policy',
+          '/custom-guide',
+          '/our-designs',
           '/signup',
           '/login',
           '/payment/success',
@@ -253,6 +256,10 @@ class _SplashScreenState extends State<SplashScreen>
       // 주문 가이드
       case '/order-guide':
         return _DeepLink(path, q, requiresAuth: false);
+      // 커스텀 안내 및 기존 디자인 갤러리
+      case '/custom-guide':
+      case '/our-designs':
+        return _DeepLink(path, q, requiresAuth: false);
       // 채팅
       case '/chat':
         return _DeepLink(path, q, requiresAuth: false);
@@ -376,6 +383,12 @@ class _SplashScreenState extends State<SplashScreen>
           break;
         case '/order-guide':
           target = const OrderGuideScreen();
+          break;
+        case '/custom-guide':
+          target = const CustomGuideScreen();
+          break;
+        case '/our-designs':
+          target = const CustomGuideScreen(showDesignGallery: true);
           break;
         case '/chat':
           target = const ChatScreen();
