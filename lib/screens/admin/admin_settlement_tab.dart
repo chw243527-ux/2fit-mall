@@ -424,7 +424,8 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
                                   ? '상품/매입 사유를 입력해 주세요.'
                                   : parsedQty == null || parsedQty <= 0
                                       ? '수량은 1 이상 정수로 입력해 주세요.'
-                                      : parsedAmount == null || parsedAmount <= 0
+                                      : parsedAmount == null ||
+                                              parsedAmount <= 0
                                           ? '총 매입액은 0보다 큰 숫자로 입력해 주세요.'
                                           : null;
                           if (error != null) {

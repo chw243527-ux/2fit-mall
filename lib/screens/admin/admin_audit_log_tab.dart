@@ -74,7 +74,8 @@ class _AdminAuditLogTabState extends State<AdminAuditLogTab> {
       if (!mounted) return;
       setState(() {
         _logs.addAll(snapshot.docs);
-        _lastDocument = snapshot.docs.isEmpty ? _lastDocument : snapshot.docs.last;
+        _lastDocument =
+            snapshot.docs.isEmpty ? _lastDocument : snapshot.docs.last;
         _hasMore = snapshot.docs.length == _pageSize;
         _loading = false;
       });
@@ -99,7 +100,9 @@ class _AdminAuditLogTabState extends State<AdminAuditLogTab> {
         data['targetId'],
         data['actorUid'],
         data['actorEmail'],
-      ].map((value) => '$value'.toLowerCase()).any((value) => value.contains(search));
+      ]
+          .map((value) => '$value'.toLowerCase())
+          .any((value) => value.contains(search));
     }).toList();
   }
 
@@ -138,7 +141,8 @@ class _AdminAuditLogTabState extends State<AdminAuditLogTab> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('닫기')),
+          TextButton(
+              onPressed: () => Navigator.pop(context), child: const Text('닫기')),
         ],
       ),
     );
@@ -174,7 +178,8 @@ class _AdminAuditLogTabState extends State<AdminAuditLogTab> {
                 DropdownButton<String>(
                   value: _action,
                   items: _actions
-                      .map((value) => DropdownMenuItem(value: value, child: Text(value)))
+                      .map((value) =>
+                          DropdownMenuItem(value: value, child: Text(value)))
                       .toList(),
                   onChanged: (value) => setState(() => _action = value ?? '전체'),
                 ),
@@ -190,15 +195,22 @@ class _AdminAuditLogTabState extends State<AdminAuditLogTab> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             child: Row(
               children: [
-                Expanded(child: Text('감사 로그 ${logs.length}건 · 최신순', style: const TextStyle(fontSize: 12))),
-                if (_loading) const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                Expanded(
+                    child: Text('감사 로그 ${logs.length}건 · 최신순',
+                        style: const TextStyle(fontSize: 12))),
+                if (_loading)
+                  const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2)),
               ],
             ),
           ),
           if (_error != null)
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(_error!, style: const TextStyle(color: AppColors.error)),
+              child:
+                  Text(_error!, style: const TextStyle(color: AppColors.error)),
             )
           else
             Expanded(
@@ -214,8 +226,10 @@ class _AdminAuditLogTabState extends State<AdminAuditLogTab> {
                         return Card(
                           child: ListTile(
                             dense: true,
-                            leading: const Icon(Icons.history_rounded, color: AppColors.primary),
-                            title: Text(_summary(data), maxLines: 2, overflow: TextOverflow.ellipsis),
+                            leading: const Icon(Icons.history_rounded,
+                                color: AppColors.primary),
+                            title: Text(_summary(data),
+                                maxLines: 2, overflow: TextOverflow.ellipsis),
                             subtitle: Text(_date(data['createdAt'])),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () => _showDetails(doc),

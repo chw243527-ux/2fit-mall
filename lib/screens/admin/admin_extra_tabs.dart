@@ -870,7 +870,8 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('이미 가입된 회원의 이메일을 입력하면 관리자 권한을 부여합니다. 선택한 직급에 해당하는 관리자 기능 접근 권한이 Firebase Custom Claim에 반영되고, 변경 내용은 감사 로그에 기록됩니다.',
+              const Text(
+                  '이미 가입된 회원의 이메일을 입력하면 관리자 권한을 부여합니다. 선택한 직급에 해당하는 관리자 기능 접근 권한이 Firebase Custom Claim에 반영되고, 변경 내용은 감사 로그에 기록됩니다.',
                   style: TextStyle(fontSize: 13, color: Colors.grey)),
               const SizedBox(height: 12),
               TextField(
@@ -999,7 +1000,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                       .update({
                     'staffRole': staffRole,
                     'staffRoleUpdatedAt': FieldValue.serverTimestamp(),
-                      });
+                  });
                   await _writeStaffAudit(
                     action: 'staff_role_changed',
                     targetUid: targetUid,
@@ -1032,7 +1033,8 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('관리자 권한 해제: ${staff['name'] ?? ''}'),
-        content: Text('${staff['email']} 님의 관리자 권한과 관리자 화면 접근을 해제하시겠습니까?\n\n회원 계정과 주문 기록은 삭제되지 않으며 변경 내용은 감사 로그에 기록됩니다.'),
+        content: Text(
+            '${staff['email']} 님의 관리자 권한과 관리자 화면 접근을 해제하시겠습니까?\n\n회원 계정과 주문 기록은 삭제되지 않으며 변경 내용은 감사 로그에 기록됩니다.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx), child: const Text('취소')),

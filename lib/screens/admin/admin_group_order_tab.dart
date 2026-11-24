@@ -632,7 +632,8 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
           'documentType': documentType,
           'outcome': outcome,
           if (error != null)
-            'error': error.substring(0, error.length > 500 ? 500 : error.length),
+            'error':
+                error.substring(0, error.length > 500 ? 500 : error.length),
         },
       );
     } catch (_) {

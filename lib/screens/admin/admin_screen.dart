@@ -3111,7 +3111,8 @@ class _AdminScreenState extends State<AdminScreen>
                         if (ok == true && mounted) {
                           final failedIds = <String>[];
                           for (final id in _selectedOrderIds.toList()) {
-                            final succeeded = await OrderService.deleteOrder(id);
+                            final succeeded =
+                                await OrderService.deleteOrder(id);
                             if (!succeeded) failedIds.add(id);
                             if (!mounted) return;
                           }
@@ -8161,7 +8162,8 @@ class _AdminScreenState extends State<AdminScreen>
       ),
     );
     if (confirmed != true || !mounted) return;
-    final succeeded = await context.read<ProductProvider>().setProductsActive(ids, active);
+    final succeeded =
+        await context.read<ProductProvider>().setProductsActive(ids, active);
     if (!mounted) return;
     if (succeeded) setState(() => _selectedProductIds.clear());
     ScaffoldMessenger.of(context).showSnackBar(
@@ -8198,7 +8200,8 @@ class _AdminScreenState extends State<AdminScreen>
       ),
     );
     if (confirmed != true || !mounted) return;
-    final succeeded = await context.read<ProductProvider>().setProductsActive(ids, true);
+    final succeeded =
+        await context.read<ProductProvider>().setProductsActive(ids, true);
     if (!mounted) return;
     if (succeeded) setState(() => _selectedProductIds.clear());
     ScaffoldMessenger.of(context).showSnackBar(
@@ -9791,7 +9794,8 @@ class _AdminScreenState extends State<AdminScreen>
                         if (ok == true && mounted) {
                           final failedIds = <String>[];
                           for (final uid in _selectedMemberIds.toList()) {
-                            final succeeded = await AuthService.deleteUserDocument(uid);
+                            final succeeded =
+                                await AuthService.deleteUserDocument(uid);
                             if (!succeeded) {
                               failedIds.add(uid);
                             } else {
