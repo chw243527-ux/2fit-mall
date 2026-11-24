@@ -5943,32 +5943,17 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
   /// 섹션관리와 고객 상세페이지가 항상 같은 제목·설명·이미지·순서를
   /// 사용하도록 관리자 콘텐츠 카탈로그를 단일 원본으로 사용합니다.
   Widget _buildEditorialProductDetail(ProductModel product, bool isAdmin) {
-    if (_isStandaloneSinglet(product)) {
-      return _buildSingletRunflexDetail(product, isAdmin);
-    }
-    // 과거 상품 유형별 레거시 레이아웃은 관리자 카탈로그와 다른
-    // 제목·설명·순서를 렌더링할 수 있으므로 더 이상 고객 화면의 원본으로
-    // 사용하지 않습니다. 모든 상품이 동일한 관리 섹션 경로를 사용합니다.
-    return _buildManagedOnlyEditorial(product, isAdmin);
+    // 상품 유형별 레거시 레이아웃은 더 이상 고객 화면의 원본으로
+    // 사용하지 않습니다. 싱글렛·세트·타이즈·기성품·단체주문을 포함한
+    // 모든 상품이 동일한 RUNFLEX형 관리 섹션 경로를 사용합니다.
+    return _buildRunflexDetail(product, isAdmin);
   }
 
-  bool _isStandaloneSinglet(ProductModel product) {
-    final label = '${product.category} ${product.middleCategory} '
-            '${product.subCategory} ${product.name}'
-        .toLowerCase();
-    final isSinglet = label.contains('싱글렛') || label.contains('singlet');
-    final isSet = label.contains('싱글렛세트') ||
-        label.contains('싱글렛 세트') ||
-        label.contains('singlet set');
-    final isTights = label.contains('타이즈') || label.contains('tights');
-    return isSinglet && !isSet && !isTights && !product.isGroupOnly;
-  }
-
-  /// RUNFLEX 참고 시안의 흐름을 싱글렛 단품에만 적용합니다.
+  /// RUNFLEX 참고 시안의 흐름을 모든 상품 상세페이지에 적용합니다.
   /// 실제 카피·가격·원단·사이즈·이미지는 관리자에서 상품별로 저장한
   /// 섹션 데이터만 사용하며, 저장되지 않은 상품은 기존 관리 섹션으로
   /// 폴백해 빈 템플릿이 고객에게 노출되지 않도록 합니다.
-  Widget _buildSingletRunflexDetail(ProductModel product, bool isAdmin) {
+  Widget _buildRunflexDetail(ProductModel product, bool isAdmin) {
     if (!isAdmin && !_sectionCatalogLoaded) {
       return const SizedBox.shrink();
     }
