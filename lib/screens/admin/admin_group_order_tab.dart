@@ -12,6 +12,7 @@ import '../../utils/web_utils.dart'
     if (dart.library.html) '../../utils/web_utils_html.dart';
 import '../../services/order_service.dart';
 import '../../services/group_order_policy_service.dart';
+import '../../services/auth_service.dart';
 import '../../utils/theme.dart';
 
 /// 관리자 전용 단체주문 접수 관리 화면.
@@ -623,15 +624,17 @@ class _AdminGroupOrderTabState extends State<AdminGroupOrderTab> {
     String? error,
   }) async {
     try {
-      await FirebaseFirestore.instance.collection('admin_audit_logs').add({
-        'action': 'group_order_pdf_generation',
-        'orderId': orderId,
-        'documentType': documentType,
-        'outcome': outcome,
-        if (error != null)
-          'error': error.substring(0, error.length > 500 ? 500 : error.length),
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      await AuthService.writeAdminAuditLog(
+        action: 'group_order_pdf_generation',
+        targetType: 'order',
+        targetId: orderId,
+        details: {
+          'documentType': documentType,
+          'outcome': outcome,
+          if (error != null)
+            'error': error.substring(0, error.length > 500 ? 500 : error.length),
+        },
+      );
     } catch (_) {
       // 감사 로그 실패가 주문서 PDF 다운로드 자체를 막지 않도록 무시합니다.
     }

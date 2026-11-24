@@ -1409,15 +1409,19 @@ class AuthService {
   static Future<void> writeAdminAuditLog({
     required String action,
     required String targetId,
+    String targetType = 'unknown',
     Map<String, dynamic>? details,
   }) async {
     final actor = _auth.currentUser;
     if (actor == null) throw StateError('관리자 로그인 세션이 없습니다.');
     await _db.collection('admin_audit_logs').add({
+      'schemaVersion': 1,
       'action': action,
+      'targetType': targetType,
       'targetId': targetId,
       'actorUid': actor.uid,
       'actorEmail': actor.email,
+      'source': 'admin_app',
       'details': details ?? <String, dynamic>{},
       'createdAt': FieldValue.serverTimestamp(),
     });

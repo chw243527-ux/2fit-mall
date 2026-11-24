@@ -47,6 +47,7 @@ import 'admin_coupon_tab.dart';
 import 'admin_refund_history_tab.dart';
 import 'admin_settlement_tab.dart';
 import 'admin_nextr_payment_link_tab.dart';
+import 'admin_audit_log_tab.dart';
 import '../orders/group_order_test_screen.dart';
 import '../../services/order_excel_service.dart';
 import '../../utils/web_utils.dart'
@@ -374,10 +375,10 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 22, vsync: this);
+    _tabCtrl = TabController(length: 23, vsync: this);
     _verifyAdminAccess();
     // initialTab이 지정된 경우 해당 탭으로 이동
-    if (widget.initialTab > 0 && widget.initialTab < 22) {
+    if (widget.initialTab > 0 && widget.initialTab < 23) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _tabCtrl.animateTo(widget.initialTab);
       });
@@ -1544,6 +1545,7 @@ class _AdminScreenState extends State<AdminScreen>
     '정산·매입관리',
     '환불 내역',
     'NEXTR 결제 링크',
+    '감사 로그',
   ];
   static const _tabIcons = [
     Icons.dashboard_rounded,
@@ -1568,6 +1570,7 @@ class _AdminScreenState extends State<AdminScreen>
     Icons.account_balance_rounded,
     Icons.receipt_long_rounded,
     Icons.link_rounded,
+    Icons.history_rounded,
   ];
   // 소분류(들여쓰기) 인덱스
   static const _subTabIndices = {14, 15, 16, 17};
@@ -2044,6 +2047,8 @@ class _AdminScreenState extends State<AdminScreen>
         return const AdminRefundHistoryTab();
       case 21:
         return const AdminNextrPaymentLinkTab();
+      case 22:
+        return const AdminAuditLogTab();
       default:
         return _buildDashboard();
     }
@@ -9794,6 +9799,7 @@ class _AdminScreenState extends State<AdminScreen>
                                 await AuthService.writeAdminAuditLog(
                                   action: 'member_profile_deleted',
                                   targetId: uid,
+                                  targetType: 'user_profile',
                                   details: const {
                                     'scope': 'users_document_only',
                                     'auth_account_deleted': false,

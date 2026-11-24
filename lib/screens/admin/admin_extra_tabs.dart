@@ -854,6 +854,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
     await AuthService.writeAdminAuditLog(
       action: action,
       targetId: targetUid,
+      targetType: 'user_admin_claim',
       details: {'staffRole': role, 'scope': 'admin_claim_and_staff_profile'},
     );
   }
