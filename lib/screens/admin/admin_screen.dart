@@ -15859,25 +15859,23 @@ class _AdminScreenState extends State<AdminScreen>
                       }
                       connectedProduct ??=
                           adminProducts.isNotEmpty ? adminProducts.first : null;
-                      if (connectedProduct != null) {
-                        if (desc.isNotEmpty) {
-                          await context
-                              .read<ProductProvider>()
-                              .updateSectionDescription(
-                                connectedProduct.id,
-                                newKey,
-                                desc,
-                              );
-                        }
-                        if (imageUrl != null && imageUrl.isNotEmpty) {
-                          await context
-                              .read<ProductProvider>()
-                              .updateSectionImages(
-                            connectedProduct.id,
-                            newKey,
-                            [imageUrl],
-                          );
-                        }
+                      if (desc.isNotEmpty) {
+                        await context
+                            .read<ProductProvider>()
+                            .updateSectionDescription(
+                              connectedProduct.id,
+                              newKey,
+                              desc,
+                            );
+                      }
+                      if (imageUrl != null && imageUrl.isNotEmpty) {
+                        await context
+                            .read<ProductProvider>()
+                            .updateSectionImages(
+                          connectedProduct.id,
+                          newKey,
+                          [imageUrl],
+                        );
                       }
                       if (ctx.mounted) Navigator.pop(ctx);
                       if (mounted) {

@@ -10249,7 +10249,6 @@ void _showWriteReviewFromOrder(BuildContext context, OrderModel order) async {
         ],
       ),
     );
-    if (selectedItem == null) return;
   }
 
   // Firestore에서 실제 상품 정보 조회
