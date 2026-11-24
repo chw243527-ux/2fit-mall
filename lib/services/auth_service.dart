@@ -1392,13 +1392,35 @@ class AuthService {
   }
 
   // 회원 삭제 (Firestore 문서만 삭제, Auth는 Admin SDK 필요)
-  static Future<void> deleteUserDocument(String uid) async {
+  static Future<bool> deleteUserDocument(String uid) async {
     try {
       await _db.collection('users').doc(uid).delete();
+      final deleted = await _db.collection('users').doc(uid).get();
+      if (deleted.exists) return false;
       if (kDebugMode) debugPrint('🗑️ 회원 문서 삭제: $uid');
+      return true;
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
+      return false;
     }
+  }
+
+  /// 회원 문서 삭제·권한 변경처럼 민감한 관리자 작업의 감사 기록입니다.
+  static Future<void> writeAdminAuditLog({
+    required String action,
+    required String targetId,
+    Map<String, dynamic>? details,
+  }) async {
+    final actor = _auth.currentUser;
+    if (actor == null) throw StateError('관리자 로그인 세션이 없습니다.');
+    await _db.collection('admin_audit_logs').add({
+      'action': action,
+      'targetId': targetId,
+      'actorUid': actor.uid,
+      'actorEmail': actor.email,
+      'details': details ?? <String, dynamic>{},
+      'createdAt': FieldValue.serverTimestamp(),
+    });
   }
 
   // 회원 메모 저장

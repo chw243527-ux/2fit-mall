@@ -182,6 +182,7 @@ class _AdminScreenState extends State<AdminScreen>
   String _productSearchQuery = '';
   String _orderSearchQuery = '';
   String _memberSearchQuery = '';
+  Timer? _memberSearchDebounce;
   String _productCategoryFilter = '전체';
 
   static const _reservedSectionKeys = {
@@ -1026,6 +1027,7 @@ class _AdminScreenState extends State<AdminScreen>
 
   @override
   void dispose() {
+    _memberSearchDebounce?.cancel();
     _tabCtrl.dispose();
     super.dispose();
   }
@@ -2898,7 +2900,10 @@ class _AdminScreenState extends State<AdminScreen>
                   ? const Color(0xFFEEF2FF)
                   : const Color(0xFFF4F6FA),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              child: Row(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   // 전체선택 체크박스
                   GestureDetector(
@@ -2983,7 +2988,7 @@ class _AdminScreenState extends State<AdminScreen>
                             ),
                           ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 4),
                   // 선택 시 액션 버튼들
                   if (anySelected) ...[
                     // 선택 PDF 다운로드
@@ -8403,7 +8408,10 @@ class _AdminScreenState extends State<AdminScreen>
         Container(
           color: AppColors.background,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: Row(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               // 전체선택 체크박스
               GestureDetector(
@@ -8447,7 +8455,7 @@ class _AdminScreenState extends State<AdminScreen>
                   color: AppColors.textSecondary,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 4),
               // 선택 공개·숨김 버튼
               if (anySelected) ...[
                 if (_productCategoryFilter == '숨김 카테고리') ...[
@@ -9600,10 +9608,19 @@ class _AdminScreenState extends State<AdminScreen>
               padding: const EdgeInsets.all(12),
               child: TextField(
                 style: const TextStyle(fontSize: 13),
-                onChanged: (v) => setState(() {
-                  _memberSearchQuery = v;
-                  _selectedMemberIds.clear();
-                }),
+                onChanged: (v) {
+                  _memberSearchDebounce?.cancel();
+                  _memberSearchDebounce = Timer(
+                    const Duration(milliseconds: 250),
+                    () {
+                      if (!mounted) return;
+                      setState(() {
+                        _memberSearchQuery = v.trim();
+                        _selectedMemberIds.clear();
+                      });
+                    },
+                  );
+                },
                 decoration: InputDecoration(
                   hintText: '회원명 / 이메일 검색...',
                   hintStyle: const TextStyle(
@@ -9626,7 +9643,10 @@ class _AdminScreenState extends State<AdminScreen>
             Container(
               color: AppColors.background,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              child: Row(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   GestureDetector(
                     onTap: () {
@@ -9683,7 +9703,7 @@ class _AdminScreenState extends State<AdminScreen>
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 4),
                   // 등급 일괄변경
                   if (anySelected)
                     GestureDetector(
@@ -9743,7 +9763,9 @@ class _AdminScreenState extends State<AdminScreen>
                               ],
                             ),
                             content: Text(
-                              '선택한 ${_selectedMemberIds.length}명의 회원 계정을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.',
+                              '선택한 ${_selectedMemberIds.length}명의 회원 프로필 문서를 삭제합니다.\n'
+                              'Firebase Auth 로그인 계정과 주문·결제 기록은 이 화면에서 삭제하지 않습니다.\n'
+                              '삭제 후 되돌릴 수 없으며 관리자 감사 로그에 기록됩니다. 계속하시겠습니까?',
                             ),
                             actions: [
                               TextButton(
@@ -9762,16 +9784,40 @@ class _AdminScreenState extends State<AdminScreen>
                           ),
                         );
                         if (ok == true && mounted) {
+                          final failedIds = <String>[];
                           for (final uid in _selectedMemberIds.toList()) {
-                            await AuthService.deleteUserDocument(uid);
+                            final succeeded = await AuthService.deleteUserDocument(uid);
+                            if (!succeeded) {
+                              failedIds.add(uid);
+                            } else {
+                              try {
+                                await AuthService.writeAdminAuditLog(
+                                  action: 'member_profile_deleted',
+                                  targetId: uid,
+                                  details: const {
+                                    'scope': 'users_document_only',
+                                    'auth_account_deleted': false,
+                                    'orders_deleted': false,
+                                  },
+                                );
+                              } catch (_) {}
+                            }
                             if (!mounted) return;
                           }
-                          setState(() => _selectedMemberIds.clear());
+                          setState(() {
+                            _selectedMemberIds
+                              ..clear()
+                              ..addAll(failedIds);
+                          });
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('선택한 회원이 삭제되었습니다'),
-                                backgroundColor: AppColors.primary,
+                              SnackBar(
+                                content: Text(failedIds.isEmpty
+                                    ? '선택한 회원 프로필 문서를 삭제했습니다.'
+                                    : '${failedIds.length}명 삭제 실패. 선택 항목을 유지했으니 다시 시도해 주세요.'),
+                                backgroundColor: failedIds.isEmpty
+                                    ? AppColors.primary
+                                    : AppColors.error,
                               ),
                             );
                           }

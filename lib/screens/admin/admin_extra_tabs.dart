@@ -846,6 +846,18 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
     }
   }
 
+  Future<void> _writeStaffAudit({
+    required String action,
+    required String targetUid,
+    required String role,
+  }) async {
+    await AuthService.writeAdminAuditLog(
+      action: action,
+      targetId: targetUid,
+      details: {'staffRole': role, 'scope': 'admin_claim_and_staff_profile'},
+    );
+  }
+
   void _showAddStaffDialog() {
     final emailCtrl = TextEditingController();
     String staffRole = '운영 매니저';
@@ -857,7 +869,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('이미 가입된 회원의 이메일을 입력하면 관리자 권한을 부여합니다.',
+              const Text('이미 가입된 회원의 이메일을 입력하면 관리자 권한을 부여합니다. 선택한 직급에 해당하는 관리자 기능 접근 권한이 Firebase Custom Claim에 반영되고, 변경 내용은 감사 로그에 기록됩니다.',
                   style: TextStyle(fontSize: 13, color: Colors.grey)),
               const SizedBox(height: 12),
               TextField(
@@ -907,6 +919,11 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                       targetUid: query.docs.first.id,
                       grant: true,
                       staffRole: staffRole,
+                    );
+                    await _writeStaffAudit(
+                      action: 'staff_admin_granted',
+                      targetUid: query.docs.first.id,
+                      role: staffRole,
                     );
                     if (ctx.mounted) Navigator.pop(ctx);
                     if (mounted) {
@@ -981,7 +998,12 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                       .update({
                     'staffRole': staffRole,
                     'staffRoleUpdatedAt': FieldValue.serverTimestamp(),
-                  });
+                      });
+                  await _writeStaffAudit(
+                    action: 'staff_role_changed',
+                    targetUid: targetUid,
+                    role: staffRole,
+                  );
                   if (ctx.mounted) Navigator.pop(ctx);
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -1009,21 +1031,29 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('관리자 권한 해제: ${staff['name'] ?? ''}'),
-        content: Text('${staff['email']} 님의 관리자 권한을 해제하시겠습니까?'),
+        content: Text('${staff['email']} 님의 관리자 권한과 관리자 화면 접근을 해제하시겠습니까?\n\n회원 계정과 주문 기록은 삭제되지 않으며 변경 내용은 감사 로그에 기록됩니다.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             onPressed: () async {
-              try {
-                final targetUid = staff['id'] as String?;
-                if (targetUid == null || targetUid.isEmpty) {
-                  throw StateError('직원 계정 식별자가 없습니다.');
-                }
-                await _syncStaffAdminClaim(
-                  targetUid: targetUid,
-                  grant: false,
-                );
+                try {
+                  final targetUid = staff['id'] as String?;
+                  if (targetUid == null || targetUid.isEmpty) {
+                    throw StateError('직원 계정 식별자가 없습니다.');
+                  }
+                  if (targetUid == FirebaseAuth.instance.currentUser?.uid) {
+                    throw StateError('현재 로그인한 자신의 관리자 권한은 이 화면에서 해제할 수 없습니다.');
+                  }
+                  await _syncStaffAdminClaim(
+                    targetUid: targetUid,
+                    grant: false,
+                  );
+                  await _writeStaffAudit(
+                    action: 'staff_admin_revoked',
+                    targetUid: targetUid,
+                    role: (staff['staffRole'] as String?) ?? '',
+                  );
                 if (ctx.mounted) Navigator.pop(ctx);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
