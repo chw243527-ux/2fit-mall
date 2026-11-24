@@ -387,7 +387,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                                 context.loc.t('전체 상품', '전체 상품'),
                                 style: TextStyle(
                                   color: isActive ? _white : _grey,
-                                  fontSize: 14,
+                                  fontSize: 13,
                                   fontWeight: isActive
                                       ? FontWeight.w700
                                       : FontWeight.w400,
@@ -452,7 +452,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
               Text(
                 cat.name,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
                   color: isActive ? _white : _grey,
                   letterSpacing: 0.3,

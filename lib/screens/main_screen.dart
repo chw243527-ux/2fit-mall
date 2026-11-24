@@ -2063,7 +2063,7 @@ class _PcDrawerCategoryTileState extends State<_PcDrawerCategoryTile> {
           leading: Icon(cat.icon, size: 20, color: cat.color),
           title: Text(cat.name,
               style: TextStyle(
-                  fontSize: r.sp(14),
+                  fontSize: r.sp(13),
                   fontWeight: FontWeight.w600,
                   color: AppColors.primary)),
           trailing: cat.subCategories.isNotEmpty
@@ -2099,7 +2099,7 @@ class _PcDrawerCategoryTileState extends State<_PcDrawerCategoryTile> {
                 contentPadding: EdgeInsets.only(left: r.w(56), right: r.w(16)),
                 title: Text(sub.name,
                     style: TextStyle(
-                        fontSize: r.sp(13), color: AppColors.textSecondary)),
+                        fontSize: r.sp(12), color: AppColors.textSecondary)),
                 trailing: const Icon(Icons.chevron_right_rounded,
                     size: 16, color: AppColors.border),
                 dense: true,

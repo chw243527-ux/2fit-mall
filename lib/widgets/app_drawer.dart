@@ -297,7 +297,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   child: Text(
                     cat.name,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 14,
                       fontWeight:
                           isExpanded ? FontWeight.w800 : FontWeight.w500,
                       color: isExpanded
@@ -400,7 +400,7 @@ class _AppDrawerState extends State<AppDrawer> {
                       ? sub.name
                       : loc.t(sub.rawName!, sub.rawName!),
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textSecondary,
                     letterSpacing: 0.2,
@@ -453,7 +453,7 @@ class _AppDrawerState extends State<AppDrawer> {
                     child: Text(
                       translatedMiddle,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight:
                             isExpanded ? FontWeight.w800 : FontWeight.w600,
                         color: AppColors.textPrimary,
