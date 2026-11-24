@@ -870,41 +870,15 @@ class _AdminScreenState extends State<AdminScreen>
       final storedColors = _catalogList(data['colors']);
       final storedSections = _catalogList(data['sections']);
       if (!mounted) return;
-      // 구버전 저장값이나 부분 저장으로 기본 섹션 일부가 사라져도
-      // 관리자 화면이 한두 개 카드만 표시되지 않도록 기본 섹션을 복원합니다.
-      // 저장된 제목·설명·활성 상태는 유지하고 누락된 기본 키만 보충합니다.
-      final storedByKey = <String, Map<String, dynamic>>{
-        for (final section in storedSections)
-          if (section['key']?.toString().isNotEmpty == true)
-            section['key'].toString(): section,
-      };
-      final defaultSectionsByKey = <String, Map<String, dynamic>>{
-        for (final section in _customSections)
-          section['key']?.toString() ?? '': Map<String, dynamic>.from(section),
-      };
-      final hasMissingDefault = defaultSectionsByKey.keys.any(
-        (key) => key.isNotEmpty && !storedByKey.containsKey(key),
-      );
-      final restoredSections = <Map<String, dynamic>>[];
-      if (hasMissingDefault) {
-        // 기본 섹션은 초기 정의 순서를 복원하고, 저장된 사용자 정의 섹션은
-        // 뒤에 유지합니다.
-        for (final section in _customSections) {
-          final key = section['key']?.toString() ?? '';
-          if (key.isEmpty) continue;
-          restoredSections.add(
-            Map<String, dynamic>.from(storedByKey[key] ?? section),
-          );
-        }
-        for (final section in storedSections) {
-          final key = section['key']?.toString() ?? '';
-          if (key.isNotEmpty && !defaultSectionsByKey.containsKey(key)) {
-            restoredSections.add(section);
-          }
-        }
-      } else {
-        restoredSections.addAll(storedSections);
-      }
+      // sections 배열이 이미 저장되어 있으면 관리자가 삭제한 기본 섹션도
+      // 의도적인 상태로 간주합니다. 누락된 기본 섹션을 자동 복원하면
+      // 삭제 직후 새로고침할 때 다시 나타나는 문제가 생깁니다.
+      final hasSectionCatalog = data['sections'] is List;
+      final restoredSections = hasSectionCatalog
+          ? storedSections
+          : _customSections
+              .map((section) => Map<String, dynamic>.from(section))
+              .toList();
       setState(() {
         // 빈 배열도 관리자가 의도적으로 모두 정리한 결과일 수 있으므로 유지합니다.
         if (data['colors'] is List) {
@@ -927,7 +901,7 @@ class _AdminScreenState extends State<AdminScreen>
             );
         }
       });
-      if (hasMissingDefault) {
+      if (!hasSectionCatalog) {
         await _persistContentCatalogs();
       }
     } catch (e) {
@@ -15593,10 +15567,7 @@ class _AdminScreenState extends State<AdminScreen>
                               ),
                               onMoveUp: () => _moveSectionByKey(key, -1),
                               onMoveDown: () => _moveSectionByKey(key, 1),
-                              onArchive: () =>
-                                  _reservedSectionKeys.contains(key)
-                                      ? _toggleSectionActiveByKey(key)
-                                      : _confirmDeleteSectionByKey(key),
+                              onArchive: () => _confirmDeleteSectionByKey(key),
                             ),
                           ],
                         ),
@@ -16138,31 +16109,7 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
-  Future<void> _toggleSectionActiveByKey(String key) async {
-    final index = _customSectionIndex(key);
-    if (index < 0) return;
-    final section = _customSections[index];
-    final before = Map<String, dynamic>.from(section);
-    final nextActive = section['active'] == false;
-    setState(() => _customSections[index] = {...section, 'active': nextActive});
-    final saved = await _persistContentCatalogs();
-    if (!saved) {
-      if (mounted) setState(() => _customSections[index] = before);
-      return;
-    }
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            nextActive ? '기본 섹션을 다시 표시합니다' : '기본 섹션을 보관했습니다. 상품 이미지는 유지됩니다.',
-          ),
-          backgroundColor: const Color(0xFF6A1B9A),
-        ),
-      );
-    }
-  }
-
-  // 섹션 삭제 확인: 기본 키는 상품 이미지 참조를 보호하기 위해 보관으로만 처리합니다.
+  // 섹션 삭제 확인: 카탈로그 정의만 삭제하고 상품별 이미지·설명 데이터는 보존합니다.
   void _confirmDeleteSectionByKey(String key) {
     final index = _customSectionIndex(key);
     if (index < 0) return;
@@ -19046,11 +18993,11 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                         width: 28,
                         height: 28,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF6A1B9A),
+                          color: AppColors.error,
                           borderRadius: BorderRadius.circular(7),
                         ),
                         child: const Icon(
-                          Icons.inventory_2_rounded,
+                          Icons.delete_outline_rounded,
                           color: Colors.white,
                           size: 15,
                         ),
