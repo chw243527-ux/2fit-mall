@@ -103,7 +103,8 @@ class _TeamGalleryAdminState extends State<TeamGalleryAdmin> {
                           height: 14,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Icons.add_photo_alternate_outlined, size: 17),
+                      : const Icon(Icons.add_photo_alternate_outlined,
+                          size: 17),
                   label: const Text('사진 등록'),
                 ),
               ],
@@ -123,9 +124,9 @@ class _TeamGalleryAdminState extends State<TeamGalleryAdmin> {
                     child: Center(child: CircularProgressIndicator()),
                   );
                 }
-                final docs = [...snapshot.data!.docs]
-                  ..sort((a, b) => (b.data()['sortOrder'] as num? ?? 0)
-                      .compareTo(a.data()['sortOrder'] as num? ?? 0));
+                final docs = [...snapshot.data!.docs]..sort((a, b) =>
+                    (b.data()['sortOrder'] as num? ?? 0)
+                        .compareTo(a.data()['sortOrder'] as num? ?? 0));
                 if (docs.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 14),

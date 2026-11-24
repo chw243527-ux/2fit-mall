@@ -148,9 +148,9 @@ class CustomGuideScreen extends StatelessWidget {
             child: Center(child: CircularProgressIndicator()),
           );
         }
-        final docs = [...snapshot.data!.docs]
-          ..sort((a, b) => (b.data()['sortOrder'] as num? ?? 0)
-              .compareTo(a.data()['sortOrder'] as num? ?? 0));
+        final docs = [...snapshot.data!.docs]..sort((a, b) =>
+            (b.data()['sortOrder'] as num? ?? 0)
+                .compareTo(a.data()['sortOrder'] as num? ?? 0));
         if (docs.isEmpty) {
           return Container(
             width: double.infinity,
