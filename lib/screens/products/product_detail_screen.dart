@@ -525,7 +525,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                             child: _buildQnaSection(product),
                           ),
                           _buildSameDesignColorRecommendations(product),
-                          SizedBox(height: r.h(128)),
+                          SizedBox(height: r.h(112)),
                         ],
                       ),
                     ),
@@ -1679,7 +1679,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
           // ═══════════════════════════════════════════════
           if (!_isSingletGroupProduct(product) && product.isReadyMade)
             Padding(
-              padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
+              padding: EdgeInsets.fromLTRB(r.w(16), r.h(10), r.w(16), r.h(0)),
               child: Row(
                 children: [
                   _toptenTabChip(
@@ -1692,7 +1692,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
             ),
           if (_isSingletGroupProduct(product))
             Padding(
-              padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
+              padding: EdgeInsets.fromLTRB(r.w(16), r.h(10), r.w(16), r.h(0)),
               child: Row(
                 children: [
                   _toptenTabChip(
@@ -1716,7 +1716,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
           // 탑텐 스타일: 브랜드명 > + 공유 버튼
           // ═══════════════════════════════════════════════
           Padding(
-            padding: EdgeInsets.fromLTRB(r.w(16), r.h(16), r.w(16), r.h(0)),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(12), r.w(16), r.h(0)),
             child: Row(
               children: [
                 GestureDetector(
@@ -1758,7 +1758,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
           // 탑텐 스타일: 상품명 (영문 소제목 + 한국어 대제목)
           // ═══════════════════════════════════════════════
           Padding(
-            padding: EdgeInsets.fromLTRB(r.w(16), r.h(6), r.w(16), r.h(0)),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(4), r.w(16), r.h(0)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1793,7 +1793,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
           // 탑텐 스타일: 별점 + 리뷰건수 >
           // ═══════════════════════════════════════════════
           Padding(
-            padding: EdgeInsets.fromLTRB(r.w(16), r.h(8), r.w(16), r.h(0)),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(6), r.w(16), r.h(0)),
             child: GestureDetector(
               onTap: () {},
               child: Row(
@@ -1837,7 +1837,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
           // 탑텐 스타일: 가격 영역 (파란 할인율 + 현재가 + 취소선)
           // ═══════════════════════════════════════════════
           Padding(
-            padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(10), r.w(16), r.h(0)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1907,7 +1907,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
           // ═══════════════════════════════════════════════
           if (product.colors.isNotEmpty &&
               !_isSingletGroupProduct(product)) ...[
-            SizedBox(height: r.h(18)),
+            SizedBox(height: r.h(14)),
             const Divider(height: 1, color: AppColors.surfaceGray),
             _buildToptenColorSection(product),
           ],
@@ -1916,7 +1916,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
           // 탑텐 스타일: 시즌 | 상품번호
           // ═══════════════════════════════════════════════
           Padding(
-            padding: EdgeInsets.fromLTRB(r.w(16), r.h(10), r.w(16), r.h(10)),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(8), r.w(16), r.h(8)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1947,7 +1947,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
           // 탑텐 스타일: 해시태그 칩
           // ═══════════════════════════════════════════════
           Padding(
-            padding: EdgeInsets.fromLTRB(r.w(16), r.h(0), r.w(16), r.h(14)),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(0), r.w(16), r.h(10)),
             child: Wrap(
               spacing: 6,
               runSpacing: 6,
@@ -6129,7 +6129,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
     // 번호/라벨 → 제목/카피 → 상세 이미지 세로 나열 → 보충 설명 순서입니다.
     return Container(
       color: Colors.white,
-      padding: EdgeInsets.fromLTRB(r.w(20), r.h(34), r.w(20), r.h(38)),
+      padding: EdgeInsets.fromLTRB(r.w(16), r.h(28), r.w(16), r.h(30)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -6164,9 +6164,9 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                 ),
               ],
             ),
-          SizedBox(height: r.h(12)),
+          SizedBox(height: r.h(10)),
           Container(height: 1.5, width: r.w(34), color: AppColors.accent),
-          SizedBox(height: r.h(14)),
+          SizedBox(height: r.h(12)),
           Text(
             title,
             style: TextStyle(
@@ -6191,7 +6191,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
             ),
           ],
           if (images.isNotEmpty) ...[
-            SizedBox(height: r.h(22)),
+            SizedBox(height: r.h(18)),
             isAdmin
                 ? _buildAdminImageSection(sectionKey, title, true)
                 : _buildSectionImageSlider(sectionKey),
@@ -6249,7 +6249,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(r.w(20), r.h(32), r.w(20), r.h(34)),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(26), r.w(16), r.h(28)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -6268,7 +6268,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                     letterSpacing: 1.25,
                   ),
                 ),
-                SizedBox(height: r.h(12)),
+                SizedBox(height: r.h(10)),
                 Text(
                   heroCopy.headline,
                   style: TextStyle(
@@ -6279,7 +6279,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                     letterSpacing: -1.0,
                   ),
                 ),
-                SizedBox(height: r.h(14)),
+                SizedBox(height: r.h(12)),
                 Text(
                   heroCopy.accent,
                   style: TextStyle(
@@ -8518,7 +8518,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
       ),
     ];
     return Padding(
-      padding: EdgeInsets.fromLTRB(r.w(20), r.h(56), r.w(20), r.h(50)),
+      padding: EdgeInsets.fromLTRB(r.w(20), r.h(42), r.w(20), r.h(38)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -8567,7 +8567,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
               ),
             ),
           ],
-          SizedBox(height: r.h(24)),
+          SizedBox(height: r.h(18)),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: SizedBox(
@@ -8582,7 +8582,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
               ),
             ),
           ),
-          SizedBox(height: r.h(30)),
+          SizedBox(height: r.h(22)),
           ...notices.asMap().entries.map(
                 (entry) => Padding(
                   padding: EdgeInsets.only(bottom: r.h(9)),
@@ -8660,7 +8660,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
         : '상품별 상품정보에 따름';
 
     Widget row(String label, String value) => Padding(
-          padding: EdgeInsets.symmetric(vertical: r.h(7)),
+          padding: EdgeInsets.symmetric(vertical: r.h(6)),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -8691,7 +8691,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
 
     Widget card(String title, List<Widget> children) => Container(
           margin: EdgeInsets.only(bottom: r.h(12)),
-          padding: EdgeInsets.fromLTRB(r.w(16), r.h(16), r.w(16), r.h(14)),
+          padding: EdgeInsets.fromLTRB(r.w(14), r.h(14), r.w(14), r.h(12)),
           decoration: BoxDecoration(
             color: const Color(0xFFF7F7F7),
             borderRadius: BorderRadius.circular(10),
@@ -8715,7 +8715,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
 
     return Container(
       color: const Color(0xFFF7F7F7),
-      padding: EdgeInsets.fromLTRB(r.w(16), r.h(28), r.w(16), r.h(18)),
+      padding: EdgeInsets.fromLTRB(r.w(16), r.h(22), r.w(16), r.h(14)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -8790,7 +8790,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
     final r = Responsive.of(context);
     return Container(
       color: Colors.white,
-      padding: EdgeInsets.fromLTRB(r.w(20), r.h(34), r.w(20), r.h(42)),
+      padding: EdgeInsets.fromLTRB(r.w(20), r.h(28), r.w(20), r.h(34)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -8846,7 +8846,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
         final avg = reviewProv.getProductRating(product.id);
 
         return Padding(
-          padding: EdgeInsets.fromLTRB(r.w(20), r.h(46), r.w(20), r.h(34)),
+          padding: EdgeInsets.fromLTRB(r.w(20), r.h(36), r.w(20), r.h(28)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
