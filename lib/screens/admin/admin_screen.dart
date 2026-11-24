@@ -3099,16 +3099,26 @@ class _AdminScreenState extends State<AdminScreen>
                           ),
                         );
                         if (ok == true && mounted) {
+                          final failedIds = <String>[];
                           for (final id in _selectedOrderIds.toList()) {
-                            await OrderService.deleteOrder(id);
+                            final succeeded = await OrderService.deleteOrder(id);
+                            if (!succeeded) failedIds.add(id);
                             if (!mounted) return;
                           }
-                          setState(() => _selectedOrderIds.clear());
+                          setState(() {
+                            _selectedOrderIds
+                              ..clear()
+                              ..addAll(failedIds);
+                          });
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('선택한 주문이 삭제되었습니다'),
-                                backgroundColor: AppColors.primary,
+                              SnackBar(
+                                content: Text(failedIds.isEmpty
+                                    ? '선택한 주문이 삭제되었습니다.'
+                                    : '${failedIds.length}건 삭제 실패. 선택 항목을 유지했으니 다시 시도해 주세요.'),
+                                backgroundColor: failedIds.isEmpty
+                                    ? AppColors.primary
+                                    : AppColors.error,
                               ),
                             );
                           }
@@ -8141,11 +8151,16 @@ class _AdminScreenState extends State<AdminScreen>
       ),
     );
     if (confirmed != true || !mounted) return;
-    await context.read<ProductProvider>().setProductsActive(ids, active);
+    final succeeded = await context.read<ProductProvider>().setProductsActive(ids, active);
     if (!mounted) return;
-    setState(() => _selectedProductIds.clear());
+    if (succeeded) setState(() => _selectedProductIds.clear());
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${ids.length}개 상품을 $label 처리했습니다.')),
+      SnackBar(
+        content: Text(succeeded
+            ? '${ids.length}개 상품을 $label 처리했습니다.'
+            : '상품 $label 처리에 실패했습니다. 변경 사항을 되돌렸습니다. 다시 시도해 주세요.'),
+        backgroundColor: succeeded ? AppColors.primary : AppColors.error,
+      ),
     );
   }
 
@@ -8173,11 +8188,16 @@ class _AdminScreenState extends State<AdminScreen>
       ),
     );
     if (confirmed != true || !mounted) return;
-    await context.read<ProductProvider>().setProductsActive(ids, true);
+    final succeeded = await context.read<ProductProvider>().setProductsActive(ids, true);
     if (!mounted) return;
-    setState(() => _selectedProductIds.clear());
+    if (succeeded) setState(() => _selectedProductIds.clear());
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${ids.length}개 상품을 복원했습니다.')),
+      SnackBar(
+        content: Text(succeeded
+            ? '${ids.length}개 상품을 복원했습니다.'
+            : '상품 복원에 실패했습니다. 다시 시도해 주세요.'),
+        backgroundColor: succeeded ? AppColors.primary : AppColors.error,
+      ),
     );
   }
 
@@ -25454,6 +25474,11 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
 
   // ── 메인 카테고리 삭제 확인
   Future<void> _deleteMainCat(String cat) async {
+    final linkedProductCount = context
+        .read<ProductProvider>()
+        .adminProducts
+        .where((product) => product.category == cat)
+        .length;
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -25463,7 +25488,10 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: Text(
-          '"$cat" 대분류와 연결된 중분류·소분류를 모두 삭제합니다.\n이미 등록된 상품의 카테고리 정보는 유지되지만, 이후 상품등록에서는 선택할 수 없습니다.',
+          '"$cat" 대분류와 연결된 중분류·소분류를 모두 삭제합니다.\n'
+          '현재 연결된 상품: $linkedProductCount개\n\n'
+          '상품의 기존 카테고리 정보는 유지되지만, 카테고리 페이지에서 노출되지 않을 수 있습니다. '
+          '삭제 후 새 상품 등록에서는 선택할 수 없습니다.',
         ),
         actions: [
           TextButton(

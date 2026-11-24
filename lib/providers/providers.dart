@@ -1819,6 +1819,9 @@ class ProductProvider extends ChangeNotifier {
   Future<bool> setProductsActive(Iterable<String> ids, bool active) async {
     final targetIds = ids.where((id) => id.isNotEmpty).toSet();
     if (targetIds.isEmpty) return true;
+    final originalAdmin = List<ProductModel>.from(_adminProducts);
+    final originalPublic = List<ProductModel>.from(_products);
+    var allSucceeded = true;
     for (final id in targetIds) {
       final index = _adminProducts.indexWhere((product) => product.id == id);
       if (index < 0) continue;
@@ -1826,22 +1829,35 @@ class ProductProvider extends ChangeNotifier {
       _adminProducts[index] = updated;
       final publicIndex = _products.indexWhere((product) => product.id == id);
       if (publicIndex >= 0) _products[publicIndex] = updated;
-      await ProductService.updateProduct(updated);
+      final succeeded = await ProductService.updateProduct(updated);
+      if (!succeeded) allSucceeded = false;
+    }
+    if (!allSucceeded) {
+      _adminProducts = originalAdmin;
+      _products = originalPublic;
     }
     notifyListeners();
     await refresh();
     await loadAdminProducts();
-    return true;
+    return allSucceeded;
   }
 
   Future<bool> deleteProduct(String id) async {
+    final originalAdmin = List<ProductModel>.from(_adminProducts);
+    final originalPublic = List<ProductModel>.from(_products);
     // 1) 메모리에서 즉시 제거 → UI 즉시 반영
     _adminProducts.removeWhere((p) => p.id == id);
     _products.removeWhere((p) => p.id == id);
     notifyListeners();
     // 2) Firestore 실제 삭제
     final result = await ProductService.deleteProduct(id);
-    // 3) 삭제 성공 여부와 무관하게 최신 목록으로 재동기화
+    if (!result) {
+      _adminProducts = originalAdmin;
+      _products = originalPublic;
+      notifyListeners();
+    }
+    // 3) 실제 서버 결과를 기준으로 재동기화
+    await refresh();
     await loadAdminProducts();
     return result;
   }

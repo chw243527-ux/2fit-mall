@@ -414,16 +414,38 @@ class _AdminSettlementTabState extends State<AdminSettlementTab> {
                         onPressed: () => Navigator.pop(ctx, false),
                         child: const Text('취소')),
                     FilledButton(
-                        onPressed: () => Navigator.pop(ctx, true),
+                        onPressed: () {
+                          final parsedQty = int.tryParse(qty.text.trim());
+                          final parsedAmount = double.tryParse(
+                              amount.text.replaceAll(',', '').trim());
+                          final error = supplier.text.trim().isEmpty
+                              ? '공급처를 입력해 주세요.'
+                              : desc.text.trim().isEmpty
+                                  ? '상품/매입 사유를 입력해 주세요.'
+                                  : parsedQty == null || parsedQty <= 0
+                                      ? '수량은 1 이상 정수로 입력해 주세요.'
+                                      : parsedAmount == null || parsedAmount <= 0
+                                          ? '총 매입액은 0보다 큰 숫자로 입력해 주세요.'
+                                          : null;
+                          if (error != null) {
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              SnackBar(content: Text(error)),
+                            );
+                            return;
+                          }
+                          Navigator.pop(ctx, true);
+                        },
                         child: const Text('저장'))
                   ],
                 )));
-    if (ok != true || amount.text.trim().isEmpty) return;
+    if (ok != true) return;
+    final parsedQuantity = int.parse(qty.text.trim());
+    final parsedAmount = double.parse(amount.text.replaceAll(',', '').trim());
     await FirebaseFirestore.instance.collection('purchase_records').add({
       'supplier': supplier.text.trim(),
       'description': desc.text.trim(),
-      'quantity': int.tryParse(qty.text) ?? 1,
-      'totalAmount': double.tryParse(amount.text.replaceAll(',', '')) ?? 0,
+      'quantity': parsedQuantity,
+      'totalAmount': parsedAmount,
       'purchaseDate': Timestamp.fromDate(date),
       'createdAt': FieldValue.serverTimestamp(),
       'createdBy': 'admin',

@@ -145,18 +145,22 @@ class OrderService {
   // ────────────────────────────────────────────
   // 주문 삭제 (관리자용)
   // ────────────────────────────────────────────
-  static Future<void> deleteOrder(String orderId) async {
+  static Future<bool> deleteOrder(String orderId) async {
     try {
       await _db.collection('orders').doc(orderId).delete();
+      final deleted = await _db.collection('orders').doc(orderId).get();
+      if (deleted.exists) throw StateError('주문 삭제 확인 실패: $orderId');
       if (kDebugMode) debugPrint('🗑️ 주문 삭제: $orderId');
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
+      return false;
     }
     // Hive에서도 삭제
     try {
       final box = await _getBox();
       await box.delete(orderId);
     } catch (_) {}
+    return true;
   }
 
   // 주문 상태 업데이트 (배송 추적번호 포함)
@@ -222,6 +226,7 @@ class OrderService {
       if (kDebugMode) debugPrint('✅ 주문 상태+배송정보 업데이트: $orderId');
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
+      rethrow;
     }
   }
 
@@ -277,6 +282,7 @@ class OrderService {
       }
     } catch (e) {
       if (kDebugMode) debugPrint('client_operation_failed');
+      rethrow;
     }
   }
 
