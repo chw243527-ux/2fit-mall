@@ -198,6 +198,101 @@ Future<void> main() async {
 // 전역 navigatorKey - 브라우저 뒤로가기와 Flutter Navigator 연동
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+class _WebInitialRoute {
+  final String name;
+  final Map<String, String> arguments;
+
+  const _WebInitialRoute(this.name, [this.arguments = const {}]);
+}
+
+/// Flutter 웹의 path URL과 hash URL을 앱의 기존 named route로 변환합니다.
+///
+/// MaterialApp에 `home`이 지정되어 있으면 Flutter가 브라우저의 최초 path를
+/// 자동으로 onGenerateRoute에 전달하지 않을 수 있으므로, 초기화 완료 후
+/// _AppInit에서 이 값을 pushNamed합니다.
+_WebInitialRoute? _readWebInitialRoute() {
+  if (!kIsWeb) return null;
+
+  try {
+    final base = Uri.base;
+    var path = base.path;
+    var query = base.queryParameters;
+
+    // Hash URL 방식(예: /#/custom-guide)도 지원합니다.
+    if (base.fragment.startsWith('/')) {
+      final fragment = Uri.tryParse(base.fragment);
+      if (fragment != null) {
+        path = fragment.path;
+        query = fragment.queryParameters;
+      }
+    }
+
+    if (path.isEmpty) path = '/';
+    final segments = path.split('/')..removeWhere((segment) => segment.isEmpty);
+
+    if (path == '/' || path == '/home') {
+      return null;
+    }
+    if (path == '/product' && query['id']?.isNotEmpty == true) {
+      return _WebInitialRoute('/product', {'id': query['id']!});
+    }
+    if (segments.length == 2 && segments.first == 'product') {
+      return _WebInitialRoute('/product', {'id': segments.last});
+    }
+    if (path == '/category' && query['name']?.isNotEmpty == true) {
+      return _WebInitialRoute('/category', {'name': query['name']!});
+    }
+    if (segments.length == 2 && segments.first == 'category') {
+      return _WebInitialRoute('/category', {'name': segments.last});
+    }
+    if (path.startsWith('/payment/group/')) {
+      // 결제 링크 라우트는 onGenerateRoute가 path/query 전체를 해석합니다.
+      final encodedQuery = Uri(queryParameters: query).query;
+      final route = encodedQuery.isEmpty ? path : '$path?$encodedQuery';
+      return _WebInitialRoute(route);
+    }
+
+    const directRoutes = {
+      '/login',
+      '/cart',
+      '/checkout',
+      '/group-order',
+      '/group-guide',
+      '/group-form',
+      '/bulk-order',
+      '/group-only',
+      '/order-guide',
+      '/custom-guide',
+      '/our-designs',
+      '/chat',
+      '/privacy-policy',
+      '/account-deletion',
+      '/terms-of-service',
+      '/refund-policy',
+      '/products',
+      '/cart-tab',
+      '/mypage',
+      '/signup',
+      '/size-profile',
+      '/notifications',
+      '/admin',
+      '/payment/success',
+      '/payment/fail',
+      '/payment/checkout',
+    };
+    if (!directRoutes.contains(path)) return null;
+
+    final arguments = <String, String>{};
+    for (final key in ['id', 'name', 'category', 'search']) {
+      final value = query[key];
+      if (value != null && value.isNotEmpty) arguments[key] = value;
+    }
+    return _WebInitialRoute(path, arguments);
+  } catch (_) {
+    return null;
+  }
+}
+
 /// 웹 새로고침 후 복원할 수 있는 named route만 sessionStorage에 기록합니다.
 /// ProductModel 같은 비직렬화 인자는 저장하지 않고, URL 복원에 필요한 ID·이름만 저장합니다.
 class _WebRouteStateObserver extends NavigatorObserver {
@@ -680,12 +775,17 @@ class _AppInitState extends State<_AppInit> {
           if (mounted) navigatorKey.currentState?.pushNamed('/notifications');
         });
       } else if (mounted) {
-        // 웹 브라우저 새로고침 후 마지막 named route와 필요한 인자를 복원합니다.
+        // 최초 웹 URL이 있으면 sessionStorage의 이전 route보다 우선합니다.
+        // 그래야 /custom-guide 같은 직접 접근이 stale한 이전 화면으로 바뀌지 않습니다.
         // 신규 route 상태가 없으면 이전 상품 상세 전용 저장값도 호환합니다.
-        final routeState = readWebRouteState();
+        final initialWebRoute = _readWebInitialRoute();
+        final routeState = initialWebRoute == null ? readWebRouteState() : null;
         String? routeName;
         Map<String, String> routeArgs = {};
-        if (routeState != null && routeState['route'] is String) {
+        if (initialWebRoute != null) {
+          routeName = initialWebRoute.name;
+          routeArgs = initialWebRoute.arguments;
+        } else if (routeState != null && routeState['route'] is String) {
           routeName = routeState['route'] as String;
           final rawArgs = routeState['arguments'];
           if (rawArgs is Map) {
