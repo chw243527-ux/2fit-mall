@@ -70,13 +70,13 @@ class AppTheme {
 
   // ── 반응형 TextTheme ────────────────────────────────────────
   // 기기 너비에 따라 폰트 크기가 자동 조정됩니다.
-  // 모바일(< 600): 기준, 태블릿(600~899): ×1.05, PC(≥ 900): ×1.10
+  // 모바일(< 600): ×0.97, 태블릿(600~899): ×1.02, PC(≥ 900): ×1.07
   static TextTheme responsiveTextTheme(double screenWidth) {
     final double s = screenWidth < 600
-        ? 1.00 // 모바일
+        ? 0.97 // 모바일
         : screenWidth < 900
-            ? 1.05 // 태블릿
-            : 1.10; // PC
+            ? 1.02 // 태블릿
+            : 1.07; // PC
 
     return TextTheme(
       // 대형 제목 (헤로 배너, 섹션 제목)
@@ -138,7 +138,7 @@ class AppTheme {
         titleTextStyle: TextStyle(
           fontFamily: fontFamily,
           color: AppColors.textPrimary,
-          fontSize: 16,
+          fontSize: 15,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.1,
         ),
@@ -171,7 +171,7 @@ class AppTheme {
           ),
           textStyle: const TextStyle(
             fontFamily: fontFamily,
-            fontSize: 15,
+            fontSize: 14,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.2,
           ),
@@ -189,7 +189,7 @@ class AppTheme {
           ),
           textStyle: const TextStyle(
             fontFamily: fontFamily,
-            fontSize: 15,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.2,
           ),
@@ -202,7 +202,7 @@ class AppTheme {
           foregroundColor: AppColors.primary,
           textStyle: const TextStyle(
             fontFamily: fontFamily,
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.1,
           ),
@@ -237,7 +237,7 @@ class AppTheme {
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         hintStyle: const TextStyle(
           color: AppColors.textHint,
-          fontSize: 14,
+          fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
       ),

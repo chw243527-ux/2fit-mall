@@ -82,9 +82,10 @@ class Responsive {
   double get scaleW => screenWidth / _baseWidth;
   double get scaleH => screenHeight / _baseHeight;
 
-  /// 폰트 스케일: 너비+높이 평균으로 산출, 상하한 클램프
+  /// 폰트 스케일: 너비+높이 평균으로 산출, 상하한 클램프 후
+  /// 쇼핑몰 전체의 촘촘한 텍스트 밀도를 위해 5% 축소합니다.
   double get fontScale =>
-      ((scaleW + scaleH) / 2).clamp(kMinFontScale, kMaxFontScale);
+      ((scaleW + scaleH) / 2).clamp(kMinFontScale, kMaxFontScale) * 0.95;
 
   // ── 변환 메서드 ──────────────────────────────
   /// 너비 비례 픽셀 (디자인 기준 너비 → 실제 너비)
