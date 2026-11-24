@@ -77,35 +77,11 @@ class CustomGuideScreen extends StatelessWidget {
   Widget _hero(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
-      child: Stack(
-        alignment: Alignment.bottomLeft,
-        children: [
-          Image.asset(
-            'assets/images/banner_custom_fit.jpg',
-            width: double.infinity,
-            height: 210,
-            fit: BoxFit.cover,
-          ),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(18, 48, 18, 18),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.transparent, Color(0xCC000000)],
-              ),
-            ),
-            child: Text(
-              showDesignGallery ? 'USE OUR DESIGN' : 'MAKE IT YOUR TEAM',
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1),
-            ),
-          ),
-        ],
+      child: Image.asset(
+        'assets/images/banner_custom_fit.jpg',
+        width: double.infinity,
+        height: 210,
+        fit: BoxFit.cover,
       ),
     );
   }
