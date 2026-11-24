@@ -1037,23 +1037,23 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
               onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             onPressed: () async {
-                try {
-                  final targetUid = staff['id'] as String?;
-                  if (targetUid == null || targetUid.isEmpty) {
-                    throw StateError('직원 계정 식별자가 없습니다.');
-                  }
-                  if (targetUid == FirebaseAuth.instance.currentUser?.uid) {
-                    throw StateError('현재 로그인한 자신의 관리자 권한은 이 화면에서 해제할 수 없습니다.');
-                  }
-                  await _syncStaffAdminClaim(
-                    targetUid: targetUid,
-                    grant: false,
-                  );
-                  await _writeStaffAudit(
-                    action: 'staff_admin_revoked',
-                    targetUid: targetUid,
-                    role: (staff['staffRole'] as String?) ?? '',
-                  );
+              try {
+                final targetUid = staff['id'] as String?;
+                if (targetUid == null || targetUid.isEmpty) {
+                  throw StateError('직원 계정 식별자가 없습니다.');
+                }
+                if (targetUid == FirebaseAuth.instance.currentUser?.uid) {
+                  throw StateError('현재 로그인한 자신의 관리자 권한은 이 화면에서 해제할 수 없습니다.');
+                }
+                await _syncStaffAdminClaim(
+                  targetUid: targetUid,
+                  grant: false,
+                );
+                await _writeStaffAudit(
+                  action: 'staff_admin_revoked',
+                  targetUid: targetUid,
+                  role: (staff['staffRole'] as String?) ?? '',
+                );
                 if (ctx.mounted) Navigator.pop(ctx);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
