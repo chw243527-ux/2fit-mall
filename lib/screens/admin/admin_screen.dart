@@ -126,6 +126,55 @@ class _AdminScreenState extends State<AdminScreen>
       'title': '사이즈 차트',
       'icon': Icons.table_chart_rounded,
     },
+    {
+      'key': 'singlet_hero',
+      'label': '싱글렛 히어로',
+      'number': 9,
+      'title': '커스텀 러닝 싱글렛',
+      'icon': Icons.bolt_rounded,
+    },
+    {
+      'key': 'fabric_guide',
+      'label': '원단 안내',
+      'number': 10,
+      'title': '원단과 기능 비교',
+      'icon': Icons.texture_rounded,
+    },
+    {
+      'key': 'pattern_guide',
+      'label': '패턴 안내',
+      'number': 11,
+      'title': '유니폼 패턴',
+      'icon': Icons.design_services_rounded,
+    },
+    {
+      'key': 'size_guide',
+      'label': '싱글렛 사이즈',
+      'number': 12,
+      'title': '타입별 사이즈 안내',
+      'icon': Icons.straighten_rounded,
+    },
+    {
+      'key': 'color_guide',
+      'label': '색상 안내',
+      'number': 13,
+      'title': '컬러 가이드',
+      'icon': Icons.palette_outlined,
+    },
+    {
+      'key': 'custom_process',
+      'label': '제작 과정',
+      'number': 14,
+      'title': '유니폼 제작 과정',
+      'icon': Icons.account_tree_rounded,
+    },
+    {
+      'key': 'delivery_notice',
+      'label': '배송 안내',
+      'number': 15,
+      'title': '배송·고객센터·교환반품 안내',
+      'icon': Icons.local_shipping_rounded,
+    },
   ];
   final Set<String> _selectedProductIds = {};
   final Set<String> _selectedOrderIds = {}; // 주문관리 선택
@@ -144,6 +193,13 @@ class _AdminScreenState extends State<AdminScreen>
     's4',
     's5',
     's6',
+    'singlet_hero',
+    'fabric_guide',
+    'pattern_guide',
+    'size_guide',
+    'color_guide',
+    'custom_process',
+    'delivery_notice',
   };
   static const _contentCatalogDocumentId = 'admin_content_catalog';
 
