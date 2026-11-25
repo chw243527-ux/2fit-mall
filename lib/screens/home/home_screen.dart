@@ -2958,8 +2958,8 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           // 가로 스크롤 상품 목록
           SizedBox(
-            // 상품명과 가격의 마지막 줄까지 잘리지 않도록 하단 여백을 확보합니다.
-            height: imgH + 82, // 이미지 + 텍스트 영역 + 안전 여백
+            // 상품명과 가격의 마지막 줄만 안정적으로 담고 불필요한 하단 여백은 줄입니다.
+            height: imgH + 58, // 이미지 + 텍스트 영역 + 최소 안전 여백
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.symmetric(horizontal: r.w(12)),
