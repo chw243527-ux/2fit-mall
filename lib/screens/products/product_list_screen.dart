@@ -1177,10 +1177,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         ),
                       ],
                       SizedBox(
-                        height: 10 * 1.3 * 3,
+                        height: 10 * 1.3 * 2,
                         child: Text(
                           p.localizedName(_lang),
-                          maxLines: 3,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                               fontSize: 9,
