@@ -1348,7 +1348,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
         padding: const EdgeInsets.only(bottom: 24),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
-          childAspectRatio: 0.72,
+          // 공통 ProductCard의 4:5 이미지와 2줄 상품명·가격까지 담습니다.
+          childAspectRatio: 0.60,
           crossAxisSpacing: 14,
           mainAxisSpacing: 14,
         ),
