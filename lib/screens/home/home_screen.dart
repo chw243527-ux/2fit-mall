@@ -5193,7 +5193,7 @@ class _HomeScreenState extends State<HomeScreen>
       child: Stack(
         fit: StackFit.expand,
         children: [
-          ColoredBox(color: accent),
+          const ColoredBox(color: accent),
           overlayWidget,
         ],
       ),
