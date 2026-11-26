@@ -3393,9 +3393,10 @@ class _HomeScreenState extends State<HomeScreen>
         : _withEliteOrderBanner(bannerProv.activeBanners);
     final mq = MediaQuery.of(context);
     final screenW = mq.size.width;
-    // ── 배너 높이: 항상 화면 너비 기준 16:9 정비율 ──
-    // PC/태블릿/모바일 모두 동일 공식 → 디바이스 너비에 맞게 자동 조절
-    final bannerH = screenW * 9 / 16;
+    // ── 배너 높이: 모바일 쇼핑몰용 4:5 세로 비율 ──
+    // 첨부 이미지·영상처럼 화면 너비를 가득 채우고 세로 공간을 충분히
+    // 확보합니다. 일반 이미지와 영상은 아래에서 BoxFit.cover로 렌더링됩니다.
+    final bannerH = screenW * 5 / 4;
 
     // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 + 텍스트 오버레이 즉시 표시
     if (activeBanners.isEmpty) {
@@ -3519,34 +3520,35 @@ class _HomeScreenState extends State<HomeScreen>
                   _buildFullBannerItem(activeBanners[i], i, loc),
             ),
           ),
-          // 우측 세로 인디케이터
-          Positioned(
-            right: 12,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: activeBanners.asMap().entries.map((e) {
-                  final r = Responsive.of(context);
+          // 배너가 2장 이상일 때만 우측 세로 인디케이터 표시
+          if (activeBanners.length > 1)
+            Positioned(
+              right: 12,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: activeBanners.asMap().entries.map((e) {
+                    final r = Responsive.of(context);
 
-                  final active = _bannerIndex == e.key;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 280),
-                    width: 4,
-                    height: active ? 20 : 4,
-                    margin: EdgeInsets.symmetric(vertical: r.h(2)),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(2),
-                      color: active
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.35),
-                    ),
-                  );
-                }).toList(),
+                    final active = _bannerIndex == e.key;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 280),
+                      width: 4,
+                      height: active ? 20 : 4,
+                      margin: EdgeInsets.symmetric(vertical: r.h(2)),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(2),
+                        color: active
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.35),
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -4996,34 +4998,35 @@ class _HomeScreenState extends State<HomeScreen>
             itemBuilder: (_, i) =>
                 _buildFullBannerItem(activeBanners[i], i, loc),
           ),
-          // ── 우측 세로 점 인디케이터 ──
-          Positioned(
-            right: 14,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: activeBanners.asMap().entries.map((e) {
-                  final r = Responsive.of(context);
+          // ── 배너가 2장 이상일 때만 우측 세로 점 인디케이터 표시 ──
+          if (activeBanners.length > 1)
+            Positioned(
+              right: 14,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: activeBanners.asMap().entries.map((e) {
+                    final r = Responsive.of(context);
 
-                  final active = _bannerIndex == e.key;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 280),
-                    width: 4,
-                    height: active ? 22 : 5,
-                    margin: EdgeInsets.symmetric(vertical: r.h(2.5)),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(2),
-                      color: active
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.35),
-                    ),
-                  );
-                }).toList(),
+                    final active = _bannerIndex == e.key;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 280),
+                      width: 4,
+                      height: active ? 22 : 5,
+                      margin: EdgeInsets.symmetric(vertical: r.h(2.5)),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(2),
+                        color: active
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.35),
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -5165,9 +5168,9 @@ class _HomeScreenState extends State<HomeScreen>
             child: imageUrl.startsWith('assets/')
                 ? Image.asset(
                     imageUrl,
-                    // 모바일에서도 이미지 좌우의 디자인과 문구가 잘리지 않도록
-                    // 원본 비율을 그대로 유지합니다.
-                    fit: BoxFit.contain,
+                    // 4:5 배너 영역을 가득 채웁니다. 4:5 원본은 잘리지 않고,
+                    // 다른 비율의 원본은 중앙 기준으로 자연스럽게 크롭됩니다.
+                    fit: imageContainsCopy ? BoxFit.contain : BoxFit.cover,
                     alignment: Alignment.center,
                     width: double.infinity,
                     height: double.infinity,
