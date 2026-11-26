@@ -3714,12 +3714,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
   }
 
   // 성별 선택 버튼 (모든 제품에 표시)
-  Widget _inlineGenderBtn(
-    String code,
-    String label,
-    String subLabel, {
-    bool autoLength = false,
-  }) {
+  Widget _inlineGenderBtn(String code, String label, String subLabel) {
     final r = Responsive.of(context);
     final isSel = _singletGender == code;
     return Expanded(
@@ -5873,10 +5868,8 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
     required String engTitle,
     required String engSub,
     required String korSub,
-    Color bgColor = AppColors.primary,
     // ignore: unused_element_parameter
     Color textColor = Colors.white,
-    Widget? trailingIcon,
   }) {
     final r = Responsive.of(context);
     return Padding(

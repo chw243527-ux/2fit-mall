@@ -5056,7 +5056,7 @@ class _HomeScreenState extends State<HomeScreen>
     final isKo = loc.language == AppLanguage.korean;
     // 관리자에 저장된 배너별 색상과 무관하게 고객 화면의 포인트 색상은
     // 첨부 사이즈 가이드 기준 하늘색으로 통일합니다.
-    final accent = AppColors.accent;
+    const accent = AppColors.accent;
     final title = isKo ? banner.titleKo : banner.titleEn;
     final cta = isKo ? banner.ctaKo : banner.ctaEn;
     // videoUrl이 설정된 배너는 순서와 관계없이 동영상 우선
