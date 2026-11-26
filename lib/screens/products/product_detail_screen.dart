@@ -4491,14 +4491,12 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                   '남',
                   loc.male,
                   isSingletATypeSet ? loc.maleBottomSub : '',
-                  autoLength: isSingletATypeSet,
                 ),
                 SizedBox(width: r.w(8)),
                 _inlineGenderBtn(
                   '여',
                   loc.female,
                   isSingletATypeSet ? loc.femaleBottomSub : '',
-                  autoLength: isSingletATypeSet,
                 ),
               ],
             ),
@@ -7687,11 +7685,6 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
             '고성능_스포츠_소재와_기술이_만든_n최상위_퍼포먼스_웨어',
             '고성능 스포츠 소재와 기술이 만든\n최상위 퍼포먼스 웨어',
           ),
-          trailingIcon: const Icon(
-            Icons.bolt_rounded,
-            size: 36,
-            color: Color(0x55FFFFFF),
-          ),
         ),
         const Divider(height: 1, thickness: 1, color: AppColors.border),
         // ── 섹션1 어드민 이미지 (관리자: 업로드 UI / 일반: 가로 슬라이더)
@@ -7770,12 +7763,6 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
           korSub: context.loc.t(
             '고급_원단과_기능성_소재로_완성한_n쾌적하고_지속_가능한_착용감',
             '고급 원단과 기능성 소재로 완성한\n쾌적하고 지속 가능한 착용감',
-          ),
-          bgColor: const Color(0xFF212121),
-          trailingIcon: const Icon(
-            Icons.layers_rounded,
-            size: 36,
-            color: Color(0x55FFFFFF),
           ),
         ),
         const Divider(height: 1, thickness: 1, color: AppColors.border),
@@ -8101,12 +8088,6 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
           korSub: context.loc.t(
             '실용적인_수납_설계와_방수_기능으로_n운동_중에도_완벽한_편의성',
             '실용적인 수납 설계와 방수 기능으로\n운동 중에도 완벽한 편의성',
-          ),
-          bgColor: const Color(0xFF1C2B3A),
-          trailingIcon: const Icon(
-            Icons.inventory_2_rounded,
-            size: 36,
-            color: Color(0x55FFFFFF),
           ),
         ),
         const Divider(height: 1, thickness: 1, color: AppColors.border),
