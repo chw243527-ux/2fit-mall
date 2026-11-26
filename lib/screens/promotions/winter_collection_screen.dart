@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
 import '../../utils/theme.dart';
 import '../../widgets/product_card.dart';
-import '../../widgets/store_notice_card.dart';
 import '../products/product_list_screen.dart';
 
 /// 겨울 신상품 메인 배너에서 연결되는 기획전 화면입니다.
@@ -85,12 +84,6 @@ class WinterCollectionScreen extends StatelessWidget {
                 ),
               ),
             ],
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.only(bottom: 28),
-                child: StoreNoticeCard(compact: true),
-              ),
-            ),
             SliverToBoxAdapter(child: _buildBottomCta(context)),
           ],
         ),

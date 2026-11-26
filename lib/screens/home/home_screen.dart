@@ -14,7 +14,6 @@ import '../../models/models.dart';
 import '../../services/wishlist_coupon_service.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/product_card.dart';
-import '../../widgets/store_notice_card.dart';
 import '../products/product_list_screen.dart';
 import '../products/product_detail_screen.dart';
 import '../products/category_detail_screen.dart';
@@ -273,13 +272,6 @@ class _HomeScreenState extends State<HomeScreen>
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          // 디자인 이미지를 제외한 상품 사진의 AI 생성 사실을 첫 화면에서 안내
-          const SliverToBoxAdapter(
-            child: StoreNoticeCard(
-              showPurchaseGuide: false,
-              compact: true,
-            ),
-          ),
           // ① 배너: 화면 너비 기준 16:9 비율 (영상 잘림 방지)
           SliverToBoxAdapter(
             child: SizedBox(
@@ -1376,7 +1368,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── PC 배너 슬라이더 본체 (BannerModel 리스트 사용) ──
   Widget _buildPcBannerBody(AppLocalizations loc, List<BannerModel> banners) {
-    final isKo = loc.language == AppLanguage.korean;
     return Stack(
       children: [
         PageView.builder(
@@ -1384,125 +1375,9 @@ class _HomeScreenState extends State<HomeScreen>
           onPageChanged: _handleBannerPageChanged,
           itemCount: banners.length,
           itemBuilder: (_, idx) {
-            final r = Responsive.of(context);
-
             final b = banners[idx];
             // videoUrl이 설정된 배너는 순서와 관계없이 동영상 우선
             final videoUrl = b.videoUrl?.isNotEmpty == true ? b.videoUrl : null;
-            final title = isKo ? b.titleKo : b.titleEn;
-            final cta = isKo ? b.ctaKo : b.ctaEn;
-
-            // CTA 아이콘 (btnAction 기반)
-            final ctaIcon = switch (b.btnAction) {
-              1 => Icons.local_fire_department_rounded,
-              2 => Icons.groups_rounded,
-              _ => Icons.arrow_forward_rounded,
-            };
-
-            void onTap() {
-              switch (b.btnAction) {
-                case 1:
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            const ProductListScreen(initialCategory: '전체'),
-                      ));
-                  break;
-                case 2:
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const GroupOrderOnlyScreen(),
-                      ));
-                  break;
-                case 3:
-                  // 쿠폰 다운로드 팝업
-                  _showBannerCouponPopup(b.couponId);
-                  break;
-                case 5:
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const WinterCollectionScreen(),
-                    ),
-                  );
-                  break;
-                default:
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            const ProductListScreen(initialCategory: '전체'),
-                      ));
-              }
-            }
-
-            // PC 배너: 컨테이너 전체 꽉 채움 (AspectRatio 없음)
-            // ── 텍스트+CTA 오버레이: 배경과 독립 레이어 → 항상 즉시 표시 ──
-            final pcTextOverlay = Positioned(
-              left: 60,
-              bottom: 52,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (b.tag.isNotEmpty)
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: r.w(12), vertical: r.h(5)),
-                      decoration: BoxDecoration(
-                          color: AppColors.textPrimary,
-                          borderRadius: BorderRadius.circular(3)),
-                      child: Text(b.tag,
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: r.sp(11),
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 2.2)),
-                    ),
-                  if (b.tag.isNotEmpty) SizedBox(height: r.h(16)),
-                  if (title.isNotEmpty)
-                    Text(title,
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: r.sp(46),
-                            fontWeight: FontWeight.w900,
-                            height: 1.15,
-                            letterSpacing: -0.5)),
-                  if (title.isNotEmpty) SizedBox(height: r.h(24)),
-                  if (cta.isNotEmpty)
-                    GestureDetector(
-                      onTap: onTap,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: r.w(22), vertical: r.h(15)),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(6),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.2),
-                                blurRadius: 14,
-                                offset: const Offset(0, 4))
-                          ],
-                        ),
-                        child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(ctaIcon, size: 17, color: AppColors.accent),
-                          SizedBox(width: r.w(10)),
-                          Text(cta,
-                              style: TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontSize: r.sp(14),
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.3)),
-                        ]),
-                      ),
-                    ),
-                ],
-              ),
-            );
-
             return Stack(
               fit: StackFit.expand,
               children: [
@@ -1513,60 +1388,23 @@ class _HomeScreenState extends State<HomeScreen>
                   VideoBannerWidget(
                     videoUrl: videoUrl,
                     thumbnailUrl: b.imageUrl,
-                    onTap: onTap,
-                    onProductTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const ProductListScreen(
-                                initialCategory: '전체'))),
                   )
                 else if (b.imageUrl.startsWith('assets/'))
-                  GestureDetector(
-                    onTap: onTap,
-                    child: Image.asset(
-                      b.imageUrl,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                    ),
+                  Image.asset(
+                    b.imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
                   )
                 else if (b.imageUrl.isNotEmpty)
-                  GestureDetector(
-                    onTap: onTap,
-                    child: NetImage(
-                      b.imageUrl,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                    ),
+                  NetImage(
+                    b.imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
                   )
                 else
-                  GestureDetector(
-                      onTap: onTap,
-                      child: const ColoredBox(color: AppColors.primary)),
-
-                // ── 그라데이션 오버레이 ──
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          stops: const [0.3, 0.6, 1.0],
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.40),
-                            Colors.black.withValues(alpha: 0.82),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // ── 텍스트 + CTA: 배경 로딩과 무관하게 즉시 표시 ──
-                pcTextOverlay,
+                  const ColoredBox(color: AppColors.primary),
               ],
             );
           },
@@ -1606,97 +1444,9 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── PC 로컬 asset 배너 (Firestore 배너 없을 때 즉시 표시) ──
   Widget _buildPcLocalBanner(AppLocalizations loc) {
-    final r = Responsive.of(context);
-    void goShop() => Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => const ProductListScreen(initialCategory: '전체')));
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // ── 배경 영상 ──
-        VideoBannerWidget(
-          videoUrl: 'assets/images/banner_video.mp4',
-          thumbnailUrl: 'assets/images/banner_custom_fit.jpg',
-          onTap: goShop,
-          onProductTap: goShop,
-        ),
-        // ── 텍스트 오버레이 ──
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: Container(
-            padding: EdgeInsets.fromLTRB(r.w(60), r.h(0), r.w(60), r.h(48)),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: const [0.0, 0.4, 1.0],
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withValues(alpha: 0.3),
-                  Colors.black.withValues(alpha: 0.75),
-                ],
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(height: r.h(16)),
-                Text(
-                  loc.language == AppLanguage.korean
-                      ? context.loc.t('함께 달리는 2FIT', '함께 달리는\n2FIT')
-                      : 'Run Together\nwith 2FIT',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: r.sp(48),
-                      fontWeight: FontWeight.w900,
-                      height: 1.15,
-                      letterSpacing: -0.5),
-                ),
-                SizedBox(height: r.h(28)),
-                GestureDetector(
-                  onTap: goShop,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: r.w(26), vertical: r.h(14)),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(6),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.18),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4))
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.arrow_forward_rounded,
-                            size: 18, color: AppColors.accent),
-                        SizedBox(width: r.w(10)),
-                        Text(
-                          loc.language == AppLanguage.korean
-                              ? context.loc.t('쇼핑하러 가기', '쇼핑하러 가기')
-                              : 'Shop Now',
-                          style: TextStyle(
-                              color: AppColors.textPrimary,
-                              fontSize: r.sp(15),
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.3),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+    return VideoBannerWidget(
+      videoUrl: 'assets/images/banner_video.mp4',
+      thumbnailUrl: 'assets/images/banner_custom_fit.jpg',
     );
   }
 
@@ -2877,13 +2627,6 @@ class _HomeScreenState extends State<HomeScreen>
                 child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
-                    // 홈페이지 진입 즉시 상품 사진의 AI 생성 사실을 안내
-                    const SliverToBoxAdapter(
-                      child: StoreNoticeCard(
-                        showPurchaseGuide: false,
-                        compact: true,
-                      ),
-                    ),
                     // ── 배너 ──
                     SliverToBoxAdapter(child: _buildCompactBanner(loc)),
 
@@ -3393,115 +3136,19 @@ class _HomeScreenState extends State<HomeScreen>
         : _withEliteOrderBanner(bannerProv.activeBanners);
     final mq = MediaQuery.of(context);
     final screenW = mq.size.width;
-    // ── 배너 높이: 모바일 쇼핑몰용 4:5 세로 비율 ──
-    // 첨부 이미지·영상처럼 화면 너비를 가득 채우고 세로 공간을 충분히
-    // 확보합니다. 일반 이미지와 영상은 아래에서 BoxFit.cover로 렌더링됩니다.
-    final bannerH = screenW * 5 / 4;
+    // ── 배너 높이: 화면 너비 기준 16:9 비율 ──
+    // 이미지와 영상은 배너 영역을 가득 채우고, 원본 비율이 다르면
+    // 중앙 기준으로 자연스럽게 크롭합니다.
+    final bannerH = screenW * 9 / 16;
 
-    // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 + 텍스트 오버레이 즉시 표시
+    // Firestore 배너가 없을 때는 로컬 asset 동영상만 표시
     if (activeBanners.isEmpty) {
-      final r = Responsive.of(context);
-
-      void goShop() => Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (_) => const ProductListScreen(initialCategory: '전체')));
-      // 배너 높이 비례 텍스트 크기 (스크린샷 기준: bannerH≈580 → title≈62px)
-      final titleSize = (bannerH * 0.107).clamp(28.0, 72.0);
-      final ctaSize = (bannerH * 0.026).clamp(11.0, 18.0);
-      final hPad = screenW < 600 ? 16.0 : 36.0;
-      final bottomPad = (bannerH * 0.045).clamp(14.0, 48.0);
       return SizedBox(
         width: double.infinity,
         height: bannerH,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // ── 배경 영상 ──
-            VideoBannerWidget(
-              videoUrl: 'assets/images/banner_video.mp4',
-              thumbnailUrl: 'assets/images/banner_custom_fit.jpg',
-              onTap: goShop,
-              onProductTap: goShop,
-            ),
-            // ── 텍스트 오버레이 (영상과 동시에 즉시 표시) ──
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: EdgeInsets.fromLTRB(hPad, r.h(0), hPad, bottomPad),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    stops: const [0.0, 0.45, 1.0],
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.35),
-                      Colors.black.withValues(alpha: 0.78),
-                    ],
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(height: bannerH * 0.018),
-                    // 메인 타이틀 (bannerH 비례)
-                    Text(
-                      loc.language == AppLanguage.korean
-                          ? context.loc.t('함께 달리는 2FIT', '함께 달리는\n2FIT')
-                          : 'Run Together\nwith 2FIT',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: titleSize,
-                          fontWeight: FontWeight.w900,
-                          height: 1.1,
-                          letterSpacing: -0.5),
-                    ),
-                    SizedBox(height: bannerH * 0.032),
-                    // CTA 버튼
-                    GestureDetector(
-                      onTap: goShop,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: ctaSize + 4, vertical: ctaSize * 0.75),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(6),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.18),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4))
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.arrow_forward_rounded,
-                                size: ctaSize + 2, color: AppColors.accent),
-                            SizedBox(width: r.w(8)),
-                            Text(
-                              loc.language == AppLanguage.korean
-                                  ? context.loc.t('쇼핑하러 가기', '쇼핑하러 가기')
-                                  : 'Shop Now',
-                              style: TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontSize: ctaSize,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.3),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+        child: VideoBannerWidget(
+          videoUrl: 'assets/images/banner_video.mp4',
+          thumbnailUrl: 'assets/images/banner_custom_fit.jpg',
         ),
       );
     }
@@ -3516,8 +3163,7 @@ class _HomeScreenState extends State<HomeScreen>
               controller: _mobileBannerCtrl,
               onPageChanged: _handleBannerPageChanged,
               itemCount: activeBanners.length,
-              itemBuilder: (_, i) =>
-                  _buildFullBannerItem(activeBanners[i], i, loc),
+              itemBuilder: (_, i) => _buildFullBannerItem(activeBanners[i]),
             ),
           ),
           // 배너가 2장 이상일 때만 우측 세로 인디케이터 표시
@@ -4995,8 +4641,7 @@ class _HomeScreenState extends State<HomeScreen>
             controller: _mobileBannerCtrl,
             onPageChanged: _handleBannerPageChanged,
             itemCount: activeBanners.length,
-            itemBuilder: (_, i) =>
-                _buildFullBannerItem(activeBanners[i], i, loc),
+            itemBuilder: (_, i) => _buildFullBannerItem(activeBanners[i]),
           ),
           // ── 배너가 2장 이상일 때만 우측 세로 점 인디케이터 표시 ──
           if (activeBanners.length > 1)
@@ -5054,14 +4699,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ── 모바일 배너 개별 슬라이드 아이템 (BannerModel 기반) ──
-  Widget _buildFullBannerItem(
-      BannerModel banner, int index, AppLocalizations loc) {
-    final isKo = loc.language == AppLanguage.korean;
-    // 관리자에 저장된 배너별 색상과 무관하게 고객 화면의 포인트 색상은
-    // 첨부 사이즈 가이드 기준 하늘색으로 통일합니다.
-    const accent = AppColors.accent;
-    final title = isKo ? banner.titleKo : banner.titleEn;
-    final cta = isKo ? banner.ctaKo : banner.ctaEn;
+  Widget _buildFullBannerItem(BannerModel banner) {
     // videoUrl이 설정된 배너는 순서와 관계없이 동영상 우선
     final videoUrl =
         banner.videoUrl?.isNotEmpty == true ? banner.videoUrl : null;
@@ -5071,136 +4709,39 @@ class _HomeScreenState extends State<HomeScreen>
     final imageContainsCopy =
         imageUrl == 'assets/images/winter/winter_new_arrivals_banner.jpg';
 
-    // CTA 아이콘
-    final ctaIcon = switch (banner.btnAction) {
-      1 => Icons.local_fire_department_rounded,
-      2 => Icons.groups_rounded,
-      4 => Icons.menu_book_rounded,
-      5 => Icons.ac_unit_rounded,
-      _ => Icons.arrow_forward_rounded,
-    };
-
-    void onTap() {
-      switch (banner.btnAction) {
-        case 1:
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const ProductListScreen(initialCategory: '전체'),
-              ));
-          break;
-        case 2:
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const GroupOrderOnlyScreen(),
-              ));
-          break;
-        case 3:
-          // 쿠폰 다운로드 팝업
-          _showBannerCouponPopup(banner.couponId);
-          break;
-        case 4:
-          _showEliteOrderGuideDialog();
-          break;
-        case 5:
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const WinterCollectionScreen(),
-            ),
-          );
-          break;
-        default:
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const ProductListScreen(initialCategory: '전체'),
-              ));
-      }
-    }
-
-    // ── 공통: 텍스트/CTA 오버레이 (배경과 독립 레이어 → 항상 즉시 표시) ──
-    final overlayWidget = Positioned(
-      left: 0,
-      right: 0,
-      bottom: 0,
-      child: _buildBannerOverlay(
-        banner: banner,
-        title: title,
-        cta: cta,
-        ctaIcon: ctaIcon,
-        accent: accent,
-        onTap: onTap,
-      ),
-    );
-
-    // ── 배너 아이템: 컨테이너 전체를 꽉 채움 (AspectRatio 래퍼 없음) ──
-    Widget buildVideoWithOverlay() {
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          // ── 배경 영상 (컨테이너 꽉 채움) ──
-          VideoBannerWidget(
-            videoUrl: videoUrl!,
-            thumbnailUrl: imageUrl,
-            onTap: onTap,
-            onProductTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) =>
-                        const ProductListScreen(initialCategory: '전체'))),
-          ),
-          // ── 텍스트/CTA: 비디오 로딩과 무관하게 즉시 표시 ──
-          overlayWidget,
-        ],
+    // ── 배너 아이템: 별도 제목·CTA·페이지 연결 없이 미디어만 표시 ──
+    Widget buildVideoBanner() {
+      return VideoBannerWidget(
+        videoUrl: videoUrl!,
+        thumbnailUrl: imageUrl,
       );
     }
 
     Widget buildImageBanner() {
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          // ── 배경색 (이미지 로드 전에도 오버레이가 보이도록 배경 확보) ──
-          const ColoredBox(color: AppColors.textPrimary),
-          GestureDetector(
-            onTap: onTap,
-            child: imageUrl.startsWith('assets/')
-                ? Image.asset(
-                    imageUrl,
-                    // 4:5 배너 영역을 가득 채웁니다. 4:5 원본은 잘리지 않고,
-                    // 다른 비율의 원본은 중앙 기준으로 자연스럽게 크롭됩니다.
-                    fit: imageContainsCopy ? BoxFit.contain : BoxFit.cover,
-                    alignment: Alignment.center,
-                    width: double.infinity,
-                    height: double.infinity,
-                  )
-                : NetImage(
-                    imageUrl,
-                    fit: imageContainsCopy ? BoxFit.contain : BoxFit.cover,
-                    alignment: Alignment.center,
-                    width: double.infinity,
-                    height: double.infinity,
-                  ),
-          ),
-          // ── 텍스트/CTA: 이미지 로딩과 무관하게 즉시 표시 ──
-          if (!imageContainsCopy) overlayWidget,
-        ],
+      return ColoredBox(
+        color: AppColors.textPrimary,
+        child: imageUrl.startsWith('assets/')
+            ? Image.asset(
+                imageUrl,
+                // 16:9 배너 영역을 가득 채웁니다.
+                fit: imageContainsCopy ? BoxFit.contain : BoxFit.cover,
+                alignment: Alignment.center,
+                width: double.infinity,
+                height: double.infinity,
+              )
+            : NetImage(
+                imageUrl,
+                fit: imageContainsCopy ? BoxFit.contain : BoxFit.cover,
+                alignment: Alignment.center,
+                width: double.infinity,
+                height: double.infinity,
+              ),
       );
     }
 
-    if (videoUrl != null) return buildVideoWithOverlay();
+    if (videoUrl != null) return buildVideoBanner();
     if (imageUrl.isNotEmpty) return buildImageBanner();
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          const ColoredBox(color: accent),
-          overlayWidget,
-        ],
-      ),
-    );
+    return const ColoredBox(color: AppColors.accent);
   }
 
   Future<void> _showEliteOrderGuideDialog() async {
