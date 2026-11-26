@@ -75,8 +75,7 @@ class BrandStoryScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _eyebrow(label,
-              color: dark ? const Color(0xFFE8A58E) : AppColors.accent),
+          _eyebrow(label, color: AppColors.accent),
           const SizedBox(height: 12),
           Text(
             title,
@@ -122,7 +121,7 @@ class BrandStoryScreen extends StatelessWidget {
                 Text(
                   'ABOUT 2FIT',
                   style: TextStyle(
-                    color: Color(0xFFE8A58E),
+                    color: AppColors.accent,
                     fontSize: 10,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1.5,

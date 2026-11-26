@@ -75,8 +75,8 @@ IconData _iconFor(String cat) {
 }
 
 Color _colorFor(String cat) {
-  // 쇼핑몰 전체 무드를 싱글렛 상세페이지처럼 블랙·오프화이트 중심으로 통일합니다.
-  if (cat == '이벤트') return const Color(0xFFD86442);
+  // 쇼핑몰 전체 포인트 색상을 첨부 사이즈 가이드의 하늘색 계열로 통일합니다.
+  if (cat == '이벤트') return AppColors.accent;
   return const Color(0xFF161616);
 }
 

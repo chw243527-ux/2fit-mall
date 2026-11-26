@@ -12,12 +12,13 @@ import 'package:flutter/material.dart';
 /// - Soft shadows and gentle radii
 /// - Refined typography with balanced spacing
 class AppColors {
-  // ── Core: restrained NEXTR performance-luxury palette ──
+  // ── Core: NEXTR sky-blue editorial palette ──
   static const Color primary = Color(0xFF111214); // ink black
   static const Color primaryLight = Color(0xFF2B2D30);
-  static const Color accent = Color(0xFFC5D63A); // restrained performance lime
-  static const Color accentOrange = Color(0xFFC38D55);
-  static const Color accentGold = Color(0xFFD2B45A);
+  // 첨부 사이즈 가이드의 하늘색(#C5E5F5)을 기준으로 가독성을 보정한 포인트 색상
+  static const Color accent = Color(0xFF6FAFC8);
+  static const Color accentOrange = Color(0xFF6FAFC8);
+  static const Color accentGold = Color(0xFF6FAFC8);
 
   // ── Background ──
   static const Color background = Color(0xFFF5F5F2); // warm editorial off-white
@@ -54,8 +55,8 @@ class AppColors {
     Color(0xFF2B2D30)
   ];
   static const List<Color> accentGradient = [
-    Color(0xFFD4E654),
-    Color(0xFFA9BE22)
+    Color(0xFFC5E5F5),
+    Color(0xFF6FAFC8)
   ];
   static const List<Color> heroGradient = [
     Color(0xFF0D0E0F),
