@@ -7450,7 +7450,10 @@ Future<void> _showUserOrderDetail(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [AppColors.accentLight, AppColors.accentLight],
+                            colors: [
+                              AppColors.accentLight,
+                              AppColors.accentLight
+                            ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -7492,7 +7495,7 @@ Future<void> _showUserOrderDetail(
                                                 '관리자가 수정 반영한 최신 디자인입니다'),
                                             style: const TextStyle(
                                                 fontSize: 10,
-                                                color: AppColors.accent))),
+                                                color: AppColors.accent)),
                                       ]),
                                 ),
                                 Container(
@@ -7581,7 +7584,7 @@ Future<void> _showUserOrderDetail(
                                             child: Icon(
                                                 Icons.broken_image_outlined,
                                                 size: 40,
-                                                color: AppColors.accent))),
+                                                color: AppColors.accent)),
                                       ),
                                     ),
                                     // 확대 힌트
