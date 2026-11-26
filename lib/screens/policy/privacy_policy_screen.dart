@@ -149,7 +149,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                     const Text(AppConstants.customerServiceEmail,
                         style: TextStyle(
                             fontSize: 14,
-                            color: Color(0xFF6C63FF),
+                            color: AppColors.accent,
                             fontWeight: FontWeight.w600)),
                     const SizedBox(height: 4),
                     Text(
@@ -198,7 +198,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: AppColors.primary)),
-        iconColor: const Color(0xFF6C63FF),
+        iconColor: AppColors.accent,
         collapsedIconColor: Colors.grey,
         initiallyExpanded: true,
         children: [

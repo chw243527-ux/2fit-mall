@@ -2521,7 +2521,7 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
       return Container(
         padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(8)),
         decoration: BoxDecoration(
-          color: const Color(0xFFF3E5F5),
+          color: AppColors.accentLight,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(

@@ -80,10 +80,10 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
                 padding: const EdgeInsets.all(16),
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF3F0FF),
+                  color: AppColors.accentLight,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                      color: const Color(0xFF6C63FF).withValues(alpha: 0.3)),
+                      color: AppColors.accent.withValues(alpha: 0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,7 +182,7 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
                     const Text(AppConstants.customerServiceEmail,
                         style: TextStyle(
                             fontSize: 14,
-                            color: Color(0xFF6C63FF),
+                            color: AppColors.accent,
                             fontWeight: FontWeight.w600)),
                     const SizedBox(height: 4),
                     Text(
@@ -221,7 +221,7 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: AppColors.primary)),
-        iconColor: const Color(0xFF6C63FF),
+        iconColor: AppColors.accent,
         collapsedIconColor: Colors.grey,
         initiallyExpanded: true,
         children: [
@@ -251,7 +251,7 @@ class _InfoRow extends StatelessWidget {
             child: Text(label,
                 style: const TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF6C63FF),
+                    color: AppColors.accent,
                     fontWeight: FontWeight.w600)),
           ),
           Expanded(

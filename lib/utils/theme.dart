@@ -17,6 +17,7 @@ class AppColors {
   static const Color primaryLight = Color(0xFF2B2D30);
   // 첨부 사이즈 가이드의 하늘색(#C5E5F5)을 기준으로 가독성을 보정한 포인트 색상
   static const Color accent = Color(0xFF6FAFC8);
+  static const Color accentLight = Color(0xFFC5E5F5);
   static const Color accentOrange = Color(0xFF6FAFC8);
   static const Color accentGold = Color(0xFF6FAFC8);
 
