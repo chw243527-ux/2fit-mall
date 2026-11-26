@@ -19,7 +19,6 @@ import '../products/product_detail_screen.dart';
 import '../products/category_detail_screen.dart';
 import '../orders/group_order_only_screen.dart';
 import '../orders/order_guide_screen.dart';
-import '../promotions/winter_collection_screen.dart';
 import '../admin/admin_screen.dart';
 import '../../services/analytics_service.dart';
 import '../chat/chat_screen.dart';
@@ -1444,7 +1443,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── PC 로컬 asset 배너 (Firestore 배너 없을 때 즉시 표시) ──
   Widget _buildPcLocalBanner(AppLocalizations loc) {
-    return VideoBannerWidget(
+    return const VideoBannerWidget(
       videoUrl: 'assets/images/banner_video.mp4',
       thumbnailUrl: 'assets/images/banner_custom_fit.jpg',
     );
@@ -3146,7 +3145,7 @@ class _HomeScreenState extends State<HomeScreen>
       return SizedBox(
         width: double.infinity,
         height: bannerH,
-        child: VideoBannerWidget(
+        child: const VideoBannerWidget(
           videoUrl: 'assets/images/banner_video.mp4',
           thumbnailUrl: 'assets/images/banner_custom_fit.jpg',
         ),
