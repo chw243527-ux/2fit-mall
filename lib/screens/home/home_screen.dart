@@ -7510,7 +7510,7 @@ class _BannerCouponPopupState extends State<_BannerCouponPopup> {
       padding: EdgeInsets.symmetric(horizontal: r.w(20), vertical: r.h(14)),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primaryLight, Color(0xFF9C27B0)],
+          colors: [AppColors.primaryLight, AppColors.accent],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -7587,7 +7587,7 @@ class _BannerCouponPopupState extends State<_BannerCouponPopup> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isDownloaded
-              ? const Color(0xFF9C27B0).withValues(alpha: 0.35)
+              ? AppColors.accent.withValues(alpha: 0.35)
               : AppColors.border,
           width: isDownloaded ? 1.5 : 1,
         ),
@@ -7676,7 +7676,7 @@ class _BannerCouponPopupState extends State<_BannerCouponPopup> {
       return Container(
         padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(7)),
         decoration: BoxDecoration(
-          color: const Color(0xFFF3E5F5),
+          color: AppColors.accentLight,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -7712,7 +7712,7 @@ class _BannerCouponPopupState extends State<_BannerCouponPopup> {
           gradient: isLoading
               ? null
               : const LinearGradient(
-                  colors: [AppColors.primaryLight, Color(0xFF9C27B0)],
+                  colors: [AppColors.primaryLight, AppColors.accent],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),

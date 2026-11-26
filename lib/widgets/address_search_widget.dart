@@ -91,7 +91,7 @@ class _AddressSearchDialog extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: const Color(0xFFF3E5F5),
+              color: AppColors.accentLight,
               child: Text(
                 context.loc.t('도로명·지번·건물명으로 검색 후 선택하면 자동 입력됩니다',
                     '도로명·지번·건물명으로 검색 후 선택하면 자동 입력됩니다.'),

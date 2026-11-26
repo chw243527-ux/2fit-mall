@@ -1339,7 +1339,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                 // 링크 복사
                 _shareOption(
                   icon: Icons.link_rounded,
-                  color: const Color(0xFF6C63FF),
+                  color: AppColors.accent,
                   label: context.loc.t('링크_복사', '링크 복사'),
                   onTap: () {
                     Navigator.pop(context);

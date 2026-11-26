@@ -7450,14 +7450,13 @@ Future<void> _showUserOrderDetail(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFFF3E5F5), Color(0xFFEDE7F6)],
+                            colors: [AppColors.accentLight, AppColors.accentLight],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: const Color(0xFF7B1FA2)
-                                  .withValues(alpha: 0.25)),
+                              color: AppColors.accent.withValues(alpha: 0.25)),
                         ),
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -7467,7 +7466,7 @@ Future<void> _showUserOrderDetail(
                                 Container(
                                   padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF7B1FA2),
+                                    color: AppColors.accent,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: const Icon(
@@ -7493,14 +7492,14 @@ Future<void> _showUserOrderDetail(
                                                 '관리자가 수정 반영한 최신 디자인입니다'),
                                             style: const TextStyle(
                                                 fontSize: 10,
-                                                color: Color(0xFF7B1FA2))),
+                                                color: AppColors.accent))),
                                       ]),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF7B1FA2),
+                                    color: AppColors.accent,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(context.loc.t('수정_완료', '수정 완료'),
@@ -7582,7 +7581,7 @@ Future<void> _showUserOrderDetail(
                                             child: Icon(
                                                 Icons.broken_image_outlined,
                                                 size: 40,
-                                                color: Color(0xFF7B1FA2))),
+                                                color: AppColors.accent))),
                                       ),
                                     ),
                                     // 확대 힌트

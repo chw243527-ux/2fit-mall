@@ -191,7 +191,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF3E5F5),
+                color: AppColors.accentLight,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -731,7 +731,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFFF3E5F5),
+              color: AppColors.accentLight,
               borderRadius: BorderRadius.circular(8),
               border:
                   Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
@@ -792,7 +792,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                   padding:
                       const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                   decoration: BoxDecoration(
-                    color: sel ? const Color(0xFFF3E5F5) : Colors.white,
+                    color: sel ? AppColors.accentLight : Colors.white,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                         color: sel ? AppColors.primary : AppColors.border,
@@ -836,7 +836,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                   margin: const EdgeInsets.only(right: 8),
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
-                    color: sel ? const Color(0xFFF3E5F5) : Colors.white,
+                    color: sel ? AppColors.accentLight : Colors.white,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                         color: sel ? AppColors.primary : AppColors.border,
@@ -910,7 +910,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF3E5F5),
+            color: AppColors.accentLight,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
