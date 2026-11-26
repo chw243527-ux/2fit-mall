@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../services/nextr_payment_link_service.dart';
 import '../../utils/theme.dart';
+import '../../widgets/address_search_widget.dart';
 
 class AdminNextrPaymentLinkTab extends StatefulWidget {
   const AdminNextrPaymentLinkTab({super.key});
@@ -82,6 +83,36 @@ class _AdminNextrPaymentLinkTabState extends State<AdminNextrPaymentLinkTab> {
           keyboardType: type,
           maxLines: maxLines,
           decoration: _dec(label, hint: hint));
+
+  Widget _addressField() => Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: _field(_address, '배송지',
+                hint: '주소 검색 후 상세주소를 입력하세요', maxLines: 2),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                final result = await showAddressSearch(context);
+                if (!mounted || result == null) return;
+                setState(() {
+                  _address.text = result.zonecode.isEmpty
+                      ? result.address
+                      : '[${result.zonecode}] ${result.address}';
+                  _address.selection = TextSelection.fromPosition(
+                    TextPosition(offset: _address.text.length),
+                  );
+                });
+              },
+              icon: const Icon(Icons.search_rounded, size: 18),
+              label: const Text('주소 검색'),
+            ),
+          ),
+        ],
+      );
   @override
   Widget build(BuildContext context) => Container(
       color: AppColors.background,
@@ -105,7 +136,7 @@ class _AdminNextrPaymentLinkTabState extends State<AdminNextrPaymentLinkTab> {
                   const SizedBox(height: 10),
                   _field(_phone, '연락처', type: TextInputType.phone),
                   const SizedBox(height: 10),
-                  _field(_address, '배송지', maxLines: 2),
+                  _addressField(),
                   const SizedBox(height: 10),
                   _field(_memo, '메모(선택)'),
                   const SizedBox(height: 14),
