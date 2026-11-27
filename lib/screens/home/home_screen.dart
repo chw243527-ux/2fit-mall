@@ -3169,35 +3169,6 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ],
           ),
-          const Spacer(),
-          GestureDetector(
-            onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const GroupOrderOnlyScreen(),
-                )),
-            child: Container(
-              padding:
-                  EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(7)),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(context.loc.t('전체보기 _', '전체보기 $count'),
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: r.sp(11),
-                          fontWeight: FontWeight.w800)),
-                  SizedBox(width: r.w(3)),
-                  const Icon(Icons.arrow_forward_ios_rounded,
-                      color: Colors.white, size: 11),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );
