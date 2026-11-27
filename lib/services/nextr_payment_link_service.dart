@@ -60,6 +60,9 @@ class NextrPaymentLinkService {
   static Future<void> cancel(String linkId) async {
     await _post('cancelNextrGroupPaymentLink', {'linkId': linkId}, admin: true);
   }
+  static Future<void> confirmBankTransfer(String orderId) async {
+    await _post('confirmBankTransferOrder', {'orderId': orderId}, admin: true);
+  }
 
   static Future<Map<String, dynamic>> get(String token) =>
       _post('getNextrGroupPaymentLink', {'token': token});

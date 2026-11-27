@@ -18,6 +18,7 @@ import '../../services/storage_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/point_service.dart';
 import '../../services/order_service.dart';
+import '../../services/nextr_payment_link_service.dart';
 // ignore: unused_import
 import '../../services/privacy_service.dart';
 import '../../services/notification_service.dart';
@@ -6222,9 +6223,8 @@ class _AdminScreenState extends State<AdminScreen>
                               ),
                             );
                             if (confirmed == true && mounted) {
-                              await OrderService.updateOrderStatus(
+                              await NextrPaymentLinkService.confirmBankTransfer(
                                 currentOrder.id,
-                                OrderStatus.confirmed,
                               );
                               if (!mounted) return;
                               context.read<OrderProvider>().updateOrderStatus(
@@ -7566,9 +7566,8 @@ class _AdminScreenState extends State<AdminScreen>
                             ),
                           );
                           if (confirmed == true && mounted) {
-                            await OrderService.updateOrderStatus(
+                            await NextrPaymentLinkService.confirmBankTransfer(
                               currentOrder.id,
-                              OrderStatus.confirmed,
                             );
                             if (!mounted) return;
                             context.read<OrderProvider>().updateOrderStatus(

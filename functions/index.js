@@ -3321,7 +3321,22 @@ function nextrExpiry(value) {
 function nextrPublicLink(token) {
   return `https://2fit-mall.co.kr/payment/group/${encodeURIComponent(token)}`;
 }
-
+async function nextrFindCustomerByPhone(phone) {
+  const normalized = String(phone || '').trim();
+  if (!normalized) return null;
+  const candidates = new Set([normalized, normalized.replace(/[^0-9+]/g, '')]);
+  for (const value of candidates) {
+    if (!value) continue;
+    for (const field of ['phone', 'phoneNumber']) {
+      const snapshot = await db.collection('users').where(field, '==', value).limit(2).get();
+      if (snapshot.size === 1) {
+        const doc = snapshot.docs[0];
+        return { uid: doc.id, data: doc.data() || {} };
+      }
+    }
+  }
+  return null;
+}
 exports.createNextrGroupPaymentLink = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
   if (!(await requireAdmin(req, res))) return;
@@ -3344,6 +3359,11 @@ exports.createNextrGroupPaymentLink = onRequest({ cors: PAYMENT_CORS }, async (r
     }
     const unitPrice = nextrMoney(product.price);
     if (!unitPrice) return res.status(400).json({ error: '상품 판매가가 올바르지 않습니다.' });
+    // 상담 시 입력한 연락처가 기존 회원과 정확히 하나로 매칭되면
+    // 결제 링크·주문에 회원 UID를 보존해 결제 후 마이페이지에 표시합니다.
+    const customer = await nextrFindCustomerByPhone(phone);
+    const linkedUserId = customer?.uid || null;
+    const linkedUserEmail = String(customer?.data?.email || '').slice(0, 254);
     // 현금 전용 42,000원/39,000원 할인은 카드 결제 링크에 절대 적용하지 않습니다.
     const subtotal = unitPrice * quantity;
     const shippingFee = subtotal >= SHIPPING_FREE_THRESHOLD ? 0 : DEFAULT_SHIPPING_FEE;
@@ -3358,6 +3378,7 @@ exports.createNextrGroupPaymentLink = onRequest({ cors: PAYMENT_CORS }, async (r
       productImage: Array.isArray(product.images) ? String(product.images[0] || '') : '',
       quantity, unitPrice, subtotal, shippingFee, amount,
       customerName: name, customerPhone: phone, deliveryAddress: address, memo,
+      linkedUserId, linkedUserEmail,
       createdBy: req.adminUid, createdByEmail: req.adminEmail,
       createdAt: FieldValue.serverTimestamp(), expiresAt,
       paidAt: null, orderId: null, paymentKey: null,
@@ -3426,18 +3447,53 @@ exports.confirmNextrGroupPayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors:
   await db.runTransaction(async (tx) => {
     const latest = await tx.get(intentRef); if (latest.data()?.status === 'confirmed') return;
     const orderRef = db.collection('orders').doc(orderId);
-    tx.set(orderRef, { id: orderId, brand: 'NEXTR', orderType: 'group', status: 'confirmed', paymentStatus: 'paid', paymentMethod: '카드 결제', paymentKey, userId: null, userName: link.customerName, userPhone: link.customerPhone, ordererPhone: link.customerPhone, userEmail: '', userAddress: link.deliveryAddress, subtotal: link.subtotal, shippingFee: link.shippingFee, totalAmount: link.amount, items: [{ productId: link.productId, productName: link.productName, quantity: link.quantity, price: link.unitPrice, size: '단체', color: '', imageUrl: link.productImage, customOptions: { orderType: 'group', paymentLinkId: link.linkId, cashDiscountExcluded: true } }], memo: link.memo || null, paymentLinkId: link.linkId, paidAt: FieldValue.serverTimestamp(), createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+    tx.set(orderRef, { id: orderId, brand: 'NEXTR', orderType: 'group', status: 'confirmed', paymentStatus: 'paid', paymentMethod: '카드 결제', paymentKey, userId: link.linkedUserId || null, userName: link.customerName, userPhone: link.customerPhone, ordererPhone: link.customerPhone, userEmail: link.linkedUserEmail || '', userAddress: link.deliveryAddress, subtotal: link.subtotal, shippingFee: link.shippingFee, totalAmount: link.amount, items: [{ productId: link.productId, productName: link.productName, quantity: link.quantity, price: link.unitPrice, size: '단체', color: '', imageUrl: link.productImage, customOptions: { orderType: 'group', paymentLinkId: link.linkId, cashDiscountExcluded: true } }], memo: link.memo || null, paymentLinkId: link.linkId, paidAt: FieldValue.serverTimestamp(), createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
     tx.update(intentRef, { status: 'confirmed', paymentKey, confirmedAt: FieldValue.serverTimestamp() });
     tx.update(linkSnap.ref, { status: 'paid', orderId, paymentKey, paidAt: FieldValue.serverTimestamp() });
   });
-  res.json({ success: true, orderId, paymentKey, method: toss.method || '카드 결제' });
+  res.json({ success: true, orderId, paymentKey, method: toss.method || '카드 결제', linkedUserId: link.linkedUserId || null });
+});
+
+exports.confirmBankTransferOrder = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+  if (!(await requireAdmin(req, res))) return;
+  const orderId = String(req.body?.orderId || '').trim().slice(0, 120);
+  if (!orderId) return res.status(400).json({ error: 'orderId required' });
+  try {
+    await db.runTransaction(async (tx) => {
+      const orderRef = db.collection('orders').doc(orderId);
+      const snap = await tx.get(orderRef);
+      const order = snap.data() || {};
+      if (!snap.exists) throw new Error('order-not-found');
+      if (order.paymentStatus === 'paid') return;
+      if (order.paymentStatus !== 'awaiting_deposit') throw new Error('order-not-awaiting-deposit');
+      const uid = String(order.userId || '').trim();
+      if (!uid) throw new Error('order-owner-missing');
+      const couponIds = Array.isArray(order.couponIds) ? order.couponIds : (order.couponId ? [order.couponId] : []);
+      for (const couponId of couponIds) {
+        tx.update(db.collection('user_coupons').doc(uid).collection('coupons').doc(couponId), {
+          isUsed: true, usedOrderId: orderId, usedAt: FieldValue.serverTimestamp(),
+          isReserved: false, reservedOrderId: FieldValue.delete(), reservedAt: FieldValue.delete(),
+        });
+      }
+      tx.update(orderRef, {
+        status: 'confirmed', paymentStatus: 'paid', paidAt: FieldValue.serverTimestamp(),
+        confirmedBy: req.adminUid, confirmedAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(),
+      });
+    });
+    res.json({ success: true, orderId, paymentStatus: 'paid' });
+  } catch (error) {
+    const message = error?.message;
+    const status = message === 'order-not-found' ? 404 : (message === 'order-not-awaiting-deposit' ? 409 : 400);
+    res.status(status).json({ error: '입금 확인을 처리하지 못했습니다.' });
+  }
 });
 
 exports.listNextrGroupPaymentLinks = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
   if (!(await requireAdmin(req, res))) return;
   const snap = await db.collection('nextr_group_payment_links').orderBy('createdAt', 'desc').limit(100).get();
-  res.json({ success: true, links: snap.docs.map((doc) => { const d = doc.data(); return { linkId: d.linkId, status: d.status, productName: d.productName, quantity: d.quantity, amount: d.amount, customerName: d.customerName, customerPhone: d.customerPhone, expiresAt: d.expiresAt?.toDate?.()?.toISOString() || null, orderId: d.orderId || null }; }) });
+  res.json({ success: true, links: snap.docs.map((doc) => { const d = doc.data(); return { linkId: d.linkId, status: d.status, productName: d.productName, quantity: d.quantity, amount: d.amount, customerName: d.customerName, customerPhone: d.customerPhone, linkedUserId: d.linkedUserId || null, expiresAt: d.expiresAt?.toDate?.()?.toISOString() || null, orderId: d.orderId || null }; }) });
 });
 
 exports.cancelNextrGroupPaymentLink = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
