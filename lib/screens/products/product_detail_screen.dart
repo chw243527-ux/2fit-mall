@@ -1525,6 +1525,11 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
     final quantity = await _pickGroupOrderQuantity();
     if (!mounted || quantity == null) return;
 
+    // 수량을 확정하면 주문서보다 먼저 내부 채팅상담으로 연결합니다.
+    // 상품 정보와 상담 수량은 채팅 첫 메시지에 자동으로 전달됩니다.
+    await _openInternalProductChat(product, quantity: quantity);
+    if (!mounted) return;
+
     final isTenPlus = quantity >= 10;
     final assetPath = isTenPlus
         ? 'assets/group_order_forms/nextr_singlet_order_form_10_plus.xlsx'
@@ -1562,7 +1567,6 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
           ),
         ),
       );
-      await _openInternalProductChat(product, quantity: quantity);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
