@@ -1525,7 +1525,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
       '상품번호: $productCode',
       '상품 ID: ${product.id}',
       '상품 유형: $productType',
-      if (quantity != null) '상담 수량: ${quantity}장',
+      if (quantity != null) '상담 수량: $quantity장',
       '',
       '수량, 팀명, 로고 파일, 제작 일정 등을 상담하고 싶습니다.',
     ].join('\n');
@@ -1568,7 +1568,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
             files: [
               XFile.fromData(bytes, mimeType: mimeType, name: fileName),
             ],
-            subject: 'NEXTR 단체주문서 ${quantity}장',
+            subject: 'NEXTR 단체주문서 $quantity장',
             text: '$fileName\n수량 기준: ${isTenPlus ? '10장 이상' : '5장 이상'}',
           ),
         );
