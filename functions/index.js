@@ -2239,7 +2239,8 @@ function _readCheckoutPayload(body) {
     couponIds,
     // 이전 클라이언트와의 호환을 위해 첫 번째 쿠폰 ID도 유지합니다.
     couponId: couponIds[0] || '',
-    usedPoints: Math.max(0, Math.floor(Number(body?.usedPoints || 0))),
+    // 현재 판매 정책은 쿠폰만 허용하며 포인트 사용은 일시 중단합니다.
+    usedPoints: 0,
   };
 }
 

@@ -150,11 +150,6 @@ class _NextrGroupPaymentScreenState extends State<NextrGroupPaymentScreen> {
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.primary)),
-                            const SizedBox(height: 10),
-                            const Text(
-                                '※ 42,000원·39,000원 단체 할인은 현금 계좌이체에만 적용되며, 카드 결제에는 적용되지 않습니다.',
-                                style: TextStyle(
-                                    fontSize: 12, color: Colors.redAccent)),
                           ]))),
               const SizedBox(height: 18),
               const Text(

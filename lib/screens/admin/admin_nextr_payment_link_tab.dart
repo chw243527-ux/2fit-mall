@@ -217,10 +217,6 @@ class _AdminNextrPaymentLinkTabState extends State<AdminNextrPaymentLinkTab> {
       child: ListView(padding: const EdgeInsets.all(20), children: [
         const Text('NEXTR 카드 결제 링크',
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-        const SizedBox(height: 6),
-        const Text(
-            '상담 완료 후 고객별 링크를 생성해 카카오채널로 보내세요. 카드 결제에는 현금 전용 단체 할인이 적용되지 않습니다.',
-            style: TextStyle(color: Colors.redAccent)),
         const SizedBox(height: 18),
         Card(
             child: Padding(

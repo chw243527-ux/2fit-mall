@@ -206,8 +206,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return 0;
   }
 
-  // 포인트 할인 (사용포인트 = 원화 동일, 1P = 1원)
-  double get _pointDiscount => _usedPoints.toDouble();
+  // 현재 정책은 쿠폰만 허용하며 포인트는 일시적으로 적용하지 않습니다.
+  double get _pointDiscount => 0;
   double get _finalTotal =>
       (widget.cart.total - _couponDiscount - _pointDiscount)
           .clamp(0, double.infinity);
@@ -244,8 +244,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       _buildOrderItems(),
                       const SizedBox(height: 16),
                       _buildCouponSection(),
-                      const SizedBox(height: 16),
-                      _buildPointSection(),
                       const SizedBox(height: 16),
                       _buildPriceSummary(),
                     ],
@@ -305,7 +303,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   const SizedBox(height: 16),
                                   _buildCouponSection(),
                                   const SizedBox(height: 16),
-                                  _buildPointSection(),
                                   const SizedBox(height: 80),
                                 ],
                               ),
@@ -1939,7 +1936,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   // ─── 쿠폰 섹션 ────────────────────────────────────────────────
 
-  // ── 포인트 사용 섹션 ──────────────────────────────────────
+  // ── 포인트 사용 섹션 (향후 재활성화를 위해 보존) ─────────────
+  // ignore: unused_element
   Widget _buildPointSection() {
     final pointBalance = context.watch<PointProvider>().balance;
     const minUse = PointService.minUsePoints; // 10,000
@@ -2729,7 +2727,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       customerPhone: customerPhone,
       memo: _memoController.text.trim(),
       couponIds: _appliedCoupons.map((coupon) => coupon.id).toList(),
-      usedPoints: _usedPoints,
+      usedPoints: 0,
     );
     if (!mounted) return;
     if (!secureOrder.success ||
@@ -2766,7 +2764,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         selectedPayment: _selectedPayment,
         couponIds: _appliedCoupons.map((coupon) => coupon.id).toList(),
         couponDiscount: _couponDiscount,
-        usedPoints: _usedPoints,
+        usedPoints: 0,
         pointDiscount: _pointDiscount,
       ),
     );
