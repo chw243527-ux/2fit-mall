@@ -191,11 +191,11 @@ class _AppDrawerState extends State<AppDrawer> {
                       (e) => _buildCategoryTile(context, e.key, e.value),
                     ),
                 _nikeRule(),
-                _sectionLabel('HOW TO CUSTOM'),
+                _sectionLabel('단체주문하기'),
                 _buildMenuTile(
                   context,
                   icon: Icons.design_services_rounded,
-                  label: 'HOW TO CUSTOM',
+                  label: '단체주문하기',
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/custom-guide');

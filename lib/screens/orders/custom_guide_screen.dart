@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../utils/navigation_helper.dart';
 import '../../utils/theme.dart';
+import 'group_order_only_screen.dart';
 
 class CustomGuideScreen extends StatelessWidget {
   final bool showDesignGallery;
@@ -16,7 +18,7 @@ class CustomGuideScreen extends StatelessWidget {
       Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-          title: Text(showDesignGallery ? 'OUR TEAMS' : 'HOW TO CUSTOM'),
+          title: Text(showDesignGallery ? 'OUR TEAMS' : '단체주문하기'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
             onPressed: () => goBackOrHome(context),
@@ -30,15 +32,15 @@ class CustomGuideScreen extends StatelessWidget {
               _hero(context),
               const SizedBox(height: 24),
               if (!showDesignGallery) ...[
-                _sectionTitle('HOW TO CUSTOM', '팀을 위한 디자인을 만드는 방법'),
+                _sectionTitle('단체주문하기', '등록 디자인으로 주문하거나 팀 맞춤 제작을 상담하는 방법'),
                 const SizedBox(height: 12),
                 _step(1, '판매자에게 문의하기', '상품 상세페이지의 버튼을 선택하면 주문 수량을 입력할 수 있습니다.'),
                 _step(2, '주문 수량 선택',
                     '단체주문은 5장 이상부터 가능합니다. 5~9장은 5인용, 10장 이상은 10인용 엑셀 주문서가 선택됩니다.'),
-                _step(3, '내부 채팅방 연결',
-                    '수량을 선택하면 쇼핑몰 내부 채팅방으로 연결되고 상품명·상품번호·상품 ID·상품 유형·상담 수량이 자동으로 전달됩니다.'),
+                _step(3, '카카오채널 상담 연결',
+                    '수량을 선택한 뒤 카카오채널 상담으로 문의해 주세요. 상품명·상품 ID·상품 유형·상담 수량을 함께 전달하면 상담이 빠릅니다.'),
                 _step(4, '엑셀 주문서 작성', '앱에서는 엑셀 앱으로 열고, 웹에서는 다운로드한 주문서를 작성합니다.'),
-                _step(5, '주문서·로고 파일 전달', '작성한 주문서와 로고·디자인 파일을 판매자 이메일로 전달합니다.'),
+                _step(5, '주문서·로고 파일 전달', '작성한 주문서와 로고·디자인 파일을 카카오채널 상담으로 전달합니다. 자동 연동되지 않는 파일은 판매자가 주문 상세에 수동 첨부합니다.'),
                 _step(
                   6,
                   '판매자 확인 및 디자인 제작',
@@ -57,6 +59,12 @@ class CustomGuideScreen extends StatelessWidget {
                         color: AppColors.textSecondary),
                   ),
                 ),
+                const SizedBox(height: 18),
+                _quantityPolicyCard(),
+                const SizedBox(height: 14),
+                _registeredDesignOrderCard(context),
+                const SizedBox(height: 20),
+                _kakaoConsultButton(context),
               ] else ...[
                 _sectionTitle('OUR TEAMS', '우리 쇼핑몰에서 구매한 팀들의 실제 착용 사진'),
                 const SizedBox(height: 12),
@@ -101,6 +109,116 @@ class CustomGuideScreen extends StatelessWidget {
             style:
                 const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
       ],
+    );
+  }
+
+  Widget _quantityPolicyCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.16)),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('수량별 제작 범위',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
+          SizedBox(height: 9),
+          Text('• 5장 이상: 팀명 또는 로고를 정면·후면에 적용',
+              style: TextStyle(fontSize: 12, height: 1.5)),
+          Text('• 10장 이상: 팀원 개인 이름·번호 추가 가능',
+              style: TextStyle(fontSize: 12, height: 1.5)),
+        ],
+      ),
+    );
+  }
+
+  Widget _registeredDesignOrderCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('등록된 디자인으로 주문하고 싶다면',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 7),
+          const Text(
+            '단체주문 상품에서 원하는 등록 디자인을 선택하고 상품명·상품 ID를 확인하세요. 수량을 정한 뒤 아래 카카오채널 상담하기에서 해당 정보를 함께 전달하면 됩니다.',
+            style: TextStyle(
+                fontSize: 12, height: 1.55, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const GroupOrderOnlyScreen()),
+              ),
+              icon: const Icon(Icons.checkroom_rounded, size: 17),
+              label: const Text('등록 디자인 단체주문 상품 보기'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(9)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _kakaoConsultButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton.icon(
+        onPressed: () => _openKakaoChannel(context),
+        icon: const Icon(Icons.chat_bubble_rounded, size: 19),
+        label: const Text('상담하기',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFFFE000),
+          foregroundColor: const Color(0xFF3C1E1E),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openKakaoChannel(BuildContext context) async {
+    final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
+    final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
+    try {
+      if (await canLaunchUrl(appUrl)) {
+        await launchUrl(appUrl);
+      } else if (await canLaunchUrl(webUrl)) {
+        await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+      } else if (context.mounted) {
+        _showLaunchError(context);
+      }
+    } catch (_) {
+      if (context.mounted) _showLaunchError(context);
+    }
+  }
+
+  void _showLaunchError(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('카카오채널을 열 수 없습니다. 잠시 후 다시 시도해 주세요.')),
     );
   }
 
