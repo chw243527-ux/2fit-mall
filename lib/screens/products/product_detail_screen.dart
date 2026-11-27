@@ -498,10 +498,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                           KeyedSubtree(
                             child: _buildBasicInfo(product),
                           ),
-                          KeyedSubtree(
-                            key: _keyInfo,
-                            child: _buildEditorialLead(product, isAdmin),
-                          ),
+                          if (!_isGroupOrderProduct(product))
+                            KeyedSubtree(
+                              key: _keyInfo,
+                              child: _buildEditorialLead(product, isAdmin),
+                            ),
                           RepaintBoundary(
                             child:
                                 _buildEditorialProductDetail(product, isAdmin),
