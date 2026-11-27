@@ -161,8 +161,8 @@ class _AdminNextrPaymentLinkTabState extends State<AdminNextrPaymentLinkTab> {
           _product.text = product.id;
           _selectedProductId = product.id;
         });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('${product.name} 상품이 선택되었습니다.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${product.name} 상품이 선택되었습니다.')));
       },
       fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
         return TextField(
@@ -210,6 +210,7 @@ class _AdminNextrPaymentLinkTabState extends State<AdminNextrPaymentLinkTab> {
       },
     );
   }
+
   @override
   Widget build(BuildContext context) => Container(
       color: AppColors.background,
