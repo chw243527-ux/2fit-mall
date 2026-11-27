@@ -1812,8 +1812,6 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
         product.originalPrice != null && product.originalPrice! > product.price
             ? ((1 - product.price / product.originalPrice!) * 100).round()
             : 0;
-    final isAdmin = context.read<UserProvider>().isAdmin;
-
     return Container(
       color: Colors.white,
       child: Column(
@@ -5806,6 +5804,8 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
   // ═══════════════════════════════════════════════════════════
   // 디자인 이미지 셀린 (카테고리 위 인라인, 확대 가능)
   // ═══════════════════════════════════════════════════════════
+  // 별도 섹션 렌더링은 비활성화했지만 기존 업로드 데이터 호환을 위해 유지합니다.
+  // ignore: unused_element
   Widget _buildDesignImageSection(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
     final imgs = _sectionImages['design'] ?? [];
