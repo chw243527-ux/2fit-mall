@@ -228,7 +228,7 @@ class _AdminNextrPaymentLinkTabState extends State<AdminNextrPaymentLinkTab> {
                 child: Column(children: [
                   _productSelector(),
                   if (_selectedProductId != null)
-                    Align(
+                    const Align(
                       alignment: Alignment.centerLeft,
                       child: Padding(
                         padding: const EdgeInsets.only(top: 5),
