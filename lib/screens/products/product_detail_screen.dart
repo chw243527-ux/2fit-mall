@@ -10200,8 +10200,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
         .toLowerCase()
         .replaceAll(' ', '');
     final bottomLength = p.bottomLength.toLowerCase().replaceAll(' ', '');
-    final isGroupSingletSet =
-        p.isGroupOnly &&
+    final isGroupSingletSet = p.isGroupOnly &&
         (p.category == '단체주문' || label.contains('단체주문')) &&
         (label.contains('싱글렛') || label.contains('singlet'));
     return isGroupSingletSet ||
