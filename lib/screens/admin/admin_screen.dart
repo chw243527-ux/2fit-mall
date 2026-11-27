@@ -14064,9 +14064,9 @@ class _AdminScreenState extends State<AdminScreen>
                             ? '완료된 상담이 없습니다'
                             : _chatFilterTab == 'groupOrder'
                                 ? '단체주문 상담이 없습니다'
-                            : _chatFilterTab == 'blocked'
-                                ? '차단된 사용자가 없습니다'
-                                : '아직 채팅 문의가 없습니다',
+                                : _chatFilterTab == 'blocked'
+                                    ? '차단된 사용자가 없습니다'
+                                    : '아직 채팅 문의가 없습니다',
                         style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.textSecondary,
