@@ -40,7 +40,8 @@ class CustomGuideScreen extends StatelessWidget {
                 _step(3, '카카오채널 상담 연결',
                     '수량을 선택한 뒤 카카오채널 상담으로 문의해 주세요. 상품명·상품 ID·상품 유형·상담 수량을 함께 전달하면 상담이 빠릅니다.'),
                 _step(4, '엑셀 주문서 작성', '앱에서는 엑셀 앱으로 열고, 웹에서는 다운로드한 주문서를 작성합니다.'),
-                _step(5, '주문서·로고 파일 전달', '작성한 주문서와 로고·디자인 파일을 카카오채널 상담으로 전달합니다. 자동 연동되지 않는 파일은 판매자가 주문 상세에 수동 첨부합니다.'),
+                _step(5, '주문서·로고 파일 전달',
+                    '작성한 주문서와 로고·디자인 파일을 카카오채널 상담으로 전달합니다. 자동 연동되지 않는 파일은 판매자가 주문 상세에 수동 첨부합니다.'),
                 _step(
                   6,
                   '판매자 확인 및 디자인 제작',
@@ -162,8 +163,7 @@ class CustomGuideScreen extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () => Navigator.push(
                 context,
-                MaterialPageRoute(
-                    builder: (_) => const GroupOrderOnlyScreen()),
+                MaterialPageRoute(builder: (_) => const GroupOrderOnlyScreen()),
               ),
               icon: const Icon(Icons.checkroom_rounded, size: 17),
               label: const Text('등록 디자인 단체주문 상품 보기'),
@@ -193,8 +193,8 @@ class CustomGuideScreen extends StatelessWidget {
           backgroundColor: const Color(0xFFFFE000),
           foregroundColor: const Color(0xFF3C1E1E),
           elevation: 0,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );
