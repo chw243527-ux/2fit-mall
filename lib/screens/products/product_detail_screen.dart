@@ -8456,13 +8456,16 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
             ],
           ),
           SizedBox(height: r.h(24)),
-          _SizeChartTabs(
-            adultHeaders: adultHeaders,
-            adultRows: adultRows,
-            juniorHeaders: juniorHeaders,
-            juniorRows: juniorRows,
-            loc: loc,
-          ),
+          if (_usesAttachedSingletSizeGuide(product))
+            _buildAttachedSingletSizeGuide()
+          else
+            _SizeChartTabs(
+              adultHeaders: adultHeaders,
+              adultRows: adultRows,
+              juniorHeaders: juniorHeaders,
+              juniorRows: juniorRows,
+              loc: loc,
+            ),
           SizedBox(height: r.h(30)),
           ...notices.asMap().entries.map(
                 (entry) => Padding(
@@ -10184,6 +10187,42 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// 첨부된 NEXTR 사이즈 측정표를 사용할 상품군입니다.
+  /// 싱글렛 상의와 2.5부·5부 하의 상세페이지에만 적용하고,
+  /// 그 외 상품은 기존 앱 내 사이즈표를 유지합니다.
+  bool _usesAttachedSingletSizeGuide(ProductModel p) {
+    final label = '${p.category} ${p.middleCategory} ${p.subCategory} ${p.name}'
+        .toLowerCase()
+        .replaceAll(' ', '');
+    return label.contains('싱글렛') ||
+        label.contains('singlet') ||
+        label.contains('2.5부') ||
+        label.contains('2분의5부') ||
+        label.contains('5부');
+  }
+
+  Widget _buildAttachedSingletSizeGuide() {
+    final r = Responsive.of(context);
+    return Semantics(
+      label: '싱글렛 2.5부 5부 사이즈 측정표',
+      image: true,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          color: Colors.white,
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(horizontal: r.w(2)),
+          child: Image.asset(
+            'assets/images/nextr_size_guide_singlet_2_5_5.png',
+            width: double.infinity,
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.high,
+          ),
         ),
       ),
     );
