@@ -142,7 +142,7 @@ class _AdminNextrPaymentLinkTabState extends State<AdminNextrPaymentLinkTab> {
           border: OutlineInputBorder(),
           isDense: true,
         ),
-        child: const LinearProgressIndicator(minHeight: 2),
+        child: LinearProgressIndicator(minHeight: 2),
       );
     }
     return Autocomplete<ProductModel>(
@@ -232,7 +232,7 @@ class _AdminNextrPaymentLinkTabState extends State<AdminNextrPaymentLinkTab> {
                       alignment: Alignment.centerLeft,
                       child: Padding(
                         padding: const EdgeInsets.only(top: 5),
-                        child: Text(
+                        child: const Text(
                           '상품 문서 ID가 자동 입력되었습니다.',
                           style: TextStyle(
                             fontSize: 11,
