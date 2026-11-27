@@ -2645,11 +2645,6 @@ class _HomeScreenState extends State<HomeScreen>
     List<ProductModel> allGroupProds,
   ) {
     final r = Responsive.of(context);
-    void goAll() => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const GroupOrderOnlyScreen()),
-        );
-
     final screenW = MediaQuery.of(context).size.width;
     // 반응형 카드 수: 태블릿(600~899)은 4개, 모바일(<600)은 5개
     // 양쪽 패딩 12×2=24, 카드 간격 8×(n-1)
@@ -2792,42 +2787,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
 
-          // 전체보기 버튼 (상품이 5개 초과일 때만)
-          if (hasMore)
-            Padding(
-              padding: EdgeInsets.fromLTRB(r.w(12), r.h(12), r.w(12), r.h(20)),
-              child: GestureDetector(
-                onTap: goAll,
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: r.h(13)),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceGray,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        context.loc.t('전체 상품 보기 _개',
-                            '전체 상품 보기 (${allGroupProds.length}개)'),
-                        style: TextStyle(
-                            fontSize: r.sp(13),
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                            letterSpacing: 0.2),
-                      ),
-                      SizedBox(width: r.w(6)),
-                      const Icon(Icons.arrow_forward_rounded,
-                          size: 15, color: AppColors.textSecondary),
-                    ],
-                  ),
-                ),
-              ),
-            )
-          else
-            SizedBox(height: r.h(20)),
+          SizedBox(height: r.h(20)),
         ],
       ),
     );
@@ -2855,46 +2815,9 @@ class _HomeScreenState extends State<HomeScreen>
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: EdgeInsets.symmetric(horizontal: r.w(12)),
-          itemCount: preview.length + 1,
+          itemCount: preview.length,
           separatorBuilder: (_, __) => SizedBox(width: r.w(8)),
           itemBuilder: (_, i) {
-            if (i == preview.length) {
-              return SizedBox(
-                width: cardW * 0.75,
-                child: GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const GroupOrderOnlyScreen(),
-                    ),
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8F8FA),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.arrow_forward_rounded,
-                            color: AppColors.primary, size: 28),
-                        SizedBox(height: r.h(8)),
-                        Text(
-                          context.loc
-                              .t('전체보기 _개', '전체보기\\n${allGroupProds.length}개'),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: r.sp(12),
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }
             return SizedBox(
               width: cardW,
               // 메인 기성품 목록과 동일한 ProductCard 렌더링을 사용합니다.
@@ -5289,53 +5212,6 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ],
                 ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () {
-                    if (isNewCategory) {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => CategoryDetailScreen(
-                              categoryName: context.loc.t('신상품', '신상품'),
-                              categoryColor: AppColors.primary,
-                              categoryIcon: Icons.new_releases_outlined,
-                              subCategories: [
-                                SubCategory(
-                                    name: context.loc.t('신상품', '신상품'),
-                                    filter: context.loc.t('신상품', '신상품')),
-                              ],
-                            ),
-                          ));
-                    } else {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ProductListScreen(
-                              initialCategory: category,
-                              initialOnlyReadyMade: isReadyMadeCategory,
-                            ),
-                          ));
-                    }
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: r.w(12), vertical: r.h(6)),
-                    decoration: BoxDecoration(
-                      color: AppColors.textPrimary,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      viewAllLabel,
-                      style: TextStyle(
-                        fontSize: r.sp(11),
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -5365,7 +5241,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
 
-          // ── 가로 스크롤 (최대 10개 + 전체보기 카드) ─
+          // ── 가로 스크롤 (최대 10개) ─
           if (isHorizontal)
             SizedBox(
               // 2줄 상품명·색상 요약·가격까지 표시하고 불필요한 빈 공간은 줄입니다.
@@ -5374,87 +5250,10 @@ class _HomeScreenState extends State<HomeScreen>
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.fromLTRB(
                     r.w(12), 6, r.w(12), 6), // 상하 6px: shadow 클리핑 방지
-                itemCount: products.length.clamp(0, 10) + 1, // 최대 10개 + 전체보기 카드
+                itemCount: products.length.clamp(0, 10),
                 itemBuilder: (_, i) {
                   final display = products.take(10).toList();
-                  // ── 마지막: 전체보기 카드 ──────────
-                  if (i == display.length) {
-                    final r = Responsive.of(context);
-
-                    return GestureDetector(
-                      onTap: () {
-                        if (isNewCategory) {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => CategoryDetailScreen(
-                                  categoryName: context.loc.t('신상품', '신상품'),
-                                  categoryColor: AppColors.primary,
-                                  categoryIcon: Icons.new_releases_outlined,
-                                  subCategories: [
-                                    SubCategory(
-                                        name: context.loc.t('신상품', '신상품'),
-                                        filter: context.loc.t('신상품', '신상품')),
-                                  ],
-                                ),
-                              ));
-                        } else {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ProductListScreen(
-                                    initialCategory: category,
-                                    initialOnlyReadyMade: isReadyMadeCategory),
-                              ));
-                        }
-                      },
-                      child: Container(
-                        width: cardW * 0.75,
-                        margin: EdgeInsets.only(right: r.w(8)),
-                        decoration: BoxDecoration(
-                          color: accentColor == AppColors.accent
-                              ? const Color(0xFFFFEBEE)
-                              : AppColors.surfaceGray,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: accentColor.withValues(alpha: 0.25),
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: accentColor,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.arrow_forward_rounded,
-                                color: Colors.white,
-                                size: 22,
-                              ),
-                            ),
-                            SizedBox(height: r.h(10)),
-                            Text(
-                              context.loc
-                                  .t('전체보기 _개', '전체보기\n${products.length}개'),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: r.sp(12),
-                                fontWeight: FontWeight.w800,
-                                color: accentColor,
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-
-                  // ── 상품 카드 (최대 5개) ──
+                  // ── 상품 카드 (최대 10개) ──
                   final p = display[i];
                   return Container(
                     width: cardW,
