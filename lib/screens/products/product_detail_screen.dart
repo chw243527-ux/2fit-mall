@@ -24,6 +24,7 @@ import '../../utils/navigation_helper.dart';
 import '../../utils/web_refresh_state.dart'
     if (dart.library.html) '../../utils/web_refresh_state_html.dart';
 import '../main_screen.dart';
+import '../chat/chat_screen.dart';
 import '../../utils/responsive.dart';
 import '../not_found_screen.dart';
 
@@ -1495,6 +1496,41 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
         );
       }
     }
+  }
+
+  /// 상품 상세페이지에서 쇼핑몰 내부 채팅 상담을 시작합니다.
+  /// 상품 정보는 첫 메시지로 자동 전달되어 판매자가 바로 상담을 이어갈 수 있습니다.
+  Future<void> _openInternalProductChat(ProductModel product) async {
+    final userProvider = context.read<UserProvider>();
+    if (!userProvider.isLoggedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.loc.loginRequired)),
+      );
+      await Navigator.pushNamed(context, '/login');
+      return;
+    }
+
+    final productType = product.middleCategory.isNotEmpty
+        ? product.middleCategory
+        : product.category;
+    final productCode = product.productCode.isEmpty ? '-' : product.productCode;
+    final initialMessage = [
+      '단체주문 상담을 요청합니다.',
+      '상품명: ${product.name}',
+      '상품번호: $productCode',
+      '상품 ID: ${product.id}',
+      '상품 유형: $productType',
+      '',
+      '수량, 팀명, 로고 파일, 제작 일정 등을 상담하고 싶습니다.',
+    ].join('\n');
+
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(initialMessage: initialMessage),
+      ),
+    );
   }
 
   // ══ 라이트박스 ══
@@ -4391,7 +4427,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
           // ── 구매방식 버튼: 단체주문 전용 → 단체주문 1개, 기성품 → 기성품 1개 ──
           if (_isSingletGroupProduct(product)) ...[
             GestureDetector(
-              onTap: _openKakaoChannel,
+              onTap: () => _openInternalProductChat(product),
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(vertical: r.h(12)),
@@ -4413,7 +4449,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                     ),
                     SizedBox(height: r.h(4)),
                     Text(
-                      '카카오채널 문의하기',
+                      '쇼핑몰 채팅상담',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: r.sp(13),
@@ -8799,9 +8835,9 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: _openKakaoChannel,
+              onPressed: () => _openInternalProductChat(product),
               icon: const Icon(Icons.chat_bubble_outline_rounded),
-              label: const Text('상품 문의하기'),
+              label: const Text('쇼핑몰 채팅상담'),
             ),
           ),
         ],
@@ -9111,7 +9147,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: _openKakaoChannel,
+                    onPressed: () => _openInternalProductChat(product),
                   ),
                 )
               else if (product.isSoldOut)
@@ -9605,7 +9641,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                       color: AppColors.primary,
                       onTap: () {
                         Navigator.pop(context);
-                        _openKakaoChannel();
+                        _openInternalProductChat(product);
                       },
                     ),
                     SizedBox(height: r.h(10)),
@@ -9620,7 +9656,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                       color: AppColors.error,
                       onTap: () {
                         Navigator.pop(context);
-                        _openKakaoChannel();
+                        _openInternalProductChat(product);
                       },
                     ),
                   ] else
@@ -9646,7 +9682,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                           : AppColors.error,
                       onTap: () {
                         Navigator.pop(context);
-                        _openKakaoChannel();
+                        _openInternalProductChat(product);
                       },
                     ),
                 ],
@@ -9858,7 +9894,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
   // ─── 기성품 옵션 선택 + 다중담기 시트 (장바구니/바로구매 공통) ───
   void _showBuyNowSheet(ProductModel product) {
     if (_isGroupOrderProduct(product)) {
-      _openKakaoChannel();
+      _openInternalProductChat(product);
       return;
     }
     // 바로구매는 로그인 필수

@@ -32,7 +32,10 @@ class ChatMessage {
 }
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  /// 상품 상세페이지에서 상담을 시작할 때 채팅방에 자동 전송할 첫 메시지입니다.
+  final String? initialMessage;
+
+  const ChatScreen({super.key, this.initialMessage});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -47,6 +50,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final bool _showFaq = true;
   bool _faqExpanded = true;
   bool _isChatCompleted = false; // 상담 완료 여부
+  bool _initialMessageSent = false;
 
   // ── Firestore 실시간 채팅
   String? _roomId;
@@ -93,6 +97,16 @@ class _ChatScreenState extends State<ChatScreen> {
         _roomId = roomId;
         _isLoadingRoom = false;
       });
+
+      // 상세페이지의 단체주문 버튼으로 진입한 경우 상품 정보가 포함된
+      // 상담 시작 메시지를 한 번만 자동 전송합니다.
+      final initialMessage = widget.initialMessage?.trim();
+      if (!_initialMessageSent &&
+          initialMessage != null &&
+          initialMessage.isNotEmpty) {
+        _initialMessageSent = true;
+        _sendMessage(initialMessage, _loc);
+      }
 
       // 실시간 메시지 스트림 구독
       ChatService.watchMessages(roomId).listen((firestoreMsgs) {
