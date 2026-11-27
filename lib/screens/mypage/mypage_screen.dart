@@ -4245,10 +4245,20 @@ class _MobileOrderHistoryTabState extends State<_MobileOrderHistoryTab> {
     }
 
     if (orders.isEmpty) {
-      return _MobileEmptyState(
-          icon: Icons.receipt_long_outlined,
-          message: widget.loc.mypageNoOrders,
-          subtitle: widget.loc.mypageFirstOrder);
+      return Column(
+        children: [
+          _GuestOrderClaimCard(
+            onClaimed: () => orderProvider.loadUserOrders(user.id),
+          ),
+          Expanded(
+            child: _MobileEmptyState(
+              icon: Icons.receipt_long_outlined,
+              message: widget.loc.mypageNoOrders,
+              subtitle: widget.loc.mypageFirstOrder,
+            ),
+          ),
+        ],
+      );
     }
 
     return Column(
