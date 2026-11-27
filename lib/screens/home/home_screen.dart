@@ -2636,7 +2636,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // ── 단체주문 상품 가로 5개 진열 + 전체보기 버튼 ──
+  // ── 단체주문 상품 가로 미리보기 ──
   // ignore: unused_element
   Widget _buildGroupProductsRow(
     AppLocalizations loc,
