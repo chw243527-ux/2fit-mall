@@ -23,6 +23,8 @@ import '../../services/storage_service.dart';
 import '../../utils/navigation_helper.dart';
 import '../../utils/web_refresh_state.dart'
     if (dart.library.html) '../../utils/web_refresh_state_html.dart';
+import '../../utils/web_utils.dart'
+    if (dart.library.html) '../../utils/web_utils_html.dart';
 import '../main_screen.dart';
 import '../chat/chat_screen.dart';
 import '../../utils/responsive.dart';
@@ -1500,7 +1502,10 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
 
   /// 상품 상세페이지에서 쇼핑몰 내부 채팅 상담을 시작합니다.
   /// 상품 정보는 첫 메시지로 자동 전달되어 판매자가 바로 상담을 이어갈 수 있습니다.
-  Future<void> _openInternalProductChat(ProductModel product) async {
+  Future<void> _openInternalProductChat(
+    ProductModel product, {
+    int? quantity,
+  }) async {
     final userProvider = context.read<UserProvider>();
     if (!userProvider.isLoggedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1520,6 +1525,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
       '상품번호: $productCode',
       '상품 ID: ${product.id}',
       '상품 유형: $productType',
+      if (quantity != null) '상담 수량: ${quantity}장',
       '',
       '수량, 팀명, 로고 파일, 제작 일정 등을 상담하고 싶습니다.',
     ].join('\n');
@@ -1530,6 +1536,130 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
       MaterialPageRoute(
         builder: (_) => ChatScreen(initialMessage: initialMessage),
       ),
+    );
+  }
+
+  /// 단체주문 수량에 맞는 고객용 엑셀 주문서를 열거나 다운로드합니다.
+  Future<void> _openGroupOrderForm(ProductModel product) async {
+    final quantity = await _pickGroupOrderQuantity();
+    if (!mounted || quantity == null) return;
+
+    final isTenPlus = quantity >= 10;
+    final assetPath = isTenPlus
+        ? 'assets/group_order_forms/nextr_singlet_order_form_10_plus.xlsx'
+        : 'assets/group_order_forms/nextr_singlet_order_form_5_plus.xlsx';
+    final fileName = isTenPlus
+        ? '2026-11-27_NEXTR_싱글렛_주문서_10인용_흰색배경_하늘색포인트_클릭체크_최종.xlsx'
+        : '2026-11-27_NEXTR_싱글렛_주문서_5인용_흰색배경_하늘색포인트_클릭체크_최종.xlsx';
+
+    try {
+      final data = await rootBundle.load(assetPath);
+      final bytes = data.buffer.asUint8List(
+        data.offsetInBytes,
+        data.lengthInBytes,
+      );
+      const mimeType =
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      if (kIsWeb) {
+        downloadFileWeb(bytes, fileName, mimeType);
+      } else {
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [
+              XFile.fromData(bytes, mimeType: mimeType, name: fileName),
+            ],
+            subject: 'NEXTR 단체주문서 ${quantity}장',
+            text: '$fileName\n수량 기준: ${isTenPlus ? '10장 이상' : '5장 이상'}',
+          ),
+        );
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${isTenPlus ? '10장 이상' : '5장 이상'} 주문서가 준비되었습니다.',
+          ),
+        ),
+      );
+      await _openInternalProductChat(product, quantity: quantity);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('주문서를 여는 중 오류가 발생했습니다: $e')),
+      );
+    }
+  }
+
+  Future<int?> _pickGroupOrderQuantity() async {
+    final controller = TextEditingController(text: '5');
+    return showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final quantity = int.tryParse(controller.text.trim()) ?? 0;
+            final valid = quantity >= 5;
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20,
+                20,
+                20 + MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    '주문 수량을 선택해 주세요',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '5~9장은 5인용, 10장 이상은 10인용 주문서가 자동으로 열립니다.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: '주문 수량',
+                      suffixText: '장',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (_) => setModalState(() {}),
+                  ),
+                  if (quantity > 0 && quantity < 5)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Text(
+                        '단체주문은 5장 이상부터 가능합니다.',
+                        style: TextStyle(color: AppColors.error, fontSize: 12),
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: valid
+                        ? () => Navigator.pop(sheetContext, quantity)
+                        : null,
+                    icon: const Icon(Icons.description_outlined),
+                    label: const Text('주문서 열기'),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -4427,7 +4557,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
           // ── 구매방식 버튼: 단체주문 전용 → 단체주문 1개, 기성품 → 기성품 1개 ──
           if (_isSingletGroupProduct(product)) ...[
             GestureDetector(
-              onTap: () => _openInternalProductChat(product),
+              onTap: () => _openGroupOrderForm(product),
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(vertical: r.h(12)),
@@ -9147,7 +9277,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: () => _openInternalProductChat(product),
+                    onPressed: () => _openGroupOrderForm(product),
                   ),
                 )
               else if (product.isSoldOut)
@@ -9641,7 +9771,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                       color: AppColors.primary,
                       onTap: () {
                         Navigator.pop(context);
-                        _openInternalProductChat(product);
+                        _openGroupOrderForm(product);
                       },
                     ),
                     SizedBox(height: r.h(10)),
@@ -9656,7 +9786,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                       color: AppColors.error,
                       onTap: () {
                         Navigator.pop(context);
-                        _openInternalProductChat(product);
+                        _openGroupOrderForm(product);
                       },
                     ),
                   ] else
@@ -9680,7 +9810,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                           : AppColors.error,
                       onTap: () {
                         Navigator.pop(context);
-                        _openInternalProductChat(product);
+                        _openGroupOrderForm(product);
                       },
                     ),
                 ],

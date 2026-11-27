@@ -92,5 +92,6 @@ flutter:
   assets:
     - assets/images/
     - assets/images/winter/
+    - assets/group_order_forms/
     - assets/winter_banner/winter_design_source_65108.png
     - assets/fonts/NotoSansKR.ttf
