@@ -5183,6 +5183,58 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ],
                 ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    if (isNewCategory) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CategoryDetailScreen(
+                            categoryName: context.loc.t('신상품', '신상품'),
+                            categoryColor: AppColors.primary,
+                            categoryIcon: Icons.new_releases_outlined,
+                            subCategories: [
+                              SubCategory(
+                                name: context.loc.t('신상품', '신상품'),
+                                filter: context.loc.t('신상품', '신상품'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ProductListScreen(
+                            initialCategory: category,
+                            initialOnlyReadyMade: isReadyMadeCategory,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: r.w(12),
+                      vertical: r.h(6),
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.textPrimary,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      viewAllLabel,
+                      style: TextStyle(
+                        fontSize: r.sp(11),
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
