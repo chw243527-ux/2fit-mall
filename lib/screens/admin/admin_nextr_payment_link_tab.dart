@@ -231,8 +231,8 @@ class _AdminNextrPaymentLinkTabState extends State<AdminNextrPaymentLinkTab> {
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Padding(
-                        padding: const EdgeInsets.only(top: 5),
-                        child: const Text(
+                        padding: EdgeInsets.only(top: 5),
+                        child: Text(
                           '상품 문서 ID가 자동 입력되었습니다.',
                           style: TextStyle(
                             fontSize: 11,
