@@ -14208,7 +14208,8 @@ class _AdminScreenState extends State<AdminScreen>
                                           color: AppColors.accent.withValues(
                                             alpha: 0.14,
                                           ),
-                                          borderRadius: BorderRadius.circular(5),
+                                          borderRadius:
+                                              BorderRadius.circular(5),
                                         ),
                                         child: const Text(
                                           '단체주문',
