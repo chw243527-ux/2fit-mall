@@ -10199,11 +10199,19 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
     final label = '${p.category} ${p.middleCategory} ${p.subCategory} ${p.name}'
         .toLowerCase()
         .replaceAll(' ', '');
-    return label.contains('싱글렛') ||
+    final bottomLength = p.bottomLength.toLowerCase().replaceAll(' ', '');
+    final isGroupSingletSet =
+        p.isGroupOnly &&
+        (p.category == '단체주문' || label.contains('단체주문')) &&
+        (label.contains('싱글렛') || label.contains('singlet'));
+    return isGroupSingletSet ||
+        label.contains('싱글렛') ||
         label.contains('singlet') ||
         label.contains('2.5부') ||
         label.contains('2분의5부') ||
-        label.contains('5부');
+        label.contains('5부') ||
+        bottomLength.contains('2.5부') ||
+        bottomLength.contains('5부');
   }
 
   Widget _buildAttachedSingletSizeGuide() {
