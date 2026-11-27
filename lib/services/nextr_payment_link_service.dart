@@ -69,6 +69,30 @@ class NextrPaymentLinkService {
     );
   }
 
+  static Future<List<Map<String, dynamic>>> searchMembers(String query) async =>
+      ((await _post('searchNextrOrderMembers', {'query': query},
+                  admin: true))['members'] as List? ??
+              [])
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+  static Future<void> linkOrderToMember({
+    required String orderId,
+    required String userId,
+  }) async {
+    await _post(
+        'linkNextrOrderToMember',
+        {
+          'orderId': orderId,
+          'userId': userId,
+        },
+        admin: true);
+  }
+
+  static Future<void> claimGuestOrder(String orderId) async {
+    await _post('claimNextrGuestOrder', {'orderId': orderId});
+  }
+
   static Future<Map<String, dynamic>> get(String token) =>
       _post('getNextrGroupPaymentLink', {'token': token});
   static Future<Map<String, dynamic>> prepare(String token) =>

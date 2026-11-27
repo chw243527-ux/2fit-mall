@@ -3321,6 +3321,16 @@ function nextrExpiry(value) {
 function nextrPublicLink(token) {
   return `https://2fit-mall.co.kr/payment/group/${encodeURIComponent(token)}`;
 }
+function nextrNormalizedPhone(value) {
+  const digits = String(value || '').replace(/[^0-9]/g, '');
+  if (digits.startsWith('82')) return `0${digits.slice(2)}`;
+  return digits;
+}
+function nextrPhonesMatch(left, right) {
+  const a = nextrNormalizedPhone(left);
+  const b = nextrNormalizedPhone(right);
+  return a.length >= 8 && a === b;
+}
 async function nextrFindCustomerByPhone(phone) {
   const normalized = String(phone || '').trim();
   if (!normalized) return null;
@@ -3486,6 +3496,119 @@ exports.confirmBankTransferOrder = onRequest({ cors: PAYMENT_CORS }, async (req,
     const message = error?.message;
     const status = message === 'order-not-found' ? 404 : (message === 'order-not-awaiting-deposit' ? 409 : 400);
     res.status(status).json({ error: '입금 확인을 처리하지 못했습니다.' });
+  }
+});
+
+exports.searchNextrOrderMembers = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+  if (!(await requireAdmin(req, res))) return;
+  const query = String(req.body?.query || '').trim().slice(0, 120);
+  if (query.length < 2) return res.status(400).json({ error: '검색어를 2자 이상 입력해 주세요.' });
+  try {
+    const normalizedPhone = nextrNormalizedPhone(query);
+    const candidates = new Map();
+    const lookups = [
+      ['name', query],
+      ['email', query.toLowerCase()],
+      ['phone', query],
+      ['phone', normalizedPhone],
+      ['phoneNumber', query],
+      ['phoneNumber', normalizedPhone],
+    ];
+    for (const [field, value] of lookups) {
+      if (!value) continue;
+      const snapshot = await db.collection('users').where(field, '==', value).limit(20).get();
+      for (const doc of snapshot.docs) candidates.set(doc.id, doc);
+    }
+    res.json({ success: true, members: [...candidates.values()].slice(0, 20).map((doc) => {
+      const data = doc.data() || {};
+      return {
+        uid: doc.id,
+        name: String(data.name || data.nickname || '회원').slice(0, 80),
+        email: String(data.email || '').slice(0, 160),
+        phone: String(data.phone || data.phoneNumber || '').slice(0, 40),
+      };
+    }) });
+  } catch (error) {
+    console.error('searchNextrOrderMembers failed', { code: _errorCode(error, 'member-search-failed') });
+    res.status(400).json({ error: '회원 검색에 실패했습니다.' });
+  }
+});
+
+exports.linkNextrOrderToMember = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+  if (!(await requireAdmin(req, res))) return;
+  const orderId = String(req.body?.orderId || '').trim().slice(0, 120);
+  const targetUid = String(req.body?.userId || '').trim().slice(0, 160);
+  if (!orderId || !targetUid) return res.status(400).json({ error: '주문과 회원을 확인해 주세요.' });
+  try {
+    const userSnap = await db.collection('users').doc(targetUid).get();
+    if (!userSnap.exists) return res.status(404).json({ error: '회원을 찾을 수 없습니다.' });
+    await db.runTransaction(async (tx) => {
+      const orderRef = db.collection('orders').doc(orderId);
+      const orderSnap = await tx.get(orderRef);
+      const order = orderSnap.data() || {};
+      if (!orderSnap.exists) throw new Error('order-not-found');
+      const currentUid = String(order.userId || '').trim();
+      if (currentUid && currentUid !== targetUid) throw new Error('order-already-linked');
+      const profile = userSnap.data() || {};
+      tx.update(orderRef, {
+        userId: targetUid,
+        userEmail: String(profile.email || order.userEmail || '').slice(0, 254),
+        manualLinkedBy: req.adminUid,
+        manualLinkedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      const paymentLinkId = String(order.paymentLinkId || '').trim();
+      if (paymentLinkId) {
+        tx.update(db.collection('nextr_group_payment_links').doc(paymentLinkId), {
+          linkedUserId: targetUid,
+          linkedUserEmail: String(profile.email || '').slice(0, 254),
+          manuallyLinkedBy: req.adminUid,
+          manuallyLinkedAt: FieldValue.serverTimestamp(),
+        });
+      }
+    });
+    res.json({ success: true, orderId, userId: targetUid });
+  } catch (error) {
+    const status = error?.message === 'order-not-found' ? 404 : (error?.message === 'order-already-linked' ? 409 : 400);
+    res.status(status).json({ error: error?.message === 'order-already-linked' ? '이미 다른 회원에게 연결된 주문입니다.' : '주문 회원 연결에 실패했습니다.' });
+  }
+});
+
+exports.claimNextrGuestOrder = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+  const decoded = await requireSignedIn(req, res);
+  if (!decoded) return;
+  const orderId = String(req.body?.orderId || '').trim().slice(0, 120);
+  const verifiedPhone = String(decoded.phone_number || '').trim();
+  if (!orderId || !nextrNormalizedPhone(verifiedPhone)) return res.status(400).json({ error: '로그인 계정의 인증 전화번호가 필요합니다.' });
+  try {
+    await db.runTransaction(async (tx) => {
+      const orderRef = db.collection('orders').doc(orderId);
+      const orderSnap = await tx.get(orderRef);
+      const order = orderSnap.data() || {};
+      if (!orderSnap.exists) throw new Error('order-not-found');
+      const currentUid = String(order.userId || '').trim();
+      if (currentUid === decoded.uid) return;
+      if (currentUid) throw new Error('order-already-linked');
+      if (!nextrPhonesMatch(order.ordererPhone || order.userPhone, verifiedPhone)) throw new Error('phone-mismatch');
+      const userSnap = await tx.get(db.collection('users').doc(decoded.uid));
+      const profile = userSnap.data() || {};
+      tx.update(orderRef, {
+        userId: decoded.uid,
+        userEmail: String(profile.email || decoded.email || order.userEmail || '').slice(0, 254),
+        claimedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      const paymentLinkId = String(order.paymentLinkId || '').trim();
+      if (paymentLinkId) tx.update(db.collection('nextr_group_payment_links').doc(paymentLinkId), { linkedUserId: decoded.uid, linkedUserEmail: String(profile.email || decoded.email || '').slice(0, 254), claimedAt: FieldValue.serverTimestamp() });
+    });
+    res.json({ success: true, orderId, userId: decoded.uid });
+  } catch (error) {
+    const message = error?.message;
+    const status = message === 'order-not-found' ? 404 : (message === 'order-already-linked' ? 409 : 403);
+    res.status(status).json({ error: message === 'phone-mismatch' ? '주문 연락처와 로그인 계정의 인증 전화번호가 일치하지 않습니다.' : '주문을 계정에 연결하지 못했습니다.' });
   }
 });
 

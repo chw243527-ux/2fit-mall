@@ -32,6 +32,7 @@ import '../../services/in_app_update_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../services/fcm_service.dart';
 import '../../services/secure_checkout_service.dart';
+import '../../services/nextr_payment_link_service.dart';
 import '../../widgets/address_search_widget.dart';
 import 'size_profile_screen.dart';
 import '../../utils/navigation_helper.dart';
@@ -1523,6 +1524,94 @@ class _OrderHistoryFilterBar extends StatelessWidget {
 // ═══════════════════════════════════════════════════════
 // PC 주문 내역 탭
 // ═══════════════════════════════════════════════════════
+class _GuestOrderClaimCard extends StatefulWidget {
+  final VoidCallback onClaimed;
+
+  const _GuestOrderClaimCard({required this.onClaimed});
+
+  @override
+  State<_GuestOrderClaimCard> createState() => _GuestOrderClaimCardState();
+}
+
+class _GuestOrderClaimCardState extends State<_GuestOrderClaimCard> {
+  final _controller = TextEditingController();
+  bool _loading = false;
+  String? _message;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _claim() async {
+    final orderId = _controller.text.trim();
+    if (orderId.isEmpty || _loading) return;
+    setState(() {
+      _loading = true;
+      _message = null;
+    });
+    try {
+      await NextrPaymentLinkService.claimGuestOrder(orderId);
+      if (!mounted) return;
+      setState(() => _message = '상담 주문이 내 주문내역에 연결되었습니다.');
+      _controller.clear();
+      widget.onClaimed();
+    } catch (e) {
+      if (mounted)
+        setState(() => _message = e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Card(
+        margin: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('상담 주문 연결',
+                style: TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 4),
+            const Text('상담 후 생성된 주문번호를 입력하면 주문내역과 배송조회를 이용할 수 있습니다.',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            const SizedBox(height: 10),
+            Row(children: [
+              Expanded(
+                  child: TextField(
+                controller: _controller,
+                decoration: const InputDecoration(
+                    isDense: true,
+                    labelText: '주문번호',
+                    border: OutlineInputBorder()),
+                onSubmitted: (_) => _claim(),
+              )),
+              const SizedBox(width: 8),
+              FilledButton(
+                  onPressed: _loading ? null : _claim,
+                  child: _loading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Text('연결')),
+            ]),
+            if (_message != null) ...[
+              const SizedBox(height: 8),
+              Text(_message!,
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: _message!.contains('연결되었습니다')
+                          ? AppColors.success
+                          : AppColors.error)),
+            ],
+          ]),
+        ),
+      );
+}
+
 class _PcOrderHistoryTab extends StatefulWidget {
   final UserProvider userProvider;
   final AppLocalizations loc;
@@ -1594,6 +1683,9 @@ class _PcOrderHistoryTabState extends State<_PcOrderHistoryTab> {
               ? '${orders.length}'
               : '${filteredOrders.length}/${orders.length}',
           onRefresh: () => orderProvider.loadUserOrders(user.id),
+        ),
+        _GuestOrderClaimCard(
+          onClaimed: () => orderProvider.loadUserOrders(user.id),
         ),
         if (orders.isNotEmpty)
           _OrderHistoryFilterBar(
@@ -4161,6 +4253,9 @@ class _MobileOrderHistoryTabState extends State<_MobileOrderHistoryTab> {
 
     return Column(
       children: [
+        _GuestOrderClaimCard(
+          onClaimed: () => orderProvider.loadUserOrders(user.id),
+        ),
         _OrderHistoryFilterBar(
           orders: orders,
           selected: _selectedFilter,

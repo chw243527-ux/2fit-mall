@@ -211,6 +211,138 @@ class _AdminNextrPaymentLinkTabState extends State<AdminNextrPaymentLinkTab> {
     );
   }
 
+  Future<void> _showMemberLinkDialog(Map<String, dynamic> link) async {
+    final orderId = (link['orderId'] as String? ?? '').trim();
+    if (orderId.isEmpty) return;
+    final query = TextEditingController();
+    List<Map<String, dynamic>> members = [];
+    bool loading = false;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('주문 회원 연결'),
+          content: SizedBox(
+            width: 480,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('주문번호: $orderId', style: const TextStyle(fontSize: 12)),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: query,
+                  decoration: InputDecoration(
+                    labelText: '회원명·이메일·연락처',
+                    suffixIcon: IconButton(
+                      icon: loading
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.search_rounded),
+                      onPressed: loading
+                          ? null
+                          : () async {
+                              if (query.text.trim().length < 2) return;
+                              setDialogState(() => loading = true);
+                              try {
+                                final result =
+                                    await NextrPaymentLinkService.searchMembers(
+                                        query.text.trim());
+                                if (context.mounted) {
+                                  setDialogState(() => members = result);
+                                }
+                              } finally {
+                                if (context.mounted) {
+                                  setDialogState(() => loading = false);
+                                }
+                              }
+                            },
+                    ),
+                  ),
+                  onSubmitted: (_) async {
+                    if (query.text.trim().length < 2 || loading) return;
+                    setDialogState(() => loading = true);
+                    try {
+                      final result =
+                          await NextrPaymentLinkService.searchMembers(
+                              query.text.trim());
+                      if (context.mounted)
+                        setDialogState(() => members = result);
+                    } finally {
+                      if (context.mounted) {
+                        setDialogState(() => loading = false);
+                      }
+                    }
+                  },
+                ),
+                const SizedBox(height: 8),
+                if (members.isEmpty)
+                  const Text('검색 결과가 여기에 표시됩니다.',
+                      style: TextStyle(color: AppColors.textSecondary))
+                else
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 240),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: members.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (_, index) {
+                        final member = members[index];
+                        return ListTile(
+                          dense: true,
+                          leading: const Icon(Icons.person_outline),
+                          title: Text(member['name'] as String? ?? '회원'),
+                          subtitle: Text(
+                              '${member['email'] ?? ''} · ${member['phone'] ?? ''}'),
+                          trailing: const Icon(Icons.link_rounded),
+                          onTap: () async {
+                            setDialogState(() => loading = true);
+                            try {
+                              await NextrPaymentLinkService.linkOrderToMember(
+                                orderId: orderId,
+                                userId: member['uid'] as String,
+                              );
+                              if (!context.mounted) return;
+                              Navigator.pop(dialogContext);
+                              _load();
+                              ScaffoldMessenger.of(this.context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        '${member['name'] ?? '회원'}님에게 주문을 연결했습니다.')),
+                              );
+                            } catch (e) {
+                              if (context.mounted) {
+                                setDialogState(() => loading = false);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(e
+                                          .toString()
+                                          .replaceFirst('Exception: ', ''))),
+                                );
+                              }
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('닫기')),
+          ],
+        ),
+      ),
+    );
+    query.dispose();
+  }
+
   @override
   Widget build(BuildContext context) => Container(
       color: AppColors.background,
@@ -268,7 +400,7 @@ class _AdminNextrPaymentLinkTabState extends State<AdminNextrPaymentLinkTab> {
             child: ListTile(
                 title: Text('${link['productName']} · ${link['quantity']}장'),
                 subtitle: Text(
-                    '${link['customerName']} · ${_money(link['amount'])}원 · ${link['status']}'),
+                    '${link['customerName']} · ${_money(link['amount'])}원 · ${link['status']}${link['linkedUserId'] != null ? ' · 회원 연결됨' : ''}'),
                 trailing: link['status'] == 'active'
                     ? IconButton(
                         icon: const Icon(Icons.cancel_outlined),
@@ -278,7 +410,14 @@ class _AdminNextrPaymentLinkTabState extends State<AdminNextrPaymentLinkTab> {
                           _load();
                         })
                     : null,
-                onTap: () => Clipboard.setData(
-                    ClipboardData(text: link['linkId'] as String))))),
+                onTap: () {
+                  if ((link['orderId'] as String? ?? '').isNotEmpty &&
+                      link['linkedUserId'] == null) {
+                    _showMemberLinkDialog(link);
+                  } else {
+                    Clipboard.setData(
+                        ClipboardData(text: link['linkId'] as String));
+                  }
+                }))),
       ]));
 }
