@@ -4449,7 +4449,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                     ),
                     SizedBox(height: r.h(4)),
                     Text(
-                      '쇼핑몰 채팅상담',
+                      '판매자에게 문의하기',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: r.sp(13),
@@ -9131,7 +9131,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                     icon:
                         const Icon(Icons.chat_bubble_outline_rounded, size: 18),
                     label: Text(
-                      '카카오채널 문의하기',
+                      '판매자에게 문의하기',
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         fontSize: r.sp(15),
@@ -9632,7 +9632,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                       _isSingletGroupProduct(product)) ...[
                     _orderTypeBtn(
                       emoji: '📦',
-                      title: context.loc.t('기성품_단체주문', '기성품 단체주문'),
+                      title: '판매자에게 문의하기',
                       description: context.loc.t(
                         '기성_디자인_그대로_단체_수량으로_주문',
                         '기성 디자인 그대로 단체 수량으로 주문',
@@ -9647,7 +9647,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                     SizedBox(height: r.h(10)),
                     _orderTypeBtn(
                       emoji: '👥',
-                      title: loc.orderTypeGroupCustomTitle,
+                      title: '판매자에게 문의하기',
                       description: loc.orderTypeGroupCustomDesc,
                       tags: [
                         loc.orderTypeGroupCustomTag1,
@@ -9662,9 +9662,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                   ] else
                     _orderTypeBtn(
                       emoji: product.isReadyMade ? '📦' : '👥',
-                      title: product.isReadyMade
-                          ? context.loc.t('기성품 단체주문', '기성품 단체주문')
-                          : loc.orderTypeGroupCustomTitle,
+                      title: product.isReadyMade ? '판매자에게 문의하기' : '판매자에게 문의하기',
                       description: product.isReadyMade
                           ? context.loc.t(
                               '기성 디자인 그대로 단체 수량으로 주문',
