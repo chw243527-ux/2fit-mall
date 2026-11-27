@@ -1819,12 +1819,6 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 디자인 이미지 섹션 ──
-          Padding(
-            padding: EdgeInsets.fromLTRB(r.w(16), r.h(16), r.w(16), r.h(0)),
-            child: _buildDesignImageSection(product, isAdmin),
-          ),
-
           // ═══════════════════════════════════════════════
           // 상품 속성 뱃지 (단체전용 / 기성품)
           // ═══════════════════════════════════════════════
