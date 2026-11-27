@@ -631,7 +631,9 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                       fontWeight: FontWeight.w700,
                       color: AppColors.textSecondary)),
               const SizedBox(height: 6),
-              Text(context.loc.t('단체주문_문의는_내부채팅으로', '단체주문 문의는 쇼핑몰 내부 채팅으로 남겨주세요.'),
+              Text(
+                  context.loc
+                      .t('단체주문_문의는_내부채팅으로', '단체주문 문의는 쇼핑몰 내부 채팅으로 남겨주세요.'),
                   style: const TextStyle(
                       fontSize: 13, color: AppColors.textSecondary)),
               const SizedBox(height: 20),
