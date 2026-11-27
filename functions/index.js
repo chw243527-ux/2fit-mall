@@ -3323,13 +3323,41 @@ function nextrPublicLink(token) {
 }
 function nextrNormalizedPhone(value) {
   const digits = String(value || '').replace(/[^0-9]/g, '');
-  if (digits.startsWith('82')) return `0${digits.slice(2)}`;
-  return digits;
+  const normalized = digits.startsWith('82') ? `0${digits.slice(2)}` : digits;
+  return /^01[016789]\d{7,8}$/.test(normalized) ? normalized : '';
 }
 function nextrPhonesMatch(left, right) {
   const a = nextrNormalizedPhone(left);
   const b = nextrNormalizedPhone(right);
-  return a.length >= 8 && a === b;
+  return Boolean(a && b && a === b);
+}
+function nextrMaskedEmail(value) {
+  const email = String(value || '').trim();
+  const at = email.indexOf('@');
+  if (at <= 0) return email ? '***' : '';
+  const local = email.slice(0, at);
+  return `${local.slice(0, Math.min(2, local.length))}***${email.slice(at)}`;
+}
+function nextrMaskedPhone(value) {
+  const phone = nextrNormalizedPhone(value);
+  return phone.length >= 4 ? `***-****-${phone.slice(-4)}` : '';
+}
+async function writeNextrOrderLinkAudit(data) {
+  try {
+    await db.collection('admin_audit_logs').add({
+      action: data.action,
+      orderId: String(data.orderId || '').slice(0, 120),
+      actorUid: String(data.actorUid || '').slice(0, 160),
+      actorEmail: String(data.actorEmail || '').slice(0, 254),
+      targetUserId: String(data.targetUserId || '').slice(0, 160),
+      source: String(data.source || '').slice(0, 40),
+      createdAt: FieldValue.serverTimestamp(),
+    });
+  } catch (error) {
+    console.error('NEXTR order link audit failed', {
+      code: _errorCode(error, 'nextr-link-audit-failed'),
+    });
+  }
 }
 async function nextrFindCustomerByPhone(phone) {
   const normalized = String(phone || '').trim();
@@ -3430,7 +3458,7 @@ exports.prepareNextrGroupPayment = onRequest({ cors: PAYMENT_CORS }, async (req,
     }
   }
   if (link.status !== 'active' || expiresMs <= Date.now()) return res.status(409).json({ error: '만료되었거나 사용할 수 없는 결제 링크입니다.' });
-  const orderId = `NEXTR-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+  const orderId = `NEXTR-${crypto.randomBytes(16).toString('hex')}`;
   await db.runTransaction(async (tx) => {
     const current = await tx.get(ref); const latest = current.data() || {};
     if (latest.status !== 'active' || (latest.expiresAt?.toDate?.()?.getTime() || 0) <= Date.now()) throw new Error('link-unavailable');
@@ -3502,6 +3530,7 @@ exports.confirmBankTransferOrder = onRequest({ cors: PAYMENT_CORS }, async (req,
 exports.searchNextrOrderMembers = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
   if (!(await requireAdmin(req, res))) return;
+  if (!(await enforceRateLimit(req, res, `nextr-member-search:${req.adminUid}`, { limit: 30, windowMs: 10 * 60 * 1000 }))) return;
   const query = String(req.body?.query || '').trim().slice(0, 120);
   if (query.length < 2) return res.status(400).json({ error: '검색어를 2자 이상 입력해 주세요.' });
   try {
@@ -3525,8 +3554,8 @@ exports.searchNextrOrderMembers = onRequest({ cors: PAYMENT_CORS }, async (req, 
       return {
         uid: doc.id,
         name: String(data.name || data.nickname || '회원').slice(0, 80),
-        email: String(data.email || '').slice(0, 160),
-        phone: String(data.phone || data.phoneNumber || '').slice(0, 40),
+        email: nextrMaskedEmail(data.email),
+        phone: nextrMaskedPhone(data.phone || data.phoneNumber),
       };
     }) });
   } catch (error) {
@@ -3538,6 +3567,7 @@ exports.searchNextrOrderMembers = onRequest({ cors: PAYMENT_CORS }, async (req, 
 exports.linkNextrOrderToMember = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
   if (!(await requireAdmin(req, res))) return;
+  if (!(await enforceRateLimit(req, res, `nextr-member-link:${req.adminUid}`, { limit: 30, windowMs: 10 * 60 * 1000 }))) return;
   const orderId = String(req.body?.orderId || '').trim().slice(0, 120);
   const targetUid = String(req.body?.userId || '').trim().slice(0, 160);
   if (!orderId || !targetUid) return res.status(400).json({ error: '주문과 회원을 확인해 주세요.' });
@@ -3549,9 +3579,17 @@ exports.linkNextrOrderToMember = onRequest({ cors: PAYMENT_CORS }, async (req, r
       const orderSnap = await tx.get(orderRef);
       const order = orderSnap.data() || {};
       if (!orderSnap.exists) throw new Error('order-not-found');
+      if (order.orderType !== 'group' || order.paymentStatus !== 'paid' ||
+          !['confirmed', 'processing', 'shipped', 'delivered', 'purchaseConfirmed'].includes(order.status) ||
+          !order.paymentLinkId) throw new Error('order-not-eligible');
       const currentUid = String(order.userId || '').trim();
       if (currentUid && currentUid !== targetUid) throw new Error('order-already-linked');
       const profile = userSnap.data() || {};
+      const paymentLinkRef = db.collection('nextr_group_payment_links').doc(String(order.paymentLinkId));
+      const paymentLinkSnap = await tx.get(paymentLinkRef);
+      if (!paymentLinkSnap.exists || paymentLinkSnap.data()?.orderId !== orderId) {
+        throw new Error('payment-link-mismatch');
+      }
       tx.update(orderRef, {
         userId: targetUid,
         userEmail: String(profile.email || order.userEmail || '').slice(0, 254),
@@ -3559,20 +3597,25 @@ exports.linkNextrOrderToMember = onRequest({ cors: PAYMENT_CORS }, async (req, r
         manualLinkedAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       });
-      const paymentLinkId = String(order.paymentLinkId || '').trim();
-      if (paymentLinkId) {
-        tx.update(db.collection('nextr_group_payment_links').doc(paymentLinkId), {
-          linkedUserId: targetUid,
-          linkedUserEmail: String(profile.email || '').slice(0, 254),
-          manuallyLinkedBy: req.adminUid,
-          manuallyLinkedAt: FieldValue.serverTimestamp(),
-        });
-      }
+      tx.update(paymentLinkRef, {
+        linkedUserId: targetUid,
+        linkedUserEmail: String(profile.email || '').slice(0, 254),
+        manuallyLinkedBy: req.adminUid,
+        manuallyLinkedAt: FieldValue.serverTimestamp(),
+      });
+    });
+    await writeNextrOrderLinkAudit({
+      action: 'nextr_order_member_link',
+      orderId,
+      actorUid: req.adminUid,
+      actorEmail: req.adminEmail,
+      targetUserId: targetUid,
+      source: 'admin_manual',
     });
     res.json({ success: true, orderId, userId: targetUid });
   } catch (error) {
     const status = error?.message === 'order-not-found' ? 404 : (error?.message === 'order-already-linked' ? 409 : 400);
-    res.status(status).json({ error: error?.message === 'order-already-linked' ? '이미 다른 회원에게 연결된 주문입니다.' : '주문 회원 연결에 실패했습니다.' });
+    res.status(status).json({ error: error?.message === 'order-already-linked' ? '이미 다른 회원에게 연결된 주문입니다.' : '연결할 수 있는 결제 완료 단체주문이 아닙니다.' });
   }
 });
 
@@ -3580,6 +3623,7 @@ exports.claimNextrGuestOrder = onRequest({ cors: PAYMENT_CORS }, async (req, res
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
   const decoded = await requireSignedIn(req, res);
   if (!decoded) return;
+  if (!(await enforceRateLimit(req, res, `nextr-guest-claim:${decoded.uid}`, { limit: 5, windowMs: 15 * 60 * 1000 }))) return;
   const orderId = String(req.body?.orderId || '').trim().slice(0, 120);
   const verifiedPhone = String(decoded.phone_number || '').trim();
   if (!orderId || !nextrNormalizedPhone(verifiedPhone)) return res.status(400).json({ error: '로그인 계정의 인증 전화번호가 필요합니다.' });
@@ -3592,23 +3636,38 @@ exports.claimNextrGuestOrder = onRequest({ cors: PAYMENT_CORS }, async (req, res
       const currentUid = String(order.userId || '').trim();
       if (currentUid === decoded.uid) return;
       if (currentUid) throw new Error('order-already-linked');
+      if (order.orderType !== 'group' || order.paymentStatus !== 'paid' ||
+          !['confirmed', 'processing', 'shipped', 'delivered', 'purchaseConfirmed'].includes(order.status) ||
+          !order.paymentLinkId) throw new Error('order-not-eligible');
       if (!nextrPhonesMatch(order.ordererPhone || order.userPhone, verifiedPhone)) throw new Error('phone-mismatch');
       const userSnap = await tx.get(db.collection('users').doc(decoded.uid));
       const profile = userSnap.data() || {};
+      const paymentLinkRef = db.collection('nextr_group_payment_links').doc(String(order.paymentLinkId));
+      const paymentLinkSnap = await tx.get(paymentLinkRef);
+      if (!paymentLinkSnap.exists || paymentLinkSnap.data()?.orderId !== orderId) {
+        throw new Error('payment-link-mismatch');
+      }
       tx.update(orderRef, {
         userId: decoded.uid,
         userEmail: String(profile.email || decoded.email || order.userEmail || '').slice(0, 254),
         claimedAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       });
-      const paymentLinkId = String(order.paymentLinkId || '').trim();
-      if (paymentLinkId) tx.update(db.collection('nextr_group_payment_links').doc(paymentLinkId), { linkedUserId: decoded.uid, linkedUserEmail: String(profile.email || decoded.email || '').slice(0, 254), claimedAt: FieldValue.serverTimestamp() });
+      tx.update(paymentLinkRef, { linkedUserId: decoded.uid, linkedUserEmail: String(profile.email || decoded.email || '').slice(0, 254), claimedAt: FieldValue.serverTimestamp() });
+    });
+    await writeNextrOrderLinkAudit({
+      action: 'nextr_order_member_link',
+      orderId,
+      actorUid: decoded.uid,
+      actorEmail: decoded.email,
+      targetUserId: decoded.uid,
+      source: 'customer_claim',
     });
     res.json({ success: true, orderId, userId: decoded.uid });
   } catch (error) {
     const message = error?.message;
-    const status = message === 'order-not-found' ? 404 : (message === 'order-already-linked' ? 409 : 403);
-    res.status(status).json({ error: message === 'phone-mismatch' ? '주문 연락처와 로그인 계정의 인증 전화번호가 일치하지 않습니다.' : '주문을 계정에 연결하지 못했습니다.' });
+    const status = message === 'order-already-linked' ? 409 : 403;
+    res.status(status).json({ error: message === 'order-already-linked' ? '이미 다른 회원에게 연결된 주문입니다.' : '주문을 계정에 연결하지 못했습니다.' });
   }
 });
 

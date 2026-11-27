@@ -8,13 +8,13 @@ class NextrPaymentLinkService {
 
   static Future<Map<String, dynamic>> _post(
       String path, Map<String, dynamic> body,
-      {bool admin = false}) async {
+      {bool admin = false, bool signedIn = false}) async {
     final headers = {'Content-Type': 'application/json'};
-    if (admin) {
+    if (admin || signedIn) {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) throw Exception('관리자 로그인이 필요합니다.');
+      if (user == null) throw Exception('로그인이 필요합니다.');
       final token = await user.getIdToken(true);
-      if (token == null || token.isEmpty) throw Exception('관리자 인증이 만료되었습니다.');
+      if (token == null || token.isEmpty) throw Exception('인증이 만료되었습니다.');
       headers['Authorization'] = 'Bearer $token';
     }
     final response = await http
@@ -90,7 +90,11 @@ class NextrPaymentLinkService {
   }
 
   static Future<void> claimGuestOrder(String orderId) async {
-    await _post('claimNextrGuestOrder', {'orderId': orderId});
+    await _post(
+      'claimNextrGuestOrder',
+      {'orderId': orderId},
+      signedIn: true,
+    );
   }
 
   static Future<Map<String, dynamic>> get(String token) =>
