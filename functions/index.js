@@ -9,6 +9,17 @@ const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
 const { getStorage } = require('firebase-admin/storage');
 const crypto = require('crypto');
+const {
+  normalizePhone: nextrNormalizedPhone,
+  phonesMatch: nextrPhonesMatch,
+  maskedEmail: nextrMaskedEmail,
+  maskedPhone: nextrMaskedPhone,
+  createOrderId: createNextrOrderId,
+  isEligibleOrder: isEligibleNextrOrder,
+  isMatchingPaymentLink: isMatchingNextrPaymentLink,
+  rateLimitDecision,
+  buildAuditLog: buildNextrOrderLinkAudit,
+} = require('./nextr_order_link_security');
 // Custom Token 서명 계정을 명시해 Functions 기본 계정 선택 불일치를 방지합니다.
 const FIREBASE_TOKEN_SIGNER = 'firebase-adminsdk-fbsvc@fit-mall.iam.gserviceaccount.com';
 initializeApp({ serviceAccountId: FIREBASE_TOKEN_SIGNER });
@@ -938,13 +949,23 @@ async function enforceRateLimit(req, res, key, { limit, windowMs }) {
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
     const data = snap.data() || {};
-    const startedAt = Number(data.startedAt || 0);
-    const count = Number(data.count || 0);
-    if (!startedAt || now - startedAt >= windowMs) {
-      tx.set(ref, { startedAt: now, count: 1, expiresAt: new Date(now + windowMs) });
-      allowed = true;
-    } else if (count < limit) {
-      tx.update(ref, { count: count + 1 });
+    const decision = rateLimitDecision({
+      now,
+      startedAt: Number(data.startedAt || 0),
+      count: Number(data.count || 0),
+      limit,
+      windowMs,
+    });
+    if (decision.allowed) {
+      const update = {
+        startedAt: decision.startedAt,
+        count: decision.count,
+      };
+      if (decision.reset) {
+        tx.set(ref, { ...update, expiresAt: new Date(now + windowMs) });
+      } else {
+        tx.update(ref, update);
+      }
       allowed = true;
     }
   });
@@ -3321,36 +3342,10 @@ function nextrExpiry(value) {
 function nextrPublicLink(token) {
   return `https://2fit-mall.co.kr/payment/group/${encodeURIComponent(token)}`;
 }
-function nextrNormalizedPhone(value) {
-  const digits = String(value || '').replace(/[^0-9]/g, '');
-  const normalized = digits.startsWith('82') ? `0${digits.slice(2)}` : digits;
-  return /^01[016789]\d{7,8}$/.test(normalized) ? normalized : '';
-}
-function nextrPhonesMatch(left, right) {
-  const a = nextrNormalizedPhone(left);
-  const b = nextrNormalizedPhone(right);
-  return Boolean(a && b && a === b);
-}
-function nextrMaskedEmail(value) {
-  const email = String(value || '').trim();
-  const at = email.indexOf('@');
-  if (at <= 0) return email ? '***' : '';
-  const local = email.slice(0, at);
-  return `${local.slice(0, Math.min(2, local.length))}***${email.slice(at)}`;
-}
-function nextrMaskedPhone(value) {
-  const phone = nextrNormalizedPhone(value);
-  return phone.length >= 4 ? `***-****-${phone.slice(-4)}` : '';
-}
 async function writeNextrOrderLinkAudit(data) {
   try {
     await db.collection('admin_audit_logs').add({
-      action: data.action,
-      orderId: String(data.orderId || '').slice(0, 120),
-      actorUid: String(data.actorUid || '').slice(0, 160),
-      actorEmail: String(data.actorEmail || '').slice(0, 254),
-      targetUserId: String(data.targetUserId || '').slice(0, 160),
-      source: String(data.source || '').slice(0, 40),
+      ...buildNextrOrderLinkAudit(data),
       createdAt: FieldValue.serverTimestamp(),
     });
   } catch (error) {
@@ -3458,7 +3453,7 @@ exports.prepareNextrGroupPayment = onRequest({ cors: PAYMENT_CORS }, async (req,
     }
   }
   if (link.status !== 'active' || expiresMs <= Date.now()) return res.status(409).json({ error: '만료되었거나 사용할 수 없는 결제 링크입니다.' });
-  const orderId = `NEXTR-${crypto.randomBytes(16).toString('hex')}`;
+  const orderId = createNextrOrderId();
   await db.runTransaction(async (tx) => {
     const current = await tx.get(ref); const latest = current.data() || {};
     if (latest.status !== 'active' || (latest.expiresAt?.toDate?.()?.getTime() || 0) <= Date.now()) throw new Error('link-unavailable');
@@ -3579,15 +3574,13 @@ exports.linkNextrOrderToMember = onRequest({ cors: PAYMENT_CORS }, async (req, r
       const orderSnap = await tx.get(orderRef);
       const order = orderSnap.data() || {};
       if (!orderSnap.exists) throw new Error('order-not-found');
-      if (order.orderType !== 'group' || order.paymentStatus !== 'paid' ||
-          !['confirmed', 'processing', 'shipped', 'delivered', 'purchaseConfirmed'].includes(order.status) ||
-          !order.paymentLinkId) throw new Error('order-not-eligible');
+      if (!isEligibleNextrOrder(order)) throw new Error('order-not-eligible');
       const currentUid = String(order.userId || '').trim();
       if (currentUid && currentUid !== targetUid) throw new Error('order-already-linked');
       const profile = userSnap.data() || {};
       const paymentLinkRef = db.collection('nextr_group_payment_links').doc(String(order.paymentLinkId));
       const paymentLinkSnap = await tx.get(paymentLinkRef);
-      if (!paymentLinkSnap.exists || paymentLinkSnap.data()?.orderId !== orderId) {
+      if (!paymentLinkSnap.exists || !isMatchingNextrPaymentLink(paymentLinkSnap.data(), orderId)) {
         throw new Error('payment-link-mismatch');
       }
       tx.update(orderRef, {
@@ -3636,15 +3629,13 @@ exports.claimNextrGuestOrder = onRequest({ cors: PAYMENT_CORS }, async (req, res
       const currentUid = String(order.userId || '').trim();
       if (currentUid === decoded.uid) return;
       if (currentUid) throw new Error('order-already-linked');
-      if (order.orderType !== 'group' || order.paymentStatus !== 'paid' ||
-          !['confirmed', 'processing', 'shipped', 'delivered', 'purchaseConfirmed'].includes(order.status) ||
-          !order.paymentLinkId) throw new Error('order-not-eligible');
+      if (!isEligibleNextrOrder(order)) throw new Error('order-not-eligible');
       if (!nextrPhonesMatch(order.ordererPhone || order.userPhone, verifiedPhone)) throw new Error('phone-mismatch');
       const userSnap = await tx.get(db.collection('users').doc(decoded.uid));
       const profile = userSnap.data() || {};
       const paymentLinkRef = db.collection('nextr_group_payment_links').doc(String(order.paymentLinkId));
       const paymentLinkSnap = await tx.get(paymentLinkRef);
-      if (!paymentLinkSnap.exists || paymentLinkSnap.data()?.orderId !== orderId) {
+      if (!paymentLinkSnap.exists || !isMatchingNextrPaymentLink(paymentLinkSnap.data(), orderId)) {
         throw new Error('payment-link-mismatch');
       }
       tx.update(orderRef, {
