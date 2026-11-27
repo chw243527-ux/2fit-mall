@@ -13836,7 +13836,7 @@ class _AdminScreenState extends State<AdminScreen>
   // ignore: unused_field
   int _selectedChatIdx = -1; // -1 = 목록 보기
   String? _selectedRoomId; // 선택된 채팅방 ID
-  // 채팅 필터: 'all' | 'active' | 'completed' | 'blocked'
+  // 채팅 필터: 'all' | 'active' | 'groupOrder' | 'completed' | 'blocked'
   String _chatFilterTab = 'active';
 
   Widget _buildChatManagement() {
@@ -13954,36 +13954,46 @@ class _AdminScreenState extends State<AdminScreen>
         Container(
           color: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: Row(
-            children: [
-              _chatFilterChip(
-                'active',
-                '상담중',
-                Icons.chat_bubble_rounded,
-                AppColors.success,
-              ),
-              const SizedBox(width: 6),
-              _chatFilterChip(
-                'completed',
-                '완료',
-                Icons.check_circle_rounded,
-                AppColors.textSecondary,
-              ),
-              const SizedBox(width: 6),
-              _chatFilterChip(
-                'blocked',
-                '차단',
-                Icons.block_rounded,
-                AppColors.error,
-              ),
-              const SizedBox(width: 6),
-              _chatFilterChip(
-                'all',
-                '전체',
-                Icons.list_rounded,
-                AppColors.primary,
-              ),
-            ],
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _chatFilterChip(
+                  'active',
+                  '상담중',
+                  Icons.chat_bubble_rounded,
+                  AppColors.success,
+                ),
+                const SizedBox(width: 6),
+                _chatFilterChip(
+                  'groupOrder',
+                  '단체주문',
+                  Icons.groups_rounded,
+                  AppColors.accent,
+                ),
+                const SizedBox(width: 6),
+                _chatFilterChip(
+                  'completed',
+                  '완료',
+                  Icons.check_circle_rounded,
+                  AppColors.textSecondary,
+                ),
+                const SizedBox(width: 6),
+                _chatFilterChip(
+                  'blocked',
+                  '차단',
+                  Icons.block_rounded,
+                  AppColors.error,
+                ),
+                const SizedBox(width: 6),
+                _chatFilterChip(
+                  'all',
+                  '전체',
+                  Icons.list_rounded,
+                  AppColors.primary,
+                ),
+              ],
+            ),
           ),
         ),
         // 알림 배너
@@ -14031,6 +14041,9 @@ class _AdminScreenState extends State<AdminScreen>
                 if (_chatFilterTab == 'completed') {
                   return r.isCompleted && !r.isBlocked;
                 }
+                if (_chatFilterTab == 'groupOrder') {
+                  return r.isGroupOrder && !r.isBlocked;
+                }
                 if (_chatFilterTab == 'blocked') return r.isBlocked;
                 return true; // all
               }).toList();
@@ -14049,6 +14062,8 @@ class _AdminScreenState extends State<AdminScreen>
                       Text(
                         _chatFilterTab == 'completed'
                             ? '완료된 상담이 없습니다'
+                            : _chatFilterTab == 'groupOrder'
+                                ? '단체주문 상담이 없습니다'
                             : _chatFilterTab == 'blocked'
                                 ? '차단된 사용자가 없습니다'
                                 : '아직 채팅 문의가 없습니다',
@@ -14182,6 +14197,28 @@ class _AdminScreenState extends State<AdminScreen>
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
+                                    if (room.isGroupOrder)
+                                      Container(
+                                        margin: const EdgeInsets.only(left: 6),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.accent.withValues(
+                                            alpha: 0.14,
+                                          ),
+                                          borderRadius: BorderRadius.circular(5),
+                                        ),
+                                        child: const Text(
+                                          '단체주문',
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            color: AppColors.accent,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
                                     Text(
                                       timeStr,
                                       style: const TextStyle(
@@ -14677,6 +14714,15 @@ class _AdminScreenState extends State<AdminScreen>
                                       color: Color(0xFFFF8F00),
                                     ),
                                   ),
+                                  if (room?.isGroupOrder == true)
+                                    const Text(
+                                      '단체주문 상담 · 상품 정보 포함',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: AppColors.accent,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),

@@ -74,6 +74,7 @@ class ChatRoom {
   final String language;
   final bool isCompleted;
   final bool isBlocked;
+  final bool isGroupOrder;
 
   ChatRoom({
     required this.id,
@@ -87,16 +88,18 @@ class ChatRoom {
     this.language = 'ko',
     this.isCompleted = false,
     this.isBlocked = false,
+    this.isGroupOrder = false,
   }) : lastTime = lastTime ?? lastMessageAt;
 
   factory ChatRoom.fromMap(String id, Map<String, dynamic> data) {
+    final lastMessage = data['lastMessage'] as String? ?? '';
     final lastAt =
         (data['lastMessageAt'] as Timestamp?)?.toDate() ?? DateTime.now();
     return ChatRoom(
       id: id,
       userId: data['userId'] as String? ?? '',
       userName: data['userName'] as String? ?? '회원',
-      lastMessage: data['lastMessage'] as String? ?? '',
+      lastMessage: lastMessage,
       lastMessageAt: lastAt,
       lastTime: lastAt,
       unreadCount: data['unreadCount'] as int? ?? 0,
@@ -104,6 +107,8 @@ class ChatRoom {
       language: data['language'] as String? ?? 'ko',
       isCompleted: data['isCompleted'] as bool? ?? false,
       isBlocked: data['isBlocked'] as bool? ?? false,
+      isGroupOrder: data['isGroupOrder'] as bool? ??
+          lastMessage.startsWith('단체주문 상담을 요청합니다.'),
     );
   }
 }
@@ -129,6 +134,7 @@ class ChatService {
           'unreadCount': 0,
           'isActive': true,
           'language': language,
+          'isGroupOrder': false,
         });
       }
       return userId; // roomId = userId
@@ -203,6 +209,9 @@ class ChatService {
       } else {
         roomUpdate['userName'] = senderName;
         roomUpdate['unreadCount'] = FieldValue.increment(1);
+      }
+      if (!admin && msg.startsWith('단체주문 상담을 요청합니다.')) {
+        roomUpdate['isGroupOrder'] = true;
       }
       batch.set(roomRef, roomUpdate, SetOptions(merge: true));
       await batch.commit();
