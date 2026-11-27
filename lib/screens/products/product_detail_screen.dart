@@ -1588,7 +1588,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
       '상품명: ${product.name}',
       '상품 ID: ${product.id}',
       '상품 유형: $productType',
-      '상담 수량: ${quantity}장',
+      '상담 수량: $quantity장',
       '',
       '팀명, 로고 파일, 제작 일정과 견적을 상담하고 싶습니다.',
     ].join('\n');

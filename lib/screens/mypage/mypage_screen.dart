@@ -1558,8 +1558,9 @@ class _GuestOrderClaimCardState extends State<_GuestOrderClaimCard> {
       _controller.clear();
       widget.onClaimed();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() => _message = e.toString().replaceFirst('Exception: ', ''));
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
