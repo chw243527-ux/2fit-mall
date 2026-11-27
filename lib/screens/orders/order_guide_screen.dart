@@ -1,7 +1,6 @@
 import 'package:provider/provider.dart';
 import '../../utils/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../utils/theme.dart';
 import '../../providers/providers.dart';
 import '../../widgets/pc_layout.dart';
@@ -18,14 +17,11 @@ class OrderGuideScreen extends StatefulWidget {
 class _OrderGuideScreenState extends State<OrderGuideScreen> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
 
-  Future<void> _openKakaoChannel() async {
-    final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
-    final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
-    if (await canLaunchUrl(appUrl)) {
-      await launchUrl(appUrl);
-    } else if (await canLaunchUrl(webUrl)) {
-      await launchUrl(webUrl, mode: LaunchMode.externalApplication);
-    }
+  void _openInternalChat() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ChatScreen()),
+    );
   }
 
   @override
@@ -169,7 +165,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                 child: Text(
                   context.loc.t(
                     '단체주문_안내_요약',
-                    '5명 이상 주문 시 단체 맞춤 제작이 가능합니다. 상품과 수량을 정한 뒤 디자인, 컬러, 로고 및 마킹을 상담하고 최종 견적과 제작 일정을 안내해드립니다. 자세한 내용은 카카오채널에서 상담해 주세요.',
+                    '5명 이상 주문 시 단체 맞춤 제작이 가능합니다. 상품과 수량을 정한 뒤 디자인, 컬러, 로고 및 마킹을 상담하고 최종 견적과 제작 일정을 안내해드립니다. 자세한 내용은 쇼핑몰 내부 채팅에서 상담해 주세요.',
                   ),
                   style: const TextStyle(
                     color: Colors.white,
@@ -323,7 +319,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                 const TextStyle(fontSize: 12, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 16),
-          // 단체주문은 고객용 주문서 대신 카카오채널에서 상담합니다.
+          // 단체주문은 고객용 주문서 대신 쇼핑몰 내부 채팅에서 상담합니다.
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -345,16 +341,16 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text('상품·수량·디자인을 카카오채널에서 상담해 주세요.',
+                const Text('상품·수량·디자인을 쇼핑몰 내부 채팅에서 상담해 주세요.',
                     style: TextStyle(
                         fontSize: 13, color: AppColors.textSecondary)),
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: _openKakaoChannel,
+                    onPressed: _openInternalChat,
                     icon: const Icon(Icons.chat_bubble_outline_rounded),
-                    label: const Text('카카오채널 문의하기'),
+                    label: const Text('판매자에게 문의하기'),
                   ),
                 ),
               ],

@@ -2,7 +2,7 @@ import '../../utils/theme.dart';
 // group_order_only_screen.dart
 // 단체주문 전용 상품 목록 — 카테고리 탭 + 그리드 뷰
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../chat/chat_screen.dart';
 import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
@@ -214,10 +214,10 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                   ),
                   onPressed: () => setState(() => _isGridView = !_isGridView),
                 ),
-                // 고객용 안내·주문서 대신 카카오채널 문의
+                // 고객용 안내·주문서 대신 판매자에게 문의
                 IconButton(
-                  tooltip: '카카오채널 문의하기',
-                  onPressed: _openKakaoChannel,
+                  tooltip: '판매자에게 문의하기',
+                  onPressed: _openInternalChat,
                   icon: const Icon(Icons.chat_bubble_outline_rounded,
                       color: AppColors.accent, size: 21),
                 ),
@@ -296,13 +296,13 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
               onPressed: () => setState(() => _isGridView = !_isGridView),
             ),
             const SizedBox(width: 8),
-            // 고객용 안내·주문서 대신 카카오채널 문의
+            // 고객용 안내·주문서 대신 판매자에게 문의
             Padding(
               padding: const EdgeInsets.only(right: 16),
               child: OutlinedButton.icon(
-                onPressed: _openKakaoChannel,
+                onPressed: _openInternalChat,
                 icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
-                label: const Text('카카오채널 문의',
+                label: const Text('판매자에게 문의',
                     style:
                         TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                 style: OutlinedButton.styleFrom(
@@ -631,14 +631,14 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                       fontWeight: FontWeight.w700,
                       color: AppColors.textSecondary)),
               const SizedBox(height: 6),
-              Text(context.loc.t('단체주문_문의는_카카오채널로', '단체주문 문의는 카카오채널로 남겨주세요.'),
+              Text(context.loc.t('단체주문_문의는_내부채팅으로', '단체주문 문의는 쇼핑몰 내부 채팅으로 남겨주세요.'),
                   style: const TextStyle(
                       fontSize: 13, color: AppColors.textSecondary)),
               const SizedBox(height: 20),
               OutlinedButton.icon(
-                onPressed: _openKakaoChannel,
+                onPressed: _openInternalChat,
                 icon: const Icon(Icons.chat_rounded, size: 16),
-                label: const Text('카카오채널 문의하기'),
+                label: const Text('판매자에게 문의하기'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.info,
                   side: const BorderSide(color: AppColors.info),
@@ -942,9 +942,9 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
         width: double.infinity,
         height: 50,
         child: ElevatedButton.icon(
-          onPressed: _openKakaoChannel,
+          onPressed: _openInternalChat,
           icon: const Icon(Icons.chat_bubble_outline_rounded, size: 20),
-          label: const Text('카카오채널 문의하기',
+          label: const Text('판매자에게 문의하기',
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
@@ -969,14 +969,11 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     return groupOnly.where((p) => p.subCategory == tab).toList();
   }
 
-  Future<void> _openKakaoChannel() async {
-    final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
-    final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
-    if (await canLaunchUrl(appUrl)) {
-      await launchUrl(appUrl);
-    } else if (await canLaunchUrl(webUrl)) {
-      await launchUrl(webUrl, mode: LaunchMode.externalApplication);
-    }
+  void _openInternalChat() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ChatScreen()),
+    );
   }
 
   Widget _gridBadge(String label, Color color) {

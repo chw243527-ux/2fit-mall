@@ -1380,15 +1380,18 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                     );
                   },
                 ),
-                // 카카오 채널 문의
+                // 쇼핑몰 내부 채팅 상담
                 _shareOption(
                   icon: Icons.support_agent_rounded,
-                  color: const Color(0xFF2DB400),
-                  label: context.loc.t('채널_문의', '채널 문의'),
+                  color: AppColors.primary,
+                  label: context.loc.t('판매자_문의', '판매자에게 문의하기'),
                   outlined: true,
                   onTap: () {
                     Navigator.pop(context);
-                    _openKakaoChannel();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ChatScreen()),
+                    );
                   },
                 ),
               ],
@@ -1474,28 +1477,6 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
             ),
           );
         }
-      }
-    }
-  }
-
-  Future<void> _openKakaoChannel() async {
-    const channelId = '@2fit-mall';
-    final kakaoChannelUrl = Uri.parse('kakaoplus://plusfriend/home/$channelId');
-    final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
-
-    if (await canLaunchUrl(kakaoChannelUrl)) {
-      await launchUrl(kakaoChannelUrl);
-    } else if (await canLaunchUrl(webUrl)) {
-      await launchUrl(webUrl, mode: LaunchMode.externalApplication);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.loc.t('카카오 채널 2fitmall', '카카오 채널: @2fit-mall'),
-            ),
-          ),
-        );
       }
     }
   }
