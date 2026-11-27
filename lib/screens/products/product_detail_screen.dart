@@ -1526,9 +1526,9 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
     final quantity = await _pickGroupOrderQuantity();
     if (!mounted || quantity == null) return;
 
-    // 수량을 확정하면 주문서보다 먼저 내부 채팅상담으로 연결합니다.
-    // 상품 정보와 상담 수량은 채팅 첫 메시지에 자동으로 전달됩니다.
-    await _openInternalProductChat(product, quantity: quantity);
+    // 수량을 확정하면 주문서보다 먼저 카카오채널 상담으로 연결합니다.
+    // 딥링크에 상품 정보가 보존되지 않을 수 있어 상담 문구를 클립보드에 복사합니다.
+    await _openKakaoGroupOrderConsult(product, quantity: quantity);
     if (!mounted) return;
 
     final isTenPlus = quantity >= 10;
@@ -1572,6 +1572,46 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('주문서를 여는 중 오류가 발생했습니다: $e')),
+      );
+    }
+  }
+
+  Future<void> _openKakaoGroupOrderConsult(
+    ProductModel product, {
+    required int quantity,
+  }) async {
+    final productType = product.middleCategory.isNotEmpty
+        ? product.middleCategory
+        : product.category;
+    final message = [
+      '단체주문 상담을 요청합니다.',
+      '상품명: ${product.name}',
+      '상품 ID: ${product.id}',
+      '상품 유형: $productType',
+      '상담 수량: ${quantity}장',
+      '',
+      '팀명, 로고 파일, 제작 일정과 견적을 상담하고 싶습니다.',
+    ].join('\n');
+    await Clipboard.setData(ClipboardData(text: message));
+    final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
+    final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
+    try {
+      final opened = await canLaunchUrl(appUrl)
+          ? await launchUrl(appUrl)
+          : await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(opened
+              ? '상품 정보와 수량을 복사했습니다. 카카오채널에 붙여 넣어 주세요.'
+              : '카카오채널을 열 수 없습니다. 복사한 상담 내용을 잠시 후 이용해 주세요.'),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('카카오채널을 열 수 없습니다. 복사한 상담 내용을 잠시 후 이용해 주세요.')),
       );
     }
   }
@@ -10005,7 +10045,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
   // ─── 기성품 옵션 선택 + 다중담기 시트 (장바구니/바로구매 공통) ───
   void _showBuyNowSheet(ProductModel product) {
     if (_isGroupOrderProduct(product)) {
-      _openInternalProductChat(product);
+      _openGroupOrderForm(product);
       return;
     }
     // 바로구매는 로그인 필수

@@ -106,6 +106,13 @@ class _SplashScreenState extends State<SplashScreen>
           '/account-deletion',
           '/terms-of-service',
           '/refund-policy',
+          '/group-order',
+          '/group-guide',
+          '/group-form',
+          '/bulk-order',
+          '/group-only',
+          '/group-custom-order',
+          '/order-guide',
           '/custom-guide',
           '/our-designs',
           '/signup',
@@ -253,6 +260,8 @@ class _SplashScreenState extends State<SplashScreen>
         return _DeepLink(path, q, requiresAuth: false);
       case '/group-only':
         return _DeepLink(path, q, requiresAuth: false);
+      case '/group-custom-order':
+        return _DeepLink(path, q, requiresAuth: false);
       // 주문 가이드
       case '/order-guide':
         return _DeepLink(path, q, requiresAuth: false);
@@ -378,7 +387,14 @@ class _SplashScreenState extends State<SplashScreen>
           // 기존 고객용 안내/주문서 링크는 단체주문 상품 목록으로 전환합니다.
           target = const GroupOrderOnlyScreen();
           break;
+        case '/bulk-order':
+          target = const GroupOrderOnlyScreen(eligibleOnly: true);
+          break;
         case '/group-only':
+          target = const GroupOrderOnlyScreen();
+          break;
+        case '/group-custom-order':
+          // 상품 argument 없이 직접 접근하면 안전하게 상품 목록으로 안내합니다.
           target = const GroupOrderOnlyScreen();
           break;
         case '/order-guide':

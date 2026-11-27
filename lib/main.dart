@@ -261,6 +261,7 @@ _WebInitialRoute? _readWebInitialRoute() {
       '/group-form',
       '/bulk-order',
       '/group-only',
+      '/group-custom-order',
       '/order-guide',
       '/custom-guide',
       '/our-designs',
@@ -505,7 +506,8 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
                 settings: settings,
               );
             case '/group-custom-order':
-              // 상품 상세에서만 product 파라미터와 함께 push (직접 접근 시 홈으로)
+              // 상품 상세에서만 product 파라미터와 함께 push합니다.
+              // 상품 없이 직접 접근하면 홈이 아니라 단체주문 상품 목록으로 안내합니다.
               final product = settings.arguments;
               if (product is ProductModel) {
                 return MaterialPageRoute(
@@ -514,7 +516,7 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
                 );
               }
               return MaterialPageRoute(
-                builder: (_) => const _HomeRedirect(),
+                builder: (_) => const GroupOrderOnlyScreen(),
                 settings: settings,
               );
             case '/chat':
@@ -883,17 +885,5 @@ class _WebBackButtonHandlerState extends State<_WebBackButtonHandler> {
     // Router가 없을 때도 동작하는 PopScope 대신
     // NavigatorState를 직접 활용
     return widget.child;
-  }
-}
-
-// 직접 접근 시 홈으로 리다이렉트 (상품 없이 group-custom-order 진입 방지)
-class _HomeRedirect extends StatelessWidget {
-  const _HomeRedirect();
-  @override
-  Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.pushReplacementNamed(context, '/');
-    });
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
