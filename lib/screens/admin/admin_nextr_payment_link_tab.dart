@@ -142,7 +142,7 @@ class _AdminNextrPaymentLinkTabState extends State<AdminNextrPaymentLinkTab> {
           border: OutlineInputBorder(),
           isDense: true,
         ),
-        child: LinearProgressIndicator(minHeight: 2),
+        child: const LinearProgressIndicator(minHeight: 2),
       );
     }
     return Autocomplete<ProductModel>(
