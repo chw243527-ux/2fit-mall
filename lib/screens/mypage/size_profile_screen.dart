@@ -105,7 +105,8 @@ class _SizeProfileBody extends StatelessWidget {
     return Consumer<SizeProfileProvider>(
       builder: (ctx, prov, _) {
         if (prov.loading) {
-          return const Center(child: CircularProgressIndicator(color: _skyBlue));
+          return const Center(
+              child: CircularProgressIndicator(color: _skyBlue));
         }
         if (prov.profiles.isEmpty) {
           return Center(

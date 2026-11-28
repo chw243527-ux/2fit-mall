@@ -7674,8 +7674,7 @@ Future<void> _showUserOrderDetail(
                                               ? child
                                               : Container(
                                                   height: 220,
-                                                  color:
-                                                      AppColors.accentSoft,
+                                                  color: AppColors.accentSoft,
                                                   child: const Center(
                                                       child:
                                                           CircularProgressIndicator(
@@ -8448,7 +8447,8 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                                           vertical: 2),
                                       child: Row(children: [
                                         const Icon(Icons.person_outline_rounded,
-                                            size: 13, color: AppColors.accentStrong),
+                                            size: 13,
+                                            color: AppColors.accentStrong),
                                         const SizedBox(width: 4),
                                         Expanded(
                                             child: Text(
