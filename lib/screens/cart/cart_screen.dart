@@ -40,8 +40,64 @@ class CartScreen extends StatelessWidget {
     final r = Responsive.of(context);
     // PC 웹이면 PC 전용 레이아웃 사용
     if (isPcWeb(context)) {
-      return Consumer<CartProvider>(
-        builder: (context, cart, _) => Scaffold(
+      final cartProvider = context.read<CartProvider>();
+      return FutureBuilder<void>(
+        future: cartProvider.ensureRestored(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return _buildCartLoading();
+          }
+          return Consumer<CartProvider>(
+            builder: (context, cart, _) => Scaffold(
+              backgroundColor: AppColors.surfaceGray,
+              appBar: AppBar(
+                backgroundColor: AppColors.textPrimary,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_rounded,
+                      color: Colors.white, size: 20),
+                  onPressed: () => _handleBack(context),
+                ),
+                title: Consumer<LanguageProvider>(
+                  builder: (_, lp, __) => Text(
+                    '${lp.loc.cart} (${cart.itemCount})',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800),
+                  ),
+                ),
+                actions: [
+                  if (!cart.isEmpty)
+                    TextButton(
+                      onPressed: () => _showClearDialog(context, cart),
+                      child: Consumer<LanguageProvider>(
+                        builder: (_, lp, __) => Text(
+                          lp.loc.deleteSelected,
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 13),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              body: cart.isEmpty
+                  ? _buildEmptyCart(context)
+                  : _buildPcLayout(context, cart),
+            ),
+          );
+        },
+      );
+    }
+
+    final cartProvider = context.read<CartProvider>();
+    return FutureBuilder<void>(
+      future: cartProvider.ensureRestored(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return _buildCartLoading();
+        }
+        return Scaffold(
           backgroundColor: AppColors.surfaceGray,
           appBar: AppBar(
             backgroundColor: AppColors.textPrimary,
@@ -51,8 +107,8 @@ class CartScreen extends StatelessWidget {
                   color: Colors.white, size: 20),
               onPressed: () => _handleBack(context),
             ),
-            title: Consumer<LanguageProvider>(
-              builder: (_, lp, __) => Text(
+            title: Consumer2<CartProvider, LanguageProvider>(
+              builder: (context, cart, lp, _) => Text(
                 '${lp.loc.cart} (${cart.itemCount})',
                 style: const TextStyle(
                     color: Colors.white,
@@ -61,101 +117,74 @@ class CartScreen extends StatelessWidget {
               ),
             ),
             actions: [
-              if (!cart.isEmpty)
-                TextButton(
-                  onPressed: () => _showClearDialog(context, cart),
-                  child: Consumer<LanguageProvider>(
-                    builder: (_, lp, __) => Text(
-                      lp.loc.deleteSelected,
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 13),
+              Consumer<CartProvider>(
+                builder: (context, cart, _) {
+                  if (cart.isEmpty) return const SizedBox.shrink();
+                  return TextButton(
+                    onPressed: () => _showClearDialog(context, cart),
+                    child: Consumer<LanguageProvider>(
+                      builder: (_, lp, __) => Text(
+                        lp.loc.deleteSelected,
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 13),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
+              ),
             ],
           ),
-          body: cart.isEmpty
-              ? _buildEmptyCart(context)
-              : _buildPcLayout(context, cart),
-        ),
-      );
-    }
-
-    return Scaffold(
-      backgroundColor: AppColors.surfaceGray,
-      appBar: AppBar(
-        backgroundColor: AppColors.textPrimary,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded,
-              color: Colors.white, size: 20),
-          onPressed: () => _handleBack(context),
-        ),
-        title: Consumer2<CartProvider, LanguageProvider>(
-          builder: (context, cart, lp, _) => Text(
-            '${lp.loc.cart} (${cart.itemCount})',
-            style: const TextStyle(
-                color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800),
-          ),
-        ),
-        actions: [
-          Consumer<CartProvider>(
+          body: Consumer<CartProvider>(
             builder: (context, cart, _) {
-              if (cart.isEmpty) return const SizedBox.shrink();
-              return TextButton(
-                onPressed: () => _showClearDialog(context, cart),
-                child: Consumer<LanguageProvider>(
-                  builder: (_, lp, __) => Text(
-                    lp.loc.deleteSelected,
-                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+              if (cart.isEmpty) return _buildEmptyCart(context);
+              return Column(
+                children: [
+                  // 상단 안내 바
+                  Container(
+                    color: Colors.white,
+                    padding: EdgeInsets.symmetric(
+                        horizontal: r.contentGutter, vertical: r.h(10)),
+                    child: Row(
+                      children: [
+                        Icon(Icons.check_circle_outline_rounded,
+                            size: r.sp(14), color: AppColors.success),
+                        SizedBox(width: r.w(6)),
+                        Text(loc.cartOrderSelectedNote,
+                            style: TextStyle(
+                                fontSize: r.sp(12),
+                                color: AppColors.textSecondary)),
+                      ],
+                    ),
                   ),
-                ),
+                  Expanded(
+                    child: RefreshIndicator(
+                      color: AppColors.primary,
+                      backgroundColor: Colors.white,
+                      onRefresh: () =>
+                          context.read<ProductProvider>().refresh(),
+                      child: ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: EdgeInsets.all(r.contentGutter),
+                        itemCount: cart.items.length,
+                        itemBuilder: (context, index) =>
+                            _buildCartItem(context, cart, cart.items[index]),
+                      ),
+                    ),
+                  ),
+                  _buildSummary(context, cart),
+                ],
               );
             },
           ),
-        ],
-      ),
-      body: Consumer<CartProvider>(
-        builder: (context, cart, _) {
-          if (cart.isEmpty) return _buildEmptyCart(context);
-          return Column(
-            children: [
-              // 상단 안내 바
-              Container(
-                color: Colors.white,
-                padding: EdgeInsets.symmetric(
-                    horizontal: r.contentGutter, vertical: r.h(10)),
-                child: Row(
-                  children: [
-                    Icon(Icons.check_circle_outline_rounded,
-                        size: r.sp(14), color: AppColors.success),
-                    SizedBox(width: r.w(6)),
-                    Text(loc.cartOrderSelectedNote,
-                        style: TextStyle(
-                            fontSize: r.sp(12),
-                            color: AppColors.textSecondary)),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: RefreshIndicator(
-                  color: AppColors.primary,
-                  backgroundColor: Colors.white,
-                  onRefresh: () => context.read<ProductProvider>().refresh(),
-                  child: ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: EdgeInsets.all(r.contentGutter),
-                    itemCount: cart.items.length,
-                    itemBuilder: (context, index) =>
-                        _buildCartItem(context, cart, cart.items[index]),
-                  ),
-                ),
-              ),
-              _buildSummary(context, cart),
-            ],
-          );
-        },
-      ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCartLoading() {
+    return const Scaffold(
+      backgroundColor: AppColors.surfaceGray,
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 

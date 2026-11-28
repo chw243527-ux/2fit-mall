@@ -46,6 +46,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _intlCountryCtrl = TextEditingController(); // Country
   final _detailAddressFocusNode = FocusNode(); // 상세주소 자동 포커스용
   bool _isProcessing = false;
+  bool _cartRestored = false;
   bool _isOverseas = false; // false=국내, true=해외
   String _zonecode = '';
 
@@ -72,6 +73,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
+    widget.cart.ensureRestored().then((_) {
+      if (mounted) setState(() => _cartRestored = true);
+    });
     final user = Provider.of<UserProvider>(context, listen: false).user;
     if (user == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -215,6 +219,50 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
+    if (!_cartRestored) {
+      return wrapWithPopScope(
+        context,
+        const Scaffold(
+          backgroundColor: AppColors.background,
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+    if (widget.cart.isEmpty) {
+      return wrapWithPopScope(
+        context,
+        Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            title: Text(loc.checkoutPayment),
+            backgroundColor: AppColors.primary,
+          ),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.shopping_cart_outlined,
+                      size: 48, color: AppColors.textHint),
+                  const SizedBox(height: 12),
+                  Text(
+                    context.loc.t('장바구니가 비어 있습니다.', '장바구니가 비어 있습니다.'),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => goBackOrHome(context),
+                    child: Text(context.loc.t('장바구니로 돌아가기', '장바구니로 돌아가기')),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     if (isPcWeb(context)) return _buildPcLayout(context);
 
     return wrapWithPopScope(
