@@ -3024,10 +3024,12 @@ class _HomeScreenState extends State<HomeScreen>
         : _withEliteOrderBanner(bannerProv.activeBanners);
     final mq = MediaQuery.of(context);
     final screenW = mq.size.width;
-    // ── 배너 높이: 화면 너비 기준 16:9 비율 ──
-    // 이미지와 영상은 배너 영역을 가득 채우고, 원본 비율이 다르면
-    // 중앙 기준으로 자연스럽게 크롭합니다.
-    final bannerH = screenW * 9 / 16;
+    // ── 배너 높이: 모바일은 예시 화면처럼 정사각형, 태블릿은 16:9 ──
+    // 모바일에서 배너가 화면 너비와 거의 같은 높이로 보여 이미지와
+    // 핵심 디자인이 충분히 노출되도록 합니다. 이미지와 영상은 배너
+    // 영역을 가득 채우고, 원본 비율이 다르면 중앙 기준으로 크롭합니다.
+    final isMobile = screenW < kMobileBreakpoint;
+    final bannerH = isMobile ? screenW : screenW * 9 / 16;
 
     // Firestore 배너가 없을 때는 로컬 asset 동영상만 표시
     if (activeBanners.isEmpty) {
@@ -4422,12 +4424,11 @@ class _HomeScreenState extends State<HomeScreen>
         ? <BannerModel>[]
         : _withEliteOrderBanner(bannerProv.activeBanners);
 
-    // 배너: 모바일 → 화면 전체 높이, 태블릿/PC → 16:9 비율
+    // 배너: 모바일 → 정사각형, 태블릿/PC → 16:9 비율
     final mq = MediaQuery.of(context);
     final screenW = mq.size.width;
     final isMobile = screenW < 600;
-    final bannerHeight =
-        isMobile ? mq.size.height - mq.viewPadding.bottom : screenW * (9 / 16);
+    final bannerHeight = isMobile ? screenW : screenW * (9 / 16);
 
     // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 + 텍스트 즉시 표시
     if (activeBanners.isEmpty) {
