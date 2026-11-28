@@ -805,7 +805,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               fontWeight: FontWeight.w600,
                               color: isElite
                                   ? AppColors.accent
-                                  : const Color(0xFF3949AB),
+                                  : AppColors.accentStrong,
                             ),
                           ),
                         ],

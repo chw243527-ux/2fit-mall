@@ -1,47 +1,40 @@
 import 'package:flutter/material.dart';
 
-/// 2FIT Mall - Refined Minimal Design System
-/// Clean, modern, premium feel
-/// - Deep Charcoal primary with warm white surfaces
-/// - Soft shadows and gentle radii
-/// - Refined typography with balanced spacing
+/// NEXTR Mall - White + sky-blue design system
+/// Clean, modern, premium feel with the attached size-guide palette.
 
-/// 2FIT Mall - Refined Minimal Design System
-/// Clean, modern, premium feel
-/// - Deep Charcoal primary with warm white surfaces
-/// - Soft shadows and gentle radii
-/// - Refined typography with balanced spacing
 class AppColors {
-  // ── Core: NEXTR sky-blue editorial palette ──
-  static const Color primary = Color(0xFF111214); // ink black
-  static const Color primaryLight = Color(0xFF2B2D30);
-  // 첨부 사이즈 가이드의 하늘색(#C5E5F5)을 기준으로 가독성을 보정한 포인트 색상
-  static const Color accent = Color(0xFF6FAFC8);
-  static const Color accentLight = Color(0xFFC5E5F5);
+  // ── Core: attached size-guide sky-blue palette ──
+  static const Color primary = Color(0xFF17242B); // deep blue-charcoal
+  static const Color primaryLight = Color(0xFF314B57);
+  static const Color accent = Color(0xFF6FAFC8); // readable sky blue
+  static const Color accentStrong = Color(0xFF4F849A); // text/icon-safe blue
+  static const Color accentLight = Color(0xFFC5E5F5); // guide-table blue
+  static const Color accentSoft = Color(0xFFEAF6FB); // pale blue surface
   static const Color accentOrange = Color(0xFF6FAFC8);
   static const Color accentGold = Color(0xFF6FAFC8);
 
   // ── Background ──
-  static const Color background = Color(0xFFF5F5F2); // warm editorial off-white
+  static const Color background = Color(0xFFF8FCFE); // cool white
   static const Color surface = Color(0xFFFFFFFF); // pure white cards
   static const Color cardBg = Color(0xFFFFFFFF);
-  static const Color surfaceGray = Color(0xFFEFEFEB); // utility surface
+  static const Color surfaceGray = Color(0xFFF0F8FB); // utility surface
 
   // ── Text ──
-  static const Color textPrimary = Color(0xFF111214);
-  static const Color textSecondary = Color(0xFF676A69);
-  static const Color textHint = Color(0xFFA3A6A1);
+  static const Color textPrimary = Color(0xFF17242B);
+  static const Color textSecondary = Color(0xFF5D7078);
+  static const Color textHint = Color(0xFF91A5AD);
   static const Color textWhite = Color(0xFFFFFFFF);
 
   // ── Border / Divider ──
-  static const Color border = Color(0xFFE0E1DC);
-  static const Color divider = Color(0xFFE9EAE5);
+  static const Color border = Color(0xFFD7EAF1);
+  static const Color divider = Color(0xFFE5F1F5);
 
   // ── Status ──
   static const Color success = Color(0xFF00A651);
   static const Color error = Color(0xFFE53935);
   static const Color warning = Color(0xFFFFB300);
-  static const Color info = Color(0xFF2979FF);
+  static const Color info = Color(0xFF4F849A);
 
   // ── Category ──
   static const Color catTop = Color(0xFF111214);
@@ -52,16 +45,16 @@ class AppColors {
 
   // ── Gradient ──
   static const List<Color> primaryGradient = [
-    Color(0xFF111214),
-    Color(0xFF2B2D30)
+    Color(0xFF17242B),
+    Color(0xFF314B57)
   ];
   static const List<Color> accentGradient = [
-    Color(0xFFC5E5F5),
+    Color(0xFFEAF6FB),
     Color(0xFF6FAFC8)
   ];
   static const List<Color> heroGradient = [
-    Color(0xFF0D0E0F),
-    Color(0xFF242629)
+    Color(0xFF17242B),
+    Color(0xFF314B57)
   ];
 }
 

@@ -3731,7 +3731,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                 vertical: r.h(9),
               ),
               decoration: BoxDecoration(
-                color: const Color(0xFFF3E5F5),
+                color: AppColors.accentSoft,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: AppColors.primary.withValues(alpha: 0.25),
@@ -4477,7 +4477,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                 vertical: r.h(10),
               ),
               decoration: BoxDecoration(
-                color: const Color(0xFFF3E5F5),
+                color: AppColors.accentSoft,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: AppColors.primary.withValues(alpha: 0.25),
@@ -4874,10 +4874,10 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
               vertical: r.h(8),
             ),
             decoration: BoxDecoration(
-              color: const Color(0xFFF3E5F5),
+              color: AppColors.accentSoft,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: const Color(0xFF9C27B0).withValues(alpha: 0.3),
+                color: AppColors.accent.withValues(alpha: 0.3),
               ),
             ),
             child: Row(
@@ -4885,7 +4885,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                 const Icon(
                   Icons.photo_library_rounded,
                   size: 14,
-                  color: Color(0xFF7B1FA2),
+                  color: AppColors.accentStrong,
                 ),
                 SizedBox(width: r.w(6)),
                 Text(
@@ -4893,7 +4893,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                   style: TextStyle(
                     fontSize: r.sp(12),
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF7B1FA2),
+                    color: AppColors.accentStrong,
                   ),
                 ),
               ],
@@ -8139,7 +8139,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
             label: context.loc.t('심리스', '심리스'),
             icon: Icons.blur_circular_rounded,
             color: AppColors.primary,
-            bgColor: const Color(0xFFF3E5F5),
+            bgColor: AppColors.accentSoft,
             imgs: seamlessImgs,
             isAdmin: isAdmin,
           ),
@@ -9577,7 +9577,7 @@ NEXTR에서 최고의 스포츠웨어를 만나보세요!''';
                   Container(
                     padding: EdgeInsets.all(r.w(16)),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF3E5F5),
+                      color: AppColors.accentSoft,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: AppColors.primary.withValues(alpha: 0.3),
@@ -12884,10 +12884,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     Container(
                       padding: EdgeInsets.all(r.w(12)),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF3E5F5),
+                        color: AppColors.accentSoft,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: const Color(0xFF9C27B0).withValues(alpha: 0.3),
+                          color: AppColors.accent.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Row(

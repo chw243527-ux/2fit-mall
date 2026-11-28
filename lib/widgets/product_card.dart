@@ -10,6 +10,10 @@ import '../utils/constants.dart';
 // ignore: unused_import
 import '../utils/app_localizations.dart';
 
+/// 모든 상품 카드가 공유하는 이미지 종횡비입니다.
+/// 가로 4 : 세로 5로 홈의 기성품·단체주문·신상품 영역을 통일합니다.
+const double kProductCardImageAspectRatio = 4 / 5;
+
 /// 공유 상품 카드 — 홈화면 단체주문 카드와 동일한 스타일
 /// · 이미지 4:5 비율 / BoxFit.cover (이미지 꽉 채움)
 /// · 좌상단: NEW / SALE / GROUP 배지
@@ -102,7 +106,7 @@ class ProductCard extends StatelessWidget {
     }
 
     return AspectRatio(
-      aspectRatio: 4 / 5,
+      aspectRatio: kProductCardImageAspectRatio,
       child: Stack(
         fit: StackFit.expand,
         children: [

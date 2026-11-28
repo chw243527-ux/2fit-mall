@@ -8,9 +8,9 @@ import '../../utils/app_localizations.dart';
 
 import '../../utils/theme.dart';
 
-const Color _purple = AppColors.primary;
+const Color _skyBlue = AppColors.primary;
 // ignore: unused_element
-const Color _purpleLight = Color(0xFFF3E5F5);
+const Color _skyBlueLight = AppColors.accentSoft;
 
 // ── 성인 사이즈 옵션 ─────────────────────────────────────
 const List<String> _adultSizes = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
@@ -62,7 +62,7 @@ class SizeProfileScreen extends StatelessWidget {
             title: Text(context.loc.t('내_사이즈_관리', '내 사이즈 관리'),
                 style:
                     const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
-            backgroundColor: _purple,
+            backgroundColor: _skyBlue,
             foregroundColor: Colors.white,
             elevation: 0,
             leading: IconButton(
@@ -84,7 +84,7 @@ class SizeProfileScreen extends StatelessWidget {
                               content: Text(
                                   '최대 ${SizeProfileService.maxProfiles}개까지 저장 가능합니다.')),
                         ),
-                backgroundColor: canAdd ? _purple : Colors.grey,
+                backgroundColor: canAdd ? _skyBlue : Colors.grey,
                 icon: const Icon(Icons.add, color: Colors.white),
                 label: Text(context.loc.t('새_사이즈_추가', '새 사이즈 추가'),
                     style: const TextStyle(
@@ -105,7 +105,7 @@ class _SizeProfileBody extends StatelessWidget {
     return Consumer<SizeProfileProvider>(
       builder: (ctx, prov, _) {
         if (prov.loading) {
-          return const Center(child: CircularProgressIndicator(color: _purple));
+          return const Center(child: CircularProgressIndicator(color: _skyBlue));
         }
         if (prov.profiles.isEmpty) {
           return Center(
@@ -151,7 +151,7 @@ class _ProfileCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _purple.withValues(alpha: 0.15)),
+        border: Border.all(color: _skyBlue.withValues(alpha: 0.15)),
         boxShadow: [
           BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -189,7 +189,7 @@ class _ProfileCard extends StatelessWidget {
                       color: AppColors.primary)),
             ),
             IconButton(
-              icon: const Icon(Icons.edit_outlined, color: _purple, size: 20),
+              icon: const Icon(Icons.edit_outlined, color: _skyBlue, size: 20),
               onPressed: () => _openEditSheet(context, user, profile),
               tooltip: context.loc.t('수정', '수정'),
               padding: EdgeInsets.zero,
@@ -478,7 +478,7 @@ class _EditSheetState extends State<_EditSheet> {
               child: ElevatedButton(
                 onPressed: _saving ? null : _save,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _purple,
+                  backgroundColor: _skyBlue,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -518,28 +518,28 @@ class _EditSheetState extends State<_EditSheet> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
           decoration: BoxDecoration(
             color: _tableExpanded
-                ? _purple.withValues(alpha: 0.07)
+                ? _skyBlue.withValues(alpha: 0.07)
                 : Colors.grey.shade50,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
                 color: _tableExpanded
-                    ? _purple.withValues(alpha: 0.3)
+                    ? _skyBlue.withValues(alpha: 0.3)
                     : Colors.grey.shade200),
           ),
           child: Row(children: [
             Icon(Icons.table_chart_outlined,
                 size: 15,
-                color: _tableExpanded ? _purple : Colors.grey.shade500),
+                color: _tableExpanded ? _skyBlue : Colors.grey.shade500),
             const SizedBox(width: 6),
             Text(context.loc.t('사이즈_참고표', '사이즈 참고표'),
                 style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: _tableExpanded ? _purple : Colors.grey.shade600)),
+                    color: _tableExpanded ? _skyBlue : Colors.grey.shade600)),
             const Spacer(),
             Icon(_tableExpanded ? Icons.expand_less : Icons.expand_more,
                 size: 18,
-                color: _tableExpanded ? _purple : Colors.grey.shade400),
+                color: _tableExpanded ? _skyBlue : Colors.grey.shade400),
           ]),
         ),
       ),
@@ -561,7 +561,7 @@ class _EditSheetState extends State<_EditSheet> {
               children: [
                 TableRow(
                   decoration:
-                      BoxDecoration(color: _purple.withValues(alpha: 0.08)),
+                      BoxDecoration(color: _skyBlue.withValues(alpha: 0.08)),
                   children: headers
                       .map((h) => Padding(
                             padding: const EdgeInsets.symmetric(
@@ -570,7 +570,7 @@ class _EditSheetState extends State<_EditSheet> {
                                 style: const TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w800,
-                                    color: _purple)),
+                                    color: _skyBlue)),
                           ))
                       .toList(),
                 ),
@@ -606,10 +606,10 @@ class _EditSheetState extends State<_EditSheet> {
             duration: const Duration(milliseconds: 150),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? _purple : Colors.grey.shade50,
+              color: isSelected ? _skyBlue : Colors.grey.shade50,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                  color: isSelected ? _purple : Colors.grey.shade300,
+                  color: isSelected ? _skyBlue : Colors.grey.shade300,
                   width: isSelected ? 2 : 1),
             ),
             child: Text(size,
@@ -654,7 +654,7 @@ class _EditSheetState extends State<_EditSheet> {
               borderSide: BorderSide(color: Colors.grey.shade300)),
           focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: _purple, width: 1.5)),
+              borderSide: const BorderSide(color: _skyBlue, width: 1.5)),
         ),
       ),
     ]);
@@ -680,7 +680,7 @@ class _EditSheetState extends State<_EditSheet> {
             borderSide: BorderSide(color: Colors.grey.shade300)),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: _purple, width: 1.5)),
+            borderSide: const BorderSide(color: _skyBlue, width: 1.5)),
       ),
     );
   }
@@ -719,10 +719,10 @@ class _EditSheetState extends State<_EditSheet> {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? _purple : Colors.grey.shade100,
+          color: selected ? _skyBlue : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-              color: selected ? _purple : Colors.grey.shade300, width: 1.5),
+              color: selected ? _skyBlue : Colors.grey.shade300, width: 1.5),
         ),
         child: Text(label,
             style: TextStyle(
@@ -772,7 +772,7 @@ class _EditSheetState extends State<_EditSheet> {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(context.loc.t('사이즈_프로필이_저장되었습니다', '사이즈 프로필이 저장되었습니다.')),
-        backgroundColor: _purple,
+        backgroundColor: _skyBlue,
         behavior: SnackBarBehavior.floating,
       ));
     }

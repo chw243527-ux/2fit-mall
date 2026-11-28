@@ -2146,7 +2146,7 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             // 이미지 — 카드 완전히 채움
             AspectRatio(
-              aspectRatio: 4 / 5,
+              aspectRatio: kProductCardImageAspectRatio,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -2652,7 +2652,7 @@ class _HomeScreenState extends State<HomeScreen>
     final colCount = isTabletW ? 4 : 5;
     final cardW = ((screenW - 24 - 8 * (colCount - 1)) / colCount)
         .clamp(72.0, isTabletW ? 200.0 : 150.0);
-    final imgH = cardW * 1.25; // 4:5 비율
+    final imgH = cardW / kProductCardImageAspectRatio; // 공통 4:5 비율
 
     return Container(
       color: Colors.white,
@@ -2695,7 +2695,7 @@ class _HomeScreenState extends State<HomeScreen>
                             children: [
                               // 이미지
                               AspectRatio(
-                                aspectRatio: 4 / 5,
+                                aspectRatio: kProductCardImageAspectRatio,
                                 child: Stack(
                                   fit: StackFit.expand,
                                   children: [
@@ -3242,7 +3242,7 @@ class _HomeScreenState extends State<HomeScreen>
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: const Color(0xFFF3E5F5),
+              color: AppColors.accentSoft,
               borderRadius: BorderRadius.circular(18),
             ),
             child: const Icon(Icons.groups_rounded,
@@ -5179,7 +5179,7 @@ class _HomeScreenState extends State<HomeScreen>
     // ── 카드 크기: PC 220px 고정, 태블릿 28%, 모바일 40%
     final isPc = screenW >= kPcBreakpoint;
     final cardW = isPc ? 220.0 : (isTabletW ? screenW * 0.28 : screenW * 0.40);
-    final imgH = cardW * (5 / 4); // 4:5 비율
+    final imgH = cardW / kProductCardImageAspectRatio; // 공통 4:5 비율
 
     return Container(
       color: Colors.white,
@@ -5920,7 +5920,7 @@ class _NoticePopupState extends State<_NoticePopup> {
   // ── 테마별 그라디언트 (이미지 없을 때) ──
   static const Map<String, List<Color>> _themeGradients = {
     'general': [Color(0xFF2C3E50), Color(0xFF4CA1AF)],
-    'event': [Color(0xFF8E24AA), Color(0xFFE040FB)],
+    'event': [AppColors.accentStrong, AppColors.accent],
     'delivery': [AppColors.primary, Color(0xFF42A5F5)],
     'warning': [Color(0xFFBF360C), Color(0xFFFF7043)],
     'update': [Color(0xFF1B5E20), AppColors.success],

@@ -1133,7 +1133,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: const BoxDecoration(
-              color: Color(0xFFF3E5F5),
+              color: AppColors.accentSoft,
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(7)),
             ),
             child: Row(

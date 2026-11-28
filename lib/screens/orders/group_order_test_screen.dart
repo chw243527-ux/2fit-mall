@@ -1125,7 +1125,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
       case OrderStatus.confirmed:
         return AppColors.info;
       case OrderStatus.processing:
-        return const Color(0xFF7B1FA2);
+        return AppColors.accentStrong;
       case OrderStatus.shipped:
         return const Color(0xFF00838F);
       case OrderStatus.delivered:

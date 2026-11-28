@@ -2295,7 +2295,7 @@ class _PcOrderCard extends StatelessWidget {
                 btns.add(_ActionBtn(
                   icon: Icons.edit_note_rounded,
                   label: context.loc.t('디자인수정', '디자인수정'),
-                  color: const Color(0xFF7B1FA2),
+                  color: AppColors.accentStrong,
                   badge: '${order.remainingDesignRevisions}회',
                   onTap: () => onDesignRevision?.call(order),
                 ));
@@ -2354,7 +2354,7 @@ class _PcOrderCard extends StatelessWidget {
       case OrderStatus.confirmed:
         return AppColors.info;
       case OrderStatus.processing:
-        return const Color(0xFF7B1FA2);
+        return AppColors.accentStrong;
       case OrderStatus.shipped:
         return const Color(0xFF00838F);
       case OrderStatus.delivered:
@@ -3865,7 +3865,7 @@ class _MobileMyPage extends StatelessWidget {
                     controller: tabController,
                     isScrollable: true,
                     tabAlignment: TabAlignment.start,
-                    indicatorColor: const Color(0xFFCE93D8),
+                    indicatorColor: AppColors.accentLight,
                     labelColor: AppColors.textPrimary,
                     unselectedLabelColor: AppColors.textSecondary,
                     labelStyle: TextStyle(
@@ -4908,7 +4908,7 @@ class _MobileOrderCard extends StatelessWidget {
                 row2.add(_ActionBtn(
                   icon: Icons.edit_note_rounded,
                   label: context.loc.t('디자인수정', '디자인수정'),
-                  color: const Color(0xFF7B1FA2),
+                  color: AppColors.accentStrong,
                   badge: '${order.remainingDesignRevisions}회',
                   onTap: () => onDesignRevision?.call(order),
                 ));
@@ -4979,7 +4979,7 @@ class _MobileOrderCard extends StatelessWidget {
       case OrderStatus.confirmed:
         return AppColors.info;
       case OrderStatus.processing:
-        return const Color(0xFF7B1FA2);
+        return AppColors.accentStrong;
       case OrderStatus.shipped:
         return const Color(0xFF00838F);
       case OrderStatus.delivered:
@@ -5516,7 +5516,7 @@ class _MobileSettingsTab extends StatelessWidget {
                       .t('테스트_주문_생성__배송조회_6c8665', '테스트 주문 생성 (배송조회 포함)'),
                   subtitle: context.loc
                       .t('운송장_등록된_shipped_e652bc', '운송장 등록된 shipped 상태 테스트 주문'),
-                  color: const Color(0xFF7B1FA2),
+                  color: AppColors.accentStrong,
                   onTap: () => _createTestOrder(context, user!),
                 ),
               ]),
@@ -5573,7 +5573,7 @@ class _MobileSettingsTab extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('✅ 테스트 주문 생성 완료\n주문번호: $orderId'),
-            backgroundColor: const Color(0xFF7B1FA2),
+            backgroundColor: AppColors.accentStrong,
             duration: const Duration(seconds: 4),
           ),
         );
@@ -7675,17 +7675,17 @@ Future<void> _showUserOrderDetail(
                                               : Container(
                                                   height: 220,
                                                   color:
-                                                      const Color(0xFFF3E5F5),
+                                                      AppColors.accentSoft,
                                                   child: const Center(
                                                       child:
                                                           CircularProgressIndicator(
                                                               color: Color(
-                                                                  0xFF7B1FA2),
+                                                                  0xFF4F849A),
                                                               strokeWidth: 2)),
                                                 ),
                                       errorBuilder: (_, __, ___) => Container(
                                         height: 120,
-                                        color: const Color(0xFFEDE7F6),
+                                        color: const Color(0xFFEAF6FB),
                                         child: const Center(
                                             child: Icon(
                                                 Icons.broken_image_outlined,
@@ -7742,7 +7742,7 @@ Future<void> _showUserOrderDetail(
                                         const Icon(
                                             Icons.chat_bubble_outline_rounded,
                                             size: 13,
-                                            color: Color(0xFF7B1FA2)),
+                                            color: AppColors.accentStrong),
                                         const SizedBox(width: 6),
                                         Expanded(
                                           child: Text(
@@ -8448,7 +8448,7 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                                           vertical: 2),
                                       child: Row(children: [
                                         const Icon(Icons.person_outline_rounded,
-                                            size: 13, color: Color(0xFF7B1FA2)),
+                                            size: 13, color: AppColors.accentStrong),
                                         const SizedBox(width: 4),
                                         Expanded(
                                             child: Text(
@@ -8471,7 +8471,7 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                             const SizedBox(height: 8),
                             Row(children: [
                               const Icon(Icons.palette_rounded,
-                                  size: 14, color: Color(0xFF7B1FA2)),
+                                  size: 14, color: AppColors.accentStrong),
                               const SizedBox(width: 6),
                               Text('요청 색상 코드: $colorHex',
                                   style: const TextStyle(
@@ -8999,7 +8999,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height * 0.92;
-    const purple = Color(0xFF7B1FA2);
+    const skyBlue = AppColors.accentStrong;
 
     return Container(
       height: h,
@@ -9023,7 +9023,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Row(children: [
-              const Icon(Icons.edit_note_rounded, color: purple, size: 22),
+              const Icon(Icons.edit_note_rounded, color: skyBlue, size: 22),
               const SizedBox(width: 8),
               Expanded(
                   child: Column(
@@ -9040,13 +9040,13 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                    color: const Color(0xFFF3E5F5),
+                    color: AppColors.accentSoft,
                     borderRadius: BorderRadius.circular(20)),
                 child: Text('${widget.order.remainingDesignRevisions}회 남음',
                     style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: purple)),
+                        color: skyBlue)),
               ),
             ]),
           ),
@@ -9089,7 +9089,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
 
                           // ══ 1. 색상 변경 ══
                           _sectionLabel(Icons.palette_outlined,
-                              context.loc.t('색상', '색상'), purple),
+                              context.loc.t('색상', '색상'), skyBlue),
                           const SizedBox(height: 6),
 
                           // ── 선택된 색상 미리보기 패널 ──
@@ -9227,7 +9227,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                                         horizontal: 8,
                                                         vertical: 3),
                                                     decoration: BoxDecoration(
-                                                      color: purple.withValues(
+                                                      color: skyBlue.withValues(
                                                           alpha: 0.1),
                                                       borderRadius:
                                                           BorderRadius.circular(
@@ -9238,7 +9238,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                                             fontSize: 10,
                                                             fontWeight:
                                                                 FontWeight.w700,
-                                                            color: purple)),
+                                                            color: skyBlue)),
                                                   ),
                                                 ]),
                                             const SizedBox(height: 4),
@@ -9252,8 +9252,8 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                                 child: SliderTheme(
                                                   data: SliderTheme.of(context)
                                                       .copyWith(
-                                                    thumbColor: purple,
-                                                    activeTrackColor: purple,
+                                                    thumbColor: skyBlue,
+                                                    activeTrackColor: skyBlue,
                                                     inactiveTrackColor:
                                                         Colors.grey.shade200,
                                                     trackHeight: 3,
@@ -9298,11 +9298,11 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                             child: TabBar(
                               controller: _colorTabCtrl,
                               indicator: BoxDecoration(
-                                color: purple,
+                                color: skyBlue,
                                 borderRadius: BorderRadius.circular(9),
                                 boxShadow: [
                                   BoxShadow(
-                                      color: purple.withValues(alpha: 0.3),
+                                      color: skyBlue.withValues(alpha: 0.3),
                                       blurRadius: 4,
                                       offset: const Offset(0, 2))
                                 ],
@@ -9367,13 +9367,13 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                               vertical: 5, horizontal: 2),
                                           decoration: BoxDecoration(
                                             color: isSel
-                                                ? const Color(0xFFF3E5F5)
+                                                ? AppColors.accentSoft
                                                 : Colors.transparent,
                                             borderRadius:
                                                 BorderRadius.circular(10),
                                             border: Border.all(
                                               color: isSel
-                                                  ? purple
+                                                  ? skyBlue
                                                   : Colors.grey.shade200,
                                               width: isSel ? 2 : 1,
                                             ),
@@ -9385,7 +9385,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                                   color: cVal,
                                                   size: 38,
                                                   isSelected: isSel,
-                                                  accentColor: purple,
+                                                  accentColor: skyBlue,
                                                   isLight: isLight,
                                                   borderRadius: 10,
                                                   child: isSel
@@ -9404,7 +9404,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                                     fontSize: 9,
                                                     fontWeight: FontWeight.w900,
                                                     color: isSel
-                                                        ? purple
+                                                        ? skyBlue
                                                         : Colors.black54,
                                                     letterSpacing: 0.3,
                                                   ),
@@ -9416,7 +9416,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                                     fontSize: 8,
                                                     fontWeight: FontWeight.w500,
                                                     color: isSel
-                                                        ? purple.withValues(
+                                                        ? skyBlue.withValues(
                                                             alpha: 0.8)
                                                         : Colors.black38,
                                                   ),
@@ -9613,7 +9613,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                                                 .circular(8),
                                                         borderSide:
                                                             const BorderSide(
-                                                                color: purple,
+                                                                color: skyBlue,
                                                                 width: 1.5)),
                                               ),
                                               onChanged: (v) {
@@ -9644,7 +9644,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                           ElevatedButton(
                                             onPressed: _applyHex,
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: purple,
+                                              backgroundColor: skyBlue,
                                               foregroundColor: Colors.white,
                                               padding:
                                                   const EdgeInsets.symmetric(
@@ -9769,7 +9769,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                                       BorderRadius.circular(8),
                                                   border: Border.all(
                                                       color: isSel
-                                                          ? purple
+                                                          ? skyBlue
                                                           : c.withValues(
                                                               alpha: 0.4)),
                                                 ),
@@ -10130,7 +10130,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                   borderRadius: BorderRadius.circular(10)),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: purple),
+                                borderSide: const BorderSide(color: skyBlue),
                               ),
                             ),
                           ),
@@ -10181,7 +10181,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                             child: ElevatedButton(
                               onPressed: _isSubmitting ? null : _submit,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: purple,
+                                backgroundColor: skyBlue,
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12)),
                               ),
@@ -10211,7 +10211,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
           padding: const EdgeInsets.all(32),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             const Icon(Icons.check_circle_rounded,
-                size: 64, color: Color(0xFF7B1FA2)),
+                size: 64, color: AppColors.accentStrong),
             const SizedBox(height: 16),
             Text(context.loc.t('수정_요청_완료', '수정 요청 완료!'),
                 style:
@@ -10226,7 +10226,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7B1FA2),
+                backgroundColor: AppColors.accentStrong,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
               ),
@@ -11678,7 +11678,7 @@ String _carrierIdFromName(String name) {
       return (
         label: ctx.loc.t('집하_완료', '집하 완료'),
         icon: Icons.inventory_2_outlined,
-        color: const Color(0xFF7B1FA2)
+        color: AppColors.accentStrong
       );
     case 'IN_TRANSIT':
       return (
